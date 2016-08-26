@@ -32,19 +32,79 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>10</y>
+      <x>0</x>
+      <y>0</y>
       <width>1421</width>
       <height>891</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
       <string>Trajectory</string>
      </attribute>
+     <widget class="QWidget" name="formLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>160</width>
+        <height>94</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout">
+       <property name="fieldGrowthPolicy">
+        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="start">
+         <property name="minimum">
+          <double>-99.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="stop">
+         <property name="minimum">
+          <double>-99.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>steps</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="steps">
+         <property name="minimum">
+          <number>2</number>
+         </property>
+         <property name="maximum">
+          <number>999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>stop</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -230,7 +290,7 @@
      <x>0</x>
      <y>0</y>
      <width>1455</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
