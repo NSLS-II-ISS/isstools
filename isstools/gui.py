@@ -9,6 +9,10 @@ import pkg_resources
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
+def my_plan(dets, some, other, param):
+	...
+
+
 
 def auto_redraw_factory(fnc):
 
@@ -39,6 +43,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plots.addWidget(self.canvas)
         self.canvas.draw()
 
+    @property
+    def plot_x(self):
+        return self.plot_selection_dropdown.value()
+
     def figure_content(self):
         fig1 = Figure()
         fig1.set_facecolor(color='0.89')
@@ -50,7 +58,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     @property
     def plan(self):
-        return self.plan_func()
+        lp = LivePlot(self.plot_x,
+                      self.plot_y,
+                      fig=self.fig)
+
+        @subs_decorator([lp])
+        def scan_gui_plan():
+            return (yield from self.plan_func(self.dets, *self.get_args()))
 
 
 def tune_factory(motor):
