@@ -1,6 +1,6 @@
 # Temperature-conversion program using PyQt
 import numpy as np
-from PyQt4 import QtGui, uic
+from PyQt4 import uic
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -22,10 +22,9 @@ def auto_redraw_factory(fnc):
 
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, motor, dets, parent=None):
+    def __init__(self, plan_func, parent=None):
         super().__init__(parent)
-        self.motor = motor
-        self.dets = dets
+        self.plan_func = plan_func
         self.setupUi(self)
         self.fig = fig = self.figure_content()
         self.addCanvas(fig)
@@ -51,19 +50,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     @property
     def plan(self):
-        from bluesky.plans import subs_decorator, scan
-        from bluesky.callbacks import LiveTable, LivePlot
-        from bluesky.utils import first_key_heuristic
+        return self.plan_func()
 
-        lp = LivePlot(first_key_heuristic(self.dets[0]),
-                      first_key_heuristic(self.motor),
-                      fig=self.fig)
 
-        @subs_decorator([LiveTable([self.motor] + self.dets), lp])
-        def scan_gui_plan():
-            yield from scan(self.dets,
-                            self.motor, self.start.value(), self.stop.value(),
-                            self.steps.value(),
-                            md={'created_by': 'GUI'})
+def tune_factory(motor):
+    from bluesky.plans import scan
+    from collections import ChainMap
 
-        return scan_gui_plan()
+    def tune(md=None):
+        if md is None:
+            md = {}
+        md = ChainMap(md, {'plan_name': 'tuning {}'.format(motor)})
+        yield from scan(motor, -1, 1, 100, md=md)
+
+    return tune
