@@ -32,6 +32,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.fig = fig = self.figure_content()
         self.addCanvas(fig)
+        self.run_start.clicked.connect(self.test)
 
     def addCanvas(self, fig):
         self.canvas = FigureCanvas(fig)
@@ -56,25 +57,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.ax = ax1f1
         return fig1
 
-    @property
-    def plan(self):
-        lp = LivePlot(self.plot_x,
-                      self.plot_y,
-                      fig=self.fig)
-
-        @subs_decorator([lp])
-        def scan_gui_plan():
-            return (yield from self.plan_func(self.dets, *self.get_args()))
+    def test(self):
+        self.plan_func()
 
 
-def tune_factory(motor):
-    from bluesky.plans import scan
-    from collections import ChainMap
+#    @property
+#    def plan(self):
+#        lp = LivePlot(self.plot_x,
+#                      self.plot_y,
+#                      fig=self.fig)
 
-    def tune(md=None):
-        if md is None:
-            md = {}
-        md = ChainMap(md, {'plan_name': 'tuning {}'.format(motor)})
-        yield from scan(motor, -1, 1, 100, md=md)
+#        @subs_decorator([lp])
+#        def scan_gui_plan():
+#            return (yield from self.plan_func(self.dets, *self.get_args()))
 
-    return tune
+
+#def tune_factory(motor):
+#    from bluesky.plans import scan
+#    from collections import ChainMap
+
+#    def tune(md=None):
+#        if md is None:
+#            md = {}
+#        md = ChainMap(md, {'plan_name': 'tuning {}'.format(motor)})
+#        yield from scan(motor, -1, 1, 100, md=md)
+
+#    return tune
+
+
