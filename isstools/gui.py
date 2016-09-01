@@ -13,7 +13,6 @@ def my_plan(dets, some, other, param):
 	...
 
 
-
 def auto_redraw_factory(fnc):
 
     def stale_callback(fig, stale):

@@ -39,72 +39,17 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
       <string>Trajectory</string>
      </attribute>
-     <widget class="QWidget" name="formLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>160</width>
-        <height>94</height>
-       </rect>
-      </property>
-      <layout class="QFormLayout" name="formLayout">
-       <property name="fieldGrowthPolicy">
-        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-       </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="start">
-         <property name="minimum">
-          <double>-99.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="stop">
-         <property name="minimum">
-          <double>-99.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>steps</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSpinBox" name="steps">
-         <property name="minimum">
-          <number>2</number>
-         </property>
-         <property name="maximum">
-          <number>999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>stop</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_5">
+     <attribute name="title">
+      <string>Tune</string>
+     </attribute>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -226,7 +171,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>460</y>
+        <y>480</y>
         <width>171</width>
         <height>31</height>
        </rect>
@@ -253,7 +198,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="QLineEdit" name="run_comment"/>
        </item>
       </layout>
      </widget>
@@ -281,6 +226,66 @@
       </property>
       <layout class="QVBoxLayout" name="plots"/>
      </widget>
+     <widget class="QWidget" name="formLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>170</y>
+        <width>160</width>
+        <height>94</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_2">
+       <property name="fieldGrowthPolicy">
+        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="start">
+         <property name="minimum">
+          <double>-99.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="stop">
+         <property name="minimum">
+          <double>-99.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_24">
+         <property name="text">
+          <string>steps</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="steps">
+         <property name="minimum">
+          <number>2</number>
+         </property>
+         <property name="maximum">
+          <number>999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_25">
+         <property name="text">
+          <string>stop</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -290,7 +295,7 @@
      <x>0</x>
      <y>0</y>
      <width>1455</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
@@ -305,7 +310,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSelct_new_trajectory">
    <property name="text">
-    <string>Selct new trajectory...</string>
+    <string>Select new trajectory...</string>
    </property>
   </action>
  </widget>
