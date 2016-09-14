@@ -9,8 +9,8 @@ import pkg_resources
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
-def my_plan(dets, some, other, param):
-	...
+# def my_plan(dets, some, other, param):
+#	...
 
 
 def auto_redraw_factory(fnc):
@@ -22,7 +22,6 @@ def auto_redraw_factory(fnc):
             fig.canvas.draw_idle()
 
     return stale_callback
-
 
 class ScanGui(*uic.loadUiType(ui_path)):
     def __init__(self, plan_func, parent=None):
