@@ -10,7 +10,7 @@ class trajectory():
         pass
 
 
-    def build(self, edge_energy = 11564, offsets = ([-200,-30,50,1000]),velocities = ([200, 20, 200]), stitching = ([75, 75, 10, 10, 100, 100]),
+    def define(self, edge_energy = 11564, offsets = ([-200,-30,50,1000]),velocities = ([200, 20, 200]), stitching = ([75, 75, 10, 10, 100, 100]),
               servocycle = 16000, padding_lo = 1 ,padding_hi=1):
         preedge_lo = edge_energy+offsets[0]
         preedge_hi = edge_energy+offsets[1]
@@ -68,17 +68,10 @@ class trajectory():
 
 
     def interpolate(self):
-        print(self.time)
-        print(self.energy)
         cs = interpolate.CubicSpline(self.time,self.energy, bc_type='clamped')
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
         self.energy_grid=cs(self.time_grid)
 
-        """
-        spl = interpolate.splrep(self.time,self.energy)
-        self.time_grid = np.arange(self.time[0],self.time[-1],1/self.servocycle)
-        self.energy_grid=interpolate.splev(self.time_grid,spl,der=0)
-        """
     def cycle(self):
         self.time_grid=np.append(self.time_grid,(self.time_grid+self.time_grid[-1]))
         self.energy_grid=np.append(self.energy_grid,np.flipud(self.energy_grid))
