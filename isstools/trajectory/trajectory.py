@@ -72,18 +72,17 @@ class trajectory():
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
         self.energy_grid=cs(self.time_grid)
 
-    def cycle(self):
-        self.time_grid=np.append(self.time_grid,(self.time_grid+self.time_grid[-1]))
-        self.energy_grid=np.append(self.energy_grid,np.flipud(self.energy_grid))
 
     def tile (self,reps = 1):
-            self.time_grid = np.tile(self.time_grid, reps)
-            self.energy_grid = np.tile(self.energy_grid, reps)
+        self.time_grid = np.append(self.time_grid, (self.time_grid + self.time_grid[-1]))
+        self.energy_grid = np.append(self.energy_grid, np.flipud(self.energy_grid))
+        self.time_grid = np.tile(self.time_grid, reps)
+        self.energy_grid = np.tile(self.energy_grid, reps)
 
 
     def plot(self):
         plt.plot(self.time, self.energy, 'r+')
-        plt.plot( self.energy_grid,'b')
+        plt.plot(self.energy_grid,'b')
         plt.show()
 
 
