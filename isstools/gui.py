@@ -26,15 +26,20 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_func, parent=None):
+    def __init__(self, plan_func, RE, parent=None):
         super().__init__(parent)
         self.plan_func = plan_func
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
         self.addCanvas()
-        self.run_start.clicked.connect(self.test)
+        self.run_start.clicked.connect(self.run_scan)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
+        self.label_6.setText('{}'.format(RE.md['year']))
+        self.label_7.setText('{}'.format(RE.md['cycle']))
+        self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
+        self.label_9.setText('{}'.format(RE.md['SAF']))
+        self.label_10.setText('{}'.format(RE.md['PI']))
 
     def addCanvas(self):
         self.figure = Figure()
@@ -126,9 +131,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def save_trajectory(self):
         pass
 
-    def test(self):
-        self.plan_func()
+    def run_scan(self):
+        self.comment = self.run_comment.text()
+        if(self.comment):
+            print('\nStarting scan...')
+            self.plan_func(self.comment)
 
+            #ax = self.figure.add_subplot(111)
+            #ax.hold(False)
+            #ax.plot(traj.energy_grid, 'b')
+            #ax.set_xlabel('Servo event / 1/16000 s')
+            #ax.set_ylabel('Encoder count')
+            self.canvas.draw()
+        else:
+            print('\nPlease, type a comment about the scan in the field "Run name"\nTry again')
 
 #    @property
 #    def plan(self):
