@@ -62,8 +62,10 @@ class trajectory():
         e_padding_hi = postedge_hi+20
 
         # concatenate the arrays
-        self.time = np.array([t_padding_lo, t_preedge_lo, t_preedge_hi, t_edge_lo, t_edge_hi, t_postedge_lo, t_postedge_hi, t_padding_hi])
-        self.energy = np.array([e_padding_lo, e_preedge_lo, e_preedge_hi, e_edge_lo, e_edge_hi, e_postedge_lo, e_postedge_hi,e_padding_hi])
+        self.time = np.array([t_padding_lo, t_preedge_lo, t_preedge_hi, \
+                              t_edge_lo, t_edge_hi, t_postedge_lo, t_postedge_hi, t_padding_hi])
+        self.energy = np.array([e_padding_lo, e_preedge_lo, e_preedge_hi,\
+                                e_edge_lo, e_edge_hi, e_postedge_lo, e_postedge_hi,e_padding_hi])
 
 
 
@@ -71,6 +73,7 @@ class trajectory():
         cs = interpolate.CubicSpline(self.time,self.energy, bc_type='clamped')
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
         self.energy_grid=cs(self.time_grid)
+        self.energy_grid_der=np.diff(self.energy_grid)
 
 
     def tile (self,reps = 1):
@@ -78,6 +81,9 @@ class trajectory():
         self.energy_grid = np.append(self.energy_grid, np.flipud(self.energy_grid))
         self.time_grid = np.tile(self.time_grid, reps)
         self.energy_grid = np.tile(self.energy_grid, reps)
+
+    def e2encoder(self):
+        self.encoder_grid=[]
 
 
     def plot(self):

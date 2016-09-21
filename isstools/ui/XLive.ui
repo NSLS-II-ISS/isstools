@@ -84,7 +84,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_edhe_hi">
+        <widget class="QLineEdit" name="edit_edge_hi">
          <property name="text">
           <string>50</string>
          </property>
@@ -275,7 +275,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Vellocities</string>
+          <string>Velocities</string>
          </property>
         </widget>
        </item>
@@ -382,7 +382,7 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="edit_edhe_hi_6">
+        <widget class="QLineEdit" name="edit_postedge_stitch_hi">
          <property name="text">
           <string>100</string>
          </property>
@@ -471,7 +471,7 @@
       <property name="geometry">
        <rect>
         <x>1140</x>
-        <y>90</y>
+        <y>80</y>
         <width>201</width>
         <height>61</height>
        </rect>
@@ -485,8 +485,8 @@
        <rect>
         <x>700</x>
         <y>10</y>
-        <width>121</width>
-        <height>81</height>
+        <width>141</width>
+        <height>91</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
@@ -789,19 +789,6 @@
       </layout>
      </widget>
     </widget>
-   </widget>
-   <widget class="QLabel" name="label_38">
-    <property name="geometry">
-     <rect>
-      <x>690</x>
-      <y>890</y>
-      <width>16</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>eV</string>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
