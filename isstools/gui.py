@@ -105,6 +105,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         traj.interpolate()
 
         #Plot single trajectory motion
+        self.figure_single_trajectory.clf()
         ax = self.figure_single_trajectory.add_subplot(111)
         ax.hold(False)
         ax.plot(traj.time, traj.energy, 'r*')
@@ -118,6 +119,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw()
 
         # Tile trajectory
+        self.figure_full_trajectory.clf()
         traj.tile(reps=5)
         ax = self.figure_full_trajectory.add_subplot(111)
         ax.hold(False)
