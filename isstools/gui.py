@@ -7,7 +7,15 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import pkg_resources
 
+from filestore.fs import FileStore
+from databroker import Broker
+from metadatastore.mds import MDS
+mds = MDS({'host':'xf08id-ca1.cs.nsls2.local', 
+	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
+db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
+
 from isstools.trajectory.trajectory  import trajectory
+from isstools.xasmodule import xasmodule
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -137,9 +145,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comment = self.run_comment.text()
         if(self.comment):
             print('\nStarting scan...')
-            self.plan_func(self.comment)
+            self.current_uid, self.current_filepath = self.plan_func(self.comment)
+            print('current_uid:', self.current_uid)
+            print('current_path:', self.current_filepath)
 
-            #ax = self.figure.add_subplot(111)
+            xas_abs = xasmodule.XASdataAbs()
+            xas_abs.load(self.current_filepath)
+
+            ax = self.figure.add_subplot(111)
+            xas_abs.plot(ax)
+
             #ax.hold(False)
             #ax.plot(traj.energy_grid, 'b')
             #ax.set_xlabel('Servo event / 1/16000 s')
