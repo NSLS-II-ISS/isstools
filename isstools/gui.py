@@ -14,7 +14,7 @@ mds = MDS({'host':'xf08id-ca1.cs.nsls2.local',
 	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
 db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
 
-from isstools.trajectory.trajectory  import trajectory
+from isstools.trajectory  import trajectory
 from isstools.xasmodule import xasmodule
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
@@ -51,6 +51,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
         self.figure = Figure()
+        self.figure.set_facecolor(color='0.89')
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, self.tab_2, coordinates=True)
         self.toolbar.setMaximumHeight(25)
@@ -154,6 +155,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             ax = self.figure.add_subplot(111)
             xas_abs.plot(ax)
+
+			self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
+            if(not os.path.exists(self.log_path)):
+                os.makedirs(log_path)
 
             #ax.hold(False)
             #ax.plot(traj.energy_grid, 'b')
