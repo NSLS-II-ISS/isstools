@@ -1,6 +1,6 @@
 # Temperature-conversion program using PyQt
 import numpy as np
-from PyQt4 import uic
+from PyQt4 import uic, QtGui
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -14,8 +14,12 @@ mds = MDS({'host':'xf08id-ca1.cs.nsls2.local',
 	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
 db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
 
-from isstools.trajectory  import trajectory
+from isstools.trajectory.trajectory  import trajectory
+from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasmodule import xasmodule
+import os
+from os import listdir
+from os.path import isfile, join
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -34,7 +38,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_func, RE, parent=None):
+    def __init__(self, plan_func, RE, hhm, parent=None):
         super().__init__(parent)
         self.plan_func = plan_func
         self.setupUi(self)
@@ -48,6 +52,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
         self.label_9.setText('{}'.format(RE.md['SAF']))
         self.label_10.setText('{}'.format(RE.md['PI']))
+
+        self.traj = trajectory()
+        self.traj_manager = trajectory_manager(hhm)
+        self.trajectory_path = '/GPFS/xf08id/trajectory/'
+        self.get_traj_names()
+        self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
+        self.push_load_trajectory.clicked.connect(self.load_trajectory)
+        self.push_init_trajectory.clicked.connect(self.init_trajectory)
+
+    def get_traj_names(self):
+        self.comboBox.clear()
+        self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
+
 
     def addCanvas(self):
         self.figure = Figure()
@@ -107,40 +126,66 @@ class ScanGui(*uic.loadUiType(ui_path)):
         padding_postedge = int(self.edit_padding_postedge.text())
 
         #Create and interpolate trajectory
-        traj = trajectory()
-        traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
+        self.traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
                         stitching = ([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi, postedge_stitch_lo, postedge_stitch_hi]),\
                         servocycle = 16000, padding_lo = padding_preedge ,padding_hi=padding_postedge)
-        traj.interpolate()
+        self.traj.interpolate()
 
         #Plot single trajectory motion
         self.figure_single_trajectory.clf()
         ax = self.figure_single_trajectory.add_subplot(111)
         ax.hold(False)
-        ax.plot(traj.time, traj.energy, 'r*')
+        ax.plot(self.traj.time, self.traj.energy, 'r*')
         ax.hold(True)
-        ax.plot(traj.time_grid, traj.energy_grid, 'b')
+        ax.plot(self.traj.time_grid, self.traj.energy_grid, 'b')
         ax.set_xlabel('Time /s')
         ax.set_ylabel('Energy /eV')
         ax2 = ax.twinx()
         ax2.hold(False)
-        ax2.plot(traj.time_grid[0:-1], traj.energy_grid_der, 'r')
+        ax2.plot(self.traj.time_grid[0:-1], self.traj.energy_grid_der, 'r')
         self.canvas_single_trajectory.draw()
 
         # Tile trajectory
         self.figure_full_trajectory.clf()
-        traj.tile(reps=5)
+        self.traj.tile(reps=5)
+
+        # Convert to encoder counts
+        self.traj.e2encoder()
+        
+        # Draw
         ax = self.figure_full_trajectory.add_subplot(111)
         ax.hold(False)
-        ax.plot(traj.energy_grid, 'b')
+        ax.plot(self.traj.encoder_grid, 'b')
         ax.set_xlabel('Servo event / 1/16000 s')
         ax.set_ylabel('Encoder count')
         self.canvas_full_trajectory.draw()
 
 
-
     def save_trajectory(self):
-        pass
+        if(len(self.traj.energy_grid)):
+            if(self.edit_trajectory_name.text() != '.txt'):
+                if(os.path.isfile(self.trajectory_path + self.edit_trajectory_name.text())):
+                    overwrite_answer = QtGui.QMessageBox.question(self, 'Message', 
+                         'File exists. Would you like to overwrite it?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                    if overwrite_answer == QtGui.QMessageBox.Yes:
+                        np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
+						self.traj.encoder_grid, fmt='%d')
+                        self.get_traj_names()
+                    else:
+                        self.edit_trajectory_name.selectAll()
+                        self.edit_trajectory_name.setFocus()
+                else:
+                    np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
+					self.traj.encoder_grid, fmt='%d')
+                    self.get_traj_names()
+            else:
+                print('\n.txt is not a valid name')
+
+    def load_trajectory(self):
+        self.traj_manager.load(orig_file_name = self.comboBox.currentText(), new_file_path = self.comboBox_2.currentText())
+
+    def init_trajectory(self):
+        self.traj_manager.init(int(self.comboBox_3.currentText()))
 
     def run_scan(self):
         self.comment = self.run_comment.text()
@@ -156,14 +201,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
             ax = self.figure.add_subplot(111)
             xas_abs.plot(ax)
 
-			self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
+            self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
             if(not os.path.exists(self.log_path)):
-                os.makedirs(log_path)
+                os.makedirs(self.log_path)
 
-            #ax.hold(False)
-            #ax.plot(traj.energy_grid, 'b')
-            #ax.set_xlabel('Servo event / 1/16000 s')
-            #ax.set_ylabel('Encoder count')
+            self.snapshots_path = self.log_path + 'snapshots/'
+            if(not os.path.exists(self.snapshots_path)):
+                os.makedirs(self.snapshots_path)
+
+            self.file_path = 'snapshots/' + self.comment + '.png'
+            fn = self.log_path + self.file_path
+            repeat = 1
+            while(os.path.isfile(fn)):
+                repeat += 1
+                self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
+                fn = self.log_path + self.file_path
+            self.figure.savefig(fn)
+
             self.canvas.draw()
         else:
             print('\nPlease, type a comment about the scan in the field "Run name"\nTry again')
