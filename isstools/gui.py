@@ -20,6 +20,7 @@ from isstools.xasmodule import xasmodule
 import os
 from os import listdir
 from os.path import isfile, join
+import inspect
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -38,9 +39,8 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_func, tune_funcs, RE, hhm, parent=None):
+    def __init__(self, plan_funcs, tune_funcs, RE, hhm, parent=None):
         super().__init__(parent)
-        self.plan_func = plan_func
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
         self.addCanvas()
@@ -67,6 +67,43 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
+
+        self.plan_funcs = plan_funcs
+        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.run_type.addItems(self.plan_funcs_names)
+
+        self.run_type.currentIndexChanged.connect(self.populateParams)
+        self.params1 = []
+        self.params2 = []
+        self.params3 = []
+        self.populateParams(0)
+        #self.push_add_widget_test.clicked.connect(self.addParamControl)
+
+    def populateParams(self, index):
+        for i in range(len(self.params1)):
+            self.params1[i].deleteLater()
+            self.params2[i].deleteLater()
+            self.params3[i].deleteLater()
+        self.params1 = []
+        self.params2 = []
+        self.params3 = []
+        plan_func = self.plan_funcs[index]
+        signature = inspect.signature(plan_func)
+        for i in range(0, len(signature.parameters)):
+            self.addParamControl(list(signature.parameters)[i], str(signature.parameters[list(signature.parameters)[i]]))
+
+
+    def addParamControl(self, name, default = ''):
+        rows = self.gridLayout_13.rowCount()
+        param1 = QtGui.QLabel('Par ' + str(rows))
+        param2 = QtGui.QLineEdit()
+        param3 = QtGui.QLabel(default)
+        self.gridLayout_13.addWidget(param1, rows, 0)
+        self.gridLayout_13.addWidget(param2, rows, 1)
+        self.gridLayout_13.addWidget(param3, rows, 2)
+        self.params1.append(param1)
+        self.params2.append(param2)
+        self.params3.append(param3)
 
     def get_traj_names(self):
         self.comboBox.clear()
@@ -204,7 +241,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comment = self.run_comment.text()
         if(self.comment):
             print('\nStarting scan...')
-            self.current_uid, self.current_filepath = self.plan_func(self.comment)
+            self.current_uid, self.current_filepath = self.plan_funcs[self.run_type.currentIndex()](self.comment)
             print('current_uid:', self.current_uid)
             print('current_path:', self.current_filepath)
 
