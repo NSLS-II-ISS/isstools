@@ -91,9 +91,6 @@ class trajectory():
 
     def e2encoder(self):
         self.encoder_grid = (360000 * (180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))))
-        #for i in range(0, len(self.energy_grid)):
-        #    self.encoder_grid.append(360000 * math.degrees(math.asin(12400 / (2 * 3.1356 * self.energy_grid[i]))))
-        #self.encoder_grid = np.array(self.encoder_grid)
 
 
     def plot(self):

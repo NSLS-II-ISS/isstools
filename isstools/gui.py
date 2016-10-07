@@ -38,7 +38,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_func, RE, hhm, parent=None):
+    def __init__(self, plan_func, tune_funcs, RE, hhm, parent=None):
         super().__init__(parent)
         self.plan_func = plan_func
         self.setupUi(self)
@@ -63,6 +63,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
 
+        self.push_tune.clicked.connect(self.run_tune)
+        self.tune_funcs = tune_funcs
+        self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
+        self.comboBox_4.addItems(self.tune_funcs_names)
+
     def get_traj_names(self):
         self.comboBox.clear()
         self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
@@ -84,12 +89,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_single_trajectory.addWidget(self.canvas_single_trajectory)
         self.canvas_single_trajectory.draw()
 
-        self.figure_full_trajectory= Figure()
+        self.figure_full_trajectory = Figure()
         self.figure_full_trajectory.set_facecolor(color='0.89')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
-        self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
         self.canvas_full_trajectory.draw()
+
+        self.figure_tune = Figure()
+        self.figure_tune.set_facecolor(color='0.89')
+        self.canvas_tune = FigureCanvas(self.figure_tune)
+        self.plot_tune.addWidget(self.canvas_tune)
+        self.canvas_tune.draw()
 
     @property
     def plot_x(self):
@@ -103,6 +113,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax1f1.plot(np.random.rand(5))
         self.ax = ax1f1
         return fig1
+
+    def run_tune(self):
+        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.figure_tune)
 
     def build_trajectory(self):
         E0 = int(self.edit_E0.text())
