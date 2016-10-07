@@ -81,6 +81,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def populateParams(self, index):
         for i in range(len(self.params1)):
+            self.gridLayout_13.removeWidget(self.params1[i])
+            self.gridLayout_13.removeWidget(self.params2[i])
+            self.gridLayout_13.removeWidget(self.params3[i])
             self.params1[i].deleteLater()
             self.params2[i].deleteLater()
             self.params3[i].deleteLater()
@@ -94,8 +97,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def addParamControl(self, name, default = ''):
-        rows = self.gridLayout_13.rowCount()
-        param1 = QtGui.QLabel('Par ' + str(rows))
+        rows = int(self.gridLayout_13.count()/3)
+        param1 = QtGui.QLabel('Par ' + str(rows + 1))
         param2 = QtGui.QLineEdit()
         param3 = QtGui.QLabel(default)
         self.gridLayout_13.addWidget(param1, rows, 0)
