@@ -181,7 +181,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
-        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.figure_tune)
+        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
 
     def build_trajectory(self):
         E0 = int(self.edit_E0.text())
@@ -226,7 +226,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Tile trajectory
         self.figure_full_trajectory.clf()
-        self.traj.tile(reps=5)
+        self.traj.tile(reps=self.spinBox_tiling_repetitions.value())
 
         # Convert to encoder counts
         self.traj.e2encoder()
