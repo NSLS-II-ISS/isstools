@@ -21,6 +21,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import inspect
+import re
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -77,7 +78,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params2 = []
         self.params3 = []
         self.populateParams(0)
-        #self.push_add_widget_test.clicked.connect(self.addParamControl)
 
     def populateParams(self, index):
         for i in range(len(self.params1)):
@@ -90,16 +90,42 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params1 = []
         self.params2 = []
         self.params3 = []
+        self.param_types = []
         plan_func = self.plan_funcs[index]
         signature = inspect.signature(plan_func)
         for i in range(0, len(signature.parameters)):
-            self.addParamControl(list(signature.parameters)[i], str(signature.parameters[list(signature.parameters)[i]]))
+            default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
+            if default == str(signature.parameters[list(signature.parameters)[i]]):
+                default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
+            self.addParamControl(list(signature.parameters)[i], default, signature.parameters[list(signature.parameters)[i]].annotation)
+            self.param_types.append(signature.parameters[list(signature.parameters)[i]].annotation)
 
 
-    def addParamControl(self, name, default = ''):
+    def addParamControl(self, name, default, annotation):
         rows = int(self.gridLayout_13.count()/3)
         param1 = QtGui.QLabel('Par ' + str(rows + 1))
-        param2 = QtGui.QLineEdit()
+
+        def_val = ''
+        if default.find('=') != -1:
+            def_val = re.sub(r'.*=', '', default)
+        if annotation == int:
+            param2 = QtGui.QSpinBox()
+            def_val = int(def_val)
+            param2.setValue(def_val)
+        elif annotation == float:
+            param2 = QtGui.QDoubleSpinBox()
+            def_val = float(def_val)
+            param2.setValue(def_val)
+        elif annotation == bool:
+            param2 = QtGui.QCheckBox()
+            def_val = bool(def_val)
+            param2.setCheckState(def_val)
+            param2.setTristate(False)
+        else:
+            param2 = QtGui.QLineEdit()
+            def_val = str(def_val)
+            param2.setText(def_val)
+
         param3 = QtGui.QLabel(default)
         self.gridLayout_13.addWidget(param1, rows, 0)
         self.gridLayout_13.addWidget(param2, rows, 1)
@@ -241,12 +267,27 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.init(int(self.comboBox_3.currentText()))
 
     def run_scan(self):
-        self.comment = self.run_comment.text()
+        self.comment = self.params2[0].text()
         if(self.comment):
             print('\nStarting scan...')
-            self.current_uid, self.current_filepath = self.plan_funcs[self.run_type.currentIndex()](self.comment)
-            print('current_uid:', self.current_uid)
-            print('current_path:', self.current_filepath)
+
+            # Get parameters from the widgets and organize them in a tuple (run_params)
+            run_params = ()
+            for i in range(len(self.params1)):
+                if (self.param_types[i] == int):
+                    run_params += (self.params2[i].value(),)
+                elif (self.param_types[i] == float):
+                    run_params += (self.params2[i].value(),)
+                elif (self.param_types[i] == bool):
+                    run_params += (bool(self.params2[i].checkState()),)
+                else:
+                    run_params += (self.params2[i].text(),)
+            
+            # Run the scan using the tuple created before
+            self.current_uid, self.current_filepath = self.plan_funcs[self.run_type.currentIndex()](*run_params)
+
+            #print('current_uid:', self.current_uid)
+            #print('current_path:', self.current_filepath)
 
             xas_abs = xasmodule.XASdataAbs()
             xas_abs.load(self.current_filepath)
