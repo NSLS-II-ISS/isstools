@@ -1,6 +1,6 @@
 # Temperature-conversion program using PyQt
 import numpy as np
-from PyQt4 import uic, QtGui
+from PyQt4 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -22,11 +22,49 @@ from os import listdir
 from os.path import isfile, join
 import inspect
 import re
+import sys
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 # def my_plan(dets, some, other, param):
 #	...
+
+# Class to write terminal output to screen
+class EmittingStream(QtCore.QObject):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.buffer = sys.__stdout__.buffer
+        self.close = sys.__stdout__.close
+        self.closed = sys.__stdout__.closed
+        self.detach = sys.__stdout__.detach
+        self.encoding = sys.__stdout__.encoding
+        self.errors = sys.__stdout__.errors
+        self.fileno = sys.__stdout__.fileno
+        self.flush = sys.__stdout__.flush
+        self.isatty = sys.__stdout__.isatty
+        self.line_buffering = sys.__stdout__.line_buffering
+        self.mode = sys.__stdout__.mode
+        self.name = sys.__stdout__.name
+        self.newlines = sys.__stdout__.newlines
+        self.read = sys.__stdout__.read
+        self.readable = sys.__stdout__.readable
+        self.readlines = sys.__stdout__.readlines
+        self.seek = sys.__stdout__.seek
+        self.seekable = sys.__stdout__.seekable
+        self.softspace = sys.__stdout__.softspace
+        self.tell = sys.__stdout__.tell
+        self.truncate = sys.__stdout__.truncate
+        self.writable = sys.__stdout__.writable
+        self.writelines = sys.__stdout__.writelines
+
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+        # Comment next line if the output should be printed only in the GUI
+        sys.__stdout__.write(text)
+
 
 
 def auto_redraw_factory(fnc):
@@ -63,6 +101,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
+        self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
 
         self.push_tune.clicked.connect(self.run_tune)
         self.tune_funcs = tune_funcs
@@ -78,6 +117,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params2 = []
         self.params3 = []
         self.populateParams(0)
+
+        sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
+        sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def __del__(self):
+        # Restore sys.stdout
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
+    def normalOutputWritten(self, text):
+        """Append text to the QtextEdit_terminal."""
+        # Maybe QtextEdit_terminal.append() works as well, but this is how I do it:
+        cursor = self.textEdit_terminal.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.insertText(text)
+        self.textEdit_terminal.setTextCursor(cursor)
+        self.textEdit_terminal.ensureCursorVisible()
+        #sys.__stdout__.writelines(text)
 
     def populateParams(self, index):
         for i in range(len(self.params1)):
@@ -181,6 +238,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
+        self.figure_tune.clf()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
 
     def build_trajectory(self):
@@ -265,6 +323,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def init_trajectory(self):
         self.traj_manager.init(int(self.comboBox_3.currentText()))
+
+    def read_trajectory_info(self):
+        self.traj_manager.read_info()
 
     def run_scan(self):
         self.comment = self.params2[0].text()

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1455</width>
-    <height>953</height>
+    <height>1050</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>1455</width>
-    <height>953</height>
+    <height>1050</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
       <x>0</x>
       <y>0</y>
       <width>1421</width>
-      <height>891</height>
+      <height>761</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -436,9 +436,9 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>260</y>
+        <y>230</y>
         <width>551</width>
-        <height>561</height>
+        <height>481</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_single_trajectory"/>
@@ -447,9 +447,9 @@
       <property name="geometry">
        <rect>
         <x>590</x>
-        <y>260</y>
+        <y>230</y>
         <width>791</width>
-        <height>561</height>
+        <height>481</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_full_trajectory"/>
@@ -553,7 +553,7 @@
         <x>1040</x>
         <y>10</y>
         <width>351</width>
-        <height>131</height>
+        <height>154</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_7">
@@ -634,6 +634,13 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="2">
+        <widget class="QPushButton" name="push_init_trajectory">
+         <property name="text">
+          <string>Init trajectory</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2" rowspan="2">
         <widget class="QPushButton" name="push_load_trajectory">
          <property name="text">
@@ -641,10 +648,23 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
-        <widget class="QPushButton" name="push_init_trajectory">
+       <item row="5" column="0" colspan="2">
+        <widget class="QLabel" name="label_64">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>Init trajectory</string>
+          <string>Read Trajectory Info</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QPushButton" name="push_read_traj_info">
+         <property name="text">
+          <string>Read info</string>
          </property>
         </widget>
        </item>
@@ -1093,6 +1113,25 @@
       </layout>
      </widget>
     </widget>
+   </widget>
+   <widget class="QTextEdit" name="textEdit_terminal">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>770</y>
+      <width>1421</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="textInteractionFlags">
+     <set>Qt::TextSelectableByMouse</set>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

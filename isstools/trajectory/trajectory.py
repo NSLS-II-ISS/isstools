@@ -112,11 +112,11 @@ class trajectory_manager():
 
     ########## load ##########
     # Transfer the trajectory file to the motor controller
-    # arg1 = orig_file_name 			-> Filename of the trajectory: E.g.: 'traj_Cu_fast.txt'
-    # arg2 = new_file_path  			-> LUT number where the new trajectory file will be stored
-    # arg3 (optional) = new_file_name 	-> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
-    # arg4 (optional) = orig_file_path 	-> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
-    # arg5 (optional) = ip 				-> IP of the controller that will receive the file. Default = '10.8.2.86'
+    # arg1 = orig_file_name             -> Filename of the trajectory: E.g.: 'traj_Cu_fast.txt'
+    # arg2 = new_file_path              -> LUT number where the new trajectory file will be stored
+    # arg3 (optional) = new_file_name     -> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
+    # arg4 (optional) = orig_file_path     -> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
+    # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
     def load(self, orig_file_name, new_file_path, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
 
         # Check if new_file_path is between the possible values
@@ -167,85 +167,86 @@ class trajectory_manager():
     ########## init ##########
     # Transfer the trajectory from the flash to the ram memory in the controller
     # It must be called everytime you decide to use a different trajectory
-    # arg1 = lut_number				-> lookup table number of the trajectory that will be used - must be a number between 1 and 9
-    # arg2 (optional) = ip			-> IP of the controller that will receive the file. Default = '10.8.2.86'
-    # arg3 (optional) = filename	-> Filename of the trajectory file in the controller. Currently, it MUST be 'hhm.txt'
+    # arg1 = lut_number                -> lookup table number of the trajectory that will be used - must be a number between 1 and 9
+    # arg2 (optional) = ip            -> IP of the controller that will receive the file. Default = '10.8.2.86'
+    # arg3 (optional) = filename    -> Filename of the trajectory file in the controller. Currently, it MUST be 'hhm.txt'
     def init(self, lut_number, ip = '10.8.2.86', filename = 'hhm.txt'):
 
-    	self.hhm.lut_number.put(lut_number)
+        self.hhm.lut_number.put(lut_number)
 
-    	ttime.sleep(0.1)
-    	while (self.hhm.lut_number_rbv.value != lut_number):
-    		ttime.sleep(.01)
+        ttime.sleep(0.1)
+        while (self.hhm.lut_number_rbv.value != lut_number):
+            ttime.sleep(.01)
     
-    	self.hhm.lut_start_transfer.put("1")	
-    	while (self.hhm.lut_transfering.value == 0):
-    		ttime.sleep(.01)
-    	while (self.hhm.lut_transfering.value == 1):
-    		ttime.sleep(.01)
+        self.hhm.lut_start_transfer.put("1")    
+        while (self.hhm.lut_transfering.value == 0):
+            ttime.sleep(.01)
+        while (self.hhm.lut_transfering.value == 1):
+            ttime.sleep(.01)
     
-    	ftp = FTP(ip)
-    	ftp.login()
-    	ftp.cwd('/usrflash/lut/{}'.format(lut_number))
+        ftp = FTP(ip)
+        ftp.login()
+        ftp.cwd('/usrflash/lut/{}'.format(lut_number))
     
-    	file_list = ftp.nlst()
-    	file_exists = 0
-    	for file_name in file_list:
-    		if file_name == filename:
-    			file_exists = 1
-    	if file_exists == 0:
-    		print('File not found. :(\nAre you sure \'{}\' is the correct lut number?'.format(lut_number))
-    	else:
-    		info = []
-    		def handle_binary(more_data):
-    			info.append(more_data)
+        file_list = ftp.nlst()
+        file_exists = 0
+        for file_name in file_list:
+            if file_name == filename:
+                file_exists = 1
+        if file_exists == 0:
+            print('File not found. :(\nAre you sure \'{}\' is the correct lut number?'.format(lut_number))
+        else:
+            info = []
+            def handle_binary(more_data):
+                info.append(more_data)
     
-    		resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
-    		if(len(info) == 2):
-    			size = int(info[0])
-    			name = info[1]
-    		else:
-    			print('Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')	
-    			return False
+            resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
+            if(len(info) == 2):
+                size = int(info[0])
+                name = info[1]
+            else:
+                print('Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')    
+                return False
     
-    		if(size == 0):
-    			print('Size seems to be equal to 0. Please, try sending the trajectory file again using trajectory_load(...)')
-    			return False
-    		else:
-    			self.hhm.cycle_limit.put(size)
-    			while (self.hhm.cycle_limit_rbv.value != size):
-    				ttime.sleep(.01)
-    			print('Transfer completed!\nNew lut number: {}\nTrajectory name: {}\nNumber of points: {}'.format(lut_number, name, size))
-    			return True
+            if(size == 0):
+                print('Size seems to be equal to 0. Please, try sending the trajectory file again using trajectory_load(...)')
+                return False
+            else:
+                self.hhm.cycle_limit.put(size)
+                while (self.hhm.cycle_limit_rbv.value != size):
+                    ttime.sleep(.01)
+                print('Transfer completed!\nNew lut number: {}\nTrajectory name: {}\nNumber of points: {}'.format(lut_number, name, size))
+                return True
     
 
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
-    # arg1 (optional) = ip	-> IP of the controller. Default = '10.8.2.86'
+    # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
     def read_info(self, ip = '10.8.2.86'):
-    	ftp = FTP(ip)
-    	ftp.login()
-    	ftp.cwd('/usrflash/lut/')
-    	print('-'*62)
-    	print('The trajectories found in the controller (ip: {}) are:'.format(ip))
+        ftp = FTP(ip)
+        ftp.login()
+        ftp.cwd('/usrflash/lut/')
+        print('-'*62)
+        print('The trajectories found in the controller (ip: {}) are:'.format(ip))
     
-    	def handle_binary(more_data):
-    		info.append(more_data)
+        def handle_binary(more_data):
+            info.append(more_data)
     
-    	for i in range(1, 10):
-    		ftp.cwd('/usrflash/lut/{}'.format(i))
+        ret_txt = '' 
+        for i in range(1, 10):
+            ftp.cwd('/usrflash/lut/{}'.format(i))
     
-    		info = []
-    		
-    		resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
-    		if(len(info) == 2):
-    			size = int(info[0])
-    			name = info[1]
-    			print('{}: {:<24} (Size: {})'.format(i, name, size))
-    		else:
-    			print('{}: Could not find the size and name info'.format(i))	
+            info = []
+          
+            resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
+            if(len(info) == 2):
+                size = int(info[0])
+                name = info[1]
+                print('{}: {:<24} (Size: {})'.format(i, name, size))
+            else:
+                print('{}: Could not find the size and name info'.format(i))    
     
-    	print('-'*62)
+        print('-'*62)
 
     def current_lut(self):
         return self.hhm.lut_number_rbv.value
