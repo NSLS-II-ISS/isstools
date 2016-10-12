@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1455</width>
-    <height>1050</height>
+    <height>922</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>1455</width>
-    <height>1050</height>
+    <height>922</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>20</x>
       <y>0</y>
       <width>1421</width>
       <height>761</height>
@@ -553,7 +553,7 @@
         <x>1040</x>
         <y>10</y>
         <width>351</width>
-        <height>154</height>
+        <height>164</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_7">
@@ -641,13 +641,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2" rowspan="2">
-        <widget class="QPushButton" name="push_load_trajectory">
-         <property name="text">
-          <string>Load trajectory</string>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="0" colspan="2">
         <widget class="QLabel" name="label_64">
          <property name="font">
@@ -665,6 +658,20 @@
         <widget class="QPushButton" name="push_read_traj_info">
          <property name="text">
           <string>Read info</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="push_load_trajectory">
+         <property name="text">
+          <string>Load trajectory</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="push_update_traj_list">
+         <property name="text">
+          <string>Update list</string>
          </property>
         </widget>
        </item>
@@ -1120,10 +1127,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>770</y>
       <width>1421</width>
-      <height>221</height>
+      <height>101</height>
      </rect>
     </property>
     <property name="readOnly">

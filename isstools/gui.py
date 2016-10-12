@@ -7,12 +7,12 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import pkg_resources
 
-from filestore.fs import FileStore
-from databroker import Broker
-from metadatastore.mds import MDS
-mds = MDS({'host':'xf08id-ca1.cs.nsls2.local', 
-	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
-db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
+#from filestore.fs import FileStore
+#from databroker import Broker
+#from metadatastore.mds import MDS
+#mds = MDS({'host':'xf08id-ca1.cs.nsls2.local', 
+#	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
+#db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
 
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
@@ -78,24 +78,28 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_funcs, tune_funcs, RE, hhm, parent=None):
-        super().__init__(parent)
+    def __init__(self, plan_funcs, tune_funcs, RE, hhm, parent=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
+
+        # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
         self.label_7.setText('{}'.format(RE.md['cycle']))
         self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
         self.label_9.setText('{}'.format(RE.md['SAF']))
         self.label_10.setText('{}'.format(RE.md['PI']))
 
+        # Initialize 'trajectory' tab
         self.traj = trajectory()
         self.traj_manager = trajectory_manager(hhm)
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
         self.get_traj_names()
+        self.push_update_traj_list.clicked.connect(self.get_traj_names)
         self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
@@ -103,11 +107,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
 
+        # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
 
+        # Initialize 'run' tab
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
@@ -118,6 +124,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3 = []
         self.populateParams(0)
 
+        # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
@@ -344,6 +351,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 else:
                     run_params += (self.params2[i].text(),)
             
+            # Erase last graph
+            ax = self.figure.add_subplot(111)
+            ax.cla()
+            self.canvas.draw()
+
             # Run the scan using the tuple created before
             self.current_uid, self.current_filepath = self.plan_funcs[self.run_type.currentIndex()](*run_params)
 
@@ -353,8 +365,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             xas_abs = xasmodule.XASdataAbs()
             xas_abs.load(self.current_filepath)
 
-            ax = self.figure.add_subplot(111)
             xas_abs.plot(ax)
+            ax.set_title(self.comment)
 
             self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
             if(not os.path.exists(self.log_path)):
