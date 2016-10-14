@@ -16,7 +16,7 @@ import pkg_resources
 
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
-from isstools.xasmodule import xasmodule
+from isstools.xasdata import xasdata
 import os
 from os import listdir
 from os.path import isfile, join
