@@ -363,7 +363,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             #print('current_path:', self.current_filepath)
 
             xas_abs = xasmodule.XASdataAbs()
-            xas_abs.load(self.current_filepath)
+            xas_abs.loadInterpFile(self.current_filepath)
 
             xas_abs.plot(ax)
             ax.set_title(self.comment)
