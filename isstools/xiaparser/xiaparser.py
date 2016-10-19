@@ -5,6 +5,7 @@ import sys
 import ctypes
 import numpy as np
 import os.path
+from scipy.optimize import curve_fit
 
 
 '''
@@ -30,32 +31,33 @@ class xiaparser:
 
 
     def parse(self, filename, filepath, silent = True, printheaders = False, plotdata = False, pixelnumber = None):
-        self.filename = filename
-        self.filepath = filepath
-        self.rootgrp = Dataset(filepath + filename, "r")
-        self.data = self.rootgrp.variables["array_data"][:]
+        if(filename != self.filename or filepath != self.filepath or pixelnumber != None):
+            self.filename = filename
+            self.filepath = filepath
+            self.rootgrp = Dataset(filepath + filename, "r")
+            self.data = self.rootgrp.variables["array_data"][:]
 
-        if not silent:
-            print("-"*80)
-            print("File name:", filepath + filename)
-            print("-"*80)
-            print("Total Data Shape:", self.data.shape)
-            if (pixelnumber != None):
-                print("Printing pixel:", pixelnumber)
-            print("-"*80)
+            if not silent:
+                print("-"*80)
+                print("File name:", filepath + filename)
+                print("-"*80)
+                print("Total Data Shape:", self.data.shape)
+                if (pixelnumber != None):
+                    print("Printing pixel:", pixelnumber)
+                print("-"*80)
 
-        for ds0 in self.data:
-            ds0 = ds0[0]
-            if(printheaders and not silent):
-                print("-"*80)
-                print("Dataset Shape: ", ds0.shape)
-                print("-"*80)
-                print("Header")
-                print("-"*80)
-            self.next_pos = 256
-            number_pixels = self.read_header(ds0, printheaders, silent)
-            for i in range(number_pixels):
-                self.next_pos = self.read_pixel_block(ds0, i, self.next_pos, plotdata, pixelnumber, silent)
+            for ds0 in self.data:
+                ds0 = ds0[0]
+                if(printheaders and not silent):
+                    print("-"*80)
+                    print("Dataset Shape: ", ds0.shape)
+                    print("-"*80)
+                    print("Header")
+                    print("-"*80)
+                self.next_pos = 256
+                number_pixels = self.read_header(ds0, printheaders, silent)
+                for i in range(number_pixels):
+                    self.next_pos = self.read_pixel_block(ds0, i, self.next_pos, plotdata, pixelnumber, silent)
 
     def export_files(self, all_in_one = True):
 
@@ -256,6 +258,93 @@ class xiaparser:
             print("User Words:", user_words)
     
         return number_of_pixels_in_buffer
+
+
+
+
+    def parse_roi(self, pixels, channel_number, min_energy = 0, max_energy = 20):
+        energies = []
+        integs = []
+        for i in frange(0, 20, 20/2047):
+            energies.append(i)
+        curr_pixel = getattr(self, "exporting_array" + "{}".format(channel_number))
+        for i in pixels:
+            condition = (np.array(energies) <= max_energy) == (np.array(energies) >= min_energy)
+            interval = np.extract(condition, curr_pixel[i][:])
+            integ = sum(interval)
+            integs.append(integ)
+            #print(integ)
+        return np.array(integs)
+
+
+
+    def plot_roi(self, filename, filepath, pixels, channel_number, min_energy = 0, max_energy = 20, energy_array = np.array([])):
+        self.parse(filename, filepath)
+        parsed_roi_array = self.parse_roi(pixels, channel_number, min_energy, max_energy)
+        if(len(energy_array) == len(parsed_roi_array)):
+            plt.plot(energy_array[:, 1], parsed_roi_array)
+        else:
+            plt.plot(parsed_roi_array)
+            if(len(energy_array)):
+                print('The parsed ROI array and the energy array have different lengths.. \nPlotting only parsed_roi_array\nenergy_array length: {}\nparsed_roi_array length: {}'.format(len(energy_array), len(parsed_roi_array)))
+
+
+    def gauss(self, x, *p):
+        A, mu, sigma = p
+        return A*np.exp(-(x-mu)**2/(2.*sigma**2))
+
+
+    def gain_matching(self, xia, center_energy, scan_range, channel_number, ax=plt):
+    #    xia.collect_mode.put('MCA Spectra')
+    #    ttime.sleep(0.25)
+    #    xia.mode.put('Real time')
+    #    ttime.sleep(0.25)
+    #    xia.real_time.put('1')
+    #    while(xia.real_time != 1):
+    #        ttime.sleep(0.05)
+    #    xia.capt_start_stop.put(1)
+    #    ttime.sleep(0.05)
+    #    xia.erase_start.put(1)
+    #    ttime.sleep(2)
+    
+        center_energy = float(center_energy)
+        scan_range = float(scan_range)
+
+        graph_x = xia.mca_x.value
+        graph_data = getattr(xia, "mca_array" + "{}".format(channel_number) + ".value")
+    
+        condition = (graph_x <= (center_energy + scan_range)/1000) == (graph_x > (center_energy - scan_range)/1000)
+        interval_x = np.extract(condition, graph_x)
+        interval = np.extract(condition, graph_data)
+
+        # p0 is the initial guess for fitting coefficients (A, mu and sigma)
+        p0 = [.1, center_energy/1000, .1]
+        coeff, var_matrix = curve_fit(self.gauss, interval_x, interval, p0=p0) 
+        print('Intensity = ', coeff[0])
+        print('Fitted mean = ', coeff[1])
+        print('Sigma = ', coeff[2], '\n')
+
+        # For testing (following two lines)
+        ax.plot(interval_x, interval, 'b')
+        ax.plot(interval_x, self.gauss(interval_x, *coeff), 'r')
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (keV)')
+            ax.ylabel('Intensity')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (keV)')
+            ax.set_ylabel('Intensity')
+
+        #return gauss(interval_x, *coeff)
+
+
+def frange(start, stop, step):
+    i = start
+    while i < stop:
+        yield i
+        i += step
+
+
 
 
 

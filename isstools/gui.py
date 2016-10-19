@@ -17,6 +17,7 @@ import pkg_resources
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasdata import xasdata
+from isstools.xiaparser import xiaparser
 import os
 from os import listdir
 from os.path import isfile, join
@@ -28,43 +29,6 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 # def my_plan(dets, some, other, param):
 #	...
-
-# Class to write terminal output to screen
-class EmittingStream(QtCore.QObject):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.buffer = sys.__stdout__.buffer
-        self.close = sys.__stdout__.close
-        self.closed = sys.__stdout__.closed
-        self.detach = sys.__stdout__.detach
-        self.encoding = sys.__stdout__.encoding
-        self.errors = sys.__stdout__.errors
-        self.fileno = sys.__stdout__.fileno
-        self.flush = sys.__stdout__.flush
-        self.isatty = sys.__stdout__.isatty
-        self.line_buffering = sys.__stdout__.line_buffering
-        self.mode = sys.__stdout__.mode
-        self.name = sys.__stdout__.name
-        self.newlines = sys.__stdout__.newlines
-        self.read = sys.__stdout__.read
-        self.readable = sys.__stdout__.readable
-        self.readlines = sys.__stdout__.readlines
-        self.seek = sys.__stdout__.seek
-        self.seekable = sys.__stdout__.seekable
-        self.softspace = sys.__stdout__.softspace
-        self.tell = sys.__stdout__.tell
-        self.truncate = sys.__stdout__.truncate
-        self.writable = sys.__stdout__.writable
-        self.writelines = sys.__stdout__.writelines
-
-    textWritten = QtCore.pyqtSignal(str)
-
-    def write(self, text):
-        self.textWritten.emit(str(text))
-        # Comment next line if the output should be printed only in the GUI
-        sys.__stdout__.write(text)
-
 
 
 def auto_redraw_factory(fnc):
@@ -78,7 +42,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_funcs, tune_funcs, RE, hhm, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, RE, hhm, xia, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -102,10 +66,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_update_traj_list.clicked.connect(self.get_traj_names)
         self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-        self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
+        # Commented to work without the Mono (IOC was off)
+        #self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
+
+		# Initialize XIA tab
+        self.xia_parser = xiaparser.xiaparser()
+        self.xia = xia
+        self.comboBox_5.addItems(['1', '2', '3', '4'])
+        self.push_gain_matching.clicked.connect(self.run_gain_matching)
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
@@ -230,6 +201,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_tune = FigureCanvas(self.figure_tune)
         self.plot_tune.addWidget(self.canvas_tune)
         self.canvas_tune.draw()
+
+        self.figure_gain_matching = Figure()
+        self.figure_gain_matching.set_facecolor(color='0.89')
+        self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
+        self.plot_gain_matching.addWidget(self.canvas_gain_matching)
+        self.canvas_gain_matching.draw()
 
     @property
     def plot_x(self):
@@ -388,6 +365,50 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.canvas.draw()
         else:
             print('\nPlease, type a comment about the scan in the field "Run name"\nTry again')
+
+    def run_gain_matching(self):
+        ax = self.figure_gain_matching.add_subplot(111)
+        ax.cla()
+        self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
+                                      self.edit_range_gain_matching.text(), 
+                                      self.comboBox_5.currentText(), ax)
+        self.canvas_gain_matching.draw()
+
+# Class to write terminal output to screen
+class EmittingStream(QtCore.QObject):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.buffer = sys.__stdout__.buffer
+        self.close = sys.__stdout__.close
+        self.closed = sys.__stdout__.closed
+        self.detach = sys.__stdout__.detach
+        self.encoding = sys.__stdout__.encoding
+        self.errors = sys.__stdout__.errors
+        self.fileno = sys.__stdout__.fileno
+        self.flush = sys.__stdout__.flush
+        self.isatty = sys.__stdout__.isatty
+        self.line_buffering = sys.__stdout__.line_buffering
+        self.mode = sys.__stdout__.mode
+        self.name = sys.__stdout__.name
+        self.newlines = sys.__stdout__.newlines
+        self.read = sys.__stdout__.read
+        self.readable = sys.__stdout__.readable
+        self.readlines = sys.__stdout__.readlines
+        self.seek = sys.__stdout__.seek
+        self.seekable = sys.__stdout__.seekable
+        self.softspace = sys.__stdout__.softspace
+        self.tell = sys.__stdout__.tell
+        self.truncate = sys.__stdout__.truncate
+        self.writable = sys.__stdout__.writable
+        self.writelines = sys.__stdout__.writelines
+
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+        # Comment next line if the output should be printed only in the GUI
+        sys.__stdout__.write(text)
 
 #    @property
 #    def plan(self):
