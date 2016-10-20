@@ -132,37 +132,57 @@ class trajectory_manager():
         ftp = FTP(ip)
         ftp.login()
         s = pxssh.pxssh()
-        s.login (ip, 'root', 'deltatau')
+        ssh_login = s.login (ip, 'root', 'deltatau')
 
-        # Check if the directory exists in '/usrflash/lut/. If it does not, create it.'
-        if str(new_file_path) != '':
-            ftp.cwd('/usrflash/lut/')
-            dir_list = ftp.nlst()
-            dir_exists = 0
-            for dir_name in dir_list:
-                if dir_name == str(new_file_path):
-                    dir_exists = 1
-            if not dir_exists:
-                print('mkdir: /usrflash/lut/{}'.format(new_file_path))
-                ftp.mkd('/usrflash/lut/{}'.format(new_file_path))
-                s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}'.format(new_file_path))
-                s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}'.format(new_file_path))
 
-        ftp_file_path = '/var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name)
+        if ssh_login:
+            # Check if the directory exists in /usrflash/lut/. If it does not, create it.
+            if str(new_file_path) != '':
+                ftp.cwd('/usrflash/')
+                dir_list = ftp.nlst()
+                dir_exists = 0
+                for dir_name in dir_list:
+                    if dir_name == 'lut':
+                        dir_exists = 1
+                if not dir_exists:
+                    print('mkdir: /usrflash/lut')
+                    ftp.mkd('/usrflash/lut')
+                    s.sendline ('chown ftp:root /var/ftp/usrflash/lut')
+                    s.sendline ('chmod a+wrx /var/ftp/usrflash/lut')
+
+                ftp.cwd('/usrflash/lut/')
+                dir_list = ftp.nlst()
+                dir_exists = 0
+                for dir_name in dir_list:
+                    if dir_name == str(new_file_path):
+                        dir_exists = 1
+                if not dir_exists:
+                    print('mkdir: /usrflash/lut/{}'.format(new_file_path))
+                    ftp.mkd('/usrflash/lut/{}'.format(new_file_path))
+                    s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}'.format(new_file_path))
+                    s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}'.format(new_file_path))
+
+            ftp_file_path = '/var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name)
 
         # Open file and transfer to the power pmac
-        f = open(orig_file_path + str(orig_file_name), 'rb')
-        if(f.readable()):
-            result = ftp.storbinary('STOR ' + '/usrflash/lut/' + str(new_file_path) + '/' + new_file_name, f)
-            if(result == '226 File receive OK.'):
-                s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
-                s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
-                s.sendline ('echo "{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, new_file_path))
-                ttime.sleep(0.01)
-                ftp.close()
+            f = open(orig_file_path + str(orig_file_name), 'rb')
+            if(f.readable()):
+                result = ftp.storbinary('STOR ' + '/usrflash/lut/' + str(new_file_path) + '/' + new_file_name, f)
+                if(result == '226 File receive OK.'):
+                    print('File sent OK')
+                    s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
+                    s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
+                    s.sendline ('echo "{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, new_file_path))
+                    ttime.sleep(0.01)
+                    ftp.close()
+                    print('Permissions OK')
 
-        print('File sent successfully')
-        return True
+            s.logout()
+            s.pid = None
+            print('File sent successfully')
+            return True
+        else:
+            print('Not able to ssh into the controller')
 
     ########## init ##########
     # Transfer the trajectory from the flash to the ram memory in the controller
@@ -236,13 +256,23 @@ class trajectory_manager():
         for i in range(1, 10):
             ftp.cwd('/usrflash/lut/{}'.format(i))
     
-            info = []
+            file_list = ftp.nlst()
+            filename = 'hhm-size.txt'
+            file_exists = 0
+            for file_name in file_list:
+                if file_name == filename:
+                    file_exists = 1
+            if file_exists == 1:
+
+                info = []
           
-            resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
-            if(len(info) == 2):
-                size = int(info[0])
-                name = info[1]
-                print('{}: {:<24} (Size: {})'.format(i, name, size))
+                resp = ftp.retrlines('RETR hhm-size.txt', callback=handle_binary)
+                if(len(info) == 2):
+                    size = int(info[0])
+                    name = info[1]
+                    print('{}: {:<24} (Size: {})'.format(i, name, size))
+                else:
+                    print('{}: Could not find the size and name info'.format(i)) 
             else:
                 print('{}: Could not find the size and name info'.format(i))    
     
