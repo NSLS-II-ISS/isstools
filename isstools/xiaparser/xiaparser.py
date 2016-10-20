@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import sys
 import ctypes
 import numpy as np
+import os
 import os.path
 from scipy.optimize import curve_fit
+import smbc
+import time as ttime
 
 
 '''
@@ -59,12 +62,16 @@ class xiaparser:
                 for i in range(number_pixels):
                     self.next_pos = self.read_pixel_block(ds0, i, self.next_pos, plotdata, pixelnumber, silent)
 
-    def export_files(self, all_in_one = True):
+    def export_files(self, dest_filepath, dest_filename = '', all_in_one = True):
 
-        tmpfilename = self.filename[0:len(self.filename)-3]
+        if dest_filename == '':
+            tmpfilename = self.filename[0:len(self.filename)-3]
+        else:
+            tmpfilename = dest_filename
+
         try_number = 2
 
-        while(os.path.isfile(self.filepath + tmpfilename)):
+        while(os.path.isfile(dest_filepath + tmpfilename)):
             tmpfilename = self.filename[0:len(self.filename)-3] + '-' + str(try_number)
             try_number += 1
 
@@ -72,25 +79,23 @@ class xiaparser:
             print("Creating file for all channels...")
             output_data = np.array([self.exporting_array1, self.exporting_array2,
                                 self.exporting_array3, self.exporting_array4])
-            with open(self.filepath + tmpfilename + '-allchans.txt', 'wb') as f:
+            with open(dest_filepath + tmpfilename + '-allchans.txt', 'wb') as f:
                 i = 0
                 for row in output_data:
                     print('Row number: {}'.format(i))
                     i += 1
                     np.savetxt(f, np.array(row), fmt='%i',delimiter=' ', footer='============================================================')
                 
-            #np.savetxt(self.filepath + tmpfilename + '-allchans.txt', output_data, 
-            #           fmt='%i',delimiter=' ')
 
         else:
             print("Creating file for channel 1...")
-            np.savetxt(self.filepath + tmpfilename + '-chan1.txt', self.exporting_array1, fmt='%i',delimiter=' ')
+            np.savetxt(dest_filepath + tmpfilename + '-chan1.txt', self.exporting_array1, fmt='%i',delimiter=' ')
             print("Creating file for channel 2...")
-            np.savetxt(self.filepath + tmpfilename + '-chan2.txt', self.exporting_array2, fmt='%i',delimiter=' ')
+            np.savetxt(dest_filepath + tmpfilename + '-chan2.txt', self.exporting_array2, fmt='%i',delimiter=' ')
             print("Creating file for channel 3...")
-            np.savetxt(self.filepath + tmpfilename + '-chan3.txt', self.exporting_array3, fmt='%i',delimiter=' ')
+            np.savetxt(dest_filepath + tmpfilename + '-chan3.txt', self.exporting_array3, fmt='%i',delimiter=' ')
             print("Creating file for channel 4...")
-            np.savetxt(self.filepath + tmpfilename + '-chan4.txt', self.exporting_array4, fmt='%i',delimiter=' ')
+            np.savetxt(dest_filepath + tmpfilename + '-chan4.txt', self.exporting_array4, fmt='%i',delimiter=' ')
       
         
     def read_pixel_block(self, dataset, pixel, start_pos, plot_data, pixel_to_parse, silent):
@@ -278,15 +283,16 @@ class xiaparser:
 
 
 
-    def plot_roi(self, filename, filepath, pixels, channel_number, min_energy = 0, max_energy = 20, energy_array = np.array([])):
+    def plot_roi(self, filename, filepath, pixels, channel_number, min_energy = 0, max_energy = 20, ax = plt, energy_array = np.array([])):
         self.parse(filename, filepath)
         parsed_roi_array = self.parse_roi(pixels, channel_number, min_energy, max_energy)
         if(len(energy_array) == len(parsed_roi_array)):
-            plt.plot(energy_array[:, 1], parsed_roi_array)
+            ax.plot(energy_array[:, 1], parsed_roi_array)
         else:
-            plt.plot(parsed_roi_array)
+            ax.plot(parsed_roi_array)
             if(len(energy_array)):
                 print('The parsed ROI array and the energy array have different lengths.. \nPlotting only parsed_roi_array\nenergy_array length: {}\nparsed_roi_array length: {}'.format(len(energy_array), len(parsed_roi_array)))
+        ax.grid(True)
 
 
     def gauss(self, x, *p):
@@ -295,17 +301,6 @@ class xiaparser:
 
 
     def gain_matching(self, xia, center_energy, scan_range, channel_number, ax=plt):
-    #    xia.collect_mode.put('MCA Spectra')
-    #    ttime.sleep(0.25)
-    #    xia.mode.put('Real time')
-    #    ttime.sleep(0.25)
-    #    xia.real_time.put('1')
-    #    while(xia.real_time != 1):
-    #        ttime.sleep(0.05)
-    #    xia.capt_start_stop.put(1)
-    #    ttime.sleep(0.05)
-    #    xia.erase_start.put(1)
-    #    ttime.sleep(2)
     
         center_energy = float(center_energy)
         scan_range = float(scan_range)
@@ -335,7 +330,7 @@ class xiaparser:
             ax.set_xlabel('Energy (keV)')
             ax.set_ylabel('Intensity')
 
-        #return gauss(interval_x, *coeff)
+        return coeff
 
 
 def frange(start, stop, step):
@@ -343,6 +338,35 @@ def frange(start, stop, step):
     while i < stop:
         yield i
         i += step
+
+class smbclient:
+    def __init__(self, filename = '', dest_filename = '', **kwargs):
+        self.ctx = smbc.Context()
+        self.ctx.optionNoAutoAnonymousLogin = True
+        self.ctx.functionAuthData = self.auth_fn
+        self.filename = filename # 'smb://elistavitski-ni/epics/elis_xia11_024.nc'
+        self.dest_filename = dest_filename
+
+    # Load different filenames (in case no filename was passed before)
+    def load(self, filename, dest_filename):
+        self.filename = filename
+        self.dest_filename = dest_filename
+
+    # Copy source file to dest file
+    def copy(self):
+        source_file = self.ctx.open(self.filename, os.O_RDONLY)
+        dest_file = open(self.dest_filename, 'wb')
+        dest_file.write(source_file.read())
+        dest_file.flush()
+        source_file.close()
+        dest_file.close()
+
+    def auth_fn(self, server, share, workgroup, username, password):
+        return ('elistavitski-ni', 'Eli Stavitski', 'issuser')
+
+
+
+
 
 
 

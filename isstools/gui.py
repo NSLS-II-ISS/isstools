@@ -6,13 +6,9 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 import pkg_resources
-
-#from filestore.fs import FileStore
-#from databroker import Broker
-#from metadatastore.mds import MDS
-#mds = MDS({'host':'xf08id-ca1.cs.nsls2.local', 
-#	   'database': 'datastore', 'port': 27017, 'timezone': 'US/Eastern'}, auth=False)
-#db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
+import time as ttime
+import math
+import bluesky.plans as bp
 
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
@@ -42,7 +38,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_funcs, tune_funcs, RE, hhm, xia, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, xia, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -50,6 +46,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_start.clicked.connect(self.run_scan)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
+        self.RE = RE
+        self.db = db
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -153,7 +151,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             param2.setValue(def_val)
         elif annotation == bool:
             param2 = QtGui.QCheckBox()
-            def_val = bool(def_val)
+            if def_val == 'True':
+                def_val = True
+            else:
+                def_val = False
             param2.setCheckState(def_val)
             param2.setTristate(False)
         else:
@@ -334,15 +335,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.canvas.draw()
 
             # Run the scan using the tuple created before
-            self.current_uid, self.current_filepath = self.plan_funcs[self.run_type.currentIndex()](*run_params)
+            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
 
-            #print('current_uid:', self.current_uid)
-            #print('current_path:', self.current_filepath)
+            if absorp:
+                parser = xasdata.XASdataAbs()
+                parser.loadInterpFile(self.current_filepath)
+                parser.plot(ax)
+            else:
+                parser = xasdata.XASdataFlu()
+                parser.loadInterpFile(self.current_filepath)
+                xia_filename = self.db[self.current_uid]['start']['xia_filename']
+                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                smbclient.copy()
+                xia_parser = self.xia_parser
+                xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
+                xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
+                xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
+            # Fix that later
+                length = min(len(xia_parser.exporting_array1), len(parser.i0_interp))
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 7, 9, ax=ax)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 7, 9, ax=ax)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 7, 9, ax=ax)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 7, 9, ax=ax)
 
-            xas_abs = xasdata.XASdataAbs()
-            xas_abs.loadInterpFile(self.current_filepath)
-
-            xas_abs.plot(ax)
+            #parser.plot(ax)
             ax.set_title(self.comment)
 
             self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
@@ -367,12 +385,41 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('\nPlease, type a comment about the scan in the field "Run name"\nTry again')
 
     def run_gain_matching(self):
+
         ax = self.figure_gain_matching.add_subplot(111)
         ax.cla()
-        self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
+        gain_adjust = 0.001
+        
+        for i in range(int(self.edit_gain_matching_iterations.text())):
+            ax.cla()
+            self.xia.collect_mode.put('MCA spectra')
+            ttime.sleep(0.25)
+            self.xia.mode.put('Real time')
+            ttime.sleep(0.25)
+            self.xia.real_time.put('1')
+            self.xia.capt_start_stop.put(1)
+            ttime.sleep(0.05)
+            self.xia.erase_start.put(1)
+            ttime.sleep(2)
+
+
+
+            coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
                                       self.edit_range_gain_matching.text(), 
                                       self.comboBox_5.currentText(), ax)
-        self.canvas_gain_matching.draw()
+            diff = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
+
+            if i != 0:
+                sign = (diff * diff_old) /  math.fabs(diff * diff_old)
+                if int(sign) == -1:
+                    gain_adjust /= 2
+            print(diff)
+
+            self.xia.pre_amp_gain2.put(self.xia.pre_amp_gain2.value - diff * gain_adjust)
+            diff_old = diff
+
+            self.canvas_gain_matching.draw()
+
 
 # Class to write terminal output to screen
 class EmittingStream(QtCore.QObject):
