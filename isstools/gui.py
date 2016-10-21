@@ -337,12 +337,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
 
             if absorp:
-                parser = xasdata.XASdataAbs()
-                parser.loadInterpFile(self.current_filepath)
-                parser.plot(ax)
+                self.parser = xasdata.XASdataAbs()
+                self.parser.loadInterpFile(self.current_filepath)
+                self.parser.plot(ax)
             else:
-                parser = xasdata.XASdataFlu()
-                parser.loadInterpFile(self.current_filepath)
+                self.parser = xasdata.XASdataFlu()
+                self.parser.loadInterpFile(self.current_filepath)
                 xia_filename = self.db[self.current_uid]['start']['xia_filename']
                 xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
                 xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
@@ -353,11 +353,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
             # Fix that later
-                length = min(len(xia_parser.exporting_array1), len(parser.i0_interp))
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 7, 9, ax=ax)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 7, 9, ax=ax)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 7, 9, ax=ax)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 7, 9, ax=ax)
+                length = min(len(xia_parser.exporting_array1), len(parser.energy_interp))
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 8, 10, ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 8, 10, ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, ax, parser.energy_interp)
 
             #parser.plot(ax)
             ax.set_title(self.comment)
@@ -386,47 +386,51 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def run_gain_matching(self):
-        channels = [1, 2, 3, 4]
-        # For each channel:
-        for i in channels:
-            # If checkbox of current channel is checked:
-            if getattr(self, "checkBox_gm_ch{}".format(i)).checkState() > 0:
-                ax = self.figure_gain_matching.add_subplot(111)
-                gain_adjust = 0.001
+        channels = range(4)
             
-                # Run number of iterations defined in the text edit edit_gain_matching_iterations:
-                for i in range(int(self.edit_gain_matching_iterations.text())):
-                    self.xia.collect_mode.put('MCA spectra')
-                    ttime.sleep(0.25)
-                    self.xia.mode.put('Real time')
-                    ttime.sleep(0.25)
-                    self.xia.real_time.put('1')
-                    self.xia.capt_start_stop.put(1)
-                    ttime.sleep(0.05)
-                    self.xia.erase_start.put(1)
-                    ttime.sleep(2)
-                    ax.cla()
-    
+        ax = self.figure_gain_matching.add_subplot(111)
+        gain_adjust = [0.001, 0.001, 0.001, 0.001]
+        diff = [0, 0, 0, 0]
+        diff_old = [0, 0, 0, 0]
+
+        # Run number of iterations defined in the text edit edit_gain_matching_iterations:
+        for i in range(int(self.edit_gain_matching_iterations.text())):
+            self.xia.collect_mode.put('MCA spectra')
+            ttime.sleep(0.25)
+            self.xia.mode.put('Real time')
+            ttime.sleep(0.25)
+            self.xia.real_time.put('1')
+            self.xia.capt_start_stop.put(1)
+            ttime.sleep(0.05)
+            self.xia.erase_start.put(1)
+            ttime.sleep(2)
+            ax.cla()
+
+            # For each channel:
+            for j in channels:
+                # If checkbox of current channel is checked:
+                if getattr(self, "checkBox_gm_ch{}".format(j + 1)).checkState() > 0:
+        
                     # Get current channel pre-amp gain:
-                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(i))
+                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(j + 1))
 
                     coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
-                                              self.edit_range_gain_matching.text(), i, ax)
+                                              self.edit_range_gain_matching.text(), channels[j] + 1, ax)
                     # coeff[0] = Intensity
                     # coeff[1] = Fitted mean
                     # coeff[2] = Sigma
 
-                    diff = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
+                    diff[j] = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
 
                     if i != 0:
-                        sign = (diff * diff_old) /  math.fabs(diff * diff_old)
+                        sign = (diff[j] * diff_old[j]) /  math.fabs(diff[j] * diff_old[j])
                         if int(sign) == -1:
-                            gain_adjust /= 2
-                    print(diff)
+                            gain_adjust[j] /= 2
+                    print('Chan ' + str(j + 1) + ': ' + str(diff[j]) + '\n')
 
                     # Update current channel pre-amp gain:
-                    curr_ch_gain.put((curr_ch_gain.value - diff * gain_adjust)
-                    diff_old = diff
+                    curr_ch_gain.put(curr_ch_gain.value - diff[j] * gain_adjust[j])
+                    diff_old[j] = diff[j]
 
                     self.canvas_gain_matching.draw()
 

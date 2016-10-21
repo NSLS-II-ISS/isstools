@@ -104,7 +104,7 @@ class XASdataAbs(XASdata):
         self.ir_interp = np.array([timestamps, np.interp(timestamps, self.ir[:,0], self.ir[:,1])]).transpose()
         self.energy_interp = np.array([timestamps, np.interp(timestamps, self.energy[:,0], self.energy[:,1])]).transpose()
 
-    def plot(self, ax=plt, color='r'):
+    def plot(self, ax = plt, color = 'r', derivative = True ):
         result_chambers = np.copy(self.i0_interp)
         result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
         ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)

@@ -294,6 +294,14 @@ class xiaparser:
                 print('The parsed ROI array and the energy array have different lengths.. \nPlotting only parsed_roi_array\nenergy_array length: {}\nparsed_roi_array length: {}'.format(len(energy_array), len(parsed_roi_array)))
         ax.grid(True)
 
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('Intensity')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Intensity')
+
+
 
     def gauss(self, x, *p):
         A, mu, sigma = p
@@ -317,7 +325,7 @@ class xiaparser:
         coeff, var_matrix = curve_fit(self.gauss, interval_x, interval, p0=p0) 
         print('Intensity = ', coeff[0])
         print('Fitted mean = ', coeff[1])
-        print('Sigma = ', coeff[2], '\n')
+        print('Sigma = ', coeff[2])
 
         # For testing (following two lines)
         ax.plot(interval_x, interval, 'b')
