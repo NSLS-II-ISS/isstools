@@ -73,7 +73,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 		# Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
         self.xia = xia
-        self.comboBox_5.addItems(['1', '2', '3', '4'])
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
 
         # Initialize 'tune' tab
@@ -382,43 +381,54 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             self.canvas.draw()
         else:
-            print('\nPlease, type a comment about the scan in the field "Run name"\nTry again')
+            print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
+
+
 
     def run_gain_matching(self):
+        channels = [1, 2, 3, 4]
+        # For each channel:
+        for i in channels:
+            # If checkbox of current channel is checked:
+            if getattr(self, "checkBox_gm_ch{}".format(i)).checkState() > 0:
+                ax = self.figure_gain_matching.add_subplot(111)
+                gain_adjust = 0.001
+            
+                # Run number of iterations defined in the text edit edit_gain_matching_iterations:
+                for i in range(int(self.edit_gain_matching_iterations.text())):
+                    self.xia.collect_mode.put('MCA spectra')
+                    ttime.sleep(0.25)
+                    self.xia.mode.put('Real time')
+                    ttime.sleep(0.25)
+                    self.xia.real_time.put('1')
+                    self.xia.capt_start_stop.put(1)
+                    ttime.sleep(0.05)
+                    self.xia.erase_start.put(1)
+                    ttime.sleep(2)
+                    ax.cla()
+    
+                    # Get current channel pre-amp gain:
+                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(i))
 
-        ax = self.figure_gain_matching.add_subplot(111)
-        ax.cla()
-        gain_adjust = 0.001
-        
-        for i in range(int(self.edit_gain_matching_iterations.text())):
-            ax.cla()
-            self.xia.collect_mode.put('MCA spectra')
-            ttime.sleep(0.25)
-            self.xia.mode.put('Real time')
-            ttime.sleep(0.25)
-            self.xia.real_time.put('1')
-            self.xia.capt_start_stop.put(1)
-            ttime.sleep(0.05)
-            self.xia.erase_start.put(1)
-            ttime.sleep(2)
+                    coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
+                                              self.edit_range_gain_matching.text(), i, ax)
+                    # coeff[0] = Intensity
+                    # coeff[1] = Fitted mean
+                    # coeff[2] = Sigma
 
+                    diff = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
 
+                    if i != 0:
+                        sign = (diff * diff_old) /  math.fabs(diff * diff_old)
+                        if int(sign) == -1:
+                            gain_adjust /= 2
+                    print(diff)
 
-            coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
-                                      self.edit_range_gain_matching.text(), 
-                                      self.comboBox_5.currentText(), ax)
-            diff = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
+                    # Update current channel pre-amp gain:
+                    curr_ch_gain.put((curr_ch_gain.value - diff * gain_adjust)
+                    diff_old = diff
 
-            if i != 0:
-                sign = (diff * diff_old) /  math.fabs(diff * diff_old)
-                if int(sign) == -1:
-                    gain_adjust /= 2
-            print(diff)
-
-            self.xia.pre_amp_gain2.put(self.xia.pre_amp_gain2.value - diff * gain_adjust)
-            diff_old = diff
-
-            self.canvas_gain_matching.draw()
+                    self.canvas_gain_matching.draw()
 
 
 # Class to write terminal output to screen

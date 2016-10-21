@@ -893,13 +893,13 @@
        <rect>
         <x>30</x>
         <y>30</y>
-        <width>221</width>
-        <height>111</height>
+        <width>231</width>
+        <height>159</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="formLayout_4">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_65">
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_67">
          <property name="font">
           <font>
            <weight>75</weight>
@@ -907,7 +907,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Center Energy</string>
+          <string>Channels</string>
          </property>
         </widget>
        </item>
@@ -924,8 +924,21 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_67">
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="checkBox_gm_ch2">
+         <property name="text">
+          <string>2</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_65">
          <property name="font">
           <font>
            <weight>75</weight>
@@ -933,38 +946,67 @@
           </font>
          </property>
          <property name="text">
-          <string>Channel</string>
+          <string>Center Energy</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="edit_center_gain_matching">
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="checkBox_gm_ch1">
          <property name="text">
-          <string>10000</string>
+          <string>1</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="2">
+        <widget class="QCheckBox" name="checkBox_gm_ch3">
+         <property name="text">
+          <string>3</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
         <widget class="QLineEdit" name="edit_range_gain_matching">
          <property name="text">
           <string>10000</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="comboBox_5">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+       <item row="0" column="1" colspan="2">
+        <widget class="QLineEdit" name="edit_center_gain_matching">
+         <property name="text">
+          <string>10000</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
+       <item row="5" column="0" colspan="3">
         <widget class="QPushButton" name="push_gain_matching">
          <property name="text">
           <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QCheckBox" name="checkBox_gm_ch4">
+         <property name="text">
+          <string>4</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
