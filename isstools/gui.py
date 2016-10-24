@@ -395,9 +395,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def update_re_state(self):
         palette = self.label_11.palette()
         if(self.RE.state == 'idle'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 215, 0))
+            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(193, 140, 15))
         elif(self.RE.state == 'running'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(0, 215, 0))
+            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(0, 165, 0))
         elif(self.RE.state == 'paused'):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_11.setPalette(palette)
