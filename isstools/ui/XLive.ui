@@ -1304,6 +1304,19 @@
      </item>
     </layout>
    </widget>
+   <widget class="QPushButton" name="push_re_abort">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>770</y>
+      <width>101</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Scan Abort</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -1311,7 +1324,7 @@
      <x>0</x>
      <y>0</y>
      <width>1455</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
