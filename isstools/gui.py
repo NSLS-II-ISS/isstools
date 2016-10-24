@@ -86,6 +86,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
         self.push_re_abort.clicked.connect(self.re_abort)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update_re_state)
+        self.timer.start(1000)
 
         self.run_type.currentIndexChanged.connect(self.populateParams)
         self.params1 = []
@@ -387,6 +390,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def re_abort(self):
         self.RE.abort()
+
+
+    def update_re_state(self):
+        self.label_11.setText(self.RE.state)
+
 
     def run_gain_matching(self):
         channels = range(4)
