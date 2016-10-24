@@ -85,7 +85,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
-        self.push_re_abort.clicked.connect(self.re_abort())
+        self.push_re_abort.clicked.connect(self.re_abort)
 
         self.run_type.currentIndexChanged.connect(self.populateParams)
         self.params1 = []
