@@ -477,7 +477,7 @@ class EmittingStream(QtCore.QObject):
         self.readlines = sys.__stdout__.readlines
         self.seek = sys.__stdout__.seek
         self.seekable = sys.__stdout__.seekable
-        self.softspace = sys.__stdout__.softspace
+        #self.softspace = sys.__stdout__.softspace
         self.tell = sys.__stdout__.tell
         self.truncate = sys.__stdout__.truncate
         self.writable = sys.__stdout__.writable
