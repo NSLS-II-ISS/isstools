@@ -86,7 +86,8 @@ class XASdataAbs(XASdata):
         self.ir_file = irtrace
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = self.encoder
-        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * self.encoder[:, 1]/360000))
+        #self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0.041)))
+        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
         self.i0 = self.loadADCtrace(i0trace)
         self.it = self.loadADCtrace(ittrace)
         self.ir = self.loadADCtrace(irtrace)  
@@ -160,7 +161,7 @@ class XASdataFlu(XASdata):
         self.trig_file = trigtrace
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = np.copy(self.encoder)
-        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * self.encoder[:, 1]/360000))
+        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0))) #0.041
         self.i0 = self.loadADCtrace(i0trace)
         self.ir = self.loadADCtrace(irtrace)
         self.trigger = self.loadTRIGtrace(trigtrace)
