@@ -35,11 +35,11 @@
       <x>20</x>
       <y>0</y>
       <width>1421</width>
-      <height>761</height>
+      <height>751</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -762,7 +762,7 @@
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>20</x>
         <y>200</y>
         <width>591</width>
         <height>491</height>
@@ -1252,6 +1252,73 @@
       </layout>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_4">
+     <attribute name="title">
+      <string>Old Scans</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>30</y>
+        <width>841</width>
+        <height>621</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="plot_old_scans"/>
+     </widget>
+     <widget class="QPushButton" name="push_select_file">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>30</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select File</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_11">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>481</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_10">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>Filename:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_24">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
     <property name="enabled">
@@ -1276,7 +1343,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>770</y>
+      <y>760</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -1297,6 +1364,12 @@
      </item>
      <item>
       <widget class="QLabel" name="label_11">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -1308,7 +1381,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>770</y>
+      <y>760</y>
       <width>101</width>
       <height>28</height>
      </rect>
@@ -1324,7 +1397,7 @@
      <x>0</x>
      <y>0</y>
      <width>1455</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">

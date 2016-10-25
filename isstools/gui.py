@@ -96,9 +96,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3 = []
         self.populateParams(0)
 
+        # Initialize 'old scans' tab
+        self.push_select_file.clicked.connect(self.selectFile)
+
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def selectFile(self):
+        self.label_24.setText(QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/'))
+        parser = xasdata.XASdataAbs()
+        ax = self.figure_old_scans.add_subplot(111)
+        print(self.label_24.text())
+        parser.loadInterpFile(self.label_24.text())
+
+        ax.cla()
+        parser.plot(ax)
+        self.canvas_old_scans.draw()
 
     def __del__(self):
         # Restore sys.stdout
@@ -211,6 +225,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
         self.canvas_gain_matching.draw()
+
+        self.figure_old_scans = Figure()
+        self.figure_old_scans.set_facecolor(color='0.89')
+        self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
+        self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self.tab_2, coordinates=True)
+        self.plot_old_scans.addWidget(self.toolbar_old_scans)
+        self.plot_old_scans.addWidget(self.canvas_old_scans)
+        self.canvas_old_scans.draw()
 
     @property
     def plot_x(self):
