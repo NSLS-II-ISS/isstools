@@ -104,15 +104,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
     def selectFile(self):
-        self.label_24.setText(QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/'))
-        parser = xasdata.XASdataAbs()
-        ax = self.figure_old_scans.add_subplot(111)
-        print(self.label_24.text())
-        parser.loadInterpFile(self.label_24.text())
+        selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
+        if selected_filename:
+            self.label_24.setText(selected_filename)
+            parser = xasdata.XASdataAbs()
+            ax = self.figure_old_scans.add_subplot(111)
+            print(self.label_24.text())
+            parser.loadInterpFile(self.label_24.text())
 
-        ax.cla()
-        parser.plot(ax)
-        self.canvas_old_scans.draw()
+            ax.cla()
+            parser.plot(ax)
+            self.canvas_old_scans.draw()
 
     def __del__(self):
         # Restore sys.stdout
