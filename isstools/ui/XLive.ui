@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1455</width>
-    <height>949</height>
+    <width>1591</width>
+    <height>1228</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>XLive @ISS/8-ID NSLS-II</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
@@ -32,10 +32,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>0</y>
-      <width>1421</width>
-      <height>751</height>
+      <x>10</x>
+      <y>150</y>
+      <width>1571</width>
+      <height>851</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -1069,123 +1069,11 @@
      <attribute name="title">
       <string>Run </string>
      </attribute>
-     <widget class="QWidget" name="gridLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>291</width>
-        <height>131</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Cycle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>PI</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_6">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_7">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_8">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="label_9">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="label_10">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>SAF #</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Proposal #</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Year</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QPushButton" name="run_start">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>400</y>
+        <x>10</x>
+        <y>250</y>
         <width>151</width>
         <height>41</height>
        </rect>
@@ -1197,10 +1085,10 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>560</x>
+        <x>410</x>
         <y>40</y>
-        <width>841</width>
-        <height>621</height>
+        <width>1131</width>
+        <height>751</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plots"/>
@@ -1208,8 +1096,8 @@
      <widget class="QWidget" name="gridLayoutWidget_9">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>220</y>
+        <x>10</x>
+        <y>70</y>
         <width>341</width>
         <height>171</height>
        </rect>
@@ -1219,8 +1107,8 @@
      <widget class="QWidget" name="formLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>180</y>
+        <x>10</x>
+        <y>30</y>
         <width>251</width>
         <height>31</height>
        </rect>
@@ -1254,15 +1142,15 @@
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
-      <string>Old Scans</string>
+      <string>Processing</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_7">
       <property name="geometry">
        <rect>
-        <x>520</x>
-        <y>30</y>
-        <width>841</width>
-        <height>621</height>
+        <x>10</x>
+        <y>60</y>
+        <width>731</width>
+        <height>401</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_old_scans"/>
@@ -1270,10 +1158,10 @@
      <widget class="QPushButton" name="push_select_file">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>30</y>
-        <width>151</width>
-        <height>41</height>
+        <x>490</x>
+        <y>20</y>
+        <width>81</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -1284,7 +1172,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
+        <y>20</y>
         <width>481</width>
         <height>31</height>
        </rect>
@@ -1318,6 +1206,17 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_8">
+      <property name="geometry">
+       <rect>
+        <x>820</x>
+        <y>60</y>
+        <width>731</width>
+        <height>401</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="plot_old_scans_2"/>
+     </widget>
     </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
@@ -1326,10 +1225,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>800</y>
-      <width>1421</width>
-      <height>101</height>
+      <x>0</x>
+      <y>1050</y>
+      <width>1571</width>
+      <height>131</height>
      </rect>
     </property>
     <property name="readOnly">
@@ -1342,8 +1241,8 @@
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>760</y>
+      <x>0</x>
+      <y>1010</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -1380,8 +1279,8 @@
    <widget class="QPushButton" name="push_re_abort">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>760</y>
+      <x>200</x>
+      <y>1010</y>
       <width>101</width>
       <height>28</height>
      </rect>
@@ -1390,13 +1289,131 @@
      <string>Scan Abort</string>
     </property>
    </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>291</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Cycle</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>PI</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_6">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="label_7">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_8">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="label_9">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLabel" name="label_10">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>SAF #</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Proposal #</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Year</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <zorder>tabWidget</zorder>
+   <zorder>textEdit_terminal</zorder>
+   <zorder>horizontalLayoutWidget</zorder>
+   <zorder>push_re_abort</zorder>
+   <zorder>label_11</zorder>
+   <zorder>gridLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1455</width>
+     <width>1591</width>
      <height>20</height>
     </rect>
    </property>
