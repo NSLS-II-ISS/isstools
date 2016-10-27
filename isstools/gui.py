@@ -98,8 +98,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.populateParams(0)
 
         # Initialize epics elements
-        #self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', self.update_shutter)
-        #self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', self.update_shutter)
+        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', 'XF:08ID-PPS{Sh:FE}Cmd:Opn-Cmd', 'XF:08ID-PPS{Sh:FE}Cmd:Cls-Cmd', self.update_shutter)
+        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', 'XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Cmd:Cls-Cmd', self.update_shutter)
         self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
         self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
 
@@ -122,19 +122,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if int(value) == 1:
             current_button.setStyleSheet("background-color: red")
 
+    #def change_color(self, button):
+    #    button.
+
     def toggle_fe_button(self):
-        print('{}'.format(int(not self.shutter_a.value)))
-        self.shutter_a.put(1)
+        #print('{}'.format(int(not self.shutter_a.value)))
+        if(int(self.shutter_a.value)):
+            self.shutter_a.open()
+        else:
+            self.shutter_a.close()
 
     def toggle_ph_button(self):
-        print('{}'.format(int(not self.shutter_b.value)))
-        self.shutter_b.put(1)
-
-
-    def show(self):
-        super().show()
-        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Cmd:Opn-Cmd', 'XF:08ID-PPS{Sh:FE}Pos-Sts', self.update_shutter)
-        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Pos-Sts', self.update_shutter)
+        #print('{}'.format(int(not self.shutter_b.value)))
+        if(int(self.shutter_b.value)):
+            self.shutter_b.open()
+        else:
+            self.shutter_b.close()
 
 
     def selectFile(self):
