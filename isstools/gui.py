@@ -14,6 +14,7 @@ from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
+from isstools.elements import elements
 import os
 from os import listdir
 from os.path import isfile, join
@@ -70,7 +71,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
 
-		# Initialize XIA tab
+        # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
         self.xia = xia
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
@@ -96,12 +97,37 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3 = []
         self.populateParams(0)
 
+        # Initialize epics elements
+        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', update_shutter)
+        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', update_shutter)
+        self.push_fe_shutter.clicked.connect(toggle_fe_button)
+        self.push_ph_shutter.clicked.connect(toggle_ph_button)
+
         # Initialize 'old scans' tab
         self.push_select_file.clicked.connect(self.selectFile)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def update_shutter(self, pvname=None, value=None, char_value=None):
+        if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts')
+            current_button = self.push_fe_shutter
+        elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts')
+            current_button = self.push_ph_shutter
+
+        if value == 0:
+            current_button.setStyleSheet("background-color: lime")
+        if value == 1:
+            current_button.setStyleSheet("background-color: red")
+
+    def toggle_fe_button(self):
+        self.shutter_a.put(int(not self.shutter_a.value))
+
+    def toggle_ph_button(self):
+        self.shutter_b.put(int(not self.shutter_b.value))
+
+
 
     def selectFile(self):
         selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
@@ -340,6 +366,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.read_info()
 
     def run_scan(self):
+        if self.shutter_a.value == 1 or self.shutter_b.value == 1:
+            print ('Shutters closed!')
+            return 'Shutters closed!'
+
         self.comment = self.params2[0].text()
         if(self.comment):
             print('\nStarting scan...')
