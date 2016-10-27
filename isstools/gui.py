@@ -98,10 +98,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.populateParams(0)
 
         # Initialize epics elements
-        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', update_shutter)
-        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', update_shutter)
-        self.push_fe_shutter.clicked.connect(toggle_fe_button)
-        self.push_ph_shutter.clicked.connect(toggle_ph_button)
+        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', self.update_shutter)
+        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', self.update_shutter)
+        self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
+        self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
 
         # Initialize 'old scans' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -110,15 +110,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
-    def update_shutter(self, pvname=None, value=None, char_value=None):
-        if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts')
+    def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
+        if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
             current_button = self.push_fe_shutter
-        elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts')
+        elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts'):
             current_button = self.push_ph_shutter
 
-        if value == 0:
+        print('pv: {} / value: {}'.format(pvname, value))
+        if int(value) == 0:
             current_button.setStyleSheet("background-color: lime")
-        if value == 1:
+        if int(value) == 1:
             current_button.setStyleSheet("background-color: red")
 
     def toggle_fe_button(self):
