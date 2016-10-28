@@ -364,11 +364,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             # Run the scan using the tuple created before
             self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
 
-            if absorp:
+            if absorp == True:
                 self.parser = xasdata.XASdataAbs()
                 self.parser.loadInterpFile(self.current_filepath)
                 self.parser.plot(ax)
-            else:
+            elif absorp == False:
                 self.parser = xasdata.XASdataFlu()
                 self.parser.loadInterpFile(self.current_filepath)
                 xia_filename = self.db[self.current_uid]['start']['xia_filename']
@@ -387,27 +387,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, ax, parser.energy_interp)
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, ax, parser.energy_interp)
 
-            #parser.plot(ax)
-            ax.set_title(self.comment)
+            if absorp != '':
+                ax.set_title(self.comment)
 
-            self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
-            if(not os.path.exists(self.log_path)):
-                os.makedirs(self.log_path)
+                self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
+                if(not os.path.exists(self.log_path)):
+                    os.makedirs(self.log_path)
 
-            self.snapshots_path = self.log_path + 'snapshots/'
-            if(not os.path.exists(self.snapshots_path)):
-                os.makedirs(self.snapshots_path)
+                self.snapshots_path = self.log_path + 'snapshots/'
+                if(not os.path.exists(self.snapshots_path)):
+                    os.makedirs(self.snapshots_path)
 
-            self.file_path = 'snapshots/' + self.comment + '.png'
-            fn = self.log_path + self.file_path
-            repeat = 1
-            while(os.path.isfile(fn)):
-                repeat += 1
-                self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
+                self.file_path = 'snapshots/' + self.comment + '.png'
                 fn = self.log_path + self.file_path
-            self.figure.savefig(fn)
+                repeat = 1
+                while(os.path.isfile(fn)):
+                    repeat += 1
+                    self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
+                    fn = self.log_path + self.file_path
+                self.figure.savefig(fn)
 
-            self.canvas.draw()
+                self.canvas.draw()
+
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
 
