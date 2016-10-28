@@ -74,12 +74,12 @@ class XASdataAbs(XASdata):
         self.it = np.array([])
         self.ir = np.array([])
 
-    def process(self, encoder_trace = '', i0trace = '', ittrace = '', irtrace = ''):
-        self.load(encoder_trace, i0trace, ittrace, irtrace)
+    def process(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0):
+        self.load(encoder_trace, i0trace, ittrace, irtrace, i0offset, itoffset, iroffset)
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace = '', i0trace = '', ittrace = '', irtrace = ''):
+    def load(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = ittrace
@@ -90,7 +90,10 @@ class XASdataAbs(XASdata):
         self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
         self.i0 = self.loadADCtrace(i0trace)
         self.it = self.loadADCtrace(ittrace)
-        self.ir = self.loadADCtrace(irtrace)  
+        self.ir = self.loadADCtrace(irtrace)
+        self.i0[:, 1] = self.i0[:, 1] - i0offset
+        self.it[:, 1] = self.it[:, 1] - itoffset
+        self.ir[:, 1] = self.ir[:, 1] - iroffset
 
     def loadInterpFile(self, filename):
         self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp = self.loadINTERPtrace(filename)
@@ -148,12 +151,12 @@ class XASdataFlu(XASdata):
         self.ir = np.array([])
         self.trig_file = ''
 
-    def process(self, encoder_trace = '', i0trace = '', iflutrace = '', trigtrace = ''):
-        self.load(encoder_trace, i0trace, iflutrace,  trigtrace)
+    def process(self, encoder_trace, i0trace, iflutrace, irtrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0):
+        self.load(encoder_trace, i0trace, iflutrace, irtrace, trigtrace, i0offset, ifluoffset, iroffset)
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace = '', i0trace = '', iflutrace = '',  irtrace = '', trigtrace = ''):
+    def load(self, encoder_trace, i0trace, iflutrace, irtrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = iflutrace
@@ -163,10 +166,14 @@ class XASdataFlu(XASdata):
         self.energy = np.copy(self.encoder)
         self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0))) #0.041
         self.i0 = self.loadADCtrace(i0trace)
+        self.i0[:, 1] = self.i0[:, 1] - i0offset
         self.ir = self.loadADCtrace(irtrace)
-        self.trigger = self.loadTRIGtrace(trigtrace)
+        self.ir[:, 1] = self.ir[:, 1] - iroffset
         self.iflu = self.loadADCtrace(iflutrace)
+        self.iflu[:, 1] = self.iflu[:, 1] - ifluoffset
+        self.trigger = self.loadTRIGtrace(trigtrace)
         self.it = np.copy(self.iflu)
+
 
     def loadInterpFile(self, filename):
         self.energy_interp, self.i0_interp, self.iflu_interp, self.ir_interp = self.loadINTERPtrace(filename)

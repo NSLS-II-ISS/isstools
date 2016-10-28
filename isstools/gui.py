@@ -38,7 +38,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, xia, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, detectors, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -70,10 +70,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
 
-		# Initialize XIA tab
+	# Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
-        self.xia = xia
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
+
+        # Initialize detectors
+        self.xia = detectors['xia']
+        self.pba1 = detectors['pba1']
+        self.pba2 = detectors['pba2']
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
