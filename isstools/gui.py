@@ -49,7 +49,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.db = db
         self.hhm = hhm
-        self.hhm.trajectory_progress.subscribe(update_progress)
+        self.hhm.trajectory_progress.subscribe(self.update_progress)
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -109,8 +109,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
-    def update_progress(pvname = None, value=None, char_value=None, **kwargs):
+    def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progressBar.setValue(int(value))
+        print('{} {} {}'.format(pvname, value, char_value))
 
     def selectFile(self):
         selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
