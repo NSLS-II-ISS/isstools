@@ -39,6 +39,8 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
+    shutters_sig = QtCore.pyqtSignal()
+
     def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, xia, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -103,6 +105,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
         self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
 
+        if self.shutter_a.value == 0:
+            self.push_fe_shutter.setStyleSheet("background-color: lime")
+        else:
+            self.push_fe_shutter.setStyleSheet("background-color: red")
+        if self.shutter_b.value == 0:
+            self.push_ph_shutter.setStyleSheet("background-color: lime")
+        else:
+            self.push_ph_shutter.setStyleSheet("background-color: red")
+        self.shutters_sig.connect(self.change_shutter_color)
+
         # Initialize 'old scans' tab
         self.push_select_file.clicked.connect(self.selectFile)
 
@@ -116,14 +128,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts'):
             current_button = self.push_ph_shutter
 
-        print('pv: {} / value: {}'.format(pvname, value))
+        self.current_button = current_button
         if int(value) == 0:
-            current_button.setStyleSheet("background-color: lime")
+            self.current_button_color = 'lime'
         if int(value) == 1:
-            current_button.setStyleSheet("background-color: red")
+            self.current_button_color = 'red'
+        self.shutters_sig.emit()
 
-    #def change_color(self, button):
-    #    button.
+    def change_shutter_color(self):
+        self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
     def toggle_fe_button(self):
         #print('{}'.format(int(not self.shutter_a.value)))

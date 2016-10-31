@@ -6,6 +6,7 @@ class shutter(epics.PV):
         super().__init__(pvname, *args, **kwargs)
         self.open_pv = open_pv
         self.close_pv = close_pv
+        self.color = 'red'
 
     def open(self):
         if self.open_pv is not None:
