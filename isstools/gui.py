@@ -13,6 +13,7 @@ from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
+from isstools.elements import elements
 import os
 from os import listdir
 from os.path import isfile, join
@@ -37,8 +38,9 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
+    shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
-    
+
     def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, detectors, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -76,7 +78,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
 
-	# Initialize XIA tab
+        # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
 
@@ -106,12 +108,58 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3 = []
         self.populateParams(0)
 
+        # Initialize epics elements
+        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', 'XF:08ID-PPS{Sh:FE}Cmd:Opn-Cmd', 'XF:08ID-PPS{Sh:FE}Cmd:Cls-Cmd', self.update_shutter)
+        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', 'XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Cmd:Cls-Cmd', self.update_shutter)
+        self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
+        self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
+
+        if self.shutter_a.value == 0:
+            self.push_fe_shutter.setStyleSheet("background-color: lime")
+        else:
+            self.push_fe_shutter.setStyleSheet("background-color: red")
+        if self.shutter_b.value == 0:
+            self.push_ph_shutter.setStyleSheet("background-color: lime")
+        else:
+            self.push_ph_shutter.setStyleSheet("background-color: red")
+        self.shutters_sig.connect(self.change_shutter_color)
+
         # Initialize 'old scans' tab
         self.push_select_file.clicked.connect(self.selectFile)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
+        if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
+            current_button = self.push_fe_shutter
+        elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts'):
+            current_button = self.push_ph_shutter
+
+        self.current_button = current_button
+        if int(value) == 0:
+            self.current_button_color = 'lime'
+        if int(value) == 1:
+            self.current_button_color = 'red'
+        self.shutters_sig.emit()
+
+    def change_shutter_color(self):
+        self.current_button.setStyleSheet("background-color: " + self.current_button_color)
+
+    def toggle_fe_button(self):
+        #print('{}'.format(int(not self.shutter_a.value)))
+        if(int(self.shutter_a.value)):
+            self.shutter_a.open()
+        else:
+            self.shutter_a.close()
+
+    def toggle_ph_button(self):
+        #print('{}'.format(int(not self.shutter_b.value)))
+        if(int(self.shutter_b.value)):
+            self.shutter_b.open()
+        else:
+            self.shutter_b.close()
 
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
@@ -357,6 +405,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.read_info()
 
     def run_scan(self):
+        if self.shutter_a.value == 1 or self.shutter_b.value == 1:
+            print ('Shutters closed!')
+            return 'Shutters closed!'
+
         self.comment = self.params2[0].text()
         if(self.comment):
             print('\nStarting scan...')
