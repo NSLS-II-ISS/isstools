@@ -1,4 +1,3 @@
-# Temperature-conversion program using PyQt
 import numpy as np
 from PyQt4 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
@@ -38,6 +37,8 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 class ScanGui(*uic.loadUiType(ui_path)):
+    progress_sig = QtCore.pyqtSignal()
+    
     def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, detectors, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -47,9 +48,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.RE = RE
+        self.RE.last_state = ''
         self.db = db
         self.hhm = hhm
         self.hhm.trajectory_progress.subscribe(self.update_progress)
+        self.progress_sig.connect(self.update_progressbar) 
+        self.progressBar.setValue(0)
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -110,8 +114,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
-        self.progressBar.setValue(int(value))
-        print('{} {} {}'.format(pvname, value, char_value))
+        self.progress_sig.emit()
+        self.progressValue = value
+
+    def update_progressbar(self):
+        self.progressBar.setValue(int(self.progressValue))
 
     def selectFile(self):
         selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
@@ -437,6 +444,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
+        if self.RE.state != self.RE.last_state:
+            self.RE.last_state = self.RE.state
 
 
     def run_gain_matching(self):
