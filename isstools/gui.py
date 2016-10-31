@@ -288,8 +288,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         postedge_stitch_lo = int(self.edit_postedge_stitch_lo.text())
         postedge_stitch_hi = int(self.edit_postedge_stitch_hi.text())
 
-        padding_preedge = int(self.edit_padding_preedge.text())
-        padding_postedge = int(self.edit_padding_postedge.text())
+        padding_preedge = float(self.edit_padding_preedge.text())
+        padding_postedge = float(self.edit_padding_postedge.text())
 
         #Create and interpolate trajectory
         self.traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
