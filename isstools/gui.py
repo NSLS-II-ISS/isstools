@@ -315,6 +315,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
+        if self.shutter_a.value == 1 or self.shutter_b.value == 1:
+            print ('Shutters closed!')
+            return False 
+
         self.figure_tune.clf()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
 
@@ -407,7 +411,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def run_scan(self):
         if self.shutter_a.value == 1 or self.shutter_b.value == 1:
             print ('Shutters closed!')
-            return 'Shutters closed!'
+            return False 
 
         self.comment = self.params2[0].text()
         if(self.comment):
