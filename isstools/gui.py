@@ -1,4 +1,3 @@
-# Temperature-conversion program using PyQt
 import numpy as np
 from PyQt4 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
@@ -40,8 +39,9 @@ def auto_redraw_factory(fnc):
 
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
+    progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, xia, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, detectors, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -50,7 +50,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.RE = RE
+        self.RE.last_state = ''
         self.db = db
+        self.hhm = hhm
+        self.hhm.trajectory_progress.subscribe(self.update_progress)
+        self.progress_sig.connect(self.update_progressbar) 
+        self.progressBar.setValue(0)
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -75,8 +80,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
-        self.xia = xia
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
+
+        # Initialize detectors
+        self.xia = detectors['xia']
+        self.pba1 = detectors['pba1']
+        self.pba2 = detectors['pba2']
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
@@ -152,6 +161,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.shutter_b.close()
 
+    def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
+        self.progress_sig.emit()
+        self.progressValue = value
+
+    def update_progressbar(self):
+        self.progressBar.setValue(int(self.progressValue))
 
     def selectFile(self):
         selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
@@ -321,8 +336,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         postedge_stitch_lo = int(self.edit_postedge_stitch_lo.text())
         postedge_stitch_hi = int(self.edit_postedge_stitch_hi.text())
 
-        padding_preedge = int(self.edit_padding_preedge.text())
-        padding_postedge = int(self.edit_padding_postedge.text())
+        padding_preedge = float(self.edit_padding_preedge.text())
+        padding_postedge = float(self.edit_padding_postedge.text())
 
         #Create and interpolate trajectory
         self.traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
@@ -418,11 +433,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             # Run the scan using the tuple created before
             self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
 
-            if absorp:
+            if absorp == True:
                 self.parser = xasdata.XASdataAbs()
                 self.parser.loadInterpFile(self.current_filepath)
                 self.parser.plot(ax)
-            else:
+            elif absorp == False:
                 self.parser = xasdata.XASdataFlu()
                 self.parser.loadInterpFile(self.current_filepath)
                 xia_filename = self.db[self.current_uid]['start']['xia_filename']
@@ -441,27 +456,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, ax, parser.energy_interp)
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, ax, parser.energy_interp)
 
-            #parser.plot(ax)
-            ax.set_title(self.comment)
+            if absorp != '':
+                ax.set_title(self.comment)
 
-            self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
-            if(not os.path.exists(self.log_path)):
-                os.makedirs(self.log_path)
+                self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
+                if(not os.path.exists(self.log_path)):
+                    os.makedirs(self.log_path)
 
-            self.snapshots_path = self.log_path + 'snapshots/'
-            if(not os.path.exists(self.snapshots_path)):
-                os.makedirs(self.snapshots_path)
+                self.snapshots_path = self.log_path + 'snapshots/'
+                if(not os.path.exists(self.snapshots_path)):
+                    os.makedirs(self.snapshots_path)
 
-            self.file_path = 'snapshots/' + self.comment + '.png'
-            fn = self.log_path + self.file_path
-            repeat = 1
-            while(os.path.isfile(fn)):
-                repeat += 1
-                self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
+                self.file_path = 'snapshots/' + self.comment + '.png'
                 fn = self.log_path + self.file_path
-            self.figure.savefig(fn)
+                repeat = 1
+                while(os.path.isfile(fn)):
+                    repeat += 1
+                    self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
+                    fn = self.log_path + self.file_path
+                self.figure.savefig(fn)
 
-            self.canvas.draw()
+                self.canvas.draw()
+
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
 
@@ -480,6 +496,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
+        if self.RE.state != self.RE.last_state:
+            self.RE.last_state = self.RE.state
 
 
     def run_gain_matching(self):
