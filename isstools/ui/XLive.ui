@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -553,10 +553,17 @@
         <x>1040</x>
         <y>10</y>
         <width>351</width>
-        <height>164</height>
+        <height>171</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_7">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_55">
+         <property name="text">
+          <string>Lut</string>
+         </property>
+        </widget>
+       </item>
        <item row="2" column="1">
         <widget class="QComboBox" name="comboBox_2">
          <property name="sizePolicy">
@@ -581,13 +588,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_55">
-         <property name="text">
-          <string>Lut</string>
          </property>
         </widget>
        </item>
@@ -753,6 +753,19 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QPushButton" name="push_prepare_trajectory">
+      <property name="geometry">
+       <rect>
+        <x>1130</x>
+        <y>190</y>
+        <width>131</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prepare Trajectory</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_5">

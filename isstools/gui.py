@@ -41,7 +41,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, RE, db, hhm, detectors, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -49,6 +49,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_start.clicked.connect(self.run_scan)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
+        self.prep_traj_plan = prep_traj_plan
         self.RE = RE
         self.RE.last_state = ''
         self.db = db
@@ -77,6 +78,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
+        self.push_prepare_trajectory.clicked.connect(self.run_prep_traj)
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
@@ -323,6 +325,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.figure_tune.clf()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
+
+
+    def run_prep_traj(self):
+        self.RE(self.prep_traj_plan())
+
 
     def build_trajectory(self):
         E0 = int(self.edit_E0.text())
