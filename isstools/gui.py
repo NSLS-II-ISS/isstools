@@ -328,7 +328,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def run_prep_traj(self):
-        self.RE(self.prep_traj_plan)
+        self.RE(self.prep_traj_plan())
 
 
     def build_trajectory(self):
