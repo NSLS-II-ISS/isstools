@@ -336,7 +336,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         preedge_lo = int(self.edit_preedge_lo.text())
         preedge_hi = int(self.edit_preedge_hi.text())
         edge_hi = int(self.edit_edge_hi.text())
-        postedge_hi = int(self.edit_postedge_hi.text())
+
+        postedge_k = float(self.edit_postedge_hi.text())
+        postedge_hi = (1000 * ((postedge_k * postedge_k) + 16.2009 * 16.2009 * E0/1000) / (16.2009 * 16.2009)) - E0
 
         velocity_preedge = int (self.edit_velocity_preedge.text())
         velocity_edge = int(self.edit_velocity_edge.text())

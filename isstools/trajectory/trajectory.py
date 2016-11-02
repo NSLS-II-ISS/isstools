@@ -89,6 +89,33 @@ class trajectory():
 
 
 
+        total_time = 30
+        preedge_lo = edge_energy+offsets[0]
+        postedge_hi = edge_energy+offsets[3]
+        x = np.linspace(-np.pi / 2, np.pi / 2, total_time * 20)
+        energy = (np.sin(x) * (postedge_hi - preedge_lo) / 2) + (postedge_hi + preedge_lo) / 2
+        time = np.linspace(0, total_time, total_time * 20)
+        self.energy = energy
+        self.time = time
+
+
+
+
+        total_time = 30
+        half = 0.3
+        preedge_lo = edge_energy+offsets[0]
+        edge = edge_energy
+        x = np.linspace(-np.pi / 2, np.pi / 2, (half * total_time) * 20)
+        energy = (np.sin(x) * (edge - preedge_lo) / 2) + (edge + preedge_lo) / 2
+        time = np.linspace(0, (half * total_time), (half * total_time) * 20)
+
+        postedge_hi = edge_energy+offsets[3]
+        x = np.linspace(-np.pi / 2, np.pi / 2, ((1 - half) * total_time) * 20)
+        energy2 = (np.sin(x) * (postedge_hi - edge) / 2) + (postedge_hi + edge) / 2
+        time2 = np.linspace((half * total_time) + 1/20, total_time, ((1 - half) * total_time) * 20)
+        self.energy = np.concatenate((energy, energy2))
+        self.time = np.concatenate((time, time2))
+
     def interpolate(self):
         cs = interpolate.CubicSpline(self.time, self.energy, bc_type='clamped')
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
@@ -103,7 +130,7 @@ class trajectory():
         self.energy_grid = np.tile(self.energy_grid, reps)
 
     def e2encoder(self):
-        self.encoder_grid = (360000 * (180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))))
+        self.encoder_grid = (360000 * ((180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))) + 0.041))
 
 
     def plot(self):
