@@ -129,6 +129,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
         self.push_bin.clicked.connect(self.process_bin)
+        self.push_save_bin.clicked.connect(self.save_bin)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -172,8 +173,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(int(self.progressValue))
 
     def getX(self, event):
-        #print('button={}, x={}, y={}, xdata={}, ydata={}'.format(
-            #event.button, event.x, event.y, event.xdata, event.ydata))
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
 
     def selectFile(self):
@@ -182,49 +181,52 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_24.setText(selected_filename)
             self.process_bin_equal()
 
+    def save_bin(self):
+        self.abs_manager.export_dat(self.label_24.text())
 
     def process_bin(self):
-            parser = xasdata.XASdataAbs()
-            ax = self.figure_old_scans.add_subplot(111)
-            print(self.label_24.text())
-            parser.loadInterpFile(self.label_24.text())
-            ax.cla()
-            parser.plot(ax)
+        parser = xasdata.XASdataAbs()
+        ax = self.figure_old_scans.add_subplot(111)
+        print(self.label_24.text())
+        parser.loadInterpFile(self.label_24.text())
+        ax.cla()
+        parser.plot(ax)
 
-            ax = self.figure_old_scans_3.add_subplot(111)
-            ax.cla()
-            e0 = int(self.edit_E0_2.text())
-            parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
-            parser.data_manager.plot(ax)
+        ax = self.figure_old_scans_3.add_subplot(111)
+        ax.cla()
+        e0 = int(self.edit_E0_2.text())
+        parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
+        parser.data_manager.plot(ax)
+        self.abs_manager = parser.data_manager
 
-            self.canvas_old_scans_3.draw()
+        self.canvas_old_scans_3.draw()
 
 
     def process_bin_equal(self):
-            parser = xasdata.XASdataAbs()
-            ax = self.figure_old_scans.add_subplot(111)
-            print(self.label_24.text())
-            parser.loadInterpFile(self.label_24.text())
-            ax.cla()
-            parser.plot(ax)
+        parser = xasdata.XASdataAbs()
+        ax = self.figure_old_scans.add_subplot(111)
+        print(self.label_24.text())
+        parser.loadInterpFile(self.label_24.text())
+        ax.cla()
+        parser.plot(ax)
 
-            if not hasattr(self, 'bin_ax'):
-                self.bin_ax = self.figure_old_scans_2.add_subplot(111)
-            if not hasattr(self, 'bin_ax2'):
-                self.bin_ax2 = self.bin_ax.twinx()
-            self.bin_ax.cla()
-            self.bin_ax2.cla()
-            parser.bin_equal()
-            parser.data_manager.plot(self.bin_ax)
-            self.bin_ax.set_ylabel('Log(i0/it)', color='b')
+        if not hasattr(self, 'bin_ax'):
+            self.bin_ax = self.figure_old_scans_2.add_subplot(111)
+        if not hasattr(self, 'bin_ax2'):
+            self.bin_ax2 = self.bin_ax.twinx()
+        self.bin_ax.cla()
+        self.bin_ax2.cla()
+        parser.bin_equal()
+        parser.data_manager.plot(self.bin_ax)
+        self.bin_ax.set_ylabel('Log(i0/it)', color='b')
 
-            parser.data_manager.plot_der(self.bin_ax2, 'r')
-            self.bin_ax2.set_ylabel('Derivative', color='r')
+        parser.data_manager.plot_der(self.bin_ax2, 'r')
+        self.bin_ax2.set_ylabel('Derivative', color='r')
 
-            self.canvas_old_scans.draw()
-            self.canvas_old_scans_2.draw()
+        self.canvas_old_scans.draw()
+        self.canvas_old_scans_2.draw()
 
-            cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+        cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
 
 
     def __del__(self):

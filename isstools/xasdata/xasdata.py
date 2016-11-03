@@ -400,6 +400,11 @@ class XASDataManager:
             ax.set_ylabel('(iflu / i0)')    
 
 
+    def export_dat(self, filename):
+        filename = filename[0: len(filename) - 3] + 'dat'
+        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e')
+
+
     def plot_orig(self, ax=plt, color='r'):
         ax.plot(self.sorted_matrix[:, 1], np.log(self.sorted_matrix[:, 2]/self.sorted_matrix[:, 3]), color)
         ax.grid(True)
@@ -430,7 +435,7 @@ class XASDataManager:
         self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
         self.abs = np.log(self.i0/self.it)
 
-        self.abs_der=np.diff(self.abs)
+        self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
 
     def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 1):
@@ -452,6 +457,9 @@ class XASDataManager:
         self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
         self.abs = np.log(self.i0/self.it)
 
-        self.abs_der=np.diff(self.abs)
+        self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
+        self.abs_der2 = np.diff(self.abs_der)
+        self.abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
 
