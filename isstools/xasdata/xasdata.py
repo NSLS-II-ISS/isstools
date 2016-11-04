@@ -16,6 +16,8 @@ class XASdata:
         self.i0_file = ''
         self.it_file = ''
         self.ir_file = ''
+        self.data_manager = XASDataManager()
+        self.header_read = ''
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         array_out=[]
@@ -63,9 +65,14 @@ class XASdata:
                     array_it.append(float(current_line[3]))
                     if len(current_line) == 5:
                         array_ir.append(float(current_line[4]))
+        self.header_read = self.read_header(filename)
         ts, energy, i0, it, ir = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir)
         return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose()
         
+    def read_header(self, filename):
+        with open(filename) as myfile:
+            return ''.join(str(elem) for elem in [next(myfile) for x in range(12)])
+
 
 class XASdataAbs(XASdata):
     def __init__(self, *args, **kwargs):
@@ -139,6 +146,23 @@ class XASdataAbs(XASdata):
                     self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %8.2f %f %f %f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, human_start_time, human_stop_time, human_duration))
         return fn
+
+
+    def bin_equal(self):
+        self.data_manager.process_equal(self.i0_interp[:,0], 
+                                  self.energy_interp[:,1],
+                                  self.i0_interp[:,1],
+                                  self.it_interp[:,1], 
+                                  self.ir_interp[:,1])
+
+    def bin(self, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+        self.data_manager.process(self.i0_interp[:,0], 
+                                  self.energy_interp[:,1],
+                                  self.i0_interp[:,1],
+                                  self.it_interp[:,1], 
+                                  self.ir_interp[:,1],
+                                  e0, edge_start, edge_end,
+                                  preedge_spacing, xanes, exafsk)
 
 
 class XASdataFlu(XASdata):
@@ -305,3 +329,142 @@ class XASdataFlu(XASdata):
 
     def export_trig_trace(self, filename, filepath = '/GPFS/xf08id/Sandbox/'):
         np.savetxt(filepath + filename + suffix, self.energy_interp[:,1], fmt='%f', delimiter=" ")
+
+
+class XASDataManager:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def delta_energy(self, array):
+        diff = np.diff(array)
+        diff = np.concatenate((diff,[diff[len(diff)-1]]))
+        out = (np.concatenate(([diff[0]], diff[:len(diff)-1])) + diff)/2
+        return out
+    
+    def sort_data(self, matrix, column_to_sort):
+        return matrix[matrix[:,column_to_sort].argsort()]
+    
+    def energy_grid_equal(self, array, interval):
+        return np.arange(np.min(array), np.max(array) + interval/2, interval)
+    
+    def energy_grid(self, array, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+        preedge = np.arange(np.min(array), edge_start, preedge_spacing)
+        edge = np.arange(edge_start, edge_end, xanes)
+
+        iterator = exafsk
+        kenergy = 0
+        postedge = np.array([])
+
+        while(kenergy + edge_end < np.max(array)):
+            kenergy = self.k2e(iterator, e0)
+            postedge = np.append(postedge, edge_end + kenergy)
+            iterator += exafsk
+
+        return np.append(np.append(preedge, edge), postedge)
+    
+    def gauss(self, x, fwhm, x0):
+        sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
+        a = 1/(sigma * ((2 * np.pi) ** (1/2)))
+        data_y = a * np.exp(-.5 * ((x - x0) / sigma) ** 2)
+        data_y = np.array(data_y / sum(data_y))
+        return data_y
+    
+    def bin(self, en_st, data_x, data_y):
+        buf = self.delta_energy(en_st)
+        mat = []
+        for i in range(len(buf)):
+            line = self.gauss(data_x, buf[i], en_st[i])
+            mat.append(line)
+        data_st = np.matmul(np.array(mat), data_y)
+        return data_st.transpose()
+
+
+    def k2e(self, k, E0):
+        return (1000 * ((k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
+
+
+    def plot(self, ax=plt, color='b'):
+        ax.plot(self.en_grid, self.abs, color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('Log(i0 / it)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Log(i0 / it)')    
+
+
+    def plot_der(self, ax=plt, color='b'):
+        ax.plot(self.en_grid, self.abs_der, color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('(iflu / i0)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('(iflu / i0)')    
+
+
+    def export_dat(self, filename, header = ''):
+        filename = filename[0: len(filename) - 3] + 'dat'
+        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
+
+
+    def plot_orig(self, ax=plt, color='r'):
+        ax.plot(self.sorted_matrix[:, 1], np.log(self.sorted_matrix[:, 2]/self.sorted_matrix[:, 3]), color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('(iflu / i0)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('(iflu / i0)')    
+
+
+    def process(self, timestamp, energy, i0, it, ir, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+        self.ts_orig = timestamp
+        self.en_orig = energy
+        self.i0_orig = i0
+        self.it_orig = it
+        self.ir_orig = ir
+
+        self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
+        self.sorted_matrix = self.sort_data(self.matrix, 1)
+        self.en_grid = self.energy_grid(self.sorted_matrix[:, 1], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
+        self.data_en = self.sorted_matrix[:, 1]
+        self.data_i0 = self.sorted_matrix[:, 2]
+        self.data_it = self.sorted_matrix[:, 3]
+        self.data_ir = self.sorted_matrix[:, 4]
+        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0/self.it)
+
+        self.abs_der = np.diff(self.abs)
+        self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
+    def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 1):
+        self.ts_orig = timestamp
+        self.en_orig = energy
+        self.i0_orig = i0
+        self.it_orig = it
+        self.ir_orig = ir
+
+        self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
+        self.sorted_matrix = self.sort_data(self.matrix, 1)
+        self.en_grid = self.energy_grid_equal(self.sorted_matrix[:, 1], delta_en)
+        self.data_en = self.sorted_matrix[:, 1]
+        self.data_i0 = self.sorted_matrix[:, 2]
+        self.data_it = self.sorted_matrix[:, 3]
+        self.data_ir = self.sorted_matrix[:, 4]
+        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0/self.it)
+
+        self.abs_der = np.diff(self.abs)
+        self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
+        self.abs_der2 = np.diff(self.abs_der)
+        self.abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
+

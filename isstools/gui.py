@@ -57,6 +57,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar) 
         self.progressBar.setValue(0)
+        self.abs_parser = xasdata.XASdataAbs() 
+        self.flu_parser = xasdata.XASdataFlu() 
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -126,8 +128,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_ph_shutter.setStyleSheet("background-color: red")
         self.shutters_sig.connect(self.change_shutter_color)
 
-        # Initialize 'old scans' tab
+        # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
+        self.push_bin.clicked.connect(self.process_bin)
+        self.push_save_bin.clicked.connect(self.save_bin)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -170,18 +174,61 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def update_progressbar(self):
         self.progressBar.setValue(int(self.progressValue))
 
+    def getX(self, event):
+        self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+
     def selectFile(self):
         selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
         if selected_filename:
             self.label_24.setText(selected_filename)
-            parser = xasdata.XASdataAbs()
-            ax = self.figure_old_scans.add_subplot(111)
-            print(self.label_24.text())
-            parser.loadInterpFile(self.label_24.text())
+            self.process_bin_equal()
 
-            ax.cla()
-            parser.plot(ax)
-            self.canvas_old_scans.draw()
+    def save_bin(self):
+        self.abs_parser.data_manager.export_dat(self.label_24.text(), self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+
+    def process_bin(self):
+        #parser = xasdata.XASdataAbs()
+        ax = self.figure_old_scans.add_subplot(111)
+        print(self.label_24.text())
+        self.abs_parser.loadInterpFile(self.label_24.text())
+        ax.cla()
+        self.abs_parser.plot(ax)
+
+        ax = self.figure_old_scans_3.add_subplot(111)
+        ax.cla()
+        e0 = int(self.edit_E0_2.text())
+        self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
+        self.abs_parser.data_manager.plot(ax)
+
+        self.canvas_old_scans_3.draw()
+
+
+    def process_bin_equal(self):
+        #parser = xasdata.XASdataAbs()
+        ax = self.figure_old_scans.add_subplot(111)
+        print(self.label_24.text())
+        self.abs_parser.loadInterpFile(self.label_24.text())
+        ax.cla()
+        self.abs_parser.plot(ax)
+
+        if not hasattr(self, 'bin_ax'):
+            self.bin_ax = self.figure_old_scans_2.add_subplot(111)
+        if not hasattr(self, 'bin_ax2'):
+            self.bin_ax2 = self.bin_ax.twinx()
+        self.bin_ax.cla()
+        self.bin_ax2.cla()
+        self.abs_parser.bin_equal()
+        self.abs_parser.data_manager.plot(self.bin_ax)
+        self.bin_ax.set_ylabel('Log(i0/it)', color='b')
+
+        self.abs_parser.data_manager.plot_der(self.bin_ax2, 'r')
+        self.bin_ax2.set_ylabel('Derivative', color='r')
+
+        self.canvas_old_scans.draw()
+        self.canvas_old_scans_2.draw()
+
+        cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+
 
     def __del__(self):
         # Restore sys.stdout
@@ -302,6 +349,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_old_scans.addWidget(self.toolbar_old_scans)
         self.plot_old_scans.addWidget(self.canvas_old_scans)
         self.canvas_old_scans.draw()
+
+        self.figure_old_scans_2 = Figure()
+        self.figure_old_scans_2.set_facecolor(color='0.89')
+        self.canvas_old_scans_2 = FigureCanvas(self.figure_old_scans_2)
+        self.toolbar_old_scans_2 = NavigationToolbar(self.canvas_old_scans_2, self.tab_2, coordinates=True)
+        self.plot_old_scans_2.addWidget(self.toolbar_old_scans_2)
+        self.plot_old_scans_2.addWidget(self.canvas_old_scans_2)
+        self.canvas_old_scans_2.draw()
+
+        self.figure_old_scans_3 = Figure()
+        self.figure_old_scans_3.set_facecolor(color='0.89')
+        self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
+        self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
+        self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
+        self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
+        self.canvas_old_scans_3.draw()
+
 
     @property
     def plot_x(self):
