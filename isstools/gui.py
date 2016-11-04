@@ -57,6 +57,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar) 
         self.progressBar.setValue(0)
+        self.abs_parser = xasdata.XASdataAbs() 
+        self.flu_parser = xasdata.XASdataFlu() 
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -182,33 +184,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.process_bin_equal()
 
     def save_bin(self):
-        self.abs_manager.export_dat(self.label_24.text())
+        self.abs_parser.data_manager.export_dat(self.label_24.text(), self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
 
     def process_bin(self):
-        parser = xasdata.XASdataAbs()
+        #parser = xasdata.XASdataAbs()
         ax = self.figure_old_scans.add_subplot(111)
         print(self.label_24.text())
-        parser.loadInterpFile(self.label_24.text())
+        self.abs_parser.loadInterpFile(self.label_24.text())
         ax.cla()
-        parser.plot(ax)
+        self.abs_parser.plot(ax)
 
         ax = self.figure_old_scans_3.add_subplot(111)
         ax.cla()
         e0 = int(self.edit_E0_2.text())
-        parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
-        parser.data_manager.plot(ax)
-        self.abs_manager = parser.data_manager
+        self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
+        self.abs_parser.data_manager.plot(ax)
 
         self.canvas_old_scans_3.draw()
 
 
     def process_bin_equal(self):
-        parser = xasdata.XASdataAbs()
+        #parser = xasdata.XASdataAbs()
         ax = self.figure_old_scans.add_subplot(111)
         print(self.label_24.text())
-        parser.loadInterpFile(self.label_24.text())
+        self.abs_parser.loadInterpFile(self.label_24.text())
         ax.cla()
-        parser.plot(ax)
+        self.abs_parser.plot(ax)
 
         if not hasattr(self, 'bin_ax'):
             self.bin_ax = self.figure_old_scans_2.add_subplot(111)
@@ -216,11 +217,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.bin_ax2 = self.bin_ax.twinx()
         self.bin_ax.cla()
         self.bin_ax2.cla()
-        parser.bin_equal()
-        parser.data_manager.plot(self.bin_ax)
+        self.abs_parser.bin_equal()
+        self.abs_parser.data_manager.plot(self.bin_ax)
         self.bin_ax.set_ylabel('Log(i0/it)', color='b')
 
-        parser.data_manager.plot_der(self.bin_ax2, 'r')
+        self.abs_parser.data_manager.plot_der(self.bin_ax2, 'r')
         self.bin_ax2.set_ylabel('Derivative', color='r')
 
         self.canvas_old_scans.draw()

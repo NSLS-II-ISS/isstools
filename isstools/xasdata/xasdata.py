@@ -17,6 +17,7 @@ class XASdata:
         self.it_file = ''
         self.ir_file = ''
         self.data_manager = XASDataManager()
+        self.header_read = ''
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         array_out=[]
@@ -64,9 +65,13 @@ class XASdata:
                     array_it.append(float(current_line[3]))
                     if len(current_line) == 5:
                         array_ir.append(float(current_line[4]))
+        self.header_read = self.read_header(filename)
         ts, energy, i0, it, ir = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir)
         return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose()
         
+    def read_header(self, filename):
+        with open(filename) as myfile:
+            return ''.join(str(elem) for elem in [next(myfile) for x in range(12)])
 
 
 class XASdataAbs(XASdata):
@@ -400,9 +405,9 @@ class XASDataManager:
             ax.set_ylabel('(iflu / i0)')    
 
 
-    def export_dat(self, filename):
+    def export_dat(self, filename, header = ''):
         filename = filename[0: len(filename) - 3] + 'dat'
-        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e')
+        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
 
 
     def plot_orig(self, ax=plt, color='r'):
