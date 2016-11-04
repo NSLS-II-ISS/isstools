@@ -1501,7 +1501,7 @@
         </font>
        </property>
        <property name="text">
-        <string>RE.state:</string>
+        <string>State:</string>
        </property>
       </widget>
      </item>
