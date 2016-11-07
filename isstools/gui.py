@@ -400,7 +400,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         preedge_lo = int(self.edit_preedge_lo.text())
         preedge_hi = int(self.edit_preedge_hi.text())
         edge_hi = int(self.edit_edge_hi.text())
-        postedge_hi = int(self.edit_postedge_hi.text())
+
+        postedge_k = float(self.edit_postedge_hi.text())
+        postedge_hi = (1000 * ((postedge_k * postedge_k) + 16.2009 * 16.2009 * E0/1000) / (16.2009 * 16.2009)) - E0
 
         velocity_preedge = int (self.edit_velocity_preedge.text())
         velocity_edge = int(self.edit_velocity_edge.text())
@@ -416,10 +418,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
         padding_preedge = float(self.edit_padding_preedge.text())
         padding_postedge = float(self.edit_padding_postedge.text())
 
+        sine_duration = float(self.edit_sine_total_duration.text())
+
+        dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
+        dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
+
+        traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
+
         #Create and interpolate trajectory
         self.traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
                         stitching = ([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi, postedge_stitch_lo, postedge_stitch_hi]),\
-                        servocycle = 16000, padding_lo = padding_preedge ,padding_hi=padding_postedge)
+                        servocycle = 16000, padding_lo = padding_preedge ,padding_hi=padding_postedge, sine_duration = sine_duration, 
+                        dsine_preedge_duration = dsine_preedge_duration, dsine_postedge_duration = dsine_postedge_duration, trajectory_type = traj_type)
         self.traj.interpolate()
 
         #Plot single trajectory motion
