@@ -14,6 +14,7 @@ from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 from isstools.elements import elements
+from isstools.dialogs import UpdateUserDialog
 import os
 from os import listdir
 from os.path import isfile, join
@@ -59,6 +60,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
+        self.push_update_user.clicked.connect(self.update_user)
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -136,6 +138,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def update_user(self):
+        dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text())
+        if dlg.exec_():
+            self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md['PI'] = dlg.getValues()
+            self.label_6.setText('{}'.format(self.RE.md['year']))
+            self.label_7.setText('{}'.format(self.RE.md['cycle']))
+            self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
+            self.label_9.setText('{}'.format(self.RE.md['SAF']))
+            self.label_10.setText('{}'.format(self.RE.md['PI']))
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
