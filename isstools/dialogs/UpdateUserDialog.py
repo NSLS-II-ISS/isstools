@@ -8,6 +8,7 @@ class UpdateUserDialog(*uic.loadUiType(ui_path)):
     def __init__(self, year, cycle, proposal, saf, pi, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self.setWindowTitle('Update User Info')
 
         self.lineEdit.setText('{}'.format(year))
         self.lineEdit_2.setText('{}'.format(cycle))
