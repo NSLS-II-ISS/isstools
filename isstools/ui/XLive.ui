@@ -33,13 +33,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>130</y>
       <width>1571</width>
-      <height>851</height>
+      <height>871</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1326,7 +1326,7 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
+        <y>40</y>
         <width>731</width>
         <height>401</height>
        </rect>
@@ -1337,7 +1337,7 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>20</y>
+        <y>10</y>
         <width>81</width>
         <height>31</height>
        </rect>
@@ -1350,7 +1350,7 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
+        <y>10</y>
         <width>481</width>
         <height>31</height>
        </rect>
@@ -1388,9 +1388,9 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>470</y>
+        <y>440</y>
         <width>731</width>
-        <height>351</height>
+        <height>401</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_old_scans_2"/>
@@ -1468,7 +1468,7 @@ file and switch to
         <x>610</x>
         <y>0</y>
         <width>161</width>
-        <height>51</height>
+        <height>41</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_12">
@@ -1595,7 +1595,7 @@ file and switch to
         <x>790</x>
         <y>120</y>
         <width>761</width>
-        <height>701</height>
+        <height>721</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_old_scans_3"/>
@@ -1707,9 +1707,9 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
+      <y>1</y>
       <width>291</width>
-      <height>132</height>
+      <height>121</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -1819,7 +1819,7 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>510</x>
-      <y>40</y>
+      <y>30</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -1832,7 +1832,7 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>610</x>
-      <y>40</y>
+      <y>30</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -1845,7 +1845,7 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>510</x>
-      <y>20</y>
+      <y>10</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -1861,7 +1861,7 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>610</x>
-      <y>20</y>
+      <y>10</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -1890,7 +1890,7 @@ file and switch to
     <property name="geometry">
      <rect>
       <x>310</x>
-      <y>50</y>
+      <y>40</y>
       <width>141</width>
       <height>51</height>
      </rect>

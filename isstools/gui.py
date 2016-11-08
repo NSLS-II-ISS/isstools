@@ -167,14 +167,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
     def toggle_fe_button(self):
-        #print('{}'.format(int(not self.shutter_a.value)))
         if(int(self.shutter_a.value)):
             self.shutter_a.open()
         else:
             self.shutter_a.close()
 
     def toggle_ph_button(self):
-        #print('{}'.format(int(not self.shutter_b.value)))
         if(int(self.shutter_b.value)):
             self.shutter_b.open()
         else:
@@ -197,12 +195,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.process_bin_equal()
 
     def save_bin(self):
-        self.abs_parser.data_manager.export_dat(self.label_24.text(), self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+        bin_filename = self.label_24.text()
+        self.abs_parser.data_manager.export_dat(bin_filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+        print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
 
     def process_bin(self):
-        #parser = xasdata.XASdataAbs()
         ax = self.figure_old_scans.add_subplot(111)
-        print(self.label_24.text())
         self.abs_parser.loadInterpFile(self.label_24.text())
         ax.cla()
         self.abs_parser.plot(ax)
@@ -217,9 +215,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def process_bin_equal(self):
-        #parser = xasdata.XASdataAbs()
         ax = self.figure_old_scans.add_subplot(111)
-        print(self.label_24.text())
         self.abs_parser.loadInterpFile(self.label_24.text())
         ax.cla()
         self.abs_parser.plot(ax)
@@ -485,6 +481,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
 						self.traj.encoder_grid, fmt='%d')
                         self.get_traj_names()
+                        print('Trajectory saved! [{}]'.format(self.trajectory_path + self.edit_trajectory_name.text()))
                     else:
                         self.edit_trajectory_name.selectAll()
                         self.edit_trajectory_name.setFocus()
@@ -492,6 +489,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
 					self.traj.encoder_grid, fmt='%d')
                     self.get_traj_names()
+                    print('Trajectory saved! [{}]'.format(self.trajectory_path + self.edit_trajectory_name.text()))
             else:
                 print('\n.txt is not a valid name')
 
