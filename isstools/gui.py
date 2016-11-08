@@ -415,7 +415,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         edge_hi = int(self.edit_edge_hi.text())
 
         postedge_k = float(self.edit_postedge_hi.text())
-        postedge_hi = xray.k2e(postedge_k, E0) #(1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
+        postedge_hi = xray.k2e(postedge_k, E0) - E0 #(1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
 
         velocity_preedge = int (self.edit_velocity_preedge.text())
         velocity_edge = int(self.edit_velocity_edge.text())
@@ -579,6 +579,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.figure.savefig(fn)
 
                 self.canvas.draw()
+
+                if True: # Change to a control
+                    self.tabWidget.setCurrentIndex(4)
+                    self.label_24.setText(self.current_filepath)
+                    self.process_bin_equal()
 
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')

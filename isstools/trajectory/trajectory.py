@@ -10,6 +10,7 @@ import time as ttime
 from pexpect import pxssh
 from ftplib import FTP
 
+from isstools.conversions import xray
 
 class trajectory():
     def __init__(self):
@@ -132,7 +133,7 @@ class trajectory():
         self.energy_grid = np.tile(self.energy_grid, reps)
 
     def e2encoder(self):
-        self.encoder_grid = (360000 * ((180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))) + 0.041))
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, 0.041) #(360000 * ((180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))) + 0.041))
 
 
     def plot(self):
