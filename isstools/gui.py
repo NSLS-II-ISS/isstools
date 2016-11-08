@@ -309,9 +309,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             param2.setText(def_val)
 
         param3 = QtGui.QLabel(default)
-        self.gridLayout_13.addWidget(param1, rows, 0)
-        self.gridLayout_13.addWidget(param2, rows, 1)
-        self.gridLayout_13.addWidget(param3, rows, 2)
+        self.gridLayout_13.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
+        self.gridLayout_13.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
+        self.gridLayout_13.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
         self.params1.append(param1)
         self.params2.append(param2)
         self.params3.append(param3)
