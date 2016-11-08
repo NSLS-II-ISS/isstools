@@ -6,7 +6,7 @@ from bluesky.global_state import gs
 from databroker import (DataBroker as db, get_events, get_images,
                         get_table, get_fields, restream, process)
 from datetime import datetime
-from isstools.xiaparser import xiaparser
+from isstools.conversions import xray
 
 class XASdata:
     def __init__(self, **kwargs):
@@ -93,8 +93,8 @@ class XASdataAbs(XASdata):
         self.ir_file = irtrace
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = self.encoder
-        #self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0.041)))
-        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
+        #self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0.041)
+        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0) #-12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
         self.i0 = self.loadADCtrace(i0trace)
         self.it = self.loadADCtrace(ittrace)
         self.ir = self.loadADCtrace(irtrace)
@@ -188,7 +188,8 @@ class XASdataFlu(XASdata):
         self.trig_file = trigtrace
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = np.copy(self.encoder)
-        self.energy[:, 1] = -12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0))) #0.041
+        #self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0.041)
+        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0)
         self.i0 = self.loadADCtrace(i0trace)
         self.i0[:, 1] = self.i0[:, 1] - i0offset
         self.ir = self.loadADCtrace(irtrace)
@@ -356,7 +357,7 @@ class XASDataManager:
         postedge = np.array([])
 
         while(kenergy + edge_end < np.max(array)):
-            kenergy = self.k2e(iterator, e0)
+            kenergy = xray.k2e(iterator, e0) - e0
             postedge = np.append(postedge, edge_end + kenergy)
             iterator += exafsk
 
@@ -377,11 +378,6 @@ class XASDataManager:
             mat.append(line)
         data_st = np.matmul(np.array(mat), data_y)
         return data_st.transpose()
-
-
-    def k2e(self, k, E0):
-        return (1000 * ((k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
-
 
     def plot(self, ax=plt, color='b'):
         ax.plot(self.en_grid, self.abs, color)
