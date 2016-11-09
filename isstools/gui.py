@@ -84,6 +84,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
         self.push_prepare_trajectory.clicked.connect(self.run_prep_traj)
+        self.push_plot_traj.clicked.connect(self.plot_traj_file)
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
@@ -453,7 +454,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory.clf()
         ax = self.figure_single_trajectory.add_subplot(111)
         ax.hold(False)
-        ax.plot(self.traj.time, self.traj.energy, 'r*')
+        ax.plot(self.traj.time, self.traj.energy, 'ro')
         ax.hold(True)
         ax.plot(self.traj.time_grid, self.traj.energy_grid, 'b')
         ax.set_xlabel('Time /s')
@@ -500,6 +501,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     print('Trajectory saved! [{}]'.format(self.trajectory_path + self.edit_trajectory_name.text()))
             else:
                 print('\n.txt is not a valid name')
+
+    def plot_traj_file(self):
+        self.traj.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.comboBox.currentText())
+
+        self.figure_single_trajectory.clf()
+        self.figure_single_trajectory.add_subplot(111)
+        self.canvas_single_trajectory.draw()
+
+        ax = self.figure_full_trajectory.add_subplot(111)
+        ax.hold(False)
+        ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
+        ax.set_xlabel('Servo event / 1/16000 s')
+        ax.set_ylabel('Energy /eV')
+        ax.set_title(self.comboBox.currentText())
+        self.canvas_full_trajectory.draw()
+        print('Trajectory Load: Done')
 
     def load_trajectory(self):
         self.traj_manager.load(orig_file_name = self.comboBox.currentText(), new_file_path = self.comboBox_2.currentText())

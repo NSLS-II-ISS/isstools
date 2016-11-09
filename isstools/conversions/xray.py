@@ -64,7 +64,7 @@ def encoder2energy(encoder, offset = 0):
     --------
     :func:`isstools.conversions.xray.energy2encoder`
     """
-    return -12400 / (2 * 3.1356 * np.sin(np.deg2rad((encoder/360000) + float(offset))))
+    return -12400 / (2 * 3.1356 * np.sin(np.deg2rad((encoder/360000) - float(offset))))
 
 def energy2encoder(energy, offset = 0):
     """
