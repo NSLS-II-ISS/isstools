@@ -439,7 +439,7 @@ class XASDataManager:
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
 
-    def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 1):
+    def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 2):
         self.ts_orig = timestamp
         self.en_orig = energy
         self.i0_orig = i0
