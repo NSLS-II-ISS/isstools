@@ -133,13 +133,22 @@ class trajectory():
         self.energy_grid = np.tile(self.energy_grid, reps)
 
     def e2encoder(self):
-        self.encoder_grid = -xray.energy2encoder(self.energy_grid, 0.041) #(360000 * ((180 / np.pi) * (np.arcsin(12400 / (2 * 3.1356 * self.energy_grid))) + 0.041))
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, 0.041) 
 
 
     def plot(self):
         plt.plot(self.time, self.energy, 'r+')
         plt.plot(self.energy_grid,'b')
         plt.show()
+
+    def load_trajectory_file(self, filename):
+        array_out=[]
+        with open(str(filename)) as f:
+            for line in f:
+                array_out.append(int(line))
+        array_out = np.array(array_out)
+        self.energy_grid_loaded = -xray.encoder2energy(array_out, 0)
+        
 
 
 class trajectory_manager():
