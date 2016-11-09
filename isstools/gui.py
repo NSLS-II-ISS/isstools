@@ -512,7 +512,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax = self.figure_full_trajectory.add_subplot(111)
         ax.hold(False)
         ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
-        ax.set_xlabel('Servo event / 1/16000 s')
+        ax.set_xlabel('Time /s')
         ax.set_ylabel('Energy /eV')
         ax.set_title(self.comboBox.currentText())
         self.canvas_full_trajectory.draw()
