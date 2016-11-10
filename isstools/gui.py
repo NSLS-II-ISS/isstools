@@ -201,43 +201,41 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
 
     def process_bin(self):
-        ax = self.figure_old_scans.add_subplot(111)
-        self.abs_parser.loadInterpFile(self.label_24.text())
-        ax.cla()
-        self.abs_parser.plot(ax)
 
-        ax = self.figure_old_scans_3.add_subplot(111)
-        ax.cla()
+        # Plot equal spacing bin
+        self.figure_old_scans_3.ax.cla()
         e0 = int(self.edit_E0_2.text())
         self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
-        self.abs_parser.data_manager.plot(ax)
+        self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax)
 
         self.canvas_old_scans_3.draw()
 
 
     def process_bin_equal(self):
-        ax = self.figure_old_scans.add_subplot(111)
         self.abs_parser.loadInterpFile(self.label_24.text())
-        ax.cla()
-        self.abs_parser.plot(ax)
+        self.figure_old_scans.ax.cla()
+        self.abs_parser.plot(self.figure_old_scans.ax)
 
-        if not hasattr(self, 'bin_ax'):
-            self.bin_ax = self.figure_old_scans_2.add_subplot(111)
-        if not hasattr(self, 'bin_ax2'):
-            self.bin_ax2 = self.bin_ax.twinx()
-        self.bin_ax.cla()
-        self.bin_ax2.cla()
+        self.figure_old_scans_2.ax.cla()
+        self.figure_old_scans_2.ax2.cla()
+        self.canvas_old_scans_2.draw()
+        self.toolbar_old_scans_2._views.clear()
+        self.toolbar_old_scans_2._positions.clear()
         self.abs_parser.bin_equal()
-        self.abs_parser.data_manager.plot(self.bin_ax)
-        self.bin_ax.set_ylabel('Log(i0/it)', color='b')
+        self.abs_parser.data_manager.plot(self.figure_old_scans_2.ax)
+        self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
 
-        self.abs_parser.data_manager.plot_der(self.bin_ax2, 'r')
-        self.bin_ax2.set_ylabel('Derivative', color='r')
+        self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
+        self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
         self.canvas_old_scans.draw()
         self.canvas_old_scans_2.draw()
 
         cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+
+        # Erase final plot (in case there is old data there)
+        self.figure_old_scans_3.ax.cla()
+        self.canvas_old_scans_3.draw()
 
 
     def __del__(self):
@@ -322,7 +320,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure = Figure()
         self.figure.set_facecolor(color='0.89')
         self.canvas = FigureCanvas(self.figure)
-        self.figure.add_subplot(111)
+        self.figure.ax = self.figure.add_subplot(111)
         self.toolbar = NavigationToolbar(self.canvas, self.tab_2, coordinates=True)
         self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
@@ -360,7 +358,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans = Figure()
         self.figure_old_scans.set_facecolor(color='0.89')
         self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
-        self.figure_old_scans.add_subplot(111)
+        self.figure_old_scans.ax = self.figure_old_scans.add_subplot(111)
         self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self.tab_2, coordinates=True)
         self.plot_old_scans.addWidget(self.toolbar_old_scans)
         self.plot_old_scans.addWidget(self.canvas_old_scans)
@@ -369,7 +367,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans_2 = Figure()
         self.figure_old_scans_2.set_facecolor(color='0.89')
         self.canvas_old_scans_2 = FigureCanvas(self.figure_old_scans_2)
-        self.figure_old_scans_2.add_subplot(111)
+        self.figure_old_scans_2.ax = self.figure_old_scans_2.add_subplot(111)
+        self.figure_old_scans_2.ax2 = self.figure_old_scans_2.ax.twinx()
         self.toolbar_old_scans_2 = NavigationToolbar(self.canvas_old_scans_2, self.tab_2, coordinates=True)
         self.plot_old_scans_2.addWidget(self.toolbar_old_scans_2)
         self.plot_old_scans_2.addWidget(self.canvas_old_scans_2)
@@ -378,11 +377,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3 = Figure()
         self.figure_old_scans_3.set_facecolor(color='0.89')
         self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
-        self.figure_old_scans_3.add_subplot(111)
+        self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
         self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
         self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
         self.canvas_old_scans_3.draw()
+
 
 
     @property
@@ -551,8 +551,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     run_params += (self.params2[i].text(),)
             
             # Erase last graph
-            ax = self.figure.add_subplot(111)
-            ax.cla()
+            self.figure.ax.cla()
             self.canvas.draw()
 
             # Run the scan using the tuple created before
@@ -561,7 +560,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if absorp == True:
                 self.parser = xasdata.XASdataAbs()
                 self.parser.loadInterpFile(self.current_filepath)
-                self.parser.plot(ax)
+                self.parser.plot(self.figure.ax)
             elif absorp == False:
                 self.parser = xasdata.XASdataFlu()
                 self.parser.loadInterpFile(self.current_filepath)
@@ -576,13 +575,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
             # Fix that later
                 length = min(len(xia_parser.exporting_array1), len(parser.energy_interp))
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 8, 10, ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 8, 10, ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 8, 10, self.figure.ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 8, 10, self.figure.ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, self.figure.ax, parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, self.figure.ax, parser.energy_interp)
 
             if absorp != '':
-                ax.set_title(self.comment)
+                self.figure.ax.set_title(self.comment)
 
                 self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
                 if(not os.path.exists(self.log_path)):
