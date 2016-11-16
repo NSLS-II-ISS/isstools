@@ -1934,7 +1934,7 @@ file and switch to
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_sample_shutter">
+   <widget class="QPushButton" name="push_es_shutter">
     <property name="geometry">
      <rect>
       <x>710</x>

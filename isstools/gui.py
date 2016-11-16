@@ -122,6 +122,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', 'XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Cmd:Cls-Cmd', self.update_shutter)
         self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
         self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
+        self.push_es_shutter.clicked.connect(self.toggle_es_button)
 
         if self.shutter_a.value == 0:
             self.push_fe_shutter.setStyleSheet("background-color: lime")
@@ -135,6 +136,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.es_shutter_sig.connect(self.change_es_shutter_color)
         self.es_shutter.subscribe(self.update_es_shutter)
+        self.change_es_shutter_color()
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -159,9 +161,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.es_shutter_sig.emit()
 
     def change_es_shutter_color(self):
-        if self.es_shutter.state == 'closed'
+        if self.es_shutter.state == 'closed':
             self.push_es_shutter.setStyleSheet("background-color: red")
-        elif self.es_shutter.state == 'open'
+        elif self.es_shutter.state == 'open':
             self.push_es_shutter.setStyleSheet("background-color: lime")
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
@@ -191,6 +193,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.shutter_b.open()
         else:
             self.shutter_b.close()
+
+    def toggle_es_button(self):
+        if(self.es_shutter.state == 'closed'):
+            self.es_shutter.open()
+        else:
+            self.es_shutter.close()
 
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
