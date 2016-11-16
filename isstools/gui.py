@@ -41,9 +41,10 @@ def auto_redraw_factory(fnc):
 
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
+    es_shutter_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -62,6 +63,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
         self.push_update_user.clicked.connect(self.update_user)
+        self.es_shutter = es_shutter
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -131,6 +133,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_ph_shutter.setStyleSheet("background-color: red")
         self.shutters_sig.connect(self.change_shutter_color)
 
+        self.es_shutter_sig.connect(self.change_es_shutter_color)
+        self.es_shutter.subscribe(self.update_es_shutter)
+
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
         self.push_bin.clicked.connect(self.process_bin)
@@ -149,6 +154,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
+
+    def update_es_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
+        self.es_shutter_sig.emit()
+
+    def change_es_shutter_color(self):
+        if self.es_shutter.state == 'closed'
+            self.push_es_shutter.setStyleSheet("background-color: red")
+        elif self.es_shutter.state == 'open'
+            self.push_es_shutter.setStyleSheet("background-color: lime")
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
