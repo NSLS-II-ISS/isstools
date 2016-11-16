@@ -207,7 +207,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
         self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax)
 
-        self.canvas_old_scans_3.draw()
+        self.canvas_old_scans_3.draw_idle()
 
 
     def process_bin_equal(self):
@@ -217,7 +217,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.figure_old_scans_2.ax.cla()
         self.figure_old_scans_2.ax2.cla()
-        self.canvas_old_scans_2.draw()
+        self.canvas_old_scans_2.draw_idle()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
         self.abs_parser.bin_equal()
@@ -227,14 +227,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
         self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
-        self.canvas_old_scans.draw()
-        self.canvas_old_scans_2.draw()
+        self.canvas_old_scans.draw_idle()
+        self.canvas_old_scans_2.draw_idle()
 
         cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
 
         # Erase final plot (in case there is old data there)
         self.figure_old_scans_3.ax.cla()
-        self.canvas_old_scans_3.draw()
+        self.canvas_old_scans_3.draw_idle()
 
 
     def __del__(self):
@@ -324,35 +324,35 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
         self.plots.addWidget(self.canvas)
-        self.canvas.draw()
+        self.canvas.draw_idle()
 
         self.figure_single_trajectory = Figure()
         self.figure_single_trajectory.set_facecolor(color='0.89')
         self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
         self.figure_single_trajectory.add_subplot(111)
         self.plot_single_trajectory.addWidget(self.canvas_single_trajectory)
-        self.canvas_single_trajectory.draw()
+        self.canvas_single_trajectory.draw_idle()
 
         self.figure_full_trajectory = Figure()
         self.figure_full_trajectory.set_facecolor(color='0.89')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.figure_full_trajectory.add_subplot(111)
         self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
-        self.canvas_full_trajectory.draw()
+        self.canvas_full_trajectory.draw_idle()
 
         self.figure_tune = Figure()
         self.figure_tune.set_facecolor(color='0.89')
         self.canvas_tune = FigureCanvas(self.figure_tune)
         self.figure_tune.add_subplot(111)
         self.plot_tune.addWidget(self.canvas_tune)
-        self.canvas_tune.draw()
+        self.canvas_tune.draw_idle()
 
         self.figure_gain_matching = Figure()
         self.figure_gain_matching.set_facecolor(color='0.89')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.figure_gain_matching.add_subplot(111)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
-        self.canvas_gain_matching.draw()
+        self.canvas_gain_matching.draw_idle()
 
         self.figure_old_scans = Figure()
         self.figure_old_scans.set_facecolor(color='0.89')
@@ -361,7 +361,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self.tab_2, coordinates=True)
         self.plot_old_scans.addWidget(self.toolbar_old_scans)
         self.plot_old_scans.addWidget(self.canvas_old_scans)
-        self.canvas_old_scans.draw()
+        self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2 = Figure()
         self.figure_old_scans_2.set_facecolor(color='0.89')
@@ -371,7 +371,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_old_scans_2 = NavigationToolbar(self.canvas_old_scans_2, self.tab_2, coordinates=True)
         self.plot_old_scans_2.addWidget(self.toolbar_old_scans_2)
         self.plot_old_scans_2.addWidget(self.canvas_old_scans_2)
-        self.canvas_old_scans_2.draw()
+        self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3 = Figure()
         self.figure_old_scans_3.set_facecolor(color='0.89')
@@ -380,7 +380,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
         self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
-        self.canvas_old_scans_3.draw()
+        self.canvas_old_scans_3.draw_idle()
 
 
 
@@ -461,7 +461,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax2 = ax.twinx()
         ax2.hold(False)
         ax2.plot(self.traj.time_grid[0:-1], self.traj.energy_grid_der, 'r')
-        self.canvas_single_trajectory.draw()
+        self.canvas_single_trajectory.draw_idle()
 
         # Tile trajectory
         self.figure_full_trajectory.clf()
@@ -476,7 +476,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax.plot(self.traj.encoder_grid, 'b')
         ax.set_xlabel('Servo event / 1/16000 s')
         ax.set_ylabel('Encoder count')
-        self.canvas_full_trajectory.draw()
+        self.canvas_full_trajectory.draw_idle()
 
 
     def save_trajectory(self):
@@ -506,7 +506,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.figure_single_trajectory.clf()
         self.figure_single_trajectory.add_subplot(111)
-        self.canvas_single_trajectory.draw()
+        self.canvas_single_trajectory.draw_idle()
 
         ax = self.figure_full_trajectory.add_subplot(111)
         ax.hold(False)
@@ -514,7 +514,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax.set_xlabel('Time /s')
         ax.set_ylabel('Energy /eV')
         ax.set_title(self.comboBox.currentText())
-        self.canvas_full_trajectory.draw()
+        self.canvas_full_trajectory.draw_idle()
         print('Trajectory Load: Done')
 
     def load_trajectory(self):
@@ -551,7 +551,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             
             # Erase last graph
             self.figure.ax.cla()
-            self.canvas.draw()
+            self.canvas.draw_idle()
 
             # Run the scan using the tuple created before
             self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
@@ -599,7 +599,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     fn = self.log_path + self.file_path
                 self.figure.savefig(fn)
 
-                self.canvas.draw()
+                self.canvas.draw_idle()
 
                 if self.checkBox_auto_process.checkState() > 0: # Change to a control
                     self.tabWidget.setCurrentIndex(4)
@@ -675,7 +675,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     curr_ch_gain.put(curr_ch_gain.value - diff[j] * gain_adjust[j])
                     diff_old[j] = diff[j]
 
-                    self.canvas_gain_matching.draw()
+                    self.canvas_gain_matching.draw_idle()
 
 
     def questionMessage(self, title, question):    
