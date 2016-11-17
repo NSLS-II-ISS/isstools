@@ -132,8 +132,8 @@ class trajectory():
         self.time_grid = np.tile(self.time_grid, reps)
         self.energy_grid = np.tile(self.energy_grid, reps)
 
-    def e2encoder(self):
-        self.encoder_grid = -xray.energy2encoder(self.energy_grid, 0.041) 
+    def e2encoder(self, offset):
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, offset)
 
 
     def plot(self):

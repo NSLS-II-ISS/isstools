@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -765,51 +765,12 @@
        </widget>
       </widget>
      </widget>
-     <widget class="QWidget" name="gridLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>570</x>
-        <y>30</y>
-        <width>141</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>E0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="edit_E0">
-         <property name="text">
-          <string>11470</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>eV</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="gridLayoutWidget_10">
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>80</y>
-        <width>141</width>
+        <y>90</y>
+        <width>201</width>
         <height>61</height>
        </rect>
       </property>
@@ -853,8 +814,8 @@
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>150</y>
-        <width>141</width>
+        <y>160</y>
+        <width>201</width>
         <height>61</height>
        </rect>
       </property>
@@ -865,9 +826,9 @@
      <widget class="QWidget" name="gridLayoutWidget_8">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>890</x>
         <y>40</y>
-        <width>181</width>
+        <width>141</width>
         <height>41</height>
        </rect>
       </property>
@@ -881,7 +842,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Traj. name</string>
+          <string>Name</string>
          </property>
         </widget>
        </item>
@@ -903,14 +864,94 @@
      <widget class="QPushButton" name="push_save_trajectory">
       <property name="geometry">
        <rect>
-        <x>880</x>
+        <x>890</x>
         <y>90</y>
-        <width>121</width>
+        <width>141</width>
         <height>61</height>
        </rect>
       </property>
       <property name="text">
        <string>Save trajectory</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>20</y>
+        <width>201</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_93">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Angle Offset</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_94">
+         <property name="text">
+          <string>°</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>E0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="edit_E0">
+         <property name="text">
+          <string>11470</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>eV</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_angle_offset">
+         <property name="text">
+          <string>0.041</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QPushButton" name="push_update_offset">
+      <property name="geometry">
+       <rect>
+        <x>780</x>
+        <y>40</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update
+Offset</string>
       </property>
      </widget>
     </widget>
@@ -1417,7 +1458,7 @@ file and switch to
      <widget class="QWidget" name="gridLayoutWidget_12">
       <property name="geometry">
        <rect>
-        <x>970</x>
+        <x>1160</x>
         <y>0</y>
         <width>161</width>
         <height>81</height>
@@ -1484,10 +1525,10 @@ file and switch to
      <widget class="QWidget" name="gridLayoutWidget_13">
       <property name="geometry">
        <rect>
-        <x>610</x>
-        <y>0</y>
+        <x>790</x>
+        <y>10</y>
         <width>161</width>
-        <height>41</height>
+        <height>61</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_12">
@@ -1518,12 +1559,39 @@ file and switch to
          </property>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_95">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>ECal</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_ECal">
+         <property name="text">
+          <string>11470</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_96">
+         <property name="text">
+          <string>eV</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_14">
       <property name="geometry">
        <rect>
-        <x>800</x>
+        <x>990</x>
         <y>0</y>
         <width>161</width>
         <height>111</height>
@@ -1622,7 +1690,7 @@ file and switch to
      <widget class="QPushButton" name="push_bin">
       <property name="geometry">
        <rect>
-        <x>1140</x>
+        <x>1330</x>
         <y>10</y>
         <width>101</width>
         <height>31</height>
@@ -1635,7 +1703,7 @@ file and switch to
      <widget class="QPushButton" name="push_save_bin">
       <property name="geometry">
        <rect>
-        <x>1250</x>
+        <x>1440</x>
         <y>10</y>
         <width>101</width>
         <height>31</height>
@@ -1643,6 +1711,19 @@ file and switch to
       </property>
       <property name="text">
        <string>Save</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_calibrate">
+      <property name="geometry">
+       <rect>
+        <x>820</x>
+        <y>80</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Calibrate</string>
       </property>
      </widget>
     </widget>
@@ -1954,7 +2035,7 @@ file and switch to
      <x>0</x>
      <y>0</y>
      <width>1591</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">

@@ -15,6 +15,7 @@ from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 from isstools.elements import elements
 from isstools.dialogs import UpdateUserDialog
+from isstools.dialogs import UpdateAngleOffset
 from isstools.conversions import xray
 import os
 from os import listdir
@@ -63,6 +64,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
         self.push_update_user.clicked.connect(self.update_user)
+        self.push_update_offset.clicked.connect(self.update_offset)
+        self.label_angle_offset.setText('{}'.format(RE.md['angle_offset']))
         self.es_shutter = es_shutter
 
         # Write metadata in the GUI
@@ -142,6 +145,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_select_file.clicked.connect(self.selectFile)
         self.push_bin.clicked.connect(self.process_bin)
         self.push_save_bin.clicked.connect(self.save_bin)
+        self.push_calibrate.clicked.connect(self.calibrate_offset)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -156,6 +160,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
+
+    def update_offset(self):
+        dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
+        if dlg.exec_():
+            self.RE.md['angle_offset'] = dlg.getValues()
+            self.label_angle_offset.setText('{}'.format(self.RE.md['angle_offset']))
 
     def update_es_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         self.es_shutter_sig.emit()
@@ -220,6 +230,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         bin_filename = self.label_24.text()
         self.abs_parser.data_manager.export_dat(bin_filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
         print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
+
+    def calibrate_offset(self):
+        self.RE.md['angle_offset'] = (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
+        self.label_angle_offset.setText('{0:.3f}'.format(self.RE.md['angle_offset']))
 
     def process_bin(self):
 
@@ -490,7 +504,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj.tile(reps=self.spinBox_tiling_repetitions.value())
 
         # Convert to encoder counts
-        self.traj.e2encoder()
+        self.traj.e2encoder(float(self.label_angle_offset.text()))
         
         # Draw
         ax = self.figure_full_trajectory.add_subplot(111)
