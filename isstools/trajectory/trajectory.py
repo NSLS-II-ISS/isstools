@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pkg_resources
+import scipy
 from scipy import interpolate
 import math
 
@@ -106,18 +107,38 @@ class trajectory():
         elif trajectory_type == 'Double Sine':
             total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)
             half = float(dsine_preedge_duration) / total_time
-            preedge_lo = edge_energy+offsets[0]
+            preedge_lo = edge_energy + offsets[0]
+            postedge_hi = edge_energy + offsets[3]
             edge = edge_energy
-            x = np.linspace(-np.pi / 2, np.pi / 2, (half * total_time) * 20)
-            energy = (np.sin(x) * (edge - preedge_lo) / 2) + (edge + preedge_lo) / 2
-            time = np.linspace(0, (half * total_time), (half * total_time) * 20)
-    
-            postedge_hi = edge_energy+offsets[3]
-            x = np.linspace(-np.pi / 2, np.pi / 2, ((1 - half) * total_time) * 20)
-            energy2 = (np.sin(x) * (postedge_hi - edge) / 2) + (postedge_hi + edge) / 2
-            time2 = np.linspace((half * total_time) + 1/20, total_time, ((1 - half) * total_time) * 20)
-            self.energy = np.concatenate((energy, energy2))
+            x_step1 = 1 / ((half * total_time) * 40)
+            x = np.linspace(-np.pi / 2, (3 * np.pi / 2) + x_step1 / 2, 1 / x_step1)
+
+
+            accel1 = (edge_energy - preedge_lo) * (np.sin(x) + 1) #39.584072231342851
+            accel2 = (postedge_hi - edge_energy) * (np.sin(x) + 1)
+            accel = np.concatenate((accel1, -accel1, accel2, -accel2))
+
+            vel = scipy.integrate.cumtrapz(accel * x_step1, initial = 0)
+            self.energy = scipy.integrate.cumtrapz(vel * x_step1, initial = 0) + preedge_lo
+
+            time = np.linspace(0, (half * total_time), 2 / (x_step1))
+            time2 = np.linspace((half * total_time) + (1 / (2 / (x_step1))), total_time, 2 / (x_step1))
             self.time = np.concatenate((time, time2))
+
+            #total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)
+            #half = float(dsine_preedge_duration) / total_time
+            #preedge_lo = edge_energy+offsets[0]
+            #edge = edge_energy
+            #x = np.linspace(-np.pi / 2, np.pi / 2, (half * total_time) * 20)
+            #energy = (np.sin(x) * (edge - preedge_lo) / 2) + (edge + preedge_lo) / 2
+            #time = np.linspace(0, (half * total_time), (half * total_time) * 20)
+    
+            #postedge_hi = edge_energy+offsets[3]
+            #x = np.linspace(-np.pi / 2, np.pi / 2, ((1 - half) * total_time) * 20)
+            #energy2 = (np.sin(x) * (postedge_hi - edge) / 2) + (postedge_hi + edge) / 2
+            #time2 = np.linspace((half * total_time) + 1/20, total_time, ((1 - half) * total_time) * 20)
+            #self.energy = np.concatenate((energy, energy2))
+            #self.time = np.concatenate((time, time2))
 
     def interpolate(self):
         cs = interpolate.CubicSpline(self.time, self.energy, bc_type='clamped')
@@ -132,8 +153,8 @@ class trajectory():
         self.time_grid = np.tile(self.time_grid, reps)
         self.energy_grid = np.tile(self.energy_grid, reps)
 
-    def e2encoder(self):
-        self.encoder_grid = -xray.energy2encoder(self.energy_grid, 0.041) 
+    def e2encoder(self, offset):
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, offset) 
 
 
     def plot(self):

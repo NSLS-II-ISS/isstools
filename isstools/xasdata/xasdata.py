@@ -86,7 +86,7 @@ class XASdataAbs(XASdata):
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0):
+    def load(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0, angleoffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = ittrace
@@ -94,7 +94,7 @@ class XASdataAbs(XASdata):
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = self.encoder
         #self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0.041)
-        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0) #-12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
+        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], -angleoffset) #-12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
         self.i0 = self.loadADCtrace(i0trace)
         self.it = self.loadADCtrace(ittrace)
         self.ir = self.loadADCtrace(irtrace)
@@ -180,7 +180,7 @@ class XASdataFlu(XASdata):
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace, i0trace, iflutrace, irtrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0):
+    def load(self, encoder_trace, i0trace, iflutrace, irtrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0, angleoffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = iflutrace
@@ -189,7 +189,7 @@ class XASdataFlu(XASdata):
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = np.copy(self.encoder)
         #self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0.041)
-        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0)
+        self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], -angleoffset)
         self.i0 = self.loadADCtrace(i0trace)
         self.i0[:, 1] = self.i0[:, 1] - i0offset
         self.ir = self.loadADCtrace(irtrace)

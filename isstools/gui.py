@@ -15,6 +15,7 @@ from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 from isstools.elements import elements
 from isstools.dialogs import UpdateUserDialog
+from isstools.dialogs import UpdateAngleOffset
 from isstools.conversions import xray
 import os
 from os import listdir
@@ -41,9 +42,10 @@ def auto_redraw_factory(fnc):
 
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
+    es_shutter_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -62,6 +64,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
         self.push_update_user.clicked.connect(self.update_user)
+        self.push_update_offset.clicked.connect(self.update_offset)
+        self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
+        self.es_shutter = es_shutter
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -120,6 +125,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', 'XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Cmd:Cls-Cmd', self.update_shutter)
         self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
         self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
+        self.push_es_shutter.clicked.connect(self.toggle_es_button)
 
         if self.shutter_a.value == 0:
             self.push_fe_shutter.setStyleSheet("background-color: lime")
@@ -131,10 +137,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_ph_shutter.setStyleSheet("background-color: red")
         self.shutters_sig.connect(self.change_shutter_color)
 
+        self.es_shutter_sig.connect(self.change_es_shutter_color)
+        self.es_shutter.subscribe(self.update_es_shutter)
+        self.change_es_shutter_color()
+
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
         self.push_bin.clicked.connect(self.process_bin)
         self.push_save_bin.clicked.connect(self.save_bin)
+        self.push_calibrate.clicked.connect(self.calibrate_offset)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -149,6 +160,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
+
+    def update_offset(self):
+        dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
+        if dlg.exec_():
+            self.RE.md['angle_offset'] = dlg.getValues()
+            self.label_angle_offset.setText('{}'.format(self.RE.md['angle_offset']))
+
+    def update_es_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
+        self.es_shutter_sig.emit()
+
+    def change_es_shutter_color(self):
+        if self.es_shutter.state == 'closed':
+            self.push_es_shutter.setStyleSheet("background-color: red")
+        elif self.es_shutter.state == 'open':
+            self.push_es_shutter.setStyleSheet("background-color: lime")
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
@@ -178,6 +204,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.shutter_b.close()
 
+    def toggle_es_button(self):
+        if(self.es_shutter.state == 'closed'):
+            self.es_shutter.open()
+        else:
+            self.es_shutter.close()
+
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
         self.progressValue = value
@@ -198,6 +230,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         bin_filename = self.label_24.text()
         self.abs_parser.data_manager.export_dat(bin_filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
         print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
+
+    def calibrate_offset(self):
+        self.RE.md['angle_offset'] = self.RE.md['angle_offset'] + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
+        self.label_angle_offset.setText('{0:.4f}'.format(self.RE.md['angle_offset']))
 
     def process_bin(self):
 
@@ -329,7 +365,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory = Figure()
         self.figure_single_trajectory.set_facecolor(color='0.89')
         self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
-        self.figure_single_trajectory.add_subplot(111)
+        self.figure_single_trajectory.ax = self.figure_single_trajectory.add_subplot(111)
+        self.toolbar = NavigationToolbar(self.canvas_single_trajectory, self.tab_2, coordinates=True)
+        self.toolbar.setMaximumHeight(25)
+        self.plot_single_trajectory.addWidget(self.toolbar)
         self.plot_single_trajectory.addWidget(self.canvas_single_trajectory)
         self.canvas_single_trajectory.draw_idle()
 
@@ -337,6 +376,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_full_trajectory.set_facecolor(color='0.89')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.figure_full_trajectory.add_subplot(111)
+        self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
+        self.toolbar = NavigationToolbar(self.canvas_full_trajectory, self.tab_2, coordinates=True)
+        self.toolbar.setMaximumHeight(25)
+        self.plot_full_trajectory.addWidget(self.toolbar)
         self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
         self.canvas_full_trajectory.draw_idle()
 
@@ -468,7 +511,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj.tile(reps=self.spinBox_tiling_repetitions.value())
 
         # Convert to encoder counts
-        self.traj.e2encoder()
+        self.traj.e2encoder(float(self.label_angle_offset.text()))
         
         # Draw
         ax = self.figure_full_trajectory.add_subplot(111)
