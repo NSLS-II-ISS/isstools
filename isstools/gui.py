@@ -221,15 +221,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
 
     def selectFile(self):
-        selected_filename = QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
-        if selected_filename:
-            self.label_24.setText(selected_filename)
+        if self.checkBox_process_bin.checkState() > 0:
+            self.selected_filename_bin = QtGui.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
+        else:
+            self.selected_filename_bin = [QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')]
+        if self.selected_filename_bin:
+            if len(self.selected_filename_bin) > 1:
+                filenames = []
+                for name in self.selected_filename_bin:
+                    filenames.append(name.rsplit('/', 1)[1])
+                filenames = ', '.join(filenames)
+            elif len(self.selected_filename_bin) == 1:
+                filenames = self.selected_filename_bin[0]
+
+            self.label_24.setText(filenames)
             self.process_bin_equal()
 
     def save_bin(self):
-        bin_filename = self.label_24.text()
-        self.abs_parser.data_manager.export_dat(bin_filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
-        print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
+        filename = self.curr_filename_save
+        self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+        print('File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
         self.RE.md['angle_offset'] = self.RE.md['angle_offset'] + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
@@ -247,30 +258,36 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def process_bin_equal(self):
-        self.abs_parser.loadInterpFile(self.label_24.text())
-        self.figure_old_scans.ax.cla()
-        self.abs_parser.plot(self.figure_old_scans.ax)
+        for filename in self.selected_filename_bin:
+            self.abs_parser.loadInterpFile(filename) #self.label_24.text())
+            self.figure_old_scans.ax.cla()
+            self.abs_parser.plot(self.figure_old_scans.ax)
 
-        self.figure_old_scans_2.ax.cla()
-        self.figure_old_scans_2.ax2.cla()
-        self.canvas_old_scans_2.draw_idle()
-        self.toolbar_old_scans_2._views.clear()
-        self.toolbar_old_scans_2._positions.clear()
-        self.abs_parser.bin_equal()
-        self.abs_parser.data_manager.plot(self.figure_old_scans_2.ax)
-        self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
+            self.figure_old_scans_2.ax.cla()
+            self.figure_old_scans_2.ax2.cla()
+            self.canvas_old_scans_2.draw_idle()
+            self.toolbar_old_scans_2._views.clear()
+            self.toolbar_old_scans_2._positions.clear()
+            self.abs_parser.bin_equal()
+            self.abs_parser.data_manager.plot(self.figure_old_scans_2.ax)
+            self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
 
-        self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
-        self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+            self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
+            self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
-        self.canvas_old_scans.draw_idle()
-        self.canvas_old_scans_2.draw_idle()
+            self.canvas_old_scans.draw_idle()
+            self.canvas_old_scans_2.draw_idle()
 
-        cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+            cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
 
-        # Erase final plot (in case there is old data there)
-        self.figure_old_scans_3.ax.cla()
-        self.canvas_old_scans_3.draw_idle()
+            # Erase final plot (in case there is old data there)
+            self.figure_old_scans_3.ax.cla()
+            self.canvas_old_scans_3.draw_idle()
+
+            self.curr_filename_save = filename
+            if self.checkBox_process_bin.checkState() > 0:
+                self.process_bin()
+                self.save_bin()
 
 
     def __del__(self):
