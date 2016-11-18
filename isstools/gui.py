@@ -65,7 +65,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.flu_parser = xasdata.XASdataFlu() 
         self.push_update_user.clicked.connect(self.update_user)
         self.push_update_offset.clicked.connect(self.update_offset)
-        self.label_angle_offset.setText('{0:.4f}'.format(RE.md['angle_offset']))
+        self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
 
         # Write metadata in the GUI
@@ -232,7 +232,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('File Saved! [{}]'.format(bin_filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
-        self.RE.md['angle_offset'] = (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
+        self.RE.md['angle_offset'] = self.RE.md['angle_offset'] + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
         self.label_angle_offset.setText('{0:.4f}'.format(self.RE.md['angle_offset']))
 
     def process_bin(self):
@@ -365,7 +365,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory = Figure()
         self.figure_single_trajectory.set_facecolor(color='0.89')
         self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
-        self.figure_single_trajectory.add_subplot(111)
+        self.figure_single_trajectory.ax = self.figure_single_trajectory.add_subplot(111)
+        self.toolbar = NavigationToolbar(self.canvas_single_trajectory, self.tab_2, coordinates=True)
+        self.toolbar.setMaximumHeight(25)
+        self.plot_single_trajectory.addWidget(self.toolbar)
         self.plot_single_trajectory.addWidget(self.canvas_single_trajectory)
         self.canvas_single_trajectory.draw_idle()
 
@@ -373,6 +376,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_full_trajectory.set_facecolor(color='0.89')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.figure_full_trajectory.add_subplot(111)
+        self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
+        self.toolbar = NavigationToolbar(self.canvas_full_trajectory, self.tab_2, coordinates=True)
+        self.toolbar.setMaximumHeight(25)
+        self.plot_full_trajectory.addWidget(self.toolbar)
         self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
         self.canvas_full_trajectory.draw_idle()
 

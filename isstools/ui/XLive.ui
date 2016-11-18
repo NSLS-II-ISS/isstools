@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -251,7 +251,7 @@
           <x>10</x>
           <y>10</y>
           <width>171</width>
-          <height>141</height>
+          <height>81</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
@@ -262,22 +262,8 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>K</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="2">
           <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>eV</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_15">
            <property name="text">
             <string>eV</string>
            </property>
@@ -287,27 +273,6 @@
           <widget class="QLineEdit" name="edit_edge_hi">
            <property name="text">
             <string>50</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Pre-edge</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>K</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="edit_postedge_hi">
-           <property name="text">
-            <string>16</string>
            </property>
           </widget>
          </item>
@@ -329,13 +294,6 @@
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Edge end</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="edit_preedge_lo">
-           <property name="text">
-            <string>-200</string>
            </property>
           </widget>
          </item>
@@ -769,9 +727,9 @@
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>90</y>
+        <y>130</y>
         <width>201</width>
-        <height>61</height>
+        <height>51</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_14">
@@ -814,9 +772,9 @@
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>160</y>
+        <y>190</y>
         <width>201</width>
-        <height>61</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
@@ -880,11 +838,18 @@
         <x>570</x>
         <y>20</y>
         <width>201</width>
-        <height>61</height>
+        <height>101</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
-       <item row="1" column="0">
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_21">
+         <property name="text">
+          <string>K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="label_93">
          <property name="font">
           <font>
@@ -897,7 +862,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
+       <item row="3" column="2">
         <widget class="QLabel" name="label_94">
          <property name="text">
           <string>°</string>
@@ -931,10 +896,57 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="3" column="1">
         <widget class="QLabel" name="label_angle_offset">
          <property name="text">
           <string>0.041</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>eV</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Pre-edge</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="edit_postedge_hi">
+         <property name="text">
+          <string>16</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_preedge_lo">
+         <property name="text">
+          <string>-200</string>
          </property>
         </widget>
        </item>
@@ -944,9 +956,9 @@
       <property name="geometry">
        <rect>
         <x>780</x>
-        <y>40</y>
+        <y>90</y>
         <width>71</width>
-        <height>41</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -2035,7 +2047,7 @@ file and switch to
      <x>0</x>
      <y>0</y>
      <width>1591</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
