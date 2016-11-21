@@ -122,7 +122,7 @@ class trajectory():
             self.energy = scipy.integrate.cumtrapz(vel * x_step1, initial = 0) + preedge_lo
 
             time = np.linspace(0, (half * total_time), 2 / (x_step1))
-            time2 = np.linspace((half * total_time) + (1 / (2 / (x_step1))), total_time, 2 / (x_step1))
+            time2 = np.linspace((half * total_time) + (5 * x_step1), total_time, 2 / (x_step1))
             self.time = np.concatenate((time, time2))
 
             #total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)

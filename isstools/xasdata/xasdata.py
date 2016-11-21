@@ -143,7 +143,7 @@ class XASdataAbs(XASdata):
             human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %8.2f %f %f %f', 
+                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, human_start_time, human_stop_time, human_duration))
         return fn
 
@@ -297,7 +297,7 @@ class XASdataFlu(XASdata):
             human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %8.2f %f %f %f', 
+                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)   i0 (V)    iflu(V)   ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, human_start_time, human_stop_time, human_duration))
         return fn
 
@@ -321,7 +321,7 @@ class XASdataFlu(XASdata):
             human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.iflu_interp[:,1], parsed_xia_array]).transpose(), fmt='%17.6f %8.2f %f %f', 
+                    self.i0_interp[:,1], self.iflu_interp[:,1], parsed_xia_array]).transpose(), fmt='%17.6f %12.6f %f %f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)  i0 (V)    iflu(V)   xia', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, human_start_time, human_stop_time, human_duration))
         return fn
 
@@ -367,7 +367,8 @@ class XASDataManager:
         sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
         a = 1/(sigma * ((2 * np.pi) ** (1/2)))
         data_y = a * np.exp(-.5 * ((x - x0) / sigma) ** 2)
-        data_y = np.array(data_y / sum(data_y))
+        data_y = np.array(data_y) #/ np.sum(data_y))
+        #data_y = np.array(data_y / np.sum(data_y))
         return data_y
     
     def bin(self, en_st, data_x, data_y):
@@ -376,6 +377,18 @@ class XASDataManager:
         for i in range(len(buf)):
             line = self.gauss(data_x, buf[i], en_st[i])
             mat.append(line)
+        self.mat = mat
+        data_st = np.matmul(np.array(mat), data_y)
+        return data_st.transpose()
+
+    def bin_norm(self, en_st, data_x, data_y):
+        buf = self.delta_energy(en_st)
+        mat = []
+        for i in range(len(buf)):
+            line = self.gauss(data_x, buf[i], en_st[i])
+            line = line / np.sum(line)
+            mat.append(line)
+        self.mat_norm = mat
         data_st = np.matmul(np.array(mat), data_y)
         return data_st.transpose()
 
@@ -427,10 +440,11 @@ class XASDataManager:
         self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
         self.sorted_matrix = self.sort_data(self.matrix, 1)
         self.en_grid = self.energy_grid(self.sorted_matrix[:, 1], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
-        self.data_en = self.sorted_matrix[:, 1]
-        self.data_i0 = self.sorted_matrix[:, 2]
-        self.data_it = self.sorted_matrix[:, 3]
-        self.data_ir = self.sorted_matrix[:, 4]
+        self.data_en, self.data_i0, self.data_it, self.data_ir = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4])
+        #self.data_en = self.sorted_matrix[:, 1]
+        #self.data_i0 = self.sorted_matrix[:, 2]
+        #self.data_it = self.sorted_matrix[:, 3]
+        #self.data_ir = self.sorted_matrix[:, 4]
         self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
         self.it = self.bin(self.en_grid, self.data_en, self.data_it)
         self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
@@ -438,6 +452,28 @@ class XASDataManager:
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
+    def process_norm(self, timestamp, energy, i0, it, ir, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+        self.ts_orig_norm = timestamp
+        self.en_orig_norm = energy
+        self.i0_orig_norm = i0
+        self.it_orig_norm = it
+        self.ir_orig_norm = ir
+
+        self.matrix_norm = np.array([timestamp, energy, i0, it, ir]).transpose()  
+        self.sorted_matrix_norm = self.sort_data(self.matrix, 1)
+        self.en_grid_norm = self.energy_grid(self.sorted_matrix[:, 1], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
+        self.data_en_norm = self.sorted_matrix_norm[:, 1]
+        self.data_i0_norm = self.sorted_matrix_norm[:, 2]
+        self.data_it_norm = self.sorted_matrix_norm[:, 3]
+        self.data_ir_norm = self.sorted_matrix_norm[:, 4]
+        self.i0_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_i0_norm)
+        self.it_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_it_norm)
+        self.ir_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_ir_norm)
+        self.abs_norm = np.log(self.i0_norm/self.it_norm)
+
+        self.abs_der_norm = np.diff(self.abs_norm)
+        self.abs_der_norm = np.append(self.abs_der[0], self.abs_der)
 
     def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 2):
         self.ts_orig = timestamp
@@ -449,10 +485,11 @@ class XASDataManager:
         self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
         self.sorted_matrix = self.sort_data(self.matrix, 1)
         self.en_grid = self.energy_grid_equal(self.sorted_matrix[:, 1], delta_en)
-        self.data_en = self.sorted_matrix[:, 1]
-        self.data_i0 = self.sorted_matrix[:, 2]
-        self.data_it = self.sorted_matrix[:, 3]
-        self.data_ir = self.sorted_matrix[:, 4]
+        self.data_en, self.data_i0, self.data_it, self.data_ir = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4])
+        #self.data_en = self.sorted_matrix[:, 1]
+        #self.data_i0 = self.sorted_matrix[:, 2]
+        #self.data_it = self.sorted_matrix[:, 3]
+        #self.data_ir = self.sorted_matrix[:, 4]
         self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
         self.it = self.bin(self.en_grid, self.data_en, self.data_it)
         self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
@@ -464,3 +501,22 @@ class XASDataManager:
         self.abs_der2 = np.diff(self.abs_der)
         self.abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
 
+    def average_points(self, energy, i0, it, ir):
+        i = 0
+        listenergy = []
+        listi0 = []
+        listit = []
+        listir = []
+        while i < len(energy):
+            condition = (energy[i] == energy)
+            energy_interval = np.extract(condition, energy)
+            #print(energy_interval)
+            energy_index = np.where(energy == energy_interval[0])[0]
+            #print(energy_interval)
+            i = energy_index[len(energy_index) - 1] + 1
+            #print(i)
+            listenergy.append(np.mean(energy_interval))
+            listi0.append(np.mean(np.extract(condition, i0)))
+            listit.append(np.mean(np.extract(condition, it)))
+            listir.append(np.mean(np.extract(condition, ir)))
+        return np.array(listenergy), np.array(listi0), np.array(listit), np.array(listir)
