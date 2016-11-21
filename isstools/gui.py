@@ -663,6 +663,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 if self.checkBox_auto_process.checkState() > 0: # Change to a control
                     self.tabWidget.setCurrentIndex(4)
+                    self.selected_filename_bin = [sef.current_filepath]
                     self.label_24.setText(self.current_filepath)
                     self.process_bin_equal()
 
