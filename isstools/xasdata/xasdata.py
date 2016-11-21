@@ -373,23 +373,14 @@ class XASDataManager:
     
     def bin(self, en_st, data_x, data_y):
         buf = self.delta_energy(en_st)
+        delta_en = self.delta_energy(data_x)
         mat = []
         for i in range(len(buf)):
             line = self.gauss(data_x, buf[i], en_st[i])
             mat.append(line)
         self.mat = mat
-        data_st = np.matmul(np.array(mat), data_y)
-        return data_st.transpose()
-
-    def bin_norm(self, en_st, data_x, data_y):
-        buf = self.delta_energy(en_st)
-        mat = []
-        for i in range(len(buf)):
-            line = self.gauss(data_x, buf[i], en_st[i])
-            line = line / np.sum(line)
-            mat.append(line)
-        self.mat_norm = mat
-        data_st = np.matmul(np.array(mat), data_y)
+        #data_st = np.matmul(np.array(mat), data_y)
+        data_st = np.matmul(np.array(delta_en * mat), data_y)
         return data_st.transpose()
 
     def plot(self, ax=plt, color='b'):
@@ -452,28 +443,6 @@ class XASDataManager:
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
-
-    def process_norm(self, timestamp, energy, i0, it, ir, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
-        self.ts_orig_norm = timestamp
-        self.en_orig_norm = energy
-        self.i0_orig_norm = i0
-        self.it_orig_norm = it
-        self.ir_orig_norm = ir
-
-        self.matrix_norm = np.array([timestamp, energy, i0, it, ir]).transpose()  
-        self.sorted_matrix_norm = self.sort_data(self.matrix, 1)
-        self.en_grid_norm = self.energy_grid(self.sorted_matrix[:, 1], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
-        self.data_en_norm = self.sorted_matrix_norm[:, 1]
-        self.data_i0_norm = self.sorted_matrix_norm[:, 2]
-        self.data_it_norm = self.sorted_matrix_norm[:, 3]
-        self.data_ir_norm = self.sorted_matrix_norm[:, 4]
-        self.i0_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_i0_norm)
-        self.it_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_it_norm)
-        self.ir_norm = self.bin_norm(self.en_grid_norm, self.data_en_norm, self.data_ir_norm)
-        self.abs_norm = np.log(self.i0_norm/self.it_norm)
-
-        self.abs_der_norm = np.diff(self.abs_norm)
-        self.abs_der_norm = np.append(self.abs_der[0], self.abs_der)
 
     def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 2):
         self.ts_orig = timestamp
