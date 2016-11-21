@@ -251,6 +251,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Plot equal spacing bin
         self.figure_old_scans_3.ax.cla()
         e0 = int(self.edit_E0_2.text())
+
+        if e0 < self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
+            ret = self.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
+            if not ret:
+                print ('Binning aborted!')
+                return False
+
         self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
         self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax)
 
