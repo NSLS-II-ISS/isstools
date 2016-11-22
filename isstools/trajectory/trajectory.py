@@ -97,9 +97,9 @@ class trajectory():
             total_time = float(sine_duration)
             preedge_lo = edge_energy+offsets[0]
             postedge_hi = edge_energy+offsets[3]
-            x = np.linspace(-np.pi / 2, np.pi / 2, total_time * 60)
+            x = np.linspace(-np.pi / 2, np.pi / 2, 100)
             energy = (np.sin(x) * (postedge_hi - preedge_lo) / 2) + (postedge_hi + preedge_lo) / 2
-            time = np.linspace(0, total_time, total_time * 60)
+            time = np.linspace(0, total_time, 100)
             self.energy = energy
             self.time = time
 
@@ -110,52 +110,30 @@ class trajectory():
             preedge_lo = edge_energy + offsets[0]
             postedge_hi = edge_energy + offsets[3]
             edge = edge_energy
-            x_step1 = 1 / ((half * total_time) * 80)
-            x = np.linspace(-np.pi / 2, (3 * np.pi / 2) + x_step1 / 2, 1 / x_step1)
-            x1 = np.linspace(-np.pi / 2, (3 * np.pi / 2) + x_step1 / 2, 2 * half / x_step1)
-            x2 = np.linspace(-np.pi / 2, (3 * np.pi / 2) + x_step1 / 2, 2 * (1 - half) / x_step1)
 
-            #print('{} {} {}'.format(1/x_step1, half/x_step1, (1 - half) / x_step1))
+            x1_num = np.round(half * 100)
+            x2_num = np.round((1 - half) * 100)
+            x1 = np.linspace(-np.pi / 2, (3 * np.pi / 2), x1_num) #2 * half / x_step1)
+            x2 = np.linspace(-np.pi / 2, (3 * np.pi / 2), x2_num) #2 * (1 - half) / x_step1)
 
             accel1 = (edge_energy - preedge_lo) * (np.sin(x1) + 1) #39.584072231342851
             accel2 = (postedge_hi - edge_energy) * (np.sin(x2) + 1)
-            accel = np.concatenate((accel1, -accel1, accel2, -accel2))
             accel1 = np.concatenate((accel1, -accel1))
             accel2 = np.concatenate((accel2, -accel2))
 
-            vel1 = scipy.integrate.cumtrapz(accel1 * (x_step1/(2 * half)), initial = 0)
-            vel2 = scipy.integrate.cumtrapz(accel2 * (x_step1/(2 * (1-half))), initial = 0)
-            #vel = np.concatenate((vel1, -vel1, vel2, -vel2))
+            vel1 = scipy.integrate.cumtrapz(accel1 * (1 / x1_num), initial = 0)
+            vel2 = scipy.integrate.cumtrapz(accel2 * (1 / x2_num), initial = 0)
 
-            pos1 = scipy.integrate.cumtrapz(vel1 * (x_step1/(2 * half)), initial = 0) + preedge_lo
+            pos1 = scipy.integrate.cumtrapz(vel1 * (1 / x1_num), initial = 0) + preedge_lo
             pos1 = (pos1 / pos1[len(pos1) - 1]) * edge
-            pos2 = scipy.integrate.cumtrapz(vel2 * (x_step1/(2 * (1-half))), initial = 0) + edge
+            pos2 = scipy.integrate.cumtrapz(vel2 * (1 / x2_num), initial = 0) + edge
 
             self.energy = np.concatenate((pos1, pos2))
-
-
-
-            #vel = scipy.integrate.cumtrapz(accel * x_step1, initial = 0)
-            #self.energy = scipy.integrate.cumtrapz(vel * x_step1, initial = 0) + preedge_lo
 
             time = np.linspace(0, (half * total_time), 2 * len(x1))
             time2 = np.linspace((half * total_time) + (time[1] - time[0]), total_time, 2 * len(x2))
             self.time = np.concatenate((time, time2))
 
-            #total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)
-            #half = float(dsine_preedge_duration) / total_time
-            #preedge_lo = edge_energy+offsets[0]
-            #edge = edge_energy
-            #x = np.linspace(-np.pi / 2, np.pi / 2, (half * total_time) * 20)
-            #energy = (np.sin(x) * (edge - preedge_lo) / 2) + (edge + preedge_lo) / 2
-            #time = np.linspace(0, (half * total_time), (half * total_time) * 20)
-    
-            #postedge_hi = edge_energy+offsets[3]
-            #x = np.linspace(-np.pi / 2, np.pi / 2, ((1 - half) * total_time) * 20)
-            #energy2 = (np.sin(x) * (postedge_hi - edge) / 2) + (postedge_hi + edge) / 2
-            #time2 = np.linspace((half * total_time) + 1/20, total_time, ((1 - half) * total_time) * 20)
-            #self.energy = np.concatenate((energy, energy2))
-            #self.time = np.concatenate((time, time2))
 
     def interpolate(self):
         cs = interpolate.CubicSpline(self.time, self.energy, bc_type='clamped')
