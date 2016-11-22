@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
+import matplotlib.patches as mpatches
 import pkg_resources
 import time as ttime
 import math
@@ -249,7 +250,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def process_bin(self):
 
         # Plot equal spacing bin
-        self.figure_old_scans_3.ax.cla()
+        #self.figure_old_scans_3.ax.cla()
         e0 = int(self.edit_E0_2.text())
 
         if e0 < self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
@@ -259,7 +260,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 return False
 
         self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
-        self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax)
+        self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax, color = 'r')
 
         self.canvas_old_scans_3.draw_idle()
 
@@ -267,8 +268,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def process_bin_equal(self):
         for filename in self.selected_filename_bin:
             self.abs_parser.loadInterpFile(filename) #self.label_24.text())
-            self.figure_old_scans.ax.cla()
-            self.abs_parser.plot(self.figure_old_scans.ax)
+
+            # Erase final plot (in case there is old data there)
+            self.figure_old_scans_3.ax.cla()
+            self.canvas_old_scans_3.draw_idle()
+
+            self.figure_old_scans_3.ax.cla()
+            self.abs_parser.plot(self.figure_old_scans_3.ax, color = 'b')
 
             self.figure_old_scans_2.ax.cla()
             self.figure_old_scans_2.ax2.cla()
@@ -278,18 +284,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.abs_parser.bin_equal()
             self.abs_parser.data_manager.plot(self.figure_old_scans_2.ax)
             self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
+            self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+            if self.edge_index > 0:
+                x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
+                y_edge = self.abs_parser.data_manager.abs[self.edge_index]
 
+                self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                self.figure_old_scans_2.ax.legend(handles = [edge_path])
+                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+                print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+                self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+                
             self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
             self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
-            self.canvas_old_scans.draw_idle()
+            self.canvas_old_scans_3.draw_idle()
             self.canvas_old_scans_2.draw_idle()
 
             cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
-
-            # Erase final plot (in case there is old data there)
-            self.figure_old_scans_3.ax.cla()
-            self.canvas_old_scans_3.draw_idle()
 
             self.curr_filename_save = filename
             if self.checkBox_process_bin.checkState() > 0:

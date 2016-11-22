@@ -489,3 +489,34 @@ class XASDataManager:
             listit.append(np.mean(np.extract(condition, it)))
             listir.append(np.mean(np.extract(condition, ir)))
         return np.array(listenergy), np.array(listi0), np.array(listit), np.array(listir)
+
+
+    def get_edge_index(self, abs):
+        abs_der = np.diff(self.abs)
+        abs_der = np.append(self.abs_der[0], self.abs_der)
+
+        abs_der2 = np.diff(self.abs_der)
+        abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
+
+        abs_der[0:int(len(abs_der) * 0.05)] = 0
+        abs_der2[0:int(len(abs_der2) * 0.05)] = 0
+        for i in range(len(abs_der)):
+            # Get der max
+            max_index_der = np.where(max(np.abs(abs_der)) == np.abs(abs_der))[0][0]
+        
+            # Get der2 max
+            max_index_der2 = np.where(max(abs_der2) == abs_der2)[0][0]
+        
+            # Get der2 min
+            min_index_der2 = np.where(min(abs_der2) == abs_der2)[0][0]
+        
+            if max_index_der >= min([min_index_der2, max_index_der2]) and max_index_der <= max([min_index_der2, max_index_der2]):
+                print('Found the edge! (I think...)')
+                return max_index_der - 1
+        
+            else:
+                print('Still looking for the edge...')
+                abs_der[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
+                abs_der2[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
+
+        return -1
