@@ -247,6 +247,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.RE.md['angle_offset'] = self.RE.md['angle_offset'] + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
         self.label_angle_offset.setText('{0:.4f}'.format(self.RE.md['angle_offset']))
 
+    def get_dic(self, module):
+        dic = dict()
+        if self.checkBox_num_i0.checkState() > 0:
+            dic['numerator'] = module.i0_interp
+        elif self.checkBox_num_it.checkState() > 0:
+            dic['numerator'] = module.it_interp
+        elif self.checkBox_num_ir.checkState() > 0:
+            dic['numerator'] = module.ir_interp
+
+        if self.checkBox_den_i0.checkState() > 0:
+            dic['denominator'] = module.i0_interp
+        elif self.checkBox_den_it.checkState() > 0:
+            dic['denominator'] = module.it_interp
+        elif self.checkBox_den_ir.checkState() > 0:
+            dic['denominator'] = module.ir_interp
+
+        if self.checkBox_log.checkState() > 0:
+            dic['log'] = True
+        else:
+            dic['log'] = False
+
+        return dic
+        
+
     def process_bin(self):
 
         # Plot equal spacing bin
@@ -259,8 +283,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 print ('Binning aborted!')
                 return False
 
-        self.abs_parser.bin(e0, e0 + int(self.edit_edge_start.text()), e0 + int(self.edit_edge_end.text()), float(self.edit_preedge_spacing.text()), float(self.edit_xanes_spacing.text()), float(self.edit_exafs_spacing.text()))
-        self.abs_parser.data_manager.plot(self.figure_old_scans_3.ax, color = 'r')
+        self.abs_parser.bin(e0, 
+                            e0 + int(self.edit_edge_start.text()), 
+                            e0 + int(self.edit_edge_end.text()), 
+                            float(self.edit_preedge_spacing.text()), 
+                            float(self.edit_xanes_spacing.text()), 
+                            float(self.edit_exafs_spacing.text()))
+
+        dic = self.get_dic(self.abs_parser.data_manager)
+
+        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_3.ax, color = 'r')
 
         self.canvas_old_scans_3.draw_idle()
 
@@ -274,7 +306,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.canvas_old_scans_3.draw_idle()
 
             self.figure_old_scans_3.ax.cla()
-            self.abs_parser.plot(self.figure_old_scans_3.ax, color = 'b')
+            dic = self.get_dic(self.abs_parser)
+            self.abs_parser.plot(plotting_dic = dic, ax = self.figure_old_scans_3.ax, color = 'b')
 
             self.figure_old_scans_2.ax.cla()
             self.figure_old_scans_2.ax2.cla()
@@ -282,7 +315,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.toolbar_old_scans_2._views.clear()
             self.toolbar_old_scans_2._positions.clear()
             self.abs_parser.bin_equal()
-            self.abs_parser.data_manager.plot(self.figure_old_scans_2.ax)
+            dic = self.get_dic(self.abs_parser.data_manager)
+            self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_2.ax, color = 'b')
             self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
             self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
             if self.edge_index > 0:
@@ -296,7 +330,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
                 self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
                 
-            self.abs_parser.data_manager.plot_der(self.figure_old_scans_2.ax2, 'r')
+            self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
             self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
             self.canvas_old_scans_3.draw_idle()

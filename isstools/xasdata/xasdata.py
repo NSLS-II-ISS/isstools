@@ -115,9 +115,21 @@ class XASdataAbs(XASdata):
         self.ir_interp = np.array([timestamps, np.interp(timestamps, self.ir[:,0], self.ir[:,1])]).transpose()
         self.energy_interp = np.array([timestamps, np.interp(timestamps, self.energy[:,0], self.energy[:,1])]).transpose()
 
-    def plot(self, ax = plt, color = 'r', derivative = True ):
+    def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         result_chambers = np.copy(self.i0_interp)
-        result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num[:,1]/den[:,1]
+            if log:
+                division = np.log(division)
+            result_chambers[:,1] = division
+
+        else:
+            result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+        
         ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
@@ -383,7 +395,20 @@ class XASDataManager:
         data_st = np.matmul(np.array(delta_en * mat), data_y)
         return data_st.transpose()
 
-    def plot(self, ax=plt, color='b'):
+
+    def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num/den
+            if log:
+                division = np.log(division)
+            self.abs = division
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+        
         ax.plot(self.en_grid, self.abs, color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
@@ -393,21 +418,35 @@ class XASDataManager:
             ax.set_xlabel('Energy (eV)')
             ax.set_ylabel('Log(i0 / it)')    
 
+    def plot_der(self, plotting_dic = dict(), ax=plt, color='b'):
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num/den
+            if log:
+                division = np.log(division)
+            self.abs = division
 
-    def plot_der(self, ax=plt, color='b'):
+        else:
+            self.abs = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+            
+        self.abs_der = np.diff(self.abs)
+        self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
         ax.plot(self.en_grid, self.abs_der, color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
             ax.xlabel('Energy (eV)')
-            ax.ylabel('(iflu / i0)')
+            ax.ylabel('Log(i0 / it)')
         elif 'set_xlabel' in dir(ax):
             ax.set_xlabel('Energy (eV)')
-            ax.set_ylabel('(iflu / i0)')    
+            ax.set_ylabel('Log(i0 / it)')    
 
 
     def export_dat(self, filename, header = ''):
         filename = filename[0: len(filename) - 3] + 'dat'
-        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
+        np.savetxt(filename, np.array([self.en_grid, self.i0_interp, self.it_interp, self.ir_interp]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
 
 
     def plot_orig(self, ax=plt, color='r'):
@@ -436,10 +475,10 @@ class XASDataManager:
         #self.data_i0 = self.sorted_matrix[:, 2]
         #self.data_it = self.sorted_matrix[:, 3]
         #self.data_ir = self.sorted_matrix[:, 4]
-        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
-        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
-        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
-        self.abs = np.log(self.i0/self.it)
+        self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
@@ -459,10 +498,10 @@ class XASDataManager:
         #self.data_i0 = self.sorted_matrix[:, 2]
         #self.data_it = self.sorted_matrix[:, 3]
         #self.data_ir = self.sorted_matrix[:, 4]
-        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
-        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
-        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
-        self.abs = np.log(self.i0/self.it)
+        self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
