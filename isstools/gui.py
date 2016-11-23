@@ -147,6 +147,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_bin.clicked.connect(self.process_bin)
         self.push_save_bin.clicked.connect(self.save_bin)
         self.push_calibrate.clicked.connect(self.calibrate_offset)
+        self.push_replot_exafs.clicked.connect(self.update_k_view)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -251,17 +252,29 @@ class ScanGui(*uic.loadUiType(ui_path)):
         dic = dict()
         if self.checkBox_num_i0.checkState() > 0:
             dic['numerator'] = module.i0_interp
+            if(hasattr(module, 'data_i0')):
+                dic['original_numerator'] = module.data_i0
         elif self.checkBox_num_it.checkState() > 0:
             dic['numerator'] = module.it_interp
+            if(hasattr(module, 'data_it')):
+                dic['original_numerator'] = module.data_it
         elif self.checkBox_num_ir.checkState() > 0:
             dic['numerator'] = module.ir_interp
+            if(hasattr(module, 'data_ir')):
+                dic['original_numerator'] = module.data_ir
 
         if self.checkBox_den_i0.checkState() > 0:
             dic['denominator'] = module.i0_interp
+            if(hasattr(module, 'data_i0')):
+                dic['original_denominator'] = module.data_i0
         elif self.checkBox_den_it.checkState() > 0:
             dic['denominator'] = module.it_interp
+            if(hasattr(module, 'data_it')):
+                dic['original_denominator'] = module.data_it
         elif self.checkBox_den_ir.checkState() > 0:
             dic['denominator'] = module.ir_interp
+            if(hasattr(module, 'data_ir')):
+                dic['original_denominator'] = module.data_ir
 
         if self.checkBox_log.checkState() > 0:
             dic['log'] = True
@@ -269,7 +282,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic['log'] = False
 
         return dic
-        
+
+    def update_k_view(self):
+        e0 = int(self.edit_E0_2.text())
+        edge_start = int(self.edit_edge_start.text())
+        edge_end = int(self.edit_edge_end.text())
+        preedge_spacing = float(self.edit_preedge_spacing.text())
+        xanes_spacing = float(self.edit_xanes_spacing.text())
+        exafs_spacing = float(self.edit_exafs_spacing.text())
+        k_power = float(self.edit_y_power.text())
+
+        k_data = self.abs_parser.data_manager.get_k_data(e0,
+                                                         edge_end,
+                                                         exafs_spacing,
+                                                         self.abs_parser.data_manager.abs,
+                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
+                                                         self.abs_parser.data_manager.data_en,
+                                                         self.abs_parser.data_manager.abs_orig,
+                                                         k_power)
+        self.figure_old_scans.ax.cla()
+        self.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.figure_old_scans.ax.grid(True)
+        self.canvas_old_scans.draw_idle()
 
     def process_bin(self):
 
@@ -281,6 +315,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         preedge_spacing = float(self.edit_preedge_spacing.text())
         xanes_spacing = float(self.edit_xanes_spacing.text())
         exafs_spacing = float(self.edit_exafs_spacing.text())
+        k_power = float(self.edit_y_power.text())
 
         if e0 < self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
             ret = self.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
@@ -306,9 +341,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          self.abs_parser.data_manager.abs,
                                                          self.abs_parser.data_manager.sorted_matrix[:, 1],
                                                          self.abs_parser.data_manager.data_en,
-                                                         1)
+                                                         self.abs_parser.data_manager.abs_orig,
+                                                         k_power)
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.figure_old_scans.ax.grid(True)
         self.canvas_old_scans.draw_idle()
 
     def process_bin_equal(self):
@@ -318,6 +355,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             # Erase final plot (in case there is old data there)
             self.figure_old_scans_3.ax.cla()
             self.canvas_old_scans_3.draw_idle()
+
+            self.figure_old_scans.ax.cla()
+            self.canvas_old_scans.draw_idle()
 
             self.figure_old_scans_3.ax.cla()
             dic = self.get_dic(self.abs_parser)

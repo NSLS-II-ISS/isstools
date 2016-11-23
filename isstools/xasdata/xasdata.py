@@ -375,11 +375,21 @@ class XASDataManager:
 
         return np.append(np.append(preedge, edge), postedge)
 
-    def get_k_data(self, e0, edge_end, exafsk, y_data, energy_array, en_orig, pow = 1):
+    def get_k_data(self, e0, edge_end, exafsk, y_data, energy_array, en_orig, data_orig, pow = 1):
         e_interval = self.get_k_interval(energy_array, e0, e0 + edge_end, exafsk)
         k_interval = xray.e2k(e_interval, e0) #e0 + edge_end)
+
+        condition = en_orig >= e0 + edge_end 
+        en_orig = np.extract(condition, en_orig)
+        data_orig = np.extract(condition, data_orig)
+        polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+        p = np.poly1d(polyfit)
+        calibration = p(e_interval)
+
+        y_data = y_data[-len(k_interval):] - calibration
         data = y_data[-len(k_interval):] * (k_interval ** pow)
         return np.array([e_interval, data])
+
 
     def get_k_interval(self, energy_array, e0, edge_end, exafsk):
         iterator = exafsk
@@ -392,7 +402,29 @@ class XASDataManager:
             iterator += exafsk
 
         return postedge
-    
+ 
+    def plot_k_data(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        if len(plotting_dic) > 0:
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            self.log = plotting_dic['log']
+            division = self.num_orig/self.den_orig
+            if self.log:
+                division = np.log(division)
+            self.abs = division
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+        
+        ax.plot(self.en_grid, self.abs, color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('Log(i0 / it)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Log(i0 / it)')    
+
     def gauss(self, x, fwhm, x0):
         sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
         a = 1/(sigma * ((2 * np.pi) ** (1/2)))
@@ -420,12 +452,19 @@ class XASDataManager:
             self.den = plotting_dic['denominator']
             self.log = plotting_dic['log']
             division = self.num/self.den
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            division = self.num/self.den
+            division_orig = self.num_orig/self.den_orig
             if self.log:
                 division = np.log(division)
+                division_orig = np.log(division_orig)
             self.abs = division
+            self.abs_orig = division_orig
 
         else:
             self.abs = np.log(self.i0_interp / self.it_interp)
+            self.abs_orig = np.log(self.i0_orig / self.it_orig)
         
         ax.plot(self.en_grid, self.abs, color)
         ax.grid(True)

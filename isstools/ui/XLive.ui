@@ -1473,7 +1473,7 @@ file and switch to
         <x>1160</x>
         <y>0</y>
         <width>161</width>
-        <height>81</height>
+        <height>111</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_11">
@@ -1529,6 +1529,20 @@ file and switch to
          </property>
          <property name="text">
           <string>Regions</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_103">
+         <property name="text">
+          <string>y (k ^ y)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_y_power">
+         <property name="text">
+          <string>2</string>
          </property>
         </widget>
        </item>
@@ -1990,6 +2004,19 @@ bin and save them</string>
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QPushButton" name="push_replot_exafs">
+      <property name="geometry">
+       <rect>
+        <x>1330</x>
+        <y>80</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Replot Exafs</string>
+      </property>
      </widget>
     </widget>
    </widget>
