@@ -374,6 +374,24 @@ class XASDataManager:
             iterator += exafsk
 
         return np.append(np.append(preedge, edge), postedge)
+
+    def get_k_data(self, e0, edge_end, exafsk, y_data, energy_array, en_orig, pow = 1):
+        e_interval = self.get_k_interval(energy_array, e0, e0 + edge_end, exafsk)
+        k_interval = xray.e2k(e_interval, e0) #e0 + edge_end)
+        data = y_data[-len(k_interval):] * (k_interval ** pow)
+        return np.array([e_interval, data])
+
+    def get_k_interval(self, energy_array, e0, edge_end, exafsk):
+        iterator = exafsk
+        kenergy = 0
+        postedge = np.array([])
+        
+        while(kenergy + edge_end < np.max(energy_array)):
+            kenergy = xray.k2e(iterator, e0) - e0
+            postedge = np.append(postedge, edge_end + kenergy)
+            iterator += exafsk
+
+        return postedge
     
     def gauss(self, x, fwhm, x0):
         sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
@@ -398,11 +416,11 @@ class XASDataManager:
 
     def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         if len(plotting_dic) > 0:
-            num = plotting_dic['numerator']
-            den = plotting_dic['denominator']
-            log = plotting_dic['log']
-            division = num/den
-            if log:
+            self.num = plotting_dic['numerator']
+            self.den = plotting_dic['denominator']
+            self.log = plotting_dic['log']
+            division = self.num/self.den
+            if self.log:
                 division = np.log(division)
             self.abs = division
 

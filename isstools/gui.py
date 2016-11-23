@@ -276,6 +276,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Plot equal spacing bin
         #self.figure_old_scans_3.ax.cla()
         e0 = int(self.edit_E0_2.text())
+        edge_start = int(self.edit_edge_start.text())
+        edge_end = int(self.edit_edge_end.text())
+        preedge_spacing = float(self.edit_preedge_spacing.text())
+        xanes_spacing = float(self.edit_xanes_spacing.text())
+        exafs_spacing = float(self.edit_exafs_spacing.text())
 
         if e0 < self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
             ret = self.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
@@ -284,18 +289,27 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 return False
 
         self.abs_parser.bin(e0, 
-                            e0 + int(self.edit_edge_start.text()), 
-                            e0 + int(self.edit_edge_end.text()), 
-                            float(self.edit_preedge_spacing.text()), 
-                            float(self.edit_xanes_spacing.text()), 
-                            float(self.edit_exafs_spacing.text()))
+                            e0 + edge_start, 
+                            e0 + edge_end, 
+                            preedge_spacing, 
+                            xanes_spacing, 
+                            exafs_spacing)
 
         dic = self.get_dic(self.abs_parser.data_manager)
 
         self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_3.ax, color = 'r')
-
         self.canvas_old_scans_3.draw_idle()
 
+        k_data = self.abs_parser.data_manager.get_k_data(e0,
+                                                         edge_end,
+                                                         exafs_spacing,
+                                                         self.abs_parser.data_manager.abs,
+                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
+                                                         self.abs_parser.data_manager.data_en,
+                                                         1)
+        self.figure_old_scans.ax.cla()
+        self.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.canvas_old_scans.draw_idle()
 
     def process_bin_equal(self):
         for filename in self.selected_filename_bin:
