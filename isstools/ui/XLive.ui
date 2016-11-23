@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1591</width>
-    <height>1228</height>
+    <width>1638</width>
+    <height>1321</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -34,8 +34,8 @@
      <rect>
       <x>10</x>
       <y>130</y>
-      <width>1571</width>
-      <height>871</height>
+      <width>1561</width>
+      <height>961</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -1397,13 +1397,13 @@ file and switch to
      <widget class="QWidget" name="verticalLayoutWidget_7">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>40</y>
+        <x>790</x>
+        <y>110</y>
         <width>731</width>
         <height>401</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="plot_old_scans"/>
+      <layout class="QVBoxLayout" name="plot_old_scans_2"/>
      </widget>
      <widget class="QPushButton" name="push_select_file">
       <property name="geometry">
@@ -1459,13 +1459,13 @@ file and switch to
      <widget class="QWidget" name="verticalLayoutWidget_8">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>440</y>
+        <x>790</x>
+        <y>520</y>
         <width>731</width>
         <height>401</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="plot_old_scans_2"/>
+      <layout class="QVBoxLayout" name="plot_old_scans"/>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_12">
       <property name="geometry">
@@ -1473,7 +1473,7 @@ file and switch to
         <x>1160</x>
         <y>0</y>
         <width>161</width>
-        <height>81</height>
+        <height>111</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_11">
@@ -1529,6 +1529,20 @@ file and switch to
          </property>
          <property name="text">
           <string>Regions</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_103">
+         <property name="text">
+          <string>y (k ^ y)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_y_power">
+         <property name="text">
+          <string>2</string>
          </property>
         </widget>
        </item>
@@ -1691,10 +1705,10 @@ file and switch to
      <widget class="QWidget" name="verticalLayoutWidget_9">
       <property name="geometry">
        <rect>
-        <x>790</x>
-        <y>120</y>
+        <x>10</x>
+        <y>190</y>
         <width>761</width>
-        <height>721</height>
+        <height>641</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_old_scans_3"/>
@@ -1758,6 +1772,252 @@ bin and save them</string>
        <bool>false</bool>
       </property>
      </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>100</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_99">
+         <property name="text">
+          <string>I0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_100">
+         <property name="text">
+          <string>It</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_101">
+         <property name="text">
+          <string>Ir</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_97">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Numerator</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_num_i0">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_num_it">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_num_ir">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_98">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Denominator</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_den_i0">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_den_it">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_den_ir">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>130</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_102">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Log</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_log">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QPushButton" name="push_replot_exafs">
+      <property name="geometry">
+       <rect>
+        <x>1330</x>
+        <y>80</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Replot Exafs</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
@@ -1766,8 +2026,8 @@ bin and save them</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>1050</y>
+      <x>10</x>
+      <y>1150</y>
       <width>1571</width>
       <height>131</height>
      </rect>
@@ -1787,8 +2047,8 @@ bin and save them</string>
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>1010</y>
+      <x>10</x>
+      <y>1110</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -1825,8 +2085,8 @@ bin and save them</string>
    <widget class="QPushButton" name="push_re_abort">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>1010</y>
+      <x>210</x>
+      <y>1110</y>
       <width>101</width>
       <height>28</height>
      </rect>
@@ -2008,8 +2268,8 @@ bin and save them</string>
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>1010</y>
+      <x>330</x>
+      <y>1110</y>
       <width>321</width>
       <height>23</height>
      </rect>
@@ -2066,7 +2326,7 @@ bin and save them</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1591</width>
+     <width>1638</width>
      <height>19</height>
     </rect>
    </property>

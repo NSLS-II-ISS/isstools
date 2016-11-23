@@ -115,9 +115,21 @@ class XASdataAbs(XASdata):
         self.ir_interp = np.array([timestamps, np.interp(timestamps, self.ir[:,0], self.ir[:,1])]).transpose()
         self.energy_interp = np.array([timestamps, np.interp(timestamps, self.energy[:,0], self.energy[:,1])]).transpose()
 
-    def plot(self, ax = plt, color = 'r', derivative = True ):
+    def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         result_chambers = np.copy(self.i0_interp)
-        result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num[:,1]/den[:,1]
+            if log:
+                division = np.log(division)
+            result_chambers[:,1] = division
+
+        else:
+            result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+        
         ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
@@ -362,7 +374,57 @@ class XASDataManager:
             iterator += exafsk
 
         return np.append(np.append(preedge, edge), postedge)
-    
+
+    def get_k_data(self, e0, edge_end, exafsk, y_data, energy_array, en_orig, data_orig, pow = 1):
+        e_interval = self.get_k_interval(energy_array, e0, e0 + edge_end, exafsk)
+        k_interval = xray.e2k(e_interval, e0) #e0 + edge_end)
+
+        condition = en_orig >= e0 + edge_end 
+        en_orig = np.extract(condition, en_orig)
+        data_orig = np.extract(condition, data_orig)
+        polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+        p = np.poly1d(polyfit)
+        calibration = p(e_interval)
+
+        y_data = y_data[-len(k_interval):] - calibration
+        data = y_data[-len(k_interval):] * (k_interval ** pow)
+        return np.array([e_interval, data])
+
+
+    def get_k_interval(self, energy_array, e0, edge_end, exafsk):
+        iterator = exafsk
+        kenergy = 0
+        postedge = np.array([])
+        
+        while(kenergy + edge_end < np.max(energy_array)):
+            kenergy = xray.k2e(iterator, e0) - e0
+            postedge = np.append(postedge, edge_end + kenergy)
+            iterator += exafsk
+
+        return postedge
+ 
+    def plot_k_data(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        if len(plotting_dic) > 0:
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            self.log = plotting_dic['log']
+            division = self.num_orig/self.den_orig
+            if self.log:
+                division = np.log(division)
+            self.abs = division
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+        
+        ax.plot(self.en_grid, self.abs, color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('Log(i0 / it)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Log(i0 / it)')    
+
     def gauss(self, x, fwhm, x0):
         sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
         a = 1/(sigma * ((2 * np.pi) ** (1/2)))
@@ -383,7 +445,27 @@ class XASDataManager:
         data_st = np.matmul(np.array(delta_en * mat), data_y)
         return data_st.transpose()
 
-    def plot(self, ax=plt, color='b'):
+
+    def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        if len(plotting_dic) > 0:
+            self.num = plotting_dic['numerator']
+            self.den = plotting_dic['denominator']
+            self.log = plotting_dic['log']
+            division = self.num/self.den
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            division = self.num/self.den
+            division_orig = self.num_orig/self.den_orig
+            if self.log:
+                division = np.log(division)
+                division_orig = np.log(division_orig)
+            self.abs = division
+            self.abs_orig = division_orig
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+            self.abs_orig = np.log(self.i0_orig / self.it_orig)
+        
         ax.plot(self.en_grid, self.abs, color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
@@ -393,21 +475,35 @@ class XASDataManager:
             ax.set_xlabel('Energy (eV)')
             ax.set_ylabel('Log(i0 / it)')    
 
+    def plot_der(self, plotting_dic = dict(), ax=plt, color='b'):
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num/den
+            if log:
+                division = np.log(division)
+            self.abs = division
 
-    def plot_der(self, ax=plt, color='b'):
+        else:
+            self.abs = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+            
+        self.abs_der = np.diff(self.abs)
+        self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
         ax.plot(self.en_grid, self.abs_der, color)
         ax.grid(True)
         if 'xlabel' in dir(ax):
             ax.xlabel('Energy (eV)')
-            ax.ylabel('(iflu / i0)')
+            ax.ylabel('Log(i0 / it)')
         elif 'set_xlabel' in dir(ax):
             ax.set_xlabel('Energy (eV)')
-            ax.set_ylabel('(iflu / i0)')    
+            ax.set_ylabel('Log(i0 / it)')    
 
 
     def export_dat(self, filename, header = ''):
         filename = filename[0: len(filename) - 3] + 'dat'
-        np.savetxt(filename, np.array([self.en_grid, self.i0, self.it, self.ir]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
+        np.savetxt(filename, np.array([self.en_grid, self.i0_interp, self.it_interp, self.ir_interp]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
 
 
     def plot_orig(self, ax=plt, color='r'):
@@ -436,10 +532,10 @@ class XASDataManager:
         #self.data_i0 = self.sorted_matrix[:, 2]
         #self.data_it = self.sorted_matrix[:, 3]
         #self.data_ir = self.sorted_matrix[:, 4]
-        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
-        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
-        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
-        self.abs = np.log(self.i0/self.it)
+        self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
@@ -459,10 +555,10 @@ class XASDataManager:
         #self.data_i0 = self.sorted_matrix[:, 2]
         #self.data_it = self.sorted_matrix[:, 3]
         #self.data_ir = self.sorted_matrix[:, 4]
-        self.i0 = self.bin(self.en_grid, self.data_en, self.data_i0)
-        self.it = self.bin(self.en_grid, self.data_en, self.data_it)
-        self.ir = self.bin(self.en_grid, self.data_en, self.data_ir)
-        self.abs = np.log(self.i0/self.it)
+        self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
+        self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
+        self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
@@ -489,3 +585,34 @@ class XASDataManager:
             listit.append(np.mean(np.extract(condition, it)))
             listir.append(np.mean(np.extract(condition, ir)))
         return np.array(listenergy), np.array(listi0), np.array(listit), np.array(listir)
+
+
+    def get_edge_index(self, abs):
+        abs_der = np.diff(self.abs)
+        abs_der = np.append(self.abs_der[0], self.abs_der)
+
+        abs_der2 = np.diff(self.abs_der)
+        abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
+
+        abs_der[0:int(len(abs_der) * 0.05)] = 0
+        abs_der2[0:int(len(abs_der2) * 0.05)] = 0
+        for i in range(len(abs_der)):
+            # Get der max
+            max_index_der = np.where(max(np.abs(abs_der)) == np.abs(abs_der))[0][0]
+        
+            # Get der2 max
+            max_index_der2 = np.where(max(abs_der2) == abs_der2)[0][0]
+        
+            # Get der2 min
+            min_index_der2 = np.where(min(abs_der2) == abs_der2)[0][0]
+        
+            if max_index_der >= min([min_index_der2, max_index_der2]) and max_index_der <= max([min_index_der2, max_index_der2]):
+                print('Found the edge! (I think...)')
+                return max_index_der - 1
+        
+            else:
+                print('Still looking for the edge...')
+                abs_der[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
+                abs_der2[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
+
+        return -1
