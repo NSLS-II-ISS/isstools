@@ -121,18 +121,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3 = []
         self.populateParams(0)
 
-        # Initialize epics elements
-        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}Pos-Sts', 'XF:08ID-PPS{Sh:FE}Cmd:Opn-Cmd', 'XF:08ID-PPS{Sh:FE}Cmd:Cls-Cmd', self.update_shutter)
-        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}Pos-Sts', 'XF:08IDA-PPS{PSh}Cmd:Opn-Cmd', 'XF:08IDA-PPS{PSh}Cmd:Cls-Cmd', self.update_shutter)
+        # Initialize Ophyd elements
+        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}', name = 'shutter_a')
+        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}', name = 'shutter_b')
+        self.shutter_a.state.subscribe(self.update_shutter)
+        self.shutter_b.state.subscribe(self.update_shutter)
         self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
         self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
         self.push_es_shutter.clicked.connect(self.toggle_es_button)
 
-        if self.shutter_a.value == 0:
+        if self.shutter_a.state.value == 0:
             self.push_fe_shutter.setStyleSheet("background-color: lime")
         else:
             self.push_fe_shutter.setStyleSheet("background-color: red")
-        if self.shutter_b.value == 0:
+        if self.shutter_b.state.value == 0:
             self.push_ph_shutter.setStyleSheet("background-color: lime")
         else:
             self.push_ph_shutter.setStyleSheet("background-color: red")
@@ -179,9 +181,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_es_shutter.setStyleSheet("background-color: lime")
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
-        if(pvname == 'XF:08ID-PPS{Sh:FE}Pos-Sts'):
+        if(kwargs['obj'] == self.shutter_a.state):
             current_button = self.push_fe_shutter
-        elif(pvname == 'XF:08IDA-PPS{PSh}Pos-Sts'):
+        elif(kwargs['obj'] == self.shutter_b.state):
             current_button = self.push_ph_shutter
 
         self.current_button = current_button
@@ -195,13 +197,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
     def toggle_fe_button(self):
-        if(int(self.shutter_a.value)):
+        if(int(self.shutter_a.state.value)):
             self.shutter_a.open()
         else:
             self.shutter_a.close()
 
     def toggle_ph_button(self):
-        if(int(self.shutter_b.value)):
+        if(int(self.shutter_b.state.value)):
             self.shutter_b.open()
         else:
             self.shutter_b.close()
@@ -566,7 +568,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
-        if self.shutter_a.value == 1 or self.shutter_b.value == 1:
+        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
             ret = self.questionMessage('Shutter closed', 'Would you like to run the tuning with the shutter closed?') 
             if not ret:
                 print ('Aborted!')
@@ -695,7 +697,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.read_info()
 
     def run_scan(self):
-        if self.shutter_a.value == 1 or self.shutter_b.value == 1:
+        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
             ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')    
             if not ret:
                 print ('Aborted!')
