@@ -2018,6 +2018,19 @@ bin and save them</string>
        <string>Replot Exafs</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="push_replot_file">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>70</y>
+        <width>81</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Replot</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">

@@ -588,11 +588,11 @@ class XASDataManager:
 
 
     def get_edge_index(self, abs):
-        abs_der = np.diff(self.abs)
-        abs_der = np.append(self.abs_der[0], self.abs_der)
+        abs_der = np.diff(abs)
+        abs_der = np.append(abs_der[0], abs_der)
 
-        abs_der2 = np.diff(self.abs_der)
-        abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
+        abs_der2 = np.diff(abs_der)
+        abs_der2 = np.append(abs_der2[0], abs_der2)
 
         abs_der[0:int(len(abs_der) * 0.05)] = 0
         abs_der2[0:int(len(abs_der2) * 0.05)] = 0
