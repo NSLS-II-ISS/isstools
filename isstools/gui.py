@@ -52,8 +52,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #self.fig = fig = self.figure_content()
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
-        self.push_build_trajectory.clicked.connect(self.build_trajectory)
-        self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.prep_traj_plan = prep_traj_plan
         self.RE = RE
         self.RE.last_state = ''
@@ -65,7 +63,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
         self.push_update_user.clicked.connect(self.update_user)
-        self.push_update_offset.clicked.connect(self.update_offset)
         self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
 
@@ -81,15 +78,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager = trajectory_manager(hhm)
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
         self.get_traj_names()
-        self.push_update_traj_list.clicked.connect(self.get_traj_names)
         self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
+        self.push_build_trajectory.clicked.connect(self.build_trajectory)
+        self.push_save_trajectory.clicked.connect(self.save_trajectory)
+        self.push_update_offset.clicked.connect(self.update_offset)
+        self.push_update_traj_list.clicked.connect(self.get_traj_names)
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
         self.push_prepare_trajectory.clicked.connect(self.run_prep_traj)
         self.push_plot_traj.clicked.connect(self.plot_traj_file)
+        self.push_save_trajectory.setDisabled(True)
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
@@ -150,6 +151,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_save_bin.clicked.connect(self.save_bin)
         self.push_calibrate.clicked.connect(self.calibrate_offset)
         self.push_replot_exafs.clicked.connect(self.update_k_view)
+        self.push_replot_file.clicked.connect(self.replot_bin_equal)
+        # Disable buttons
+        self.push_bin.setDisabled(True)
+        self.push_save_bin.setDisabled(True)
+        self.push_replot_exafs.setDisabled(True)
+        self.push_replot_file.setDisabled(True)
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -219,7 +226,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressValue = value
 
     def update_progressbar(self):
-        self.progressBar.setValue(int(self.progressValue))
+        self.progressBar.setValue(int(np.round(self.progressValue)))
 
     def getX(self, event):
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
@@ -304,6 +311,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          k_power)
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.figure_old_scans.ax.set_xlabel('k')
+        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.figure_old_scans.ax.grid(True)
         self.canvas_old_scans.draw_idle()
 
@@ -348,7 +357,58 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
         self.figure_old_scans.ax.grid(True)
+        self.figure_old_scans.ax.set_xlabel('k')
+        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.canvas_old_scans.draw_idle()
+        self.push_replot_exafs.setEnabled(True)
+        self.push_save_bin.setEnabled(True)
+
+    def replot_bin_equal(self):
+        # Erase final plot (in case there is old data there)
+        self.figure_old_scans_3.ax.cla()
+        self.canvas_old_scans_3.draw_idle()
+
+        self.figure_old_scans.ax.cla()
+        self.canvas_old_scans.draw_idle()
+
+        self.figure_old_scans_3.ax.cla()
+        dic = self.get_dic(self.abs_parser)
+        self.abs_parser.plot(plotting_dic = dic, 
+                             ax = self.figure_old_scans_3.ax, 
+                             color = 'b')
+
+        self.figure_old_scans_2.ax.cla()
+        self.figure_old_scans_2.ax2.cla()
+        self.canvas_old_scans_2.draw_idle()
+        self.toolbar_old_scans_2._views.clear()
+        self.toolbar_old_scans_2._positions.clear()
+        #self.abs_parser.bin_equal()
+        dic = self.get_dic(self.abs_parser.data_manager)
+        self.abs_parser.data_manager.plot(plotting_dic = dic, 
+                                          ax = self.figure_old_scans_2.ax, 
+                                          color = 'b')
+        self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
+        self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+        if self.edge_index > 0:
+            x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
+            y_edge = self.abs_parser.data_manager.abs[self.edge_index]
+
+            self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+            edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+            self.figure_old_scans_2.ax.legend(handles = [edge_path])
+            self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+            print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+            self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+        
+        self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
+        self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
+        self.canvas_old_scans_3.draw_idle()
+        self.canvas_old_scans_2.draw_idle()
+
+        self.push_replot_exafs.setDisabled(True)
+        self.push_save_bin.setDisabled(True)
+        
 
     def process_bin_equal(self):
         for filename in self.selected_filename_bin:
@@ -398,6 +458,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if self.checkBox_process_bin.checkState() > 0:
                 self.process_bin()
                 self.save_bin()
+
+            self.push_bin.setEnabled(True)
+            self.push_replot_exafs.setDisabled(True)
+            self.push_save_bin.setDisabled(True)
+            self.push_replot_file.setEnabled(True)
 
 
     def __del__(self):
@@ -648,6 +713,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax.set_ylabel('Encoder count')
         self.canvas_full_trajectory.draw_idle()
 
+        self.push_save_trajectory.setEnabled(True)
+
 
     def save_trajectory(self):
         if(len(self.traj.energy_grid)):
@@ -686,6 +753,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax.set_title(self.comboBox.currentText())
         self.canvas_full_trajectory.draw_idle()
         print('Trajectory Load: Done')
+
+        self.push_save_trajectory.setDisabled(True)
 
     def load_trajectory(self):
         self.traj_manager.load(orig_file_name = self.comboBox.currentText(), new_file_path = self.comboBox_2.currentText())
@@ -729,7 +798,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if absorp == True:
                 self.parser = xasdata.XASdataAbs()
                 self.parser.loadInterpFile(self.current_filepath)
-                self.parser.plot(self.figure.ax)
+                self.parser.plot(ax = self.figure.ax)
             elif absorp == False:
                 self.parser = xasdata.XASdataFlu()
                 self.parser.loadInterpFile(self.current_filepath)
