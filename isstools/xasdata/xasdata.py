@@ -104,6 +104,17 @@ class XASdataAbs(XASdata):
 
     def loadInterpFile(self, filename):
         self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp = self.loadINTERPtrace(filename)
+        matrix = np.array([self.energy_interp[:,1], self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose()
+        sorted_matrix = self.data_manager.sort_data(matrix, 0) 
+        self.energy_interp[:,1] = sorted_matrix[:,0]
+        self.i0_interp[:,1] = sorted_matrix[:,1]
+        self.it_interp[:,1] = sorted_matrix[:,2]
+        self.ir_interp[:,1] = sorted_matrix[:,3]
+        len_to_erase = int(np.round(0.0075 * len(self.i0_interp)))
+        self.energy_interp = self.energy_interp[len_to_erase:]
+        self.i0_interp = self.i0_interp[len_to_erase:]
+        self.it_interp = self.it_interp[len_to_erase:]
+        self.ir_interp = self.ir_interp[len_to_erase:]
 
     def interpolate(self):
         min_timestamp = np.array([self.i0[0,0], self.it[0,0], self.ir[0,0], self.encoder[0,0]]).max()
@@ -211,9 +222,14 @@ class XASdataFlu(XASdata):
         self.trigger = self.loadTRIGtrace(trigtrace)
         self.it = np.copy(self.iflu)
 
-
     def loadInterpFile(self, filename):
-        self.energy_interp, self.i0_interp, self.iflu_interp, self.ir_interp = self.loadINTERPtrace(filename)
+        self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp = self.loadINTERPtrace(filename)
+        #matrix = np.array([self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp]).transpose()
+        #sorted_matrix = self.data_manager.sort_data(matrix, 0) 
+        #self.energy_interp = sorted_matrix[0]
+        #self.i0_interp = sorted_matrix[1]
+        #self.it_interp = sorted_matrix[2]
+        #self.ir_interp = sorted_matrix[3]
 
     def interpolate(self):
         i0_copy = np.copy(self.i0)
@@ -388,7 +404,7 @@ class XASDataManager:
 
         y_data = y_data[-len(k_interval):] - calibration
         data = y_data[-len(k_interval):] * (k_interval ** pow)
-        return np.array([e_interval, data])
+        return np.array([k_interval, data])
 
 
     def get_k_interval(self, energy_array, e0, edge_end, exafsk):
@@ -594,8 +610,8 @@ class XASDataManager:
         abs_der2 = np.diff(abs_der)
         abs_der2 = np.append(abs_der2[0], abs_der2)
 
-        abs_der[0:int(len(abs_der) * 0.05)] = 0
-        abs_der2[0:int(len(abs_der2) * 0.05)] = 0
+        abs_der[0:int(len(abs_der) * 0.005)] = 0
+        abs_der2[0:int(np.round(len(abs_der2) * 0.005))] = 0
         for i in range(len(abs_der)):
             # Get der max
             max_index_der = np.where(max(np.abs(abs_der)) == np.abs(abs_der))[0][0]

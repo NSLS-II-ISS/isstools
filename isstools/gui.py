@@ -226,7 +226,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressValue = value
 
     def update_progressbar(self):
-        self.progressBar.setValue(int(self.progressValue))
+        self.progressBar.setValue(int(np.round(self.progressValue)))
 
     def getX(self, event):
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
@@ -247,11 +247,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             self.label_24.setText(filenames)
             self.process_bin_equal()
-
-            self.push_bin.setEnabled(True)
-            self.push_replot_exafs.setDisabled(True)
-            self.push_save_bin.setDisabled(True)
-            self.push_replot_file.setEnabled(True)
 
     def save_bin(self):
         filename = self.curr_filename_save
@@ -316,6 +311,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          k_power)
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.figure_old_scans.ax.set_xlabel('k')
+        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.figure_old_scans.ax.grid(True)
         self.canvas_old_scans.draw_idle()
 
@@ -360,6 +357,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
         self.figure_old_scans.ax.grid(True)
+        self.figure_old_scans.ax.set_xlabel('k')
+        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.canvas_old_scans.draw_idle()
         self.push_replot_exafs.setEnabled(True)
         self.push_save_bin.setEnabled(True)
@@ -459,6 +458,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if self.checkBox_process_bin.checkState() > 0:
                 self.process_bin()
                 self.save_bin()
+
+            self.push_bin.setEnabled(True)
+            self.push_replot_exafs.setDisabled(True)
+            self.push_save_bin.setDisabled(True)
+            self.push_replot_file.setEnabled(True)
 
 
     def __del__(self):
@@ -794,7 +798,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if absorp == True:
                 self.parser = xasdata.XASdataAbs()
                 self.parser.loadInterpFile(self.current_filepath)
-                self.parser.plot(self.figure.ax)
+                self.parser.plot(ax = self.figure.ax)
             elif absorp == False:
                 self.parser = xasdata.XASdataFlu()
                 self.parser.loadInterpFile(self.current_filepath)
