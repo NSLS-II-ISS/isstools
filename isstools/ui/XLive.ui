@@ -78,9 +78,9 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_7">
        <item row="1" column="2">
-        <widget class="QPushButton" name="push_update_traj_list">
+        <widget class="QPushButton" name="push_select_traj_file">
          <property name="text">
-          <string>Update list</string>
+          <string>Select File</string>
          </property>
         </widget>
        </item>
@@ -88,16 +88,6 @@
         <widget class="QLabel" name="label_51">
          <property name="text">
           <string>File name</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
          </property>
         </widget>
        </item>
@@ -211,6 +201,13 @@
          </property>
          <property name="text">
           <string>Plot</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_56">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -781,51 +778,13 @@
        <string>Build trajectory</string>
       </property>
      </widget>
-     <widget class="QWidget" name="gridLayoutWidget_8">
-      <property name="geometry">
-       <rect>
-        <x>890</x>
-        <y>40</y>
-        <width>141</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_8">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_56">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="edit_trajectory_name">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>.txt</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QPushButton" name="push_save_trajectory">
       <property name="geometry">
        <rect>
-        <x>890</x>
-        <y>90</y>
-        <width>141</width>
-        <height>61</height>
+        <x>780</x>
+        <y>190</y>
+        <width>121</width>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">

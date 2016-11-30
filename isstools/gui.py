@@ -9,6 +9,7 @@ import pkg_resources
 import time as ttime
 import math
 import bluesky.plans as bp
+from subprocess import call
 
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
@@ -77,14 +78,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj = trajectory()
         self.traj_manager = trajectory_manager(hhm)
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
-        self.get_traj_names()
+        #self.get_traj_names()
         self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.push_update_offset.clicked.connect(self.update_offset)
-        self.push_update_traj_list.clicked.connect(self.get_traj_names)
+        self.push_select_traj_file.clicked.connect(self.get_traj_names)
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
@@ -539,9 +540,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params3.append(param3)
 
     def get_traj_names(self):
-        self.comboBox.clear()
-        self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
-
+        #self.comboBox.clear()
+        #self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
+        self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
 
     def addCanvas(self):
         self.figure = Figure()
@@ -717,29 +718,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def save_trajectory(self):
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')
+        if filename[-4:] != '.txt' and len(filename):
+            filename += '.txt'
+        elif not len(filename):
+            print('\nInvalid name! Select a valid name...')
+            return
+        print('Filename = {}'.format(filename))
+
         if(len(self.traj.energy_grid)):
-            if(self.edit_trajectory_name.text() != '.txt'):
-                if(os.path.isfile(self.trajectory_path + self.edit_trajectory_name.text())):
-                    overwrite_answer = QtGui.QMessageBox.question(self, 'Message', 
-                         'File exists. Would you like to overwrite it?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                    if overwrite_answer == QtGui.QMessageBox.Yes:
-                        np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
-						self.traj.encoder_grid, fmt='%d')
-                        self.get_traj_names()
-                        print('Trajectory saved! [{}]'.format(self.trajectory_path + self.edit_trajectory_name.text()))
-                    else:
-                        self.edit_trajectory_name.selectAll()
-                        self.edit_trajectory_name.setFocus()
-                else:
-                    np.savetxt(self.trajectory_path + self.edit_trajectory_name.text(), 
-					self.traj.encoder_grid, fmt='%d')
-                    self.get_traj_names()
-                    print('Trajectory saved! [{}]'.format(self.trajectory_path + self.edit_trajectory_name.text()))
-            else:
-                print('\n.txt is not a valid name')
+            np.savetxt(filename, 
+	               self.traj.encoder_grid, fmt='%d')
+            call(['chmod', '666', filename])
+            self.get_traj_names()
+            print('Trajectory saved! [{}]'.format(filename))
+        else:
+            print('\nCreate the trajectory first...')
 
     def plot_traj_file(self):
-        self.traj.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.comboBox.currentText())
+        self.traj.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text())#self.comboBox.currentText())
 
         self.figure_single_trajectory.clf()
         self.figure_single_trajectory.add_subplot(111)
@@ -750,14 +747,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
         ax.set_xlabel('Time /s')
         ax.set_ylabel('Energy /eV')
-        ax.set_title(self.comboBox.currentText())
+        ax.set_title(self.label_56.text())#self.comboBox.currentText())
         self.canvas_full_trajectory.draw_idle()
         print('Trajectory Load: Done')
 
         self.push_save_trajectory.setDisabled(True)
 
     def load_trajectory(self):
-        self.traj_manager.load(orig_file_name = self.comboBox.currentText(), new_file_path = self.comboBox_2.currentText())
+        self.traj_manager.load(orig_file_name = self.label_56.text(), new_file_path = self.comboBox_2.currentText())
 
     def init_trajectory(self):
         self.traj_manager.init(int(self.comboBox_3.currentText()))
