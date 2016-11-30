@@ -110,7 +110,8 @@ class XASdataAbs(XASdata):
         self.i0_interp[:,1] = sorted_matrix[:,1]
         self.it_interp[:,1] = sorted_matrix[:,2]
         self.ir_interp[:,1] = sorted_matrix[:,3]
-        len_to_erase = int(np.round(0.0075 * len(self.i0_interp)))
+
+        len_to_erase = int(np.round(0.015 * len(self.i0_interp)))
         self.energy_interp = self.energy_interp[len_to_erase:]
         self.i0_interp = self.i0_interp[len_to_erase:]
         self.it_interp = self.it_interp[len_to_erase:]
