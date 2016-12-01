@@ -796,7 +796,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.read_info()
 
     def run_scan(self):
-        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
+        if self.run_type.currentText() == 'get_offsets':
+            if self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
+                self.shutter_b.close()
+                while self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
+                    QtGui.QApplication.processEvents()
+                    ttime.sleep(0.1)
+
+        elif self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
             ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')    
             if not ret:
                 print ('Aborted!')
