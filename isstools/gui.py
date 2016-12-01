@@ -113,6 +113,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
         self.push_re_abort.clicked.connect(self.re_abort)
+        self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_re_state)
         self.timer.start(1000)
@@ -925,6 +926,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
             return False
         else:
             return False
+
+    def show_scan_help(self):
+        title = self.run_type.currentText()
+        message = self.plan_funcs[self.run_type.currentIndex()].__doc__
+        QtGui.QMessageBox.question(self, 
+                                   'Help! - {}'.format(title), 
+                                   message, 
+                                   QtGui.QMessageBox.Ok)
 
 # Class to write terminal output to screen
 class EmittingStream(QtCore.QObject):
