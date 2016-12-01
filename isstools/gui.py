@@ -273,6 +273,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic['numerator'] = module.ir_interp
             if(hasattr(module, 'data_ir')):
                 dic['original_numerator'] = module.data_ir
+        elif self.checkBox_num_1.checkState() > 0:
+            if len(module.i0_interp.shape) > 1:
+                array_ones = np.copy(module.i0_interp)
+                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
+            else:
+                array_ones = np.ones(len(module.i0_interp))
+            dic['numerator'] = array_ones
+
+            if(hasattr(module, 'data_i0')):
+                if len(module.data_i0.shape) > 1:
+                    array_ones = np.copy(module.data_i0)
+                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
+                else:
+                    array_ones = np.ones(len(module.data_i0))
+                    dic['original_numerator'] = module.data_i0
+            dic['original_numerator'] = array_ones
 
         if self.checkBox_den_i0.checkState() > 0:
             dic['denominator'] = module.i0_interp
@@ -286,6 +302,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic['denominator'] = module.ir_interp
             if(hasattr(module, 'data_ir')):
                 dic['original_denominator'] = module.data_ir
+        elif self.checkBox_den_1.checkState() > 0:
+            if len(module.i0_interp.shape) > 1:
+                array_ones = np.copy(module.i0_interp)
+                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
+            else:
+                array_ones = np.ones(len(module.i0_interp))
+            dic['denominator'] = array_ones
+
+            if(hasattr(module, 'data_i0')):
+                if len(module.data_i0.shape) > 1:
+                    array_ones = np.copy(module.data_i0)
+                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
+                else:
+                    array_ones = np.ones(len(module.data_i0))
+                    dic['original_denominator'] = module.data_i0
+            dic['original_denominator'] = array_ones
 
         if self.checkBox_log.checkState() > 0:
             dic['log'] = True

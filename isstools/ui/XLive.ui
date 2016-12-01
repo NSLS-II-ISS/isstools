@@ -1927,7 +1927,7 @@ bin and save them</string>
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>181</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -1969,6 +1969,13 @@ bin and save them</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="label_104">
+         <property name="text">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="layoutWidget">
@@ -1976,7 +1983,7 @@ bin and save them</string>
        <rect>
         <x>10</x>
         <y>70</y>
-        <width>181</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -2042,6 +2049,22 @@ bin and save them</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_num_1">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="layoutWidget">
@@ -2049,7 +2072,7 @@ bin and save them</string>
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>181</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -2115,6 +2138,22 @@ bin and save them</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_den_1">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
@@ -2122,7 +2161,7 @@ bin and save them</string>
        <rect>
         <x>10</x>
         <y>130</y>
-        <width>181</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -2171,7 +2210,7 @@ bin and save them</string>
      <widget class="QPushButton" name="push_replot_file">
       <property name="geometry">
        <rect>
-        <x>200</x>
+        <x>220</x>
         <y>70</y>
         <width>81</width>
         <height>31</height>

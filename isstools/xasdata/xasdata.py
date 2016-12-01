@@ -134,7 +134,7 @@ class XASdataAbs(XASdata):
             num = plotting_dic['numerator']
             den = plotting_dic['denominator']
             log = plotting_dic['log']
-            division = num[:,1]/den[:,1]
+            division = np.abs(num[:,1]/den[:,1])
             if log:
                 division = np.log(division)
             result_chambers[:,1] = division
