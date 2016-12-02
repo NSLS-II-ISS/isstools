@@ -304,6 +304,7 @@ class trajectory_manager():
                 while (self.hhm.cycle_limit_rbv.value != size):
                     ttime.sleep(.01)
                 print('Transfer completed!\nNew lut number: {}\nTrajectory name: {}\nNumber of points: {}'.format(lut_number, name, size))
+                self.hhm.trajectory_name.put(name)
                 return True
     
 
