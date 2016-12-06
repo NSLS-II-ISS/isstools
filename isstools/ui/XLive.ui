@@ -382,7 +382,7 @@
           </palette>
          </property>
          <property name="text">
-          <string>&lt;click 'Select File'&gt; -&gt;</string>
+          <string>&lt;click 'Select File'&gt;</string>
          </property>
          <property name="readOnly">
           <bool>true</bool>
@@ -917,7 +917,7 @@
           </size>
          </property>
          <property name="value">
-          <number>5</number>
+          <number>1</number>
          </property>
         </widget>
        </item>
@@ -1158,14 +1158,14 @@ Offset</string>
        <item row="1" column="1">
         <widget class="QLineEdit" name="edit_tune_range">
          <property name="text">
-          <string/>
+          <string>1</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
         <widget class="QLineEdit" name="edit_tune_step">
          <property name="text">
-          <string/>
+          <string>0.05</string>
          </property>
         </widget>
        </item>
@@ -2220,6 +2220,26 @@ bin and save them</string>
        <string>Replot</string>
       </property>
      </widget>
+     <widget class="QCheckBox" name="checkBox_find_edge">
+      <property name="geometry">
+       <rect>
+        <x>580</x>
+        <y>50</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Automatically try
+to find the edge</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
@@ -2529,7 +2549,7 @@ bin and save them</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">

@@ -470,7 +470,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_2.ax, color = 'b')
             self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
 
-            if len(self.selected_filename_bin) == 1:
+            if self.checkBox_find_edge.checkState() > 0:
                 self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
                 if self.edge_index > 0:
                     x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
