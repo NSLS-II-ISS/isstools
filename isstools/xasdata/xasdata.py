@@ -134,9 +134,9 @@ class XASdataAbs(XASdata):
             num = plotting_dic['numerator']
             den = plotting_dic['denominator']
             log = plotting_dic['log']
-            division = np.abs(num[:,1]/den[:,1])
+            division = num[:,1]/den[:,1]
             if log:
-                division = np.log(division)
+                division = np.log(np.abs(division))
             result_chambers[:,1] = division
 
         else:
@@ -474,8 +474,8 @@ class XASDataManager:
             division = self.num/self.den
             division_orig = self.num_orig/self.den_orig
             if self.log:
-                division = np.log(division)
-                division_orig = np.log(division_orig)
+                division = np.log(np.abs(division))
+                division_orig = np.log(np.abs(division_orig))
             self.abs = division
             self.abs_orig = division_orig
 

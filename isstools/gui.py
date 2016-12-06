@@ -91,6 +91,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
         self.push_prepare_trajectory.clicked.connect(self.run_prep_traj)
         self.push_plot_traj.clicked.connect(self.plot_traj_file)
+        self.push_plot_traj.setDisabled(True)
         self.push_save_trajectory.setDisabled(True)
 
         # Initialize XIA tab
@@ -468,17 +469,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic = self.get_dic(self.abs_parser.data_manager)
             self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_2.ax, color = 'b')
             self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-            self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
-            if self.edge_index > 0:
-                x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
-                y_edge = self.abs_parser.data_manager.abs[self.edge_index]
 
-                self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-                self.figure_old_scans_2.ax.legend(handles = [edge_path])
-                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-                print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
-                self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+            if len(self.selected_filename_bin) == 1:
+                self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+                if self.edge_index > 0:
+                    x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
+                    y_edge = self.abs_parser.data_manager.abs[self.edge_index]
+
+                    self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                    edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                    self.figure_old_scans_2.ax.legend(handles = [edge_path])
+                    self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+                    print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+                    self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
                 
             self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
             self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
@@ -576,6 +579,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #self.comboBox.clear()
         #self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
         self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
+        self.push_plot_traj.setEnabled(True)
 
     def addCanvas(self):
         self.figure = Figure()
@@ -882,6 +886,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.selected_filename_bin = [self.current_filepath]
                     self.label_24.setText(self.current_filepath)
                     self.process_bin_equal()
+
+                # Check saturation:
+                # TODO: add way to check all three before raising error exception
+                try: 
+                    warnings = ()
+                    if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
+                        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.parser.it_interp[:,1])) > 3.9:
+                        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.parser.ir_interp[:,1])) > 9.9:
+                        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                    if len(warnings):
+                        raise Warning(warnings)
+
+                except Warning as warnings:
+                    warningtxt = ''
+                    for warning in warnings.args[0]:
+                        print('Warning: {}'.format(warning))
+                        warningtxt += '{}\n'.format(warning)
+                    warningtxt += 'Check the gains of the ion chambers'
+                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                    #raise
 
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
