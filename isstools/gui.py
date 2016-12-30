@@ -758,6 +758,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')
         if filename[-4:] != '.txt' and len(filename):
             filename += '.txt'
+            if (os.path.isfile(filename)): 
+                ret = self.questionMessage('Save trajectory...', '{} already exists. Do you want to replace it?'.format(filename.rsplit('/',1)[1]))
+                if not ret:
+                    print ('Aborted!')
+                    return
         elif not len(filename):
             print('\nInvalid name! Select a valid name...')
             return
@@ -767,7 +772,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             np.savetxt(filename, 
 	               self.traj.encoder_grid, fmt='%d')
             call(['chmod', '666', filename])
-            self.get_traj_names()
+            #self.get_traj_names()
+            self.label_56.setText(filename.rsplit('/',1)[1])
+            self.push_plot_traj.setEnabled(True)
             print('Trajectory saved! [{}]'.format(filename))
         else:
             print('\nCreate the trajectory first...')
