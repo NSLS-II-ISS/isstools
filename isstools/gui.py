@@ -801,7 +801,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.load(orig_file_name = self.label_56.text(), new_file_path = self.comboBox_2.currentText())
 
     def init_trajectory(self):
+        self.run_start.setDisabled(True)
         self.traj_manager.init(int(self.comboBox_3.currentText()))
+        self.run_start.setEnabled(True)
 
     def read_trajectory_info(self):
         self.traj_manager.read_info()

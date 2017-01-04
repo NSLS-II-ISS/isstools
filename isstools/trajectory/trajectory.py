@@ -5,6 +5,7 @@ import pkg_resources
 import scipy
 from scipy import interpolate
 import math
+from PyQt4 import QtCore
 
 import time as ttime
 #import pexpect
@@ -187,14 +188,16 @@ class trajectory_manager():
     # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
     def load(self, orig_file_name, new_file_path, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
 
+        print('[Load Trajectory] Starting...')
+
         # Check if new_file_path is between the possible values
         if int(new_file_path) > 9 or int(new_file_path) < 1:
-            print("Path '{}' not possible. Please use a value in the range 1 <= new_file_path <= 9.".format(new_file_path))
+            print("[Load Trajectory] Path '{}' not possible. Please use a value in the range 1 <= new_file_path <= 9.".format(new_file_path))
             return False
    
         # Get number of lines in file
         file_size = self.file_len(orig_file_path + orig_file_name)
-        print('Number of lines in file: {}'.format(file_size))
+        print('[Load Trajectory] Number of lines in file: {}'.format(file_size))
 
         # Create ftp connection with default credential
         ftp = FTP(ip)
@@ -213,7 +216,7 @@ class trajectory_manager():
                     if dir_name == 'lut':
                         dir_exists = 1
                 if not dir_exists:
-                    print('mkdir: /usrflash/lut')
+                    print('[Load Trajectory] mkdir: /usrflash/lut')
                     ftp.mkd('/usrflash/lut')
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut')
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut')
@@ -225,7 +228,7 @@ class trajectory_manager():
                     if dir_name == str(new_file_path):
                         dir_exists = 1
                 if not dir_exists:
-                    print('mkdir: /usrflash/lut/{}'.format(new_file_path))
+                    print('[Load Trajectory] mkdir: /usrflash/lut/{}'.format(new_file_path))
                     ftp.mkd('/usrflash/lut/{}'.format(new_file_path))
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}'.format(new_file_path))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}'.format(new_file_path))
@@ -237,20 +240,19 @@ class trajectory_manager():
             if(f.readable()):
                 result = ftp.storbinary('STOR ' + '/usrflash/lut/' + str(new_file_path) + '/' + new_file_name, f)
                 if(result == '226 File receive OK.'):
-                    print('File sent OK')
+                    print('[Load Trajectory] File sent OK')
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
                     s.sendline ('echo "{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, new_file_path))
                     ttime.sleep(0.01)
                     ftp.close()
-                    print('Permissions OK')
+                    print('[Load Trajectory] Permissions OK')
 
             s.logout()
             s.pid = None
-            print('File sent successfully')
-            return True
+            print('[Load Trajectory] Completed!')
         else:
-            print('Not able to ssh into the controller')
+            print('[Load Trajectory] Fail! Not able to ssh into the controller...')
 
     ########## init ##########
     # Transfer the trajectory from the flash to the ram memory in the controller
@@ -259,6 +261,8 @@ class trajectory_manager():
     # arg2 (optional) = ip            -> IP of the controller that will receive the file. Default = '10.8.2.86'
     # arg3 (optional) = filename    -> Filename of the trajectory file in the controller. Currently, it MUST be 'hhm.txt'
     def init(self, lut_number, ip = '10.8.2.86', filename = 'hhm.txt'):
+
+        print('[Init Trajectory] Starting...')
 
         self.hhm.lut_number.put(lut_number)
 
@@ -269,8 +273,16 @@ class trajectory_manager():
         self.hhm.lut_start_transfer.put("1")    
         while (self.hhm.lut_transfering.value == 0):
             ttime.sleep(.01)
+            QtCore.QCoreApplication.processEvents()
         while (self.hhm.lut_transfering.value == 1):
             ttime.sleep(.01)
+            QtCore.QCoreApplication.processEvents()
+        while (self.hhm.trajectory_loading.value == 0):
+            ttime.sleep(.01)
+            QtCore.QCoreApplication.processEvents()
+        while (self.hhm.trajectory_loading.value == 1):
+            ttime.sleep(.01)
+            QtCore.QCoreApplication.processEvents()
     
         ftp = FTP(ip)
         ftp.login()
@@ -282,7 +294,7 @@ class trajectory_manager():
             if file_name == filename:
                 file_exists = 1
         if file_exists == 0:
-            print('File not found. :(\nAre you sure \'{}\' is the correct lut number?'.format(lut_number))
+            print('[Init Trajectory] File not found. :(\nAre you sure \'{}\' is the correct lut number?'.format(lut_number))
         else:
             info = []
             def handle_binary(more_data):
@@ -293,19 +305,18 @@ class trajectory_manager():
                 size = int(info[0])
                 name = info[1]
             else:
-                print('Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')    
+                print('[Init Trajectory] Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')    
                 return False
     
             if(size == 0):
-                print('Size seems to be equal to 0. Please, try sending the trajectory file again using trajectory_load(...)')
+                print('[Init Trajectory] Size seems to be equal to 0. Please, try sending the trajectory file again using trajectory_load(...)')
                 return False
             else:
                 self.hhm.cycle_limit.put(size)
                 while (self.hhm.cycle_limit_rbv.value != size):
                     ttime.sleep(.01)
-                print('Transfer completed!\nNew lut number: {}\nTrajectory name: {}\nNumber of points: {}'.format(lut_number, name, size))
+                print('[Init Trajectory] New lut number: {}\n[Init Trajectory] Trajectory name: {}\n[Init Trajectory] Number of points: {}\n[Init Trajectory] Completed!'.format(lut_number, name, size))
                 self.hhm.trajectory_name.put(name)
-                return True
     
 
     ########## read_info ##########
