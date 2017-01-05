@@ -257,8 +257,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
-        self.RE.md['angle_offset'] = self.RE.md['angle_offset'] + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000
-        self.label_angle_offset.setText('{0:.4f}'.format(self.RE.md['angle_offset']))
+        ret = self.questionMessage('Confirmation', 'Are you sure you would like to calibrate it?')
+        if not ret:
+            print ('[E0 Calibration] Aborted!')
+            return False
+        self.RE.md['angle_offset'] = str(float(self.RE.md['angle_offset']) + (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000)
+        self.label_angle_offset.setText('{0:.4f}'.format(float(self.RE.md['angle_offset'])))
+        print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.RE.md['angle_offset']))
 
     def get_dic(self, module):
         dic = dict()
