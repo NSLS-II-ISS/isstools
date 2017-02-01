@@ -279,6 +279,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic['numerator'] = module.ir_interp
             if(hasattr(module, 'data_ir')):
                 dic['original_numerator'] = module.data_ir
+        elif self.checkBox_num_if.checkState() > 0:
+            dic['numerator'] = module.if_interp
+            if(hasattr(module, 'data_if')):
+                dic['original_numerator'] = module.data_if
         elif self.checkBox_num_1.checkState() > 0:
             if len(module.i0_interp.shape) > 1:
                 array_ones = np.copy(module.i0_interp)
@@ -308,6 +312,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             dic['denominator'] = module.ir_interp
             if(hasattr(module, 'data_ir')):
                 dic['original_denominator'] = module.data_ir
+        elif self.checkBox_den_if.checkState() > 0:
+            dic['denominator'] = module.if_interp
+            if(hasattr(module, 'data_if')):
+                dic['original_denominator'] = module.data_if
         elif self.checkBox_den_1.checkState() > 0:
             if len(module.i0_interp.shape) > 1:
                 array_ones = np.copy(module.i0_interp)
