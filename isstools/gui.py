@@ -1,5 +1,6 @@
 import numpy as np
 from PyQt4 import uic, QtGui, QtCore
+from PyQt4.QtCore import QThread, SIGNAL
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -254,7 +255,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def save_bin(self):
         filename = self.curr_filename_save
         self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
-        print('File Saved! [{}]'.format(filename[:-3] + 'dat'))
+        print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
         ret = self.questionMessage('Confirmation', 'Are you sure you would like to calibrate it?')
@@ -357,51 +358,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
     def process_bin(self):
-
-        # Plot equal spacing bin
-        #self.figure_old_scans_3.ax.cla()
-        e0 = int(self.edit_E0_2.text())
-        edge_start = int(self.edit_edge_start.text())
-        edge_end = int(self.edit_edge_end.text())
-        preedge_spacing = float(self.edit_preedge_spacing.text())
-        xanes_spacing = float(self.edit_xanes_spacing.text())
-        exafs_spacing = float(self.edit_exafs_spacing.text())
-        k_power = float(self.edit_y_power.text())
-
-        if e0 < self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
-            ret = self.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
-            if not ret:
-                print ('Binning aborted!')
-                return False
-
-        self.abs_parser.bin(e0, 
-                            e0 + edge_start, 
-                            e0 + edge_end, 
-                            preedge_spacing, 
-                            xanes_spacing, 
-                            exafs_spacing)
-
-        dic = self.get_dic(self.abs_parser.data_manager)
-
-        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_3.ax, color = 'r')
-        self.canvas_old_scans_3.draw_idle()
-
-        k_data = self.abs_parser.data_manager.get_k_data(e0,
-                                                         edge_end,
-                                                         exafs_spacing,
-                                                         self.abs_parser.data_manager.abs,
-                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
-                                                         self.abs_parser.data_manager.data_en,
-                                                         self.abs_parser.data_manager.abs_orig,
-                                                         k_power)
-        self.figure_old_scans.ax.cla()
-        self.figure_old_scans.ax.plot(k_data[0], k_data[1])
-        self.figure_old_scans.ax.grid(True)
-        self.figure_old_scans.ax.set_xlabel('k')
-        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
-        self.canvas_old_scans.draw_idle()
-        self.push_replot_exafs.setEnabled(True)
-        self.push_save_bin.setEnabled(True)
+        self.old_scans_control = 1
+        self.old_scans_2_control = 1
+        self.old_scans_3_control = 1
+        self.process_thread = process_bin_thread(self) 
+        self.process_thread.start()
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
@@ -451,61 +412,42 @@ class ScanGui(*uic.loadUiType(ui_path)):
         
 
     def process_bin_equal(self):
+        index = 1
+        self.old_scans_control = 1
+        self.old_scans_2_control = 1
+        self.old_scans_3_control = 1
+
+        self.figure_old_scans.ax.cla()
+        self.canvas_old_scans.draw()
+
+        self.figure_old_scans_2.ax.cla()
+        self.figure_old_scans_2.ax2.cla()
+        self.toolbar_old_scans_2._views.clear()
+        self.toolbar_old_scans_2._positions.clear()
+        self.canvas_old_scans_2.draw()
+
+        self.figure_old_scans_3.ax.cla()
+        self.canvas_old_scans_3.draw()
+
         for filename in self.selected_filename_bin:
-            self.abs_parser.loadInterpFile(filename) #self.label_24.text())
-
-            # Erase final plot (in case there is old data there)
-            self.figure_old_scans_3.ax.cla()
-            self.canvas_old_scans_3.draw_idle()
-
-            self.figure_old_scans.ax.cla()
-            self.canvas_old_scans.draw_idle()
-
-            self.figure_old_scans_3.ax.cla()
-            dic = self.get_dic(self.abs_parser)
-            self.abs_parser.plot(plotting_dic = dic, ax = self.figure_old_scans_3.ax, color = 'b')
-
-            self.figure_old_scans_2.ax.cla()
-            self.figure_old_scans_2.ax2.cla()
-            self.canvas_old_scans_2.draw_idle()
-            self.toolbar_old_scans_2._views.clear()
-            self.toolbar_old_scans_2._positions.clear()
-            self.abs_parser.bin_equal()
-            dic = self.get_dic(self.abs_parser.data_manager)
-            self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.figure_old_scans_2.ax, color = 'b')
-            self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-
-            if self.checkBox_find_edge.checkState() > 0:
-                self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
-                if self.edge_index > 0:
-                    x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
-                    y_edge = self.abs_parser.data_manager.abs[self.edge_index]
-
-                    self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                    edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-                    self.figure_old_scans_2.ax.legend(handles = [edge_path])
-                    self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-                    print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
-                    self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
-                
-            self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
-            self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
-
-            self.canvas_old_scans_3.draw_idle()
-            self.canvas_old_scans_2.draw_idle()
-
-            cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+            self.process_thread_equal = process_bin_thread_equal(self, filename, index) 
+            self.process_thread_equal.start()
 
             self.curr_filename_save = filename
             if self.checkBox_process_bin.checkState() > 0:
-                self.process_bin()
-                self.save_bin()
+                #self.gui.process_bin()
+                #self.gui.save_bin()
+                self.process_thread_equal.abs_parser.curr_filename_save = filename
+                self.process_thread = process_bin_thread(self, index, self.process_thread_equal, self.process_thread_equal.abs_parser) 
+                self.process_thread.start()
+
+            self.abs_parser = self.process_thread_equal.abs_parser
 
             self.push_bin.setEnabled(True)
             self.push_replot_exafs.setDisabled(True)
             self.push_save_bin.setDisabled(True)
             self.push_replot_file.setEnabled(True)
-
+            index += 1
 
     def __del__(self):
         # Restore sys.stdout
@@ -1073,4 +1015,139 @@ class EmittingStream(QtCore.QObject):
 
 #    return tune
 
+class process_bin_thread(QThread):
+    def __init__(self, gui, index = 1, parent_thread = None, abs_parser = None):
+        QThread.__init__(self)
+        self.gui = gui
+        self.parent_thread = parent_thread
+        self.index = index
+        if abs_parser is None:
+            self.abs_parser = self.gui.abs_parser
+        else:
+            self.abs_parser = abs_parser
 
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        print("[Binning Thread {}] Checking Parent Thread".format(self.index))
+        if self.parent_thread is not None:
+            print("[Binning Thread {}] Parent Thread exists. Waiting...".format(self.index))
+            while(self.parent_thread.isFinished() == False):
+                ttime.sleep(.01)
+
+        # Plot equal spacing bin
+        e0 = int(self.gui.edit_E0_2.text())
+        edge_start = int(self.gui.edit_edge_start.text())
+        edge_end = int(self.gui.edit_edge_end.text())
+        preedge_spacing = float(self.gui.edit_preedge_spacing.text())
+        xanes_spacing = float(self.gui.edit_xanes_spacing.text())
+        exafs_spacing = float(self.gui.edit_exafs_spacing.text())
+        k_power = float(self.gui.edit_y_power.text())
+
+        if e0 < self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
+            ret = self.gui.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
+            if not ret:
+                print ('[Binning Thread {}] Binning aborted!'.format(self.index))
+                return False
+
+        self.abs_parser.bin(e0, 
+                            e0 + edge_start, 
+                            e0 + edge_end, 
+                            preedge_spacing, 
+                            xanes_spacing, 
+                            exafs_spacing)
+
+        dic = self.gui.get_dic(self.abs_parser.data_manager)
+
+        while(self.gui.old_scans_3_control != self.index):
+            ttime.sleep(.01)
+        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
+        self.gui.canvas_old_scans_3.draw()
+        self.gui.old_scans_3_control += 1
+        
+
+        k_data = self.abs_parser.data_manager.get_k_data(e0,
+                                                         edge_end,
+                                                         exafs_spacing,
+                                                         self.abs_parser.data_manager.abs,
+                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
+                                                         self.abs_parser.data_manager.data_en,
+                                                         self.abs_parser.data_manager.abs_orig,
+                                                         k_power)
+
+        while(self.gui.old_scans_control != self.index):
+            ttime.sleep(.01)
+
+        self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        self.gui.figure_old_scans.ax.grid(True)
+        self.gui.figure_old_scans.ax.set_xlabel('k')
+        self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
+        self.gui.canvas_old_scans.draw()
+        self.gui.old_scans_control += 1
+        self.gui.push_replot_exafs.setEnabled(True)
+        self.gui.push_save_bin.setEnabled(True)
+
+        if self.gui.checkBox_process_bin.checkState() > 0:
+            filename = self.abs_parser.curr_filename_save
+            self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+            print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
+
+        print('[Binning Thread {}] Finished'.format(self.index))
+
+        #optionally: Emit signal
+
+
+
+class process_bin_thread_equal(QThread):
+    def __init__(self, gui, filename, index = 1):
+        QThread.__init__(self)
+        self.gui = gui
+        self.index = index
+        self.filename = filename
+        self.abs_parser = xasdata.XASdataAbs()
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        #for filename in self.gui.selected_filename_bin:
+        self.abs_parser.loadInterpFile(self.filename) #self.gui.label_24.text())
+
+        while(self.gui.old_scans_3_control != self.index):
+            ttime.sleep(.01)
+
+        dic = self.gui.get_dic(self.abs_parser)
+        self.abs_parser.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
+
+        self.gui.canvas_old_scans_3.draw()
+        #self.gui.old_scans_3_control += 1
+
+
+        self.abs_parser.bin_equal()
+        dic = self.gui.get_dic(self.abs_parser.data_manager)
+        while(self.gui.old_scans_2_control != self.index):
+            ttime.sleep(.01)
+
+        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax, color = 'b')
+        self.gui.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
+
+        if self.gui.checkBox_find_edge.checkState() > 0:
+            self.gui.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+            if self.gui.edge_index > 0:
+                x_edge = self.abs_parser.data_manager.en_grid[self.gui.edge_index]
+                y_edge = self.abs_parser.data_manager.abs[self.gui.edge_index]
+
+                self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                self.gui.figure_old_scans_2.ax.legend(handles = [edge_path])
+                self.gui.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+                print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
+                self.gui.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
+            
+        self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
+        self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
+        self.gui.canvas_old_scans_2.draw()
+        self.gui.old_scans_2_control += 1
+        print('[Binning Equal Thread {}] Finished'.format(self.index))
