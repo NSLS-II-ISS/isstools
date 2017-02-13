@@ -69,13 +69,16 @@ class XASdata:
                     array_energy.append(float(current_line[1]))
                     array_i0.append(float(current_line[2]))
                     array_it.append(float(current_line[3]))
-                    array_it.append(float(current_line[3]))
                     if len(current_line) >= 5:
                         array_ir.append(float(current_line[4]))
                     if len(current_line) >= 6:
                         array_iff.append(float(current_line[5]))
         self.header_read = self.read_header(filename)
         ts, energy, i0, it, ir, iff = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir), np.array(array_iff)
+
+        # Trying to make it compatible with old files (iff = [1, 1, ..., 1, 1]):
+        if not len(iff):
+            iff = np.ones(len(i0))
         return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose(), np.concatenate(([ts], [iff])).transpose()
         
     def read_header(self, filename):
@@ -129,7 +132,7 @@ class XASdataAbs(XASdata):
         self.i0_interp = self.i0_interp[len_to_erase:]
         self.it_interp = self.it_interp[len_to_erase:]
         self.ir_interp = self.ir_interp[len_to_erase:]
-        self.iff_interp = self.ir_interp[len_to_erase:]
+        self.iff_interp = self.iff_interp[len_to_erase:]
 
     def interpolate(self):
         min_timestamp = np.array([self.i0[0,0], self.it[0,0], self.ir[0,0], self.iff[0,0], self.encoder[0,0]]).max()
@@ -186,7 +189,7 @@ class XASdataAbs(XASdata):
                 trajectory_name = ''
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1], self.iff_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f %f', 
+                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1], self.iff_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %10.6f %10.6f %10.6f %10.6f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)       iff(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
@@ -355,7 +358,7 @@ class XASdataFlu(XASdata):
 
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f', 
+                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %10.6f %10.6f %10.6f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)   i0 (V)    iflu(V)   ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
@@ -605,7 +608,7 @@ class XASDataManager:
         self.matrix = np.array([timestamp, energy, i0, it, ir, iff]).transpose()  
         self.sorted_matrix = self.sort_data(self.matrix, 1)
         self.en_grid = self.energy_grid_equal(self.sorted_matrix[:, 1], delta_en)
-        self.data_en, self.data_i0, self.data_it, self.data_ir = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4], self.sorted_matrix[:, 5])
+        self.data_en, self.data_i0, self.data_it, self.data_ir, self.data_iff = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4], self.sorted_matrix[:, 5])
         self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
         self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
         self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
