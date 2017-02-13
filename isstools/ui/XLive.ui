@@ -1953,12 +1953,18 @@ bin and save them</string>
          <property name="text">
           <string>I0</string>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_100">
          <property name="text">
           <string>It</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -1967,12 +1973,28 @@ bin and save them</string>
          <property name="text">
           <string>Ir</string>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_105">
+         <property name="text">
+          <string>If</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_104">
          <property name="text">
           <string>1</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -2035,6 +2057,22 @@ bin and save them</string>
        </item>
        <item>
         <widget class="QCheckBox" name="checkBox_num_ir">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_num_if">
          <property name="text">
           <string/>
          </property>
@@ -2139,6 +2177,22 @@ bin and save them</string>
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkBox_den_if">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="checkBox_den_1">
          <property name="text">
           <string/>
@@ -2210,7 +2264,7 @@ bin and save them</string>
      <widget class="QPushButton" name="push_replot_file">
       <property name="geometry">
        <rect>
-        <x>220</x>
+        <x>240</x>
         <y>70</y>
         <width>81</width>
         <height>31</height>
@@ -2549,7 +2603,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
