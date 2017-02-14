@@ -156,11 +156,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_calibrate.clicked.connect(self.calibrate_offset)
         self.push_replot_exafs.clicked.connect(self.update_k_view)
         self.push_replot_file.clicked.connect(self.replot_bin_equal)
+        self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
         # Disable buttons
         self.push_bin.setDisabled(True)
         self.push_save_bin.setDisabled(True)
         self.push_replot_exafs.setDisabled(True)
         self.push_replot_file.setDisabled(True)
+        self.active_threads = 0
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -361,8 +363,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_control = 1
         self.old_scans_2_control = 1
         self.old_scans_3_control = 1
-        self.process_thread = process_bin_thread(self) 
-        self.process_thread.start()
+        process_thread = process_bin_thread(self) 
+        self.connect(process_thread, SIGNAL("finished()"), self.reset_processing_tab)
+        self.active_threads += 1
+        self.canvas_old_scans_2.mpl_disconnect(self.cid)
+        process_thread.start()
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
@@ -418,36 +423,37 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_3_control = 1
 
         self.figure_old_scans.ax.cla()
-        self.canvas_old_scans.draw()
+        self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2.ax.cla()
         self.figure_old_scans_2.ax2.cla()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
-        self.canvas_old_scans_2.draw()
+        self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.cla()
-        self.canvas_old_scans_3.draw()
+        self.canvas_old_scans_3.draw_idle()
 
-        for filename in self.selected_filename_bin:
-            self.process_thread_equal = process_bin_thread_equal(self, filename, index) 
-            self.process_thread_equal.start()
+        print('[Launching Threads]')
+        t_manager = process_threads_manager(self)
+        t_manager.start()
+        print('[Finished Launching Threads]')
 
-            self.curr_filename_save = filename
-            if self.checkBox_process_bin.checkState() > 0:
-                #self.gui.process_bin()
-                #self.gui.save_bin()
-                self.process_thread_equal.abs_parser.curr_filename_save = filename
-                self.process_thread = process_bin_thread(self, index, self.process_thread_equal, self.process_thread_equal.abs_parser) 
-                self.process_thread.start()
+        #for filename in self.selected_filename_bin:
+        #    process_thread_equal = process_bin_thread_equal(self, filename, index) 
+        #    process_thread_equal.start()
 
-            self.abs_parser = self.process_thread_equal.abs_parser
+        #    self.curr_filename_save = filename
+        #    if self.checkBox_process_bin.checkState() > 0:
+        #        process_thread = process_bin_thread(self, index, process_thread_equal, process_thread_equal.abs_parser) 
+        #        process_thread.start()
 
-            self.push_bin.setEnabled(True)
-            self.push_replot_exafs.setDisabled(True)
-            self.push_save_bin.setDisabled(True)
-            self.push_replot_file.setEnabled(True)
-            index += 1
+        #    index += 1
+
+        #self.push_bin.setEnabled(True)
+        #self.push_replot_exafs.setDisabled(True)
+        #self.push_save_bin.setDisabled(True)
+        #self.push_replot_file.setEnabled(True)
 
     def __del__(self):
         # Restore sys.stdout
@@ -956,6 +962,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                    message, 
                                    QtGui.QMessageBox.Ok)
 
+    def reset_processing_tab(self):
+        self.active_threads -= 1
+        print('[Threads] Number of active threads: {}'.format(self.active_threads))
+        if self.active_threads == 0:
+            print('[ #### All Threads Finished #### ]')
+            self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+            if len(self.selected_filename_bin) > 1:
+                self.push_bin.setDisabled(True)
+                self.push_replot_exafs.setDisabled(True)
+                self.push_save_bin.setDisabled(True)
+                self.push_replot_file.setDisabled(True)
+            elif len(self.selected_filename_bin) == 1:
+                self.push_bin.setEnabled(True)
+                if len(self.figure_old_scans.ax.lines):
+                    self.push_save_bin.setEnabled(True)
+                    self.push_replot_exafs.setEnabled(True)
+                else:
+                    self.push_save_bin.setEnabled(False)
+                    self.push_replot_exafs.setEnabled(False)
+                self.push_replot_file.setEnabled(True)
+            for line in self.figure_old_scans_3.ax.lines:
+                if (line.get_color()[0] == 1 and line.get_color()[2] == 0) or (line.get_color() == 'r'):
+                    line.set_zorder(3)
+            self.canvas_old_scans_3.draw_idle()
+
 # Class to write terminal output to screen
 class EmittingStream(QtCore.QObject):
 
@@ -1034,7 +1065,8 @@ class process_bin_thread(QThread):
         if self.parent_thread is not None:
             print("[Binning Thread {}] Parent Thread exists. Waiting...".format(self.index))
             while(self.parent_thread.isFinished() == False):
-                ttime.sleep(.01)
+                QtCore.QCoreApplication.processEvents()
+                pass
 
         # Plot equal spacing bin
         e0 = int(self.gui.edit_E0_2.text())
@@ -1060,10 +1092,10 @@ class process_bin_thread(QThread):
 
         dic = self.gui.get_dic(self.abs_parser.data_manager)
 
-        while(self.gui.old_scans_3_control != self.index):
-            ttime.sleep(.01)
+        #while(self.gui.old_scans_3_control != self.index):
+        #    ttime.sleep(.01)
         self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
-        self.gui.canvas_old_scans_3.draw()
+        self.gui.canvas_old_scans_3.draw_idle()
         self.gui.old_scans_3_control += 1
         
 
@@ -1083,7 +1115,7 @@ class process_bin_thread(QThread):
         self.gui.figure_old_scans.ax.grid(True)
         self.gui.figure_old_scans.ax.set_xlabel('k')
         self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
-        self.gui.canvas_old_scans.draw()
+        self.gui.canvas_old_scans.draw_idle()
         self.gui.old_scans_control += 1
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
@@ -1106,12 +1138,14 @@ class process_bin_thread_equal(QThread):
         self.index = index
         self.filename = filename
         self.abs_parser = xasdata.XASdataAbs()
+        self.abs_parser.curr_filename_save = filename
 
     def __del__(self):
         self.wait()
 
     def run(self):
         #for filename in self.gui.selected_filename_bin:
+        print('[Binning Equal Thread {}] Starting...'.format(self.index))
         self.abs_parser.loadInterpFile(self.filename) #self.gui.label_24.text())
 
         while(self.gui.old_scans_3_control != self.index):
@@ -1120,7 +1154,7 @@ class process_bin_thread_equal(QThread):
         dic = self.gui.get_dic(self.abs_parser)
         self.abs_parser.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
 
-        self.gui.canvas_old_scans_3.draw()
+        self.gui.canvas_old_scans_3.draw_idle()
         #self.gui.old_scans_3_control += 1
 
 
@@ -1148,6 +1182,37 @@ class process_bin_thread_equal(QThread):
         self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
         self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
-        self.gui.canvas_old_scans_2.draw()
+        self.gui.canvas_old_scans_2.draw_idle()
         self.gui.old_scans_2_control += 1
         print('[Binning Equal Thread {}] Finished'.format(self.index))
+
+
+class process_threads_manager(QThread):
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.gui = gui
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        index = 1
+        self.gui.canvas_old_scans_2.mpl_disconnect(self.gui.cid)
+        for filename in self.gui.selected_filename_bin:
+            process_thread_equal = process_bin_thread_equal(self.gui, filename, index) 
+            self.gui.connect(process_thread_equal, SIGNAL("finished()"), self.gui.reset_processing_tab)
+            process_thread_equal.start()
+            self.gui.active_threads += 1
+
+            self.gui.curr_filename_save = filename
+            if self.gui.checkBox_process_bin.checkState() > 0:
+                process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.abs_parser) 
+                self.gui.connect(process_thread, SIGNAL("finished()"), self.gui.reset_processing_tab)
+                process_thread.start()
+                self.gui.active_threads += 1
+
+            index += 1
+        self.gui.abs_parser = process_thread_equal.abs_parser
+
+
+
