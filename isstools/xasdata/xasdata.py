@@ -17,6 +17,7 @@ class XASdata:
         self.i0_file = ''
         self.it_file = ''
         self.ir_file = ''
+        self.iff_file = ''
         self.data_manager = XASDataManager()
         self.header_read = ''
 
@@ -59,6 +60,7 @@ class XASdata:
         array_i0=[]
         array_it=[]
         array_ir=[]
+        array_iff=[]
         with open(str(filename)) as f:
             for line in f:
                 current_line = line.split()
@@ -67,15 +69,21 @@ class XASdata:
                     array_energy.append(float(current_line[1]))
                     array_i0.append(float(current_line[2]))
                     array_it.append(float(current_line[3]))
-                    if len(current_line) == 5:
+                    if len(current_line) >= 5:
                         array_ir.append(float(current_line[4]))
+                    if len(current_line) >= 6:
+                        array_iff.append(float(current_line[5]))
         self.header_read = self.read_header(filename)
-        ts, energy, i0, it, ir = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir)
-        return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose()
+        ts, energy, i0, it, ir, iff = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir), np.array(array_iff)
+
+        # Trying to make it compatible with old files (iff = [1, 1, ..., 1, 1]):
+        if not len(iff):
+            iff = np.ones(len(i0))
+        return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose(), np.concatenate(([ts], [iff])).transpose()
         
     def read_header(self, filename):
         with open(filename) as myfile:
-            return ''.join(str(elem) for elem in [next(myfile) for x in range(12)])
+            return ''.join(str(elem) for elem in [next(myfile) for x in range(13)])
 
 
 class XASdataAbs(XASdata):
@@ -84,51 +92,57 @@ class XASdataAbs(XASdata):
         self.i0 = np.array([])
         self.it = np.array([])
         self.ir = np.array([])
+        self.iff = np.array([])
 
-    def process(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0):
-        self.load(encoder_trace, i0trace, ittrace, irtrace, i0offset, itoffset, iroffset)
+    def process(self, encoder_trace, i0trace, ittrace, irtrace = '', ifftrace = '', i0offset = 0, itoffset = 0, iroffset = 0, iffoffset = 0):
+        self.load(encoder_trace, i0trace, ittrace, irtrace, ifftrace, i0offset, itoffset, iroffset, iffoffset)
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace, i0trace, ittrace, irtrace = '', i0offset = 0, itoffset = 0, iroffset = 0, angleoffset = 0):
+    def load(self, encoder_trace, i0trace, ittrace, irtrace = '', ifftrace = '', i0offset = 0, itoffset = 0, iroffset = 0, iffoffset = 0, angleoffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = ittrace
         self.ir_file = irtrace
+        self.iff_file = ifftrace
         self.encoder = self.loadENCtrace(encoder_trace)
         self.energy = self.encoder
-        #self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], 0.041)
         self.energy[:, 1] = xray.encoder2energy(self.encoder[:, 1], -angleoffset) #-12400 / (2 * 3.1356 * np.sin((np.pi / 180) * ((self.encoder[:, 1]/360000) + 0)))
         self.i0 = self.loadADCtrace(i0trace)
         self.it = self.loadADCtrace(ittrace)
         self.ir = self.loadADCtrace(irtrace)
+        self.iff = self.loadADCtrace(ifftrace)
         self.i0[:, 1] = self.i0[:, 1] - i0offset
         self.it[:, 1] = self.it[:, 1] - itoffset
         self.ir[:, 1] = self.ir[:, 1] - iroffset
+        self.iff[:, 1] = self.iff[:, 1] - iffoffset
 
     def loadInterpFile(self, filename):
-        self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp = self.loadINTERPtrace(filename)
-        matrix = np.array([self.energy_interp[:,1], self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose()
+        self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp , self.iff_interp = self.loadINTERPtrace(filename)
+        matrix = np.array([self.energy_interp[:,1], self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1], self.iff_interp[:,1]]).transpose()
         sorted_matrix = self.data_manager.sort_data(matrix, 0) 
         self.energy_interp[:,1] = sorted_matrix[:,0]
         self.i0_interp[:,1] = sorted_matrix[:,1]
         self.it_interp[:,1] = sorted_matrix[:,2]
         self.ir_interp[:,1] = sorted_matrix[:,3]
+        self.iff_interp[:,1] = sorted_matrix[:,4]
 
         len_to_erase = int(np.round(0.015 * len(self.i0_interp)))
         self.energy_interp = self.energy_interp[len_to_erase:]
         self.i0_interp = self.i0_interp[len_to_erase:]
         self.it_interp = self.it_interp[len_to_erase:]
         self.ir_interp = self.ir_interp[len_to_erase:]
+        self.iff_interp = self.iff_interp[len_to_erase:]
 
     def interpolate(self):
-        min_timestamp = np.array([self.i0[0,0], self.it[0,0], self.ir[0,0], self.encoder[0,0]]).max()
-        max_timestamp = np.array([self.i0[len(self.i0)-1,0], self.it[len(self.it)-1,0], self.ir[len(self.ir)-1,0], self.encoder[len(self.encoder)-1,0]]).min()
+        min_timestamp = np.array([self.i0[0,0], self.it[0,0], self.ir[0,0], self.iff[0,0], self.encoder[0,0]]).max()
+        max_timestamp = np.array([self.i0[len(self.i0)-1,0], self.it[len(self.it)-1,0], self.ir[len(self.ir)-1,0], self.iff[len(self.iff)-1,0], self.encoder[len(self.encoder)-1,0]]).min()
         interval = self.i0[1,0] - self.i0[0,0]
         timestamps = np.arange(min_timestamp, max_timestamp, interval)
         self.i0_interp = np.array([timestamps, np.interp(timestamps, self.i0[:,0], self.i0[:,1])]).transpose()
         self.it_interp = np.array([timestamps, np.interp(timestamps, self.it[:,0], self.it[:,1])]).transpose()
         self.ir_interp = np.array([timestamps, np.interp(timestamps, self.ir[:,0], self.ir[:,1])]).transpose()
+        self.iff_interp = np.array([timestamps, np.interp(timestamps, self.iff[:,0], self.iff[:,1])]).transpose()
         self.energy_interp = np.array([timestamps, np.interp(timestamps, self.energy[:,0], self.energy[:,1])]).transpose()
 
     def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
@@ -175,8 +189,8 @@ class XASdataAbs(XASdata):
                 trajectory_name = ''
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f', 
-                    delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
+                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1], self.iff_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %10.6f %10.6f %10.6f %10.6f', 
+                    delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)       iff(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
         return fn
@@ -187,7 +201,8 @@ class XASdataAbs(XASdata):
                                   self.energy_interp[:,1],
                                   self.i0_interp[:,1],
                                   self.it_interp[:,1], 
-                                  self.ir_interp[:,1])
+                                  self.ir_interp[:,1],
+                                  self.iff_interp[:,1])
 
     def bin(self, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
         self.data_manager.process(self.i0_interp[:,0], 
@@ -195,6 +210,7 @@ class XASdataAbs(XASdata):
                                   self.i0_interp[:,1],
                                   self.it_interp[:,1], 
                                   self.ir_interp[:,1],
+                                  self.iff_interp[:,1],
                                   e0, edge_start, edge_end,
                                   preedge_spacing, xanes, exafsk)
 
@@ -342,7 +358,7 @@ class XASdataFlu(XASdata):
 
         
         np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
-                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %f %f %f', 
+                    self.i0_interp[:,1], self.iflu_interp[:,1], self.ir_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %10.6f %10.6f %10.6f', 
                     delimiter=" ", header = 'Timestamp (s)   En. (eV)   i0 (V)    iflu(V)   ir(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
@@ -544,7 +560,7 @@ class XASDataManager:
 
     def export_dat(self, filename, header = ''):
         filename = filename[0: len(filename) - 3] + 'dat'
-        np.savetxt(filename, np.array([self.en_grid, self.i0_interp, self.it_interp, self.ir_interp]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e', comments = '', header = header)
+        np.savetxt(filename, np.array([self.en_grid, self.i0_interp, self.it_interp, self.ir_interp, self.iff_interp]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e %15.7e', comments = '', header = header)
         call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
         call(['chmod', '770', filename])
 
@@ -560,47 +576,43 @@ class XASDataManager:
             ax.set_ylabel('(iflu / i0)')    
 
 
-    def process(self, timestamp, energy, i0, it, ir, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+    def process(self, timestamp, energy, i0, it, ir, iff, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
         self.ts_orig = timestamp
         self.en_orig = energy
         self.i0_orig = i0
         self.it_orig = it
         self.ir_orig = ir
+        self.iff_orig = iff
 
-        self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
+        self.matrix = np.array([timestamp, energy, i0, it, ir, iff]).transpose()  
         self.sorted_matrix = self.sort_data(self.matrix, 1)
         self.en_grid = self.energy_grid(self.sorted_matrix[:, 1], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
-        self.data_en, self.data_i0, self.data_it, self.data_ir = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4])
-        #self.data_en = self.sorted_matrix[:, 1]
-        #self.data_i0 = self.sorted_matrix[:, 2]
-        #self.data_it = self.sorted_matrix[:, 3]
-        #self.data_ir = self.sorted_matrix[:, 4]
+        self.data_en, self.data_i0, self.data_it, self.data_ir, self.data_iff = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4], self.sorted_matrix[:, 5])
         self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
         self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
         self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.iff_interp = self.bin(self.en_grid, self.data_en, self.data_iff)
         self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
         self.abs_der = np.append(self.abs_der[0], self.abs_der)
 
-    def process_equal(self, timestamp, energy, i0, it, ir, delta_en = 2):
+    def process_equal(self, timestamp, energy, i0, it, ir, iff, delta_en = 2):
         self.ts_orig = timestamp
         self.en_orig = energy
         self.i0_orig = i0
         self.it_orig = it
         self.ir_orig = ir
+        self.iff_orig = iff
 
-        self.matrix = np.array([timestamp, energy, i0, it, ir]).transpose()  
+        self.matrix = np.array([timestamp, energy, i0, it, ir, iff]).transpose()  
         self.sorted_matrix = self.sort_data(self.matrix, 1)
         self.en_grid = self.energy_grid_equal(self.sorted_matrix[:, 1], delta_en)
-        self.data_en, self.data_i0, self.data_it, self.data_ir = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4])
-        #self.data_en = self.sorted_matrix[:, 1]
-        #self.data_i0 = self.sorted_matrix[:, 2]
-        #self.data_it = self.sorted_matrix[:, 3]
-        #self.data_ir = self.sorted_matrix[:, 4]
+        self.data_en, self.data_i0, self.data_it, self.data_ir, self.data_iff = self.average_points(self.sorted_matrix[:, 1], self.sorted_matrix[:, 2], self.sorted_matrix[:, 3], self.sorted_matrix[:, 4], self.sorted_matrix[:, 5])
         self.i0_interp = self.bin(self.en_grid, self.data_en, self.data_i0)
         self.it_interp = self.bin(self.en_grid, self.data_en, self.data_it)
         self.ir_interp = self.bin(self.en_grid, self.data_en, self.data_ir)
+        self.iff_interp = self.bin(self.en_grid, self.data_en, self.data_iff)
         self.abs = np.log(self.i0_interp/self.it_interp)
 
         self.abs_der = np.diff(self.abs)
@@ -609,12 +621,13 @@ class XASDataManager:
         self.abs_der2 = np.diff(self.abs_der)
         self.abs_der2 = np.append(self.abs_der2[0], self.abs_der2)
 
-    def average_points(self, energy, i0, it, ir):
+    def average_points(self, energy, i0, it, ir, iff):
         i = 0
         listenergy = []
         listi0 = []
         listit = []
         listir = []
+        listiff = []
         while i < len(energy):
             condition = (energy[i] == energy)
             energy_interval = np.extract(condition, energy)
@@ -627,7 +640,8 @@ class XASDataManager:
             listi0.append(np.mean(np.extract(condition, i0)))
             listit.append(np.mean(np.extract(condition, it)))
             listir.append(np.mean(np.extract(condition, ir)))
-        return np.array(listenergy), np.array(listi0), np.array(listit), np.array(listir)
+            listiff.append(np.mean(np.extract(condition, iff)))
+        return np.array(listenergy), np.array(listi0), np.array(listit), np.array(listir), np.array(listiff)
 
 
     def get_edge_index(self, abs):
