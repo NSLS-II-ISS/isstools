@@ -851,7 +851,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 self.canvas.draw_idle()
 
-                if self.checkBox_auto_process.checkState() > 0: # Change to a control
+                if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
                     self.tabWidget.setCurrentIndex(4)
                     self.selected_filename_bin = [self.current_filepath]
                     self.label_24.setText(self.current_filepath)
