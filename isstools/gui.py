@@ -163,6 +163,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_replot_exafs.setDisabled(True)
         self.push_replot_file.setDisabled(True)
         self.active_threads = 0
+        self.total_threads = 0
+        self.progressBar_processing.setValue(int(np.round(0)))
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -374,6 +376,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         process_thread = process_bin_thread(self) 
         self.connect(process_thread, SIGNAL("finished()"), self.reset_processing_tab)
         self.active_threads += 1
+        self.total_threads += 1
+        self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         self.canvas_old_scans_2.mpl_disconnect(self.cid)
         process_thread.start()
 
@@ -858,7 +862,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.process_bin_equal()
 
                 # Check saturation:
-                # TODO: add way to check all three before raising error exception
                 try: 
                     warnings = ()
                     if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
@@ -972,9 +975,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def reset_processing_tab(self):
         self.active_threads -= 1
+        self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         print('[Threads] Number of active threads: {}'.format(self.active_threads))
         if self.active_threads == 0:
             print('[ #### All Threads Finished #### ]')
+            self.total_threads = 0
+            self.progressBar_processing.setValue(int(np.round(100)))
             self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
             if len(self.selected_filename_bin) > 1:
                 self.push_bin.setDisabled(True)
@@ -1211,6 +1217,8 @@ class process_threads_manager(QThread):
             self.gui.connect(process_thread_equal, SIGNAL("finished()"), self.gui.reset_processing_tab)
             process_thread_equal.start()
             self.gui.active_threads += 1
+            self.gui.total_threads += 1
+            self.gui.progressBar_processing.setValue(int(np.round(100 * (self.gui.total_threads - self.gui.active_threads)/self.gui.total_threads)))
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
@@ -1218,7 +1226,7 @@ class process_threads_manager(QThread):
                 self.gui.connect(process_thread, SIGNAL("finished()"), self.gui.reset_processing_tab)
                 process_thread.start()
                 self.gui.active_threads += 1
-
+                self.gui.total_threads += 1
             index += 1
         self.gui.abs_parser = process_thread_equal.abs_parser
 
