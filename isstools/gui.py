@@ -373,6 +373,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_control = 1
         self.old_scans_2_control = 1
         self.old_scans_3_control = 1
+        print('[Launching Threads]')
         process_thread = process_bin_thread(self) 
         self.connect(process_thread, SIGNAL("finished()"), self.reset_processing_tab)
         self.active_threads += 1
@@ -380,6 +381,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         self.canvas_old_scans_2.mpl_disconnect(self.cid)
         process_thread.start()
+        print('[Finished Launching Threads]')
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
