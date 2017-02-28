@@ -829,11 +829,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
             # Fix that later
-                length = min(len(xia_parser.exporting_array1), len(parser.energy_interp))
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 8, 10, self.figure.ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 8, 10, self.figure.ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 8, 10, self.figure.ax, parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 8, 10, self.figure.ax, parser.energy_interp)
+                length = min(len(xia_parser.exporting_array1), len(self.parser.energy_interp))
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 2, 4, self.figure.ax, self.parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 2, 4, self.figure.ax, self.parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 2, 4, self.figure.ax, self.parser.energy_interp)
+                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 2, 4, self.figure.ax, self.parser.energy_interp)
 
             if absorp != '':
                 self.figure.ax.set_title(self.comment)
