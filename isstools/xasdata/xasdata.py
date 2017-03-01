@@ -230,7 +230,7 @@ class XASdataFlu(XASdata):
         self.interpolate()
         self.plot()
 
-    def load(self, encoder_trace, i0trace, iflutrace, irtrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0, angleoffset = 0):
+    def load(self, encoder_trace, i0trace, iflutrace, irtrace = '', ifftrace = '', trigtrace = '', i0offset = 0, ifluoffset = 0, iroffset = 0, iffoffset = 0, angleoffset = 0):
         self.encoder_file = encoder_trace
         self.i0_file = i0trace
         self.it_file = iflutrace
@@ -250,7 +250,7 @@ class XASdataFlu(XASdata):
         self.it = np.copy(self.iflu)
 
     def loadInterpFile(self, filename):
-        self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp = self.loadINTERPtrace(filename)
+        self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp, self.iff_interp = self.loadINTERPtrace(filename)
         #matrix = np.array([self.energy_interp, self.i0_interp, self.it_interp, self.ir_interp]).transpose()
         #sorted_matrix = self.data_manager.sort_data(matrix, 0) 
         #self.energy_interp = sorted_matrix[0]
