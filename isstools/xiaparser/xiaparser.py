@@ -339,6 +339,37 @@ class xiaparser:
             ax.set_ylabel('Intensity')
 
         return coeff
+        
+    def parse_step_scan(set_name, roi_start, roi_end, path = '/GPFS/xf08id/xia_files/'):
+        det_channels = []
+
+        energies, i0_values = np.loadtxt("{}{}-{}".format(path, set_name, "i0")).transpose()
+        det_channels.append(energies)
+        det_channels.append(i0_values - pba1.adc7.offset.value)
+
+        for i in range(4):
+            cur_det = np.loadtxt("{}{}-{}".format(path, set_name, i + 1))
+            cur_det_roi = [];
+            for i in cur_det:
+                cur_det_roi.append(np.sum(i[roi_start:roi_end + 1]))
+            det_channels.append(cur_det_roi)
+
+        det_channels.append(np.array(det_channels[2]) + np.array(det_channels[3]) + np.array(det_channels[4]) + np.array(det_channels[5]))
+        det_channels = np.array(det_channels).transpose()
+        np.savetxt("{}{}-parsed.txt".format(path, set_name), det_channels)
+        return np.array(det_channels)
+        
+    def save_mca_to_file(filename, path = '/GPFS/xf08id/xia_files/', mcas = [xia1.mca1, xia1.mca2, xia1.mca3, xia1.mca4]):
+        if path[-1] != '/':
+            path += '/'
+        arrays = []
+        header = ""
+        for mca in mcas:
+            arrays.append(mca.array.value)
+            header += "{}  ".format(mca.name)
+        
+        arrays = np.array(arrays).transpose()
+        np.savetxt("{}{}.txt".format(path, filename), arrays, fmt = "%d", header = header)
 
 
 def frange(start, stop, step):
