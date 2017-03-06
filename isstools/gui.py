@@ -48,7 +48,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     es_shutter_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, det_dict, motors_list, general_scan_func, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -67,6 +67,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_update_user.clicked.connect(self.update_user)
         self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
+        self.det_dict = det_dict
+        self.motors_list = motors_list
+        self.gen_scan_func = general_scan_func
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -106,9 +109,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
+        self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
+        self.det_list = [det.name for det in det_dict.keys()]
+        self.det_sorted_list = self.det_list
+        self.det_sorted_list.sort()
+        self.mot_list = [motor.name for motor in self.motors_list]
+        self.mot_sorted_list = list(self.mot_list)
+        self.mot_sorted_list.sort()
+        self.comboBox_gen_det.addItems(self.det_sorted_list)
+        self.comboBox_gen_mot.addItems(self.mot_sorted_list)
+        self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
+        self.process_detsig()
 
         # Initialize 'run' tab
         self.plan_funcs = plan_funcs
@@ -587,6 +601,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_tune.addWidget(self.canvas_tune)
         self.canvas_tune.draw_idle()
 
+        self.figure_gen_scan = Figure()
+        self.figure_gen_scan.set_facecolor(color='0.89')
+        self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
+        self.figure_gen_scan.add_subplot(111)
+        self.plot_gen_scan.addWidget(self.canvas_gen_scan)
+        self.canvas_gen_scan.draw_idle()
+
         self.figure_gain_matching = Figure()
         self.figure_gain_matching.set_facecolor(color='0.89')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
@@ -647,6 +668,47 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_tune.clf()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
 
+
+    def run_gen_scan(self):
+        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
+            ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?') 
+            if not ret:
+                print ('Aborted!')
+                return False 
+
+        curr_det = ''
+        curr_mot = ''
+
+        for i in range(self.comboBox_gen_det.count()):
+            if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
+                curr_det = list(self.det_dict.keys())[i]
+
+        for i in range(self.comboBox_gen_mot.count()):
+            if self.comboBox_gen_mot.currentText() == self.mot_list[i]:
+                curr_mot = self.motors_list[i]
+
+        if(curr_det == ''):
+            print('Detector not found. Aborting...')
+            raise
+
+        if(curr_mot == ''):
+            print('Motor not found. Aborting...')
+            raise
+
+        rel_start = -float(self.edit_gen_range.text()) / 2
+        rel_stop = float(self.edit_gen_range.text()) / 2
+        num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
+
+        self.figure_gen_scan.clf()
+        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, self.figure_gen_scan)
+
+    def process_detsig(self):
+        self.comboBox_gen_detsig.clear()
+        for i in range(self.comboBox_gen_det.count()):
+            if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
+                curr_det = list(self.det_dict.keys())[i]
+                detsig = self.det_dict[curr_det]
+                self.comboBox_gen_detsig.addItems(detsig)
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
