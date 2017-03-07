@@ -113,7 +113,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
-        self.det_list = [det.name for det in det_dict.keys()]
+        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()] #[det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
         self.mot_list = [motor.name for motor in self.motors_list]
@@ -597,14 +597,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_tune = Figure()
         self.figure_tune.set_facecolor(color='0.89')
         self.canvas_tune = FigureCanvas(self.figure_tune)
-        self.figure_tune.add_subplot(111)
+        self.figure_tune.ax = self.figure_tune.add_subplot(111)
         self.plot_tune.addWidget(self.canvas_tune)
         self.canvas_tune.draw_idle()
 
         self.figure_gen_scan = Figure()
         self.figure_gen_scan.set_facecolor(color='0.89')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
-        self.figure_gen_scan.add_subplot(111)
+        self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
         self.plot_gen_scan.addWidget(self.canvas_gen_scan)
         self.canvas_gen_scan.draw_idle()
 
@@ -665,8 +665,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 print ('Aborted!')
                 return False 
 
-        self.figure_tune.clf()
-        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), self.figure_tune)
+        self.figure_tune.ax.cla()
+        self.canvas_tune.draw_idle()
+        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), ax = self.figure_tune.ax)
 
 
     def run_gen_scan(self):
@@ -680,8 +681,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         curr_mot = ''
 
         for i in range(self.comboBox_gen_det.count()):
-            if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
-                curr_det = list(self.det_dict.keys())[i]
+            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].dev_name.value:
+                    curr_det = list(self.det_dict.keys())[i]
+            else:
+                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
+                    curr_det = list(self.det_dict.keys())[i]
 
         for i in range(self.comboBox_gen_mot.count()):
             if self.comboBox_gen_mot.currentText() == self.mot_list[i]:
@@ -699,16 +704,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        self.figure_gen_scan.clf()
-        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, self.figure_gen_scan)
+        self.figure_gen_scan.ax.cla()
+        self.canvas_gen_scan.draw_idle()
+        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, ax = self.figure_gen_scan.ax)
 
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
-            if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
-                curr_det = list(self.det_dict.keys())[i]
-                detsig = self.det_dict[curr_det]
-                self.comboBox_gen_detsig.addItems(detsig)
+            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].dev_name.value:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detsig = self.det_dict[curr_det]
+                    self.comboBox_gen_detsig.addItems(detsig)
+            else:
+                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detsig = self.det_dict[curr_det]
+                    self.comboBox_gen_detsig.addItems(detsig)
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
