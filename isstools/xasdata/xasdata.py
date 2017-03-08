@@ -145,6 +145,33 @@ class XASdataAbs(XASdata):
         self.iff_interp = np.array([timestamps, np.interp(timestamps, self.iff[:,0], self.iff[:,1])]).transpose()
         self.energy_interp = np.array([timestamps, np.interp(timestamps, self.energy[:,0], self.energy[:,1])]).transpose()
 
+    def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        result_chambers = np.copy(self.i0_interp)
+
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num[:,1]/den[:,1]
+            if log:
+                division = np.log(np.abs(division))
+            result_chambers[:,1] = division
+
+        else:
+            result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+        
+        #ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)
+        #ax.grid(True)
+        if 'xlabel' in dir(ax):
+            xlabel = 'Energy (eV)'
+            ylabel = 'log(i0 / it)'
+        else:
+            xlabel = 'Energy (eV)'
+            ylabel = 'log(i0 / it)'
+
+        return [self.energy_interp[:,1], result_chambers[:,1], color, xlabel, ylabel, ax]
+
+
     def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         result_chambers = np.copy(self.i0_interp)
 
@@ -460,6 +487,26 @@ class XASDataManager:
 
         return postedge
  
+    def get_plotk_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        if len(plotting_dic) > 0:
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            self.log = plotting_dic['log']
+            division = self.num_orig/self.den_orig
+            if self.log:
+                division = np.log(division)
+            self.abs = division
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+        
+        #ax.plot(self.en_grid, self.abs, color)
+        #ax.grid(True)
+        xlabel = 'Energy (eV)'
+        ylabel = 'Log(i0 / it)'
+
+        return [self.en_grid, self.abs, color, xlabel, ylabel, ax]
+
     def plot_k_data(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         if len(plotting_dic) > 0:
             self.num_orig = plotting_dic['original_numerator']
@@ -502,6 +549,32 @@ class XASDataManager:
         data_st = np.matmul(np.array(delta_en * mat), data_y)
         return data_st.transpose()
 
+    def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True):
+        if len(plotting_dic) > 0:
+            self.num = plotting_dic['numerator']
+            self.den = plotting_dic['denominator']
+            self.log = plotting_dic['log']
+            division = self.num/self.den
+            self.num_orig = plotting_dic['original_numerator']
+            self.den_orig = plotting_dic['original_denominator']
+            division = self.num/self.den
+            division_orig = self.num_orig/self.den_orig
+            if self.log:
+                division = np.log(np.abs(division))
+                division_orig = np.log(np.abs(division_orig))
+            self.abs = division
+            self.abs_orig = division_orig
+
+        else:
+            self.abs = np.log(self.i0_interp / self.it_interp)
+            self.abs_orig = np.log(self.i0_orig / self.it_orig)
+        
+        #ax.plot(self.en_grid, self.abs, color)
+        #ax.grid(True)
+        xlabel = 'Energy (eV)'
+        ylabel = 'Log(i0 / it)'
+
+        return [self.en_grid, self.abs, color, xlabel, ylabel, ax]
 
     def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         if len(plotting_dic) > 0:
@@ -531,6 +604,33 @@ class XASDataManager:
         elif 'set_xlabel' in dir(ax):
             ax.set_xlabel('Energy (eV)')
             ax.set_ylabel('Log(i0 / it)')    
+
+    def get_plotder_info(self, plotting_dic = dict(), ax=plt, color='b'):
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num/den
+            division[division <= 0] = 1
+            if log:
+                division = np.log(division)
+            self.abs = division
+
+        else:
+            division = self.i0_interp[:,1] / self.it_interp[:,1]
+            division[division <= 0] = 1
+            division = np.log(division)
+            self.abs = division
+            
+        self.abs_der = np.diff(self.abs)
+        self.abs_der = np.append(self.abs_der[0], self.abs_der)
+
+        #ax.plot(self.en_grid, self.abs_der, color)
+        #ax.grid(True)
+        xlabel = 'Energy (eV)'
+        ylabel = 'Log(i0 / it)'
+
+        return [self.en_grid, self.abs_der, color, xlabel, ylabel, ax]
 
     def plot_der(self, plotting_dic = dict(), ax=plt, color='b'):
         if len(plotting_dic) > 0:

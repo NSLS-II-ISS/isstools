@@ -179,6 +179,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.active_threads = 0
         self.total_threads = 0
         self.progressBar_processing.setValue(int(np.round(0)))
+        self.plotting_list = []
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -389,11 +390,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_3_control = 1
         print('[Launching Threads]')
         process_thread = process_bin_thread(self) 
+        self.canvas_old_scans_2.mpl_disconnect(self.cid)
         self.connect(process_thread, SIGNAL("finished()"), self.reset_processing_tab)
         self.active_threads += 1
         self.total_threads += 1
         self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
-        self.canvas_old_scans_2.mpl_disconnect(self.cid)
         process_thread.start()
         print('[Finished Launching Threads]')
 
@@ -1053,6 +1054,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.active_threads -= 1
         self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         print('[Threads] Number of active threads: {}'.format(self.active_threads))
+
+        while len(self.plotting_list) > 0:
+            plot_info = self.plotting_list.pop()
+            plot_info[5].plot(plot_info[0], plot_info[1], plot_info[2])
+            plot_info[5].set_xlabel(plot_info[3])
+            plot_info[5].set_ylabel(plot_info[4])
+            plot_info[6].draw_idle()
+
         if self.active_threads == 0:
             print('[ #### All Threads Finished #### ]')
             self.total_threads = 0
@@ -1184,8 +1193,10 @@ class process_bin_thread(QThread):
 
         #while(self.gui.old_scans_3_control != self.index):
         #    ttime.sleep(.01)
-        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
-        self.gui.canvas_old_scans_3.draw_idle()
+        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
+        plot_info.append(self.gui.canvas_old_scans_3)
+        self.gui.plotting_list.append(plot_info)
+        #self.gui.canvas_old_scans_3.draw_idle()
         self.gui.old_scans_3_control += 1
         
 
@@ -1202,10 +1213,13 @@ class process_bin_thread(QThread):
             ttime.sleep(.01)
 
         self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
-        self.gui.figure_old_scans.ax.grid(True)
-        self.gui.figure_old_scans.ax.set_xlabel('k')
-        self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
-        self.gui.canvas_old_scans.draw_idle()
+        plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
+        self.gui.plotting_list.append(plot_info)
+
+        #self.gui.figure_old_scans.ax.grid(True)
+        #self.gui.figure_old_scans.ax.set_xlabel('k')
+        #self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
+        #self.gui.canvas_old_scans.draw_idle()
         self.gui.old_scans_control += 1
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
@@ -1242,9 +1256,11 @@ class process_bin_thread_equal(QThread):
             ttime.sleep(.01)
 
         dic = self.gui.get_dic(self.abs_parser)
-        self.abs_parser.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
+        plot_info = self.abs_parser.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
+        plot_info.append(self.gui.canvas_old_scans_3)
+        self.gui.plotting_list.append(plot_info)
 
-        self.gui.canvas_old_scans_3.draw_idle()
+        #self.gui.canvas_old_scans_3.draw_idle()
         #self.gui.old_scans_3_control += 1
 
 
@@ -1253,8 +1269,10 @@ class process_bin_thread_equal(QThread):
         while(self.gui.old_scans_2_control != self.index):
             ttime.sleep(.01)
 
-        self.abs_parser.data_manager.plot(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax, color = 'b')
-        self.gui.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
+        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax, color = 'b')
+        plot_info.append(self.gui.canvas_old_scans_2)
+        self.gui.plotting_list.append(plot_info)
+        #self.gui.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
 
         if self.gui.checkBox_find_edge.checkState() > 0:
             self.gui.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
@@ -1263,16 +1281,20 @@ class process_bin_thread_equal(QThread):
                 y_edge = self.abs_parser.data_manager.abs[self.gui.edge_index]
 
                 self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-                self.gui.figure_old_scans_2.ax.legend(handles = [edge_path])
-                self.gui.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+                plot_info = [x_edge, y_edge, 'ys', '', '', self.gui.figure_old_scans_2.ax, self.gui.canvas_old_scans_2]
+                self.gui.plotting_list.append(plot_info)
+                #edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                #self.gui.figure_old_scans_2.ax.legend(handles = [edge_path])
+                #self.gui.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
                 print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
                 self.gui.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
             
-        self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
-        self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+        plot_info = self.abs_parser.data_manager.get_plotder_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
+        plot_info.append(self.gui.canvas_old_scans_2)
+        self.gui.plotting_list.append(plot_info)
+        #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
-        self.gui.canvas_old_scans_2.draw_idle()
+        #self.gui.canvas_old_scans_2.draw_idle()
         self.gui.old_scans_2_control += 1
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
@@ -1294,7 +1316,7 @@ class process_threads_manager(QThread):
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
-            self.gui.progressBar_processing.setValue(int(np.round(100 * (self.gui.total_threads - self.gui.active_threads)/self.gui.total_threads)))
+            #self.gui.progressBar_processing.setValue(int(np.round(100 * (self.gui.total_threads - self.gui.active_threads)/self.gui.total_threads)))
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
