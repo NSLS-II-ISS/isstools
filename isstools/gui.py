@@ -1060,6 +1060,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             plot_info[5].plot(plot_info[0], plot_info[1], plot_info[2])
             plot_info[5].set_xlabel(plot_info[3])
             plot_info[5].set_ylabel(plot_info[4])
+            if(plot_info[2] == 'ys'):
+                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                self.figure_old_scans_2.ax.legend(handles = [edge_path])
+                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(plot_info[0], plot_info[1]), xy=(plot_info[0], plot_info[1]), textcoords='data')
             plot_info[6].draw_idle()
 
         if self.active_threads == 0:
