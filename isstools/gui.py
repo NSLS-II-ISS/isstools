@@ -885,7 +885,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.canvas.draw_idle()
 
             # Run the scan using the tuple created before
-            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params)
+            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params, ax=self.figure.ax)
 
             if absorp == True:
                 self.parser = xasdata.XASdataAbs()
@@ -910,7 +910,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 2, 4, self.figure.ax, self.parser.energy_interp)
                 xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 2, 4, self.figure.ax, self.parser.energy_interp)
 
-            if absorp != '':
+            if absorp != '' and type(absorp) == bool:
                 self.figure.ax.set_title(self.comment)
 
                 self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
