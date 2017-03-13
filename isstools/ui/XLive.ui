@@ -1574,7 +1574,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>290</y>
+        <y>410</y>
         <width>181</width>
         <height>41</height>
        </rect>
@@ -1599,7 +1599,7 @@ Offset</string>
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>311</width>
+        <width>351</width>
         <height>31</height>
        </rect>
       </property>
@@ -1646,7 +1646,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>340</y>
+        <y>460</y>
         <width>161</width>
         <height>51</height>
        </rect>
@@ -1668,8 +1668,8 @@ file and switch to
        <rect>
         <x>10</x>
         <y>70</y>
-        <width>311</width>
-        <height>201</height>
+        <width>351</width>
+        <height>331</height>
        </rect>
       </property>
       <property name="title">
@@ -1680,8 +1680,8 @@ file and switch to
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>291</width>
-         <height>171</height>
+         <width>331</width>
+         <height>301</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_13">
