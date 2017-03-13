@@ -525,15 +525,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         rows = int(self.gridLayout_13.count()/3)
         param1 = QtGui.QLabel('Par ' + str(rows + 1))
 
+        param2 = None
         def_val = ''
         if default.find('=') != -1:
             def_val = re.sub(r'.*=', '', default)
         if annotation == int:
             param2 = QtGui.QSpinBox()
+            param2.setMaximum(100000)
+            param2.setMinimum(-100000)
             def_val = int(def_val)
             param2.setValue(def_val)
         elif annotation == float:
             param2 = QtGui.QDoubleSpinBox()
+            param2.setMaximum(100000)
+            param2.setMinimum(-100000)
             def_val = float(def_val)
             param2.setValue(def_val)
         elif annotation == bool:
@@ -544,18 +549,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 def_val = False
             param2.setCheckState(def_val)
             param2.setTristate(False)
-        else:
+        elif annotation == str:
             param2 = QtGui.QLineEdit()
             def_val = str(def_val)
             param2.setText(def_val)
 
-        param3 = QtGui.QLabel(default)
-        self.gridLayout_13.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
-        self.gridLayout_13.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
-        self.gridLayout_13.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
-        self.params1.append(param1)
-        self.params2.append(param2)
-        self.params3.append(param3)
+        if param2 is not None:
+            param3 = QtGui.QLabel(default)
+            self.gridLayout_13.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
+            self.gridLayout_13.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
+            self.gridLayout_13.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
+            self.params1.append(param1)
+            self.params2.append(param2)
+            self.params3.append(param3)
 
     def get_traj_names(self):
         #self.comboBox.clear()
@@ -877,7 +883,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     run_params += (self.params2[i].value(),)
                 elif (self.param_types[i] == bool):
                     run_params += (bool(self.params2[i].checkState()),)
-                else:
+                elif (self.param_types[i] == str):
                     run_params += (self.params2[i].text(),)
             
             # Erase last graph
@@ -905,10 +911,29 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
             # Fix that later
                 length = min(len(xia_parser.exporting_array1), len(self.parser.energy_interp))
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 2, 4, self.figure.ax, self.parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 2, 4, self.figure.ax, self.parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 2, 4, self.figure.ax, self.parser.energy_interp)
-                xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 2, 4, self.figure.ax, self.parser.energy_interp)
+                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
+                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
+                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
+                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
+
+                #workaround
+                mca1 = xia_parser.parse_roi(range(0, length), 1, 6.7, 6.9)
+                mca2 = xia_parser.parse_roi(range(0, length), 2, 6.7, 6.9)
+                mca3 = xia_parser.parse_roi(range(0, length), 3, 6.7, 6.9)
+                mca4 = xia_parser.parse_roi(range(0, length), 4, 6.7, 6.9)
+                mca_sum = mca1 + mca2 + mca3 + mca4
+                ts = self.parser.energy_interp[:,0]
+                energy_interp = self.parser.energy_interp[:,1]
+                i0_interp = self.parser.i0_interp[:,1]
+                it_interp = self.parser.it_interp[:,1]
+                ir_interp = self.parser.ir_interp[:,1]
+                iff_interp = self.parser.iff_interp[:,1]
+
+                self.figure.ax.plot(energy_interp, -(mca_sum/i0_interp))
+                self.canvas.draw_idle()
+
+                np.savetxt(self.current_filepath[:-4] + '2.txt', np.array([ts, energy_interp, i0_interp, it_interp, iff_interp, ir_interp, mca_sum]).transpose(), header='time    energy    i0    it    iff    ir    XIA_SUM', fmt = '%f %f %f %f %f %f %d')
+                #workaround end
 
             if absorp != '' and type(absorp) == bool:
                 self.figure.ax.set_title(self.comment)
@@ -930,7 +955,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     fn = self.log_path + self.file_path
                 self.figure.savefig(fn)
 
-                self.canvas.draw_idle()
 
                 if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
                     self.tabWidget.setCurrentIndex(4)
@@ -958,6 +982,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     warningtxt += 'Check the gains of the ion chambers'
                     QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
                     #raise
+
+            self.canvas.draw_idle()
 
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')

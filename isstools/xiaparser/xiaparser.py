@@ -34,6 +34,15 @@ class xiaparser:
 
 
     def parse(self, filename, filepath, silent = True, printheaders = False, plotdata = False, pixelnumber = None):
+
+        self.filename = ''
+        self.filepath = ''
+        self.exporting_array1 = []
+        self.exporting_array2 = []
+        self.exporting_array3 = []
+        self.exporting_array4 = []
+        self.next_pos = 0
+
         if(filename != self.filename or filepath != self.filepath or pixelnumber != None):
             self.filename = filename
             self.filepath = filepath
@@ -283,9 +292,13 @@ class xiaparser:
 
 
 
-    def plot_roi(self, filename, filepath, pixels, channel_number, min_energy = 0, max_energy = 20, ax = plt, energy_array = np.array([])):
+    def plot_roi(self, filename, filepath, pixels, channel_number, min_energy = 0, max_energy = 20, ax = plt, energy_array = np.array([]), background = []):
+
         self.parse(filename, filepath)
         parsed_roi_array = self.parse_roi(pixels, channel_number, min_energy, max_energy)
+        if len(background) == len(parsed_roi_array):
+            parsed_roi_array = -(parsed_roi_array / background)
+
         if(len(energy_array) == len(parsed_roi_array)):
             ax.plot(energy_array[:, 1], parsed_roi_array)
         else:

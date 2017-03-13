@@ -448,14 +448,16 @@ class XASDataManager:
         preedge = np.arange(np.min(array), edge_start, preedge_spacing)
         edge = np.arange(edge_start, edge_end, xanes)
 
-        iterator = exafsk
-        kenergy = 0
+        eenergy = xray.k2e(xray.e2k(edge_end, e0), e0)
         postedge = np.array([])
 
-        while(kenergy + edge_end < np.max(array)):
-            kenergy = xray.k2e(iterator, e0) - e0
-            postedge = np.append(postedge, edge_end + kenergy)
-            iterator += exafsk
+        print(eenergy)
+        while(eenergy < np.max(array)):
+            kenergy = xray.e2k(eenergy, e0)
+            kenergy += exafsk
+            eenergy = xray.k2e(kenergy, e0)
+            #kenergy = xray.k2e(iterator, e0) - e0
+            postedge = np.append(postedge, eenergy)
 
         return np.append(np.append(preedge, edge), postedge)
 
@@ -532,7 +534,7 @@ class XASDataManager:
     def gauss(self, x, fwhm, x0):
         sigma = fwhm / (2 * ((np.log(2)) ** (1/2)))
         a = 1/(sigma * ((2 * np.pi) ** (1/2)))
-        data_y = a * np.exp(-.5 * ((x - x0) / sigma) ** 2)
+        data_y = a * np.exp(-.5 * np.float64(np.float64(x - x0) / sigma) ** 2)
         data_y = np.array(data_y) #/ np.sum(data_y))
         #data_y = np.array(data_y / np.sum(data_y))
         return data_y
