@@ -8,6 +8,7 @@ from databroker import (DataBroker as db, get_events, get_images,
 from datetime import datetime
 from isstools.conversions import xray
 from subprocess import call
+import re
 
 class XASdata:
     def __init__(self, **kwargs):
@@ -358,6 +359,190 @@ class XASdataFlu(XASdata):
         elif 'set_xlabel' in dir(ax):
             ax.set_xlabel('Energy (eV)')
             ax.set_ylabel('(iflu / i0)')
+
+
+class XASdataGeneric(XASdata):
+    def __init__(self, db, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.arrays = {}
+        self.interp_arrays = {}
+        self.db = db
+        
+    def process(self, uid):
+        self.load(uid)
+        self.interpolate()
+        #sself.plot()
+
+    def load(self, uid):#self, encoder_trace, i0trace, ittrace, irtrace = '', ifftrace = '', i0offset = 0, itoffset = 0, iroffset = 0, iffoffset = 0, angleoffset = 0):
+        self.arrays = {}
+        self.interp_arrays = {}
+        has_encoder = False
+        for i in self.db[uid]['descriptors']:
+            if 'filename' in i['data_keys'][i['name']]:
+                name = i['name']
+                if name == 'pb9_enc1':
+                    has_encoder = name
+                if 'devname' in i['data_keys'][i['name']]:
+                    name = i['data_keys'][i['name']]['devname']
+                    
+                if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
+                    data = self.loadTRIGtrace(i['data_keys'][i['name']]['filename'], '')
+                if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
+                    data = self.loadADCtrace(i['data_keys'][i['name']]['filename'], '')
+                    if i['name'] + ' offset' in self.db[uid]['start']:
+                        data[:, 1] = data[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+                if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
+                    data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
+                self.arrays[name] = data
+        
+        if has_encoder is not False:
+            energy = np.copy(self.arrays.get(has_encoder))
+            if 'angle_offset' in self.db[uuid]['start']:
+                energy[:, 1] = xray.encoder2energy(energy[:, 1], - float(self.db[uuid]['start']['angle_offset']))
+            self.arrays['energy'] = energy
+
+    def loadInterpFile(self, filename):
+        self.arrays = {}
+        self.interp_arrays = {}
+        energy_interp, i0_interp, it_interp, ir_interp , iff_interp = self.loadINTERPtrace(filename)
+        matrix = np.array([energy_interp[:,1], i0_interp[:,1], it_interp[:,1], ir_interp[:,1], iff_interp[:,1]]).transpose()
+        sorted_matrix = self.data_manager.sort_data(matrix, 0) 
+        energy_interp[:,1] = sorted_matrix[:,0]
+        i0_interp[:,1] = sorted_matrix[:,1]
+        it_interp[:,1] = sorted_matrix[:,2]
+        ir_interp[:,1] = sorted_matrix[:,3]
+        iff_interp[:,1] = sorted_matrix[:,4]
+
+        len_to_erase = int(np.round(0.015 * len(i0_interp)))
+        energy_interp = energy_interp[len_to_erase:]
+        i0_interp = i0_interp[len_to_erase:]
+        it_interp = it_interp[len_to_erase:]
+        ir_interp = ir_interp[len_to_erase:]
+        iff_interp = iff_interp[len_to_erase:]
+        
+        self.interp_arrays['energy'] = energy_interp
+        self.interp_arrays['i0'] = i0_interp
+        self.interp_arrays['it'] = it_interp
+        self.interp_arrays['ir'] = ir_interp
+        self.interp_arrays['iff'] = iff_interp
+
+    def interpolate(self, key_base = 'i0'):
+        min_timestamp = max([self.arrays.get(key)[0, 0] for key in self.arrays])
+        max_timestamp = min([self.arrays.get(key)[len(self.arrays.get(key)) - 1, 0] for key in self.arrays])
+        
+        try:
+            if key_base not in self.arrays.keys():
+                raise ValueError('Could not find "{}" in the loaded scan. Pick another key_base for the interpolation.'.format(key_base))
+        except ValueError as err:
+            print(err.args[0], '\nAborting...')
+            return
+        
+        timestamps = self.arrays[key_base][:,0]
+        
+        condition = timestamps < min_timestamp
+        timestamps = timestamps[np.sum(condition):]
+        
+        condition = timestamps > max_timestamp
+        timestamps = timestamps[: len(timestamps) - np.sum(condition)]
+        
+        for key in self.arrays.keys():
+            self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key)[:,0], self.arrays.get(key)[:,1])]).transpose()
+
+    def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        result_chambers = np.copy(self.i0_interp)
+
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num[:,1]/den[:,1]
+            if log:
+                division = np.log(np.abs(division))
+            result_chambers[:,1] = division
+
+        else:
+            result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+        
+        #ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)
+        #ax.grid(True)
+        if 'xlabel' in dir(ax):
+            xlabel = 'Energy (eV)'
+            ylabel = 'log(i0 / it)'
+        else:
+            xlabel = 'Energy (eV)'
+            ylabel = 'log(i0 / it)'
+
+        return [self.energy_interp[:,1], result_chambers[:,1], color, xlabel, ylabel, ax]
+
+
+    def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
+        result_chambers = np.copy(self.i0_interp)
+
+        if len(plotting_dic) > 0:
+            num = plotting_dic['numerator']
+            den = plotting_dic['denominator']
+            log = plotting_dic['log']
+            division = num[:,1]/den[:,1]
+            if log:
+                division = np.log(np.abs(division))
+            result_chambers[:,1] = division
+
+        else:
+            result_chambers[:,1] = np.log(self.i0_interp[:,1] / self.it_interp[:,1])
+        
+        ax.plot(self.energy_interp[:,1], result_chambers[:,1], color)
+        ax.grid(True)
+        if 'xlabel' in dir(ax):
+            ax.xlabel('Energy (eV)')
+            ax.ylabel('log(i0 / it)')
+        elif 'set_xlabel' in dir(ax):
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('log(i0 / it)')
+
+    def export_trace(self, filename, filepath = '/GPFS/xf08id/Sandbox/', uid = ''):
+        suffix = '.txt'
+        fn = filepath + filename + suffix
+        repeat = 1
+        while(os.path.isfile(fn)):
+            repeat += 1
+            fn = filepath + filename + '-' + str(repeat) + suffix
+        if(not uid):
+            pi, proposal, saf, comment, year, cycle, scan_id, real_uid, start_time, stop_time, trajectory_name = '', '', '', '', '', '', '', '', '', '', ''
+        else:
+            pi, proposal, saf, comment, year, cycle, scan_id, real_uid, start_time, stop_time = db[uid]['start']['PI'], db[uid]['start']['PROPOSAL'], db[uid]['start']['SAF'], db[uid]['start']['comment'], db[uid]['start']['year'], db[uid]['start']['cycle'], db[uid]['start']['scan_id'], db[uid]['start']['uid'], db[uid]['start']['time'], db[uid]['stop']['time']
+            human_start_time = str(datetime.fromtimestamp(start_time).strftime('%m/%d/%Y  %H:%M:%S'))
+            human_stop_time = str(datetime.fromtimestamp(stop_time).strftime(' %m/%d/%Y  %H:%M:%S'))
+            human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
+            if hasattr(db[uid]['start'], 'trajectory_name'):
+                trajectory_name = db[uid]['start']['trajectory_name']
+            else:
+                trajectory_name = ''
+        
+        np.savetxt(fn, np.array([self.energy_interp[:,0], self.energy_interp[:,1], 
+                    self.i0_interp[:,1], self.it_interp[:,1], self.ir_interp[:,1], self.iff_interp[:,1]]).transpose(), fmt='%17.6f %12.6f %10.6f %10.6f %10.6f %10.6f', 
+                    delimiter=" ", header = 'Timestamp (s)   En. (eV)     i0 (V)      it(V)       ir(V)       iff(V)', comments = '# Year: {}\n# Cycle: {}\n# SAF: {}\n# PI: {}\n# PROPOSAL: {}\n# Scan ID: {}\n# UID: {}\n# Trajectory name: {}\n# Start time: {}\n# Stop time: {}\n# Total time: {}\n#\n# '.format(year, cycle, saf, pi, proposal, scan_id, real_uid, trajectory_name, human_start_time, human_stop_time, human_duration))
+        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
+        call(['chmod', '770', fn])
+        return fn
+
+
+    def bin_equal(self):
+        self.data_manager.process_equal(self.i0_interp[:,0], 
+                                  self.energy_interp[:,1],
+                                  self.i0_interp[:,1],
+                                  self.it_interp[:,1], 
+                                  self.ir_interp[:,1],
+                                  self.iff_interp[:,1])
+
+    def bin(self, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
+        self.data_manager.process(self.i0_interp[:,0], 
+                                  self.energy_interp[:,1],
+                                  self.i0_interp[:,1],
+                                  self.it_interp[:,1], 
+                                  self.ir_interp[:,1],
+                                  self.iff_interp[:,1],
+                                  e0, edge_start, edge_end,
+                                  preedge_spacing, xanes, exafsk)
 
 
 
