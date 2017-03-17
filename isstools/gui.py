@@ -64,12 +64,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
+        self.gen_parser = xasdata.XASdataGeneric(self.db)
         self.push_update_user.clicked.connect(self.update_user)
         self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
         self.det_dict = det_dict
         self.motors_list = motors_list
         self.gen_scan_func = general_scan_func
+        if 'write_html_log' in kwargs:
+            self.html_log_func = kwargs['write_html_log']
+        else:
+            self.html_log_func = None
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -180,6 +185,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.total_threads = 0
         self.progressBar_processing.setValue(int(np.round(0)))
         self.plotting_list = []
+        self.last_num = ''
+        self.last_den = ''
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -285,80 +292,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.label_angle_offset.setText('{0:.4f}'.format(float(self.RE.md['angle_offset'])))
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.RE.md['angle_offset']))
 
-    def get_dic(self, module):
-        dic = dict()
-        if self.checkBox_num_i0.checkState() > 0:
-            dic['numerator'] = module.i0_interp
-            if(hasattr(module, 'data_i0')):
-                dic['original_numerator'] = module.data_i0
-        elif self.checkBox_num_it.checkState() > 0:
-            dic['numerator'] = module.it_interp
-            if(hasattr(module, 'data_it')):
-                dic['original_numerator'] = module.data_it
-        elif self.checkBox_num_ir.checkState() > 0:
-            dic['numerator'] = module.ir_interp
-            if(hasattr(module, 'data_ir')):
-                dic['original_numerator'] = module.data_ir
-        elif self.checkBox_num_if.checkState() > 0:
-            dic['numerator'] = module.iff_interp
-            if(hasattr(module, 'data_iff')):
-                dic['original_numerator'] = module.data_iff
-        elif self.checkBox_num_1.checkState() > 0:
-            if len(module.i0_interp.shape) > 1:
-                array_ones = np.copy(module.i0_interp)
-                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
-            else:
-                array_ones = np.ones(len(module.i0_interp))
-            dic['numerator'] = array_ones
-
-            if(hasattr(module, 'data_i0')):
-                if len(module.data_i0.shape) > 1:
-                    array_ones = np.copy(module.data_i0)
-                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
-                else:
-                    array_ones = np.ones(len(module.data_i0))
-                    dic['original_numerator'] = module.data_i0
-            dic['original_numerator'] = array_ones
-
-        if self.checkBox_den_i0.checkState() > 0:
-            dic['denominator'] = module.i0_interp
-            if(hasattr(module, 'data_i0')):
-                dic['original_denominator'] = module.data_i0
-        elif self.checkBox_den_it.checkState() > 0:
-            dic['denominator'] = module.it_interp
-            if(hasattr(module, 'data_it')):
-                dic['original_denominator'] = module.data_it
-        elif self.checkBox_den_ir.checkState() > 0:
-            dic['denominator'] = module.ir_interp
-            if(hasattr(module, 'data_ir')):
-                dic['original_denominator'] = module.data_ir
-        elif self.checkBox_den_if.checkState() > 0:
-            dic['denominator'] = module.iff_interp
-            if(hasattr(module, 'data_iff')):
-                dic['original_denominator'] = module.data_iff
-        elif self.checkBox_den_1.checkState() > 0:
-            if len(module.i0_interp.shape) > 1:
-                array_ones = np.copy(module.i0_interp)
-                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
-            else:
-                array_ones = np.ones(len(module.i0_interp))
-            dic['denominator'] = array_ones
-
-            if(hasattr(module, 'data_i0')):
-                if len(module.data_i0.shape) > 1:
-                    array_ones = np.copy(module.data_i0)
-                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
-                else:
-                    array_ones = np.ones(len(module.data_i0))
-                    dic['original_denominator'] = module.data_i0
-            dic['original_denominator'] = array_ones
-
-        if self.checkBox_log.checkState() > 0:
-            dic['log'] = True
-        else:
-            dic['log'] = False
-
-        return dic
 
     def update_k_view(self):
         e0 = int(self.edit_E0_2.text())
@@ -369,13 +302,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         exafs_spacing = float(self.edit_exafs_spacing.text())
         k_power = float(self.edit_y_power.text())
 
-        k_data = self.abs_parser.data_manager.get_k_data(e0,
+        energy_string = self.gen_parser.get_energy_string()
+
+        result_orig = self.gen_parser.data_manager.data_arrays[self.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.listWidget_denominator.currentItem().text()]
+
+        if self.checkBox_log.checkState() > 0:
+            result_orig = np.log(result_orig)
+
+        k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
                                                          exafs_spacing,
-                                                         self.abs_parser.data_manager.abs,
-                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
-                                                         self.abs_parser.data_manager.data_en,
-                                                         self.abs_parser.data_manager.abs_orig,
+                                                         result,
+                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.data_manager.data_arrays[energy_string],
+                                                         result_orig,
                                                          k_power)
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
@@ -407,26 +347,48 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_3.ax.cla()
-        dic = self.get_dic(self.abs_parser)
-        self.abs_parser.plot(plotting_dic = dic, 
-                             ax = self.figure_old_scans_3.ax, 
-                             color = 'b')
+        
+        energy_string = self.gen_parser.get_energy_string()
+
+        result = self.gen_parser.interp_arrays[self.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.listWidget_denominator.currentItem().text()][:, 1]
+        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
+
+        if self.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+        
+        self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1], result, 'b')
+        self.figure_old_scans_3.ax.set_ylabel(ylabel)
+        self.figure_old_scans_3.ax.set_xlabel(energy_string)
+
 
         self.figure_old_scans_2.ax.cla()
         self.figure_old_scans_2.ax2.cla()
         self.canvas_old_scans_2.draw_idle()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
-        #self.abs_parser.bin_equal()
-        dic = self.get_dic(self.abs_parser.data_manager)
-        self.abs_parser.data_manager.plot(plotting_dic = dic, 
-                                          ax = self.figure_old_scans_2.ax, 
-                                          color = 'b')
-        self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-        self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+
+
+        bin_eq = self.gen_parser.data_manager.binned_eq_arrays
+
+        result = bin_eq[self.listWidget_numerator.currentItem().text()] / bin_eq[self.listWidget_denominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
+
+        if self.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+        ylabel = 'Binned Equally {}'.format(ylabel)
+        
+        self.figure_old_scans_2.ax.plot(bin_eq[energy_string], result, 'b')
+        self.figure_old_scans_2.ax.set_ylabel(ylabel)
+        self.figure_old_scans_2.ax.set_xlabel(energy_string)
+
+
+        self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
         if self.edge_index > 0:
-            x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
-            y_edge = self.abs_parser.data_manager.abs[self.edge_index]
+                    
+            x_edge = self.gen_parser.data_manager.en_grid[self.edge_index]
+            y_edge = result[self.edge_index]
 
             self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
             edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
@@ -435,8 +397,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
             self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
         
-        self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
-        self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
+
+        result_der = self.gen_parser.get_derivative(result)
+        self.figure_old_scans_2.ax2.plot(bin_eq[energy_string], result_der, 'r')
+        self.figure_old_scans_2.ax2.set_ylabel('Derivative')
+        self.figure_old_scans_2.ax2.set_xlabel(energy_string)
+
 
         self.canvas_old_scans_3.draw_idle()
         self.canvas_old_scans_2.draw_idle()
@@ -874,24 +841,80 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if(self.comment):
             print('\nStarting scan...')
 
-            # Get parameters from the widgets and organize them in a tuple (run_params)
-            run_params = ()
-            for i in range(len(self.params1)):
-                if (self.param_types[i] == int):
-                    run_params += (self.params2[i].value(),)
-                elif (self.param_types[i] == float):
-                    run_params += (self.params2[i].value(),)
-                elif (self.param_types[i] == bool):
-                    run_params += (bool(self.params2[i].checkState()),)
-                elif (self.param_types[i] == str):
-                    run_params += (self.params2[i].text(),)
+            # Get parameters from the widgets and organize them in a dictionary (run_params)
+            run_params = {}
+            for i in range(len(xlive_gui.params1)):
+                if (xlive_gui.param_types[i] == int):
+                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].value()
+                elif (xlive_gui.param_types[i] == float):
+                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].value()
+                elif (xlive_gui.param_types[i] == bool):
+                    run_params[xlive_gui.params3[i].text().split('=')[0]] = bool(xlive_gui.params2[i].checkState())
+                elif (xlive_gui.param_types[i] == str):
+                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].text()
             
             # Erase last graph
             self.figure.ax.cla()
             self.canvas.draw_idle()
 
             # Run the scan using the tuple created before
-            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params, ax=self.figure.ax)
+            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
+
+            self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                    '{}.txt'.format(self.db[self.current_uid]['start']['year'],
+                                                    self.db[self.current_uid]['start']['cycle'],
+                                                    self.db[self.current_uid]['start']['PROPOSAL'],
+                                                    self.db[self.current_uid]['start']['comment'])
+
+            self.gen_parser.load(self.current_uid)
+
+            key_base = 'i0'
+            if 'xia_filename' in self.db[self.current_uid]['start']:
+                key_base = 'pb4_di'
+            self.gen_parser.interpolate(key_base = key_base)
+
+            self.figure.ax.plot(np.log(self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]))
+            self.figure.ax.set_xlabel('Energy (eV)')
+            self.figure.ax.set_xlabel('log(i0 / it)')
+
+            if self.html_log_func is not None:
+                self.html_log_func(self.current_uid, self.figure)
+
+            # self.gen_parser should be able to generate the interpolated file
+            
+            if 'xia_filename' in self.db[self.current_uid]['start']:
+                # Parse xia
+                xia_filename = self.db[self.current_uid]['start']['xia_filename']
+                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                smbclient.copy()
+                xia_parser = self.xia_parser
+                xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
+                xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
+                xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
+
+                length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
+                #workaround
+                mcas = []
+                for mca_number in range(1, 5):
+                    mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
+                mca_sum = sum(mcas)
+
+                header = self.gen_parser.read_header(self.current_filepath)
+                keys = re.sub('  +', '  ', re.sub(r'\([^)]*\)', '', header[header.rfind('\n', 0, -1) + 3:-1])).split('  ')
+
+                ts = self.parser.energy_interp[:,0]
+                energy_interp = self.parser.energy_interp[:,1]
+                i0_interp = self.parser.i0_interp[:,1]
+                it_interp = self.parser.it_interp[:,1]
+                ir_interp = self.parser.ir_interp[:,1]
+                iff_interp = self.parser.iff_interp[:,1]
+
+
+            
+
+
 
             if absorp == True:
                 self.parser = xasdata.XASdataAbs()
@@ -911,10 +934,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
             # Fix that later
                 length = min(len(xia_parser.exporting_array1), len(self.parser.energy_interp))
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
 
                 #workaround
                 mca1 = xia_parser.parse_roi(range(0, length), 1, 6.7, 6.9)
@@ -1176,15 +1195,15 @@ class EmittingStream(QtCore.QObject):
 #    return tune
 
 class process_bin_thread(QThread):
-    def __init__(self, gui, index = 1, parent_thread = None, abs_parser = None):
+    def __init__(self, gui, index = 1, parent_thread = None, parser = None):
         QThread.__init__(self)
         self.gui = gui
         self.parent_thread = parent_thread
         self.index = index
-        if abs_parser is None:
-            self.abs_parser = self.gui.abs_parser
+        if parser is None:
+            self.gen_parser = self.gui.gen_parser
         else:
-            self.abs_parser = abs_parser
+            self.gen_parser = parser
 
     def __del__(self):
         self.wait()
@@ -1212,56 +1231,61 @@ class process_bin_thread(QThread):
                 print ('[Binning Thread {}] Binning aborted!'.format(self.index))
                 return False
 
-        self.abs_parser.bin(e0, 
-                            e0 + edge_start, 
-                            e0 + edge_end, 
-                            preedge_spacing, 
-                            xanes_spacing, 
-                            exafs_spacing)
+        binned = self.gen_parser.bin(e0, 
+                                     e0 + edge_start, 
+                                     e0 + edge_end, 
+                                     preedge_spacing, 
+                                     xanes_spacing, 
+                                     exafs_spacing)
 
-        dic = self.gui.get_dic(self.abs_parser.data_manager)
 
-        #while(self.gui.old_scans_3_control != self.index):
-        #    ttime.sleep(.01)
-        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
-        plot_info.append(self.gui.canvas_old_scans_3)
+        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
+        result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+        if self.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+            result_orig = np.log(result_orig)
+        ylabel = 'Binned {}'.format(ylabel)
+
+        plot_info = [binned[energy_string], 
+                     result, 
+                     'r', 
+                     energy_string, 
+                     ylabel, 
+                     self.gui.figure_old_scans_3.ax, 
+                     self.gui.canvas_old_scans_3]
         self.gui.plotting_list.append(plot_info)
-        #self.gui.canvas_old_scans_3.draw_idle()
-        self.gui.old_scans_3_control += 1
         
+        energy_string = self.gen_parser.get_energy_string()
 
-        k_data = self.abs_parser.data_manager.get_k_data(e0,
+        k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
                                                          exafs_spacing,
-                                                         self.abs_parser.data_manager.abs,
-                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
-                                                         self.abs_parser.data_manager.data_en,
-                                                         self.abs_parser.data_manager.abs_orig,
+                                                         result,
+                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.data_manager.data_arrays[energy_string],
+                                                         result_orig,
                                                          k_power)
 
-        while(self.gui.old_scans_control != self.index):
-            ttime.sleep(.01)
-
-        self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        #self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
         plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
 
         #self.gui.figure_old_scans.ax.grid(True)
         #self.gui.figure_old_scans.ax.set_xlabel('k')
         #self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
-        #self.gui.canvas_old_scans.draw_idle()
-        self.gui.old_scans_control += 1
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
 
         if self.gui.checkBox_process_bin.checkState() > 0:
-            filename = self.abs_parser.curr_filename_save
-            self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+            filename = self.gen_parser.curr_filename_save
+            self.gen_parser.data_manager.export_dat(filename, self.gen_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
         print('[Binning Thread {}] Finished'.format(self.index))
 
-        #optionally: Emit signal
 
 
 
@@ -1271,8 +1295,8 @@ class process_bin_thread_equal(QThread):
         self.gui = gui
         self.index = index
         self.filename = filename
-        self.abs_parser = xasdata.XASdataAbs()
-        self.abs_parser.curr_filename_save = filename
+        self.gen_parser = xasdata.XASdataGeneric()
+        self.gen_parser.curr_filename_save = filename
 
     def __del__(self):
         self.wait()
@@ -1280,52 +1304,104 @@ class process_bin_thread_equal(QThread):
     def run(self):
         #for filename in self.gui.selected_filename_bin:
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
-        self.abs_parser.loadInterpFile(self.filename) #self.gui.label_24.text())
-
-        while(self.gui.old_scans_3_control != self.index):
-            ttime.sleep(.01)
-
-        dic = self.gui.get_dic(self.abs_parser)
-        plot_info = self.abs_parser.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
-        plot_info.append(self.gui.canvas_old_scans_3)
-        self.gui.plotting_list.append(plot_info)
-
-        #self.gui.canvas_old_scans_3.draw_idle()
-        #self.gui.old_scans_3_control += 1
-
-
-        self.abs_parser.bin_equal()
-        dic = self.gui.get_dic(self.abs_parser.data_manager)
-        while(self.gui.old_scans_2_control != self.index):
-            ttime.sleep(.01)
-
-        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax, color = 'b')
-        plot_info.append(self.gui.canvas_old_scans_2)
-        self.gui.plotting_list.append(plot_info)
-        #self.gui.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-
-        if self.gui.checkBox_find_edge.checkState() > 0:
-            self.gui.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
-            if self.gui.edge_index > 0:
-                x_edge = self.abs_parser.data_manager.en_grid[self.gui.edge_index]
-                y_edge = self.abs_parser.data_manager.abs[self.gui.edge_index]
-
-                self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                plot_info = [x_edge, y_edge, 'ys', '', '', self.gui.figure_old_scans_2.ax, self.gui.canvas_old_scans_2]
-                self.gui.plotting_list.append(plot_info)
-                #edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-                #self.gui.figure_old_scans_2.ax.legend(handles = [edge_path])
-                #self.gui.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-                print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
-                self.gui.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
+        self.gen_parser.loadInterpFile(self.filename)
+        if self.gui.listWidget_numerator.currentItem() is not None:
+            self.gui.last_num = self.gui.listWidget_numerator.currentItem().text()
+        if self.gui.listWidget_denominator.currentItem() is not None:
+            self.gui.last_den = self.gui.listWidget_denominator.currentItem().text()
+        self.gui.listWidget_numerator.clear()
+        self.gui.listWidget_denominator.clear()
+        self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+        self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+        
+        if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
+            if self.gui.last_num != '' and self.gui.last_num in self.gen_parser.interp_arrays.keys():
+                items_num = self.gui.listWidget_numerator.findItems(self.gui.last_num, Qt.MatchExactly)
+                if len(items_num > 0):
+                    self.gui.listWidget_numerator.setCurrentItem(items_num[0])
+                else:
+                    self.gui.listWidget_numerator.setCurrentItem(0)
             
-        plot_info = self.abs_parser.data_manager.get_plotder_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
-        plot_info.append(self.gui.canvas_old_scans_2)
-        self.gui.plotting_list.append(plot_info)
-        #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+            if self.gui.last_den != '' and self.gui.last_den in self.gen_parser.interp_arrays.keys():
+                items_den = self.gui.listWidget_denominator.findItems(self.gui.last_den, Qt.MatchExactly)
+                if len(items_den > 0):
+                    self.gui.listWidget_denominator.setCurrentItem(items_den[0])
+                else:
+                    self.gui.listWidget_denominator.setCurrentItem(0)
 
-        #self.gui.canvas_old_scans_2.draw_idle()
-        self.gui.old_scans_2_control += 1
+            energy_string = self.gen_parser.get_energy_string()
+
+            result = self.gen_parser.interp_arrays[self.gui.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.gui.listWidget_denominator.currentItem().text()][:, 1]
+            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+            if self.gui.checkBox_log.checkState() > 0:
+                ylabel = 'log({})'.format(ylabel)
+                result = np.log(result)
+            
+            plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1], 
+                         result, 
+                         'b', 
+                         energy_string, 
+                         ylabel, 
+                         self.gui.figure_old_scans_3.ax, 
+                         self.gui.canvas_old_scans_3]
+            self.gui.plotting_list.append(plot_info)
+
+
+            bin_eq = self.gen_parser.bin_equal()
+
+            result = bin_eq[self.gui.listWidget_numerator.currentItem().text()] / bin_eq[self.gui.listWidget_denominator.currentItem().text()]
+            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+            if self.gui.checkBox_log.checkState() > 0:
+                ylabel = 'log({})'.format(ylabel)
+                result = np.log(result)
+            ylabel = 'Binned Equally {}'.format(ylabel)
+
+            plot_info = [bin_eq[energy_string], 
+                         result, 
+                         'b', 
+                         energy_string, 
+                         ylabel, 
+                         self.gui.figure_old_scans_2.ax, 
+                         self.gui.canvas_old_scans_2]
+            self.gui.plotting_list.append(plot_info)
+
+
+
+            if self.gui.checkBox_find_edge.checkState() > 0:
+
+                self.gui.edge_index = self.gen_parser.data_manager.get_edge_index(result)
+                if self.gui.edge_index > 0:
+                    
+                    x_edge = self.gen_parser.data_manager.en_grid[self.gui.edge_index]
+                    y_edge = result[self.gui.edge_index]
+
+                    self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                    plot_info = [x_edge, 
+                                 y_edge, 
+                                 'ys', 
+                                 '', 
+                                 '', 
+                                 self.gui.figure_old_scans_2.ax, 
+                                 self.gui.canvas_old_scans_2]
+                    self.gui.plotting_list.append(plot_info)
+
+                    print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                    self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                
+
+            result_der = self.gen_parser.get_derivative(result)
+            plot_info = [bin_eq[energy_string], 
+                         result_der, 
+                         'r', energy_string, 
+                         'Derivative', 
+                         self.gui.figure_old_scans_2.ax2, 
+                         self.gui.canvas_old_scans_2]
+            self.gui.plotting_list.append(plot_info)
+
+            #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
 
@@ -1350,13 +1426,13 @@ class process_threads_manager(QThread):
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
-                process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.abs_parser) 
+                process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.gen_parser) 
                 self.gui.connect(process_thread, SIGNAL("finished()"), self.gui.reset_processing_tab)
                 process_thread.start()
                 self.gui.active_threads += 1
                 self.gui.total_threads += 1
             index += 1
-        self.gui.abs_parser = process_thread_equal.abs_parser
+        self.gui.gen_parser = process_thread_equal.gen_parser
 
 
 
