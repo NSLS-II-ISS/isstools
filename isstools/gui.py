@@ -1,5 +1,6 @@
 import numpy as np
-from PyQt4 import uic, QtGui, QtCore
+import PyQt4
+from PyQt4 import uic, QtGui, QtCore, Qt
 from PyQt4.QtCore import QThread, SIGNAL
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
@@ -26,6 +27,7 @@ from os.path import isfile, join
 import inspect
 import re
 import sys
+import collections
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -394,12 +396,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
             self.figure_old_scans_2.ax.legend(handles = [edge_path])
             self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-            print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
-            self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+            print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+            self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
         
 
-
-        result_der = self.gen_parser.get_derivative(result)
+        result_der = self.gen_parser.data_manager.get_derivative(result)
         self.figure_old_scans_2.ax2.plot(bin_eq[energy_string], result_der, 'r')
         self.figure_old_scans_2.ax2.set_ylabel('Derivative')
         self.figure_old_scans_2.ax2.set_xlabel(energy_string)
@@ -1075,6 +1076,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                     self.canvas_gain_matching.draw_idle()
 
+    def update_listWidgets(self, value_num, value_den):
+        if(type(value_num[0]) == int):
+            self.listWidget_numerator.setCurrentRow(value_num[0])
+        #else:
+        #    self.listWidget_numerator.setCurrentItem(value_num[0])
+
+        if(type(value_den[0]) == int):
+            self.listWidget_denominator.setCurrentRow(value_den[0])
+        #else:
+        #    self.listWidget_denominator.setCurrentItem(value_den[0])
+
+        
+    def create_lists(self, list_num, list_den):
+        self.listWidget_numerator.clear()
+        self.listWidget_denominator.clear()
+        self.listWidget_numerator.insertItems(0, list_num)
+        self.listWidget_denominator.insertItems(0, list_den)
+        
+
 
     def questionMessage(self, title, question):    
         reply = QtGui.QMessageBox.question(self, title,
@@ -1243,11 +1263,13 @@ class process_bin_thread(QThread):
         result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
         ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
 
-        if self.checkBox_log.checkState() > 0:
+        if self.gui.checkBox_log.checkState() > 0:
             ylabel = 'log({})'.format(ylabel)
             result = np.log(result)
             result_orig = np.log(result_orig)
         ylabel = 'Binned {}'.format(ylabel)
+
+        energy_string = self.gen_parser.get_energy_string()
 
         plot_info = [binned[energy_string], 
                      result, 
@@ -1258,7 +1280,6 @@ class process_bin_thread(QThread):
                      self.gui.canvas_old_scans_3]
         self.gui.plotting_list.append(plot_info)
         
-        energy_string = self.gen_parser.get_energy_string()
 
         k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
@@ -1290,12 +1311,14 @@ class process_bin_thread(QThread):
 
 
 class process_bin_thread_equal(QThread):
+    update_listWidgets = QtCore.pyqtSignal(list, list)#, int, int)
+    create_lists = QtCore.pyqtSignal(list, list)
     def __init__(self, gui, filename, index = 1):
         QThread.__init__(self)
         self.gui = gui
         self.index = index
         self.filename = filename
-        self.gen_parser = xasdata.XASdataGeneric()
+        self.gen_parser = xasdata.XASdataGeneric(gui.db)
         self.gen_parser.curr_filename_save = filename
 
     def __del__(self):
@@ -1306,28 +1329,43 @@ class process_bin_thread_equal(QThread):
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
         self.gen_parser.loadInterpFile(self.filename)
         if self.gui.listWidget_numerator.currentItem() is not None:
-            self.gui.last_num = self.gui.listWidget_numerator.currentItem().text()
+            self.gui.last_num = self.gui.listWidget_numerator.currentRow()
         if self.gui.listWidget_denominator.currentItem() is not None:
-            self.gui.last_den = self.gui.listWidget_denominator.currentItem().text()
-        self.gui.listWidget_numerator.clear()
-        self.gui.listWidget_denominator.clear()
-        self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
-        self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+            self.gui.last_den = self.gui.listWidget_denominator.currentRow()
+        #self.gui.listWidget_numerator.clear()
+        #self.gui.listWidget_denominator.clear()
+        #self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+        #self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+
+        ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
+        self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
+        while(self.gui.listWidget_denominator.count() == 0 or self.gui.listWidget_numerator.count() == 0):
+            QtCore.QCoreApplication.processEvents()
+            ttime.sleep(0.1)
         
+        
+        #print(self.gui.listWidget_numerator.count())
         if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
-            if self.gui.last_num != '' and self.gui.last_num in self.gen_parser.interp_arrays.keys():
-                items_num = self.gui.listWidget_numerator.findItems(self.gui.last_num, Qt.MatchExactly)
-                if len(items_num > 0):
-                    self.gui.listWidget_numerator.setCurrentItem(items_num[0])
-                else:
-                    self.gui.listWidget_numerator.setCurrentItem(0)
+            value_num = ''
+            if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
+                items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
+                value_num = [items_num]
+            if value_num == '':
+                value_num = [0]
+                #self.gui.listWidget_numerator.setCurrentRow(0)
             
-            if self.gui.last_den != '' and self.gui.last_den in self.gen_parser.interp_arrays.keys():
-                items_den = self.gui.listWidget_denominator.findItems(self.gui.last_den, Qt.MatchExactly)
-                if len(items_den > 0):
-                    self.gui.listWidget_denominator.setCurrentItem(items_den[0])
-                else:
-                    self.gui.listWidget_denominator.setCurrentItem(0)
+            value_den = ''
+            if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
+                items_den = self.gui.last_den
+                value_den = [items_den]
+            if value_den == '':
+                value_den = [0]
+                #self.gui.listWidget_denominator.setCurrentRow(0)
+
+            self.update_listWidgets.emit(value_num, value_den)
+            while(self.gui.listWidget_denominator.currentItem() == None or self.gui.listWidget_numerator.currentItem() == None):
+                QtCore.QCoreApplication.processEvents()
+                ttime.sleep(0.1)
 
             energy_string = self.gen_parser.get_energy_string()
 
@@ -1391,7 +1429,7 @@ class process_bin_thread_equal(QThread):
                     self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
                 
 
-            result_der = self.gen_parser.get_derivative(result)
+            result_der = self.gen_parser.data_manager.get_derivative(result)
             plot_info = [bin_eq[energy_string], 
                          result_der, 
                          'r', energy_string, 
@@ -1419,6 +1457,8 @@ class process_threads_manager(QThread):
         for filename in self.gui.selected_filename_bin:
             process_thread_equal = process_bin_thread_equal(self.gui, filename, index) 
             self.gui.connect(process_thread_equal, SIGNAL("finished()"), self.gui.reset_processing_tab)
+            process_thread_equal.update_listWidgets.connect(self.gui.update_listWidgets)
+            process_thread_equal.create_lists.connect(self.gui.create_lists)
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
