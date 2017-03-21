@@ -51,7 +51,7 @@ class XASdata:
         with open(filepath + str(filename)) as f:
             for line in f:  # read rest of lines
                 current_line = line.split()
-                if(int(current_line[4]) != 0):
+                if(int(current_line[3]) % 2 == 0):
                     array_out.append([int(current_line[0])+1e-9*int(current_line[1]), int(current_line[3])])
         return np.array(array_out)
 
@@ -457,6 +457,8 @@ class XASdataGeneric(XASdata):
                     has_encoder = name
                 if 'devname' in i['data_keys'][i['name']]:
                     name = i['data_keys'][i['name']]['devname']
+                    if name == 'hhm_theta':
+                        has_encoder = name
                     
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
                     data = self.loadTRIGtrace(i['data_keys'][i['name']]['filename'], '')
@@ -502,6 +504,7 @@ class XASdataGeneric(XASdata):
         for i in range(len(keys)):
             if i != timestamp_index:
                 self.interp_arrays[keys[i]] = np.array([matrix[:, timestamp_index], matrix[:, i]]).transpose()
+        self.interp_arrays['1'] = np.array([matrix[:, timestamp_index], np.ones(len(matrix[:, 0]))]).transpose()
 
 
     def interpolate(self, key_base = 'i0'):
@@ -525,6 +528,7 @@ class XASdataGeneric(XASdata):
         
         for key in self.arrays.keys():
             self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key)[:,0], self.arrays.get(key)[:,1])]).transpose()
+        self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
 
 
     def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
@@ -562,6 +566,8 @@ class XASdataGeneric(XASdata):
             trajectory_name = ''
         
         copy_interp = self.interp_arrays.copy()
+        if '1' in copy_interp:
+            del copy_interp['1']
         keys = copy_interp.keys()
         matrix = [self.interp_arrays[list(self.interp_arrays.keys())[0]][:,0]]
         energy_header = ''
@@ -925,6 +931,53 @@ class XASDataManager:
     def export_dat(self, filename, header = ''):
         filename = filename[0: len(filename) - 3] + 'dat'
         np.savetxt(filename, np.array([self.en_grid, self.i0_interp, self.it_interp, self.ir_interp, self.iff_interp]).transpose(), fmt='%.7e %15.7e %15.7e %15.7e %15.7e', comments = '', header = header)
+        call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
+        call(['chmod', '770', filename])
+
+    def export_dat_gen(self, filename):
+        comments = XASdataGeneric.read_header(None, filename)
+        comments = comments[0: comments.rfind('#')] + '# '
+
+        filename = filename[0: len(filename) - 3] + 'dat'
+
+        copy_interp = self.binned_arrays.copy()
+        if '1' in copy_interp:
+            del copy_interp['1']
+        keys = copy_interp.keys()
+        matrix = []
+        energy_header = ''
+        if 'energy' in copy_interp.keys():
+            matrix.append(copy_interp['energy'])
+            del copy_interp['energy']
+            energy_header = 'energy'
+        elif 'En. (eV)' in copy_interp.keys():
+            matrix.append(copy_interp['En. (eV)'])
+            del copy_interp['En. (eV)']
+            energy_header = 'En. (eV)'
+
+        for key in copy_interp.keys():
+            matrix.append(copy_interp[key])
+        matrix = np.array(matrix).transpose()
+
+        fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
+        header = '  '.join(copy_interp.keys())
+        if energy_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(energy_header, header)
+
+        np.savetxt(filename,
+                   matrix,
+                   fmt=fmt,
+                   delimiter=" ",
+                   header = header,
+                   comments = comments)
+        call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
+        call(['chmod', '770', filename])
+        return filename
+
+
+
+
         call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
         call(['chmod', '770', filename])
 

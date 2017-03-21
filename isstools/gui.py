@@ -51,6 +51,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, det_dict, motors_list, general_scan_func, parent=None, *args, **kwargs):
+
+        if 'write_html_log' in kwargs:
+            self.html_log_func = kwargs['write_html_log']
+            del kwargs['write_html_log']
+        else:
+            self.html_log_func = None
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -73,10 +80,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.det_dict = det_dict
         self.motors_list = motors_list
         self.gen_scan_func = general_scan_func
-        if 'write_html_log' in kwargs:
-            self.html_log_func = kwargs['write_html_log']
-        else:
-            self.html_log_func = None
 
         # Write metadata in the GUI
         self.label_6.setText('{}'.format(RE.md['year']))
@@ -282,7 +285,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def save_bin(self):
         filename = self.curr_filename_save
-        self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+        self.gen_parser.data_manager.export_dat_gen(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
@@ -432,6 +435,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_3.draw_idle()
 
         print('[Launching Threads]')
+        if self.listWidget_numerator.currentRow() is not -1:
+            self.last_num = self.listWidget_numerator.currentRow()
+        if self.listWidget_denominator.currentRow() is not -1:
+            self.last_den = self.listWidget_denominator.currentRow()
+        self.listWidget_numerator.setCurrentRow(-1)
+        self.listWidget_denominator.setCurrentRow(-1)
         t_manager = process_threads_manager(self)
         t_manager.start()
         print('[Finished Launching Threads]')
@@ -844,15 +853,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_params = {}
-            for i in range(len(xlive_gui.params1)):
-                if (xlive_gui.param_types[i] == int):
-                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].value()
-                elif (xlive_gui.param_types[i] == float):
-                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].value()
-                elif (xlive_gui.param_types[i] == bool):
-                    run_params[xlive_gui.params3[i].text().split('=')[0]] = bool(xlive_gui.params2[i].checkState())
-                elif (xlive_gui.param_types[i] == str):
-                    run_params[xlive_gui.params3[i].text().split('=')[0]] = xlive_gui.params2[i].text()
+            for i in range(len(self.params1)):
+                if (self.param_types[i] == int):
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].value()
+                elif (self.param_types[i] == float):
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].value()
+                elif (self.param_types[i] == bool):
+                    run_params[self.params3[i].text().split('=')[0]] = bool(self.params2[i].checkState())
+                elif (self.param_types[i] == str):
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
             
             # Erase last graph
             self.figure.ax.cla()
@@ -860,6 +869,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             # Run the scan using the tuple created before
             self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
+            if self.current_uid == '':
+                self.current_uid = self.db[-1]['start']['uid']
 
             self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
                                     '{}.txt'.format(self.db[self.current_uid]['start']['year'],
@@ -871,15 +882,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             key_base = 'i0'
             if 'xia_filename' in self.db[self.current_uid]['start']:
-                key_base = 'pb4_di'
+                key_base = 'xia_trigger'
             self.gen_parser.interpolate(key_base = key_base)
 
             self.figure.ax.plot(np.log(self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]))
             self.figure.ax.set_xlabel('Energy (eV)')
             self.figure.ax.set_xlabel('log(i0 / it)')
-
-            if self.html_log_func is not None:
-                self.html_log_func(self.current_uid, self.figure)
 
             # self.gen_parser should be able to generate the interpolated file
             
@@ -902,106 +910,37 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
                 mca_sum = sum(mcas)
 
-                header = self.gen_parser.read_header(self.current_filepath)
-                keys = re.sub('  +', '  ', re.sub(r'\([^)]*\)', '', header[header.rfind('\n', 0, -1) + 3:-1])).split('  ')
-
-                ts = self.parser.energy_interp[:,0]
-                energy_interp = self.parser.energy_interp[:,1]
-                i0_interp = self.parser.i0_interp[:,1]
-                it_interp = self.parser.it_interp[:,1]
-                ir_interp = self.parser.ir_interp[:,1]
-                iff_interp = self.parser.iff_interp[:,1]
+                self.gen_parser.interp_arrays['XIA_SUM'] = np.array(mca_sum)
 
 
+                self.figure.ax.cla()
+                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM']/self.gen_parser.interp_arrays['i0'][:, 1]))
+
+            if self.html_log_func is not None:
+                self.html_log_func(self.current_uid, self.figure)
+            self.canvas.draw_idle()
             
 
+            # Check saturation:
+            try: 
+                warnings = ()
+                if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
+                    warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                if np.max(np.abs(self.gen_parser.interp_arrays['it'][:,1])) > 3.9:
+                    warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
+                    warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                if len(warnings):
+                    raise Warning(warnings)
 
-
-            if absorp == True:
-                self.parser = xasdata.XASdataAbs()
-                self.parser.loadInterpFile(self.current_filepath)
-                self.parser.plot(ax = self.figure.ax)
-            elif absorp == False:
-                self.parser = xasdata.XASdataFlu()
-                self.parser.loadInterpFile(self.current_filepath)
-                xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
-                xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
-                smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
-                smbclient.copy()
-                xia_parser = self.xia_parser
-                xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
-                xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
-                xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
-            # Fix that later
-                length = min(len(xia_parser.exporting_array1), len(self.parser.energy_interp))
-
-                #workaround
-                mca1 = xia_parser.parse_roi(range(0, length), 1, 6.7, 6.9)
-                mca2 = xia_parser.parse_roi(range(0, length), 2, 6.7, 6.9)
-                mca3 = xia_parser.parse_roi(range(0, length), 3, 6.7, 6.9)
-                mca4 = xia_parser.parse_roi(range(0, length), 4, 6.7, 6.9)
-                mca_sum = mca1 + mca2 + mca3 + mca4
-                ts = self.parser.energy_interp[:,0]
-                energy_interp = self.parser.energy_interp[:,1]
-                i0_interp = self.parser.i0_interp[:,1]
-                it_interp = self.parser.it_interp[:,1]
-                ir_interp = self.parser.ir_interp[:,1]
-                iff_interp = self.parser.iff_interp[:,1]
-
-                self.figure.ax.plot(energy_interp, -(mca_sum/i0_interp))
-                self.canvas.draw_idle()
-
-                np.savetxt(self.current_filepath[:-4] + '2.txt', np.array([ts, energy_interp, i0_interp, it_interp, iff_interp, ir_interp, mca_sum]).transpose(), header='time    energy    i0    it    iff    ir    XIA_SUM', fmt = '%f %f %f %f %f %f %d')
-                #workaround end
-
-            if absorp != '' and type(absorp) == bool:
-                self.figure.ax.set_title(self.comment)
-
-                self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
-                if(not os.path.exists(self.log_path)):
-                    os.makedirs(self.log_path)
-
-                self.snapshots_path = self.log_path + 'snapshots/'
-                if(not os.path.exists(self.snapshots_path)):
-                    os.makedirs(self.snapshots_path)
-
-                self.file_path = 'snapshots/' + self.comment + '.png'
-                fn = self.log_path + self.file_path
-                repeat = 1
-                while(os.path.isfile(fn)):
-                    repeat += 1
-                    self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
-                    fn = self.log_path + self.file_path
-                self.figure.savefig(fn)
-
-
-                if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
-                    self.tabWidget.setCurrentIndex(4)
-                    self.selected_filename_bin = [self.current_filepath]
-                    self.label_24.setText(self.current_filepath)
-                    self.process_bin_equal()
-
-                # Check saturation:
-                try: 
-                    warnings = ()
-                    if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
-                        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                    if np.max(np.abs(self.parser.it_interp[:,1])) > 3.9:
-                        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                    if np.max(np.abs(self.parser.ir_interp[:,1])) > 9.9:
-                        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                    if len(warnings):
-                        raise Warning(warnings)
-
-                except Warning as warnings:
-                    warningtxt = ''
-                    for warning in warnings.args[0]:
-                        print('Warning: {}'.format(warning))
-                        warningtxt += '{}\n'.format(warning)
-                    warningtxt += 'Check the gains of the ion chambers'
-                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
-                    #raise
+            except Warning as warnings:
+                warningtxt = ''
+                for warning in warnings.args[0]:
+                    print('Warning: {}'.format(warning))
+                    warningtxt += '{}\n'.format(warning)
+                warningtxt += 'Check the gains of the ion chambers'
+                QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                #raise
 
             self.canvas.draw_idle()
 
@@ -1078,12 +1017,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def update_listWidgets(self, value_num, value_den):
         if(type(value_num[0]) == int):
-            self.listWidget_numerator.setCurrentRow(value_num[0])
+            if value_num[0] < self.listWidget_numerator.count():
+                self.listWidget_numerator.setCurrentRow(value_num[0])
+            else:
+                self.listWidget_numerator.setCurrentRow(0)
         #else:
         #    self.listWidget_numerator.setCurrentItem(value_num[0])
 
         if(type(value_den[0]) == int):
-            self.listWidget_denominator.setCurrentRow(value_den[0])
+            if value_den[0] < self.listWidget_denominator.count():
+                self.listWidget_denominator.setCurrentRow(value_den[0])
+            else:
+                self.listWidget_denominator.setCurrentRow(0)
         #else:
         #    self.listWidget_denominator.setCurrentItem(value_den[0])
 
@@ -1302,7 +1247,7 @@ class process_bin_thread(QThread):
 
         if self.gui.checkBox_process_bin.checkState() > 0:
             filename = self.gen_parser.curr_filename_save
-            self.gen_parser.data_manager.export_dat(filename, self.gen_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+            self.gen_parser.data_manager.export_dat_gen(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
         print('[Binning Thread {}] Finished'.format(self.index))
@@ -1328,10 +1273,10 @@ class process_bin_thread_equal(QThread):
         #for filename in self.gui.selected_filename_bin:
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
         self.gen_parser.loadInterpFile(self.filename)
-        if self.gui.listWidget_numerator.currentItem() is not None:
-            self.gui.last_num = self.gui.listWidget_numerator.currentRow()
-        if self.gui.listWidget_denominator.currentItem() is not None:
-            self.gui.last_den = self.gui.listWidget_denominator.currentRow()
+        #if self.gui.listWidget_numerator.currentItem() is not None:
+        #    self.gui.last_num = self.gui.listWidget_numerator.currentRow()
+        #if self.gui.listWidget_denominator.currentItem() is not None:
+        #    self.gui.last_den = self.gui.listWidget_denominator.currentRow()
         #self.gui.listWidget_numerator.clear()
         #self.gui.listWidget_denominator.clear()
         #self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
@@ -1351,19 +1296,18 @@ class process_bin_thread_equal(QThread):
                 items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
                 value_num = [items_num]
             if value_num == '':
-                value_num = [0]
-                #self.gui.listWidget_numerator.setCurrentRow(0)
+                value_num = [2]
             
             value_den = ''
             if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
                 items_den = self.gui.last_den
                 value_den = [items_den]
             if value_den == '':
-                value_den = [0]
-                #self.gui.listWidget_denominator.setCurrentRow(0)
+                value_den = [5]
 
             self.update_listWidgets.emit(value_num, value_den)
-            while(self.gui.listWidget_denominator.currentItem() == None or self.gui.listWidget_numerator.currentItem() == None):
+            ttime.sleep(0.2)
+            while(self.gui.listWidget_denominator.currentRow() == -1 or self.gui.listWidget_numerator.currentRow() == -1):
                 QtCore.QCoreApplication.processEvents()
                 ttime.sleep(0.1)
 
