@@ -917,10 +917,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
 
                 #workaround
-                mca1 = xia_parser.parse_roi(range(0, length), 1, 6.7, 6.9)
-                mca2 = xia_parser.parse_roi(range(0, length), 2, 6.7, 6.9)
-                mca3 = xia_parser.parse_roi(range(0, length), 3, 6.7, 6.9)
-                mca4 = xia_parser.parse_roi(range(0, length), 4, 6.7, 6.9)
+                mca1 = xia_parser.parse_roi(range(0, length), 1, 4.8, 5.1)
+                mca2 = xia_parser.parse_roi(range(0, length), 2, 4.8, 5.1)
+                mca3 = xia_parser.parse_roi(range(0, length), 3, 4.8, 5.1)
+                mca4 = xia_parser.parse_roi(range(0, length), 4, 4.8, 5.1)
                 mca_sum = mca1 + mca2 + mca3 + mca4
                 ts = self.parser.energy_interp[:,0]
                 energy_interp = self.parser.energy_interp[:,1]
@@ -929,10 +929,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 ir_interp = self.parser.ir_interp[:,1]
                 iff_interp = self.parser.iff_interp[:,1]
 
+                print(len(energy_interp), len(mca_sum), len(i0_interp))
                 self.figure.ax.plot(energy_interp, -(mca_sum/i0_interp))
                 self.canvas.draw_idle()
 
-                np.savetxt(self.current_filepath[:-4] + '2.txt', np.array([ts, energy_interp, i0_interp, it_interp, iff_interp, ir_interp, mca_sum]).transpose(), header='time    energy    i0    it    iff    ir    XIA_SUM', fmt = '%f %f %f %f %f %f %d')
+                np.savetxt(self.current_filepath[:-4] + '-2.txt', np.array([ts, energy_interp, i0_interp, it_interp, iff_interp, ir_interp, mca_sum]).transpose(), header='time    energy    i0    it    iff    ir    XIA_SUM', fmt = '%f %f %f %f %f %f %d')
                 #workaround end
 
             if absorp != '' and type(absorp) == bool:
@@ -963,25 +964,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.process_bin_equal()
 
                 # Check saturation:
-                try: 
-                    warnings = ()
-                    if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
-                        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                    if np.max(np.abs(self.parser.it_interp[:,1])) > 3.9:
-                        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                    if np.max(np.abs(self.parser.ir_interp[:,1])) > 9.9:
-                        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                    if len(warnings):
-                        raise Warning(warnings)
+                if absorp == True:
+                    try: 
+                        warnings = ()
+                        if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
+                            warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                        if np.max(np.abs(self.parser.it_interp[:,1])) > 3.9:
+                            warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                        if np.max(np.abs(self.parser.ir_interp[:,1])) > 9.9:
+                            warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                        if len(warnings):
+                            raise Warning(warnings)
 
-                except Warning as warnings:
-                    warningtxt = ''
-                    for warning in warnings.args[0]:
-                        print('Warning: {}'.format(warning))
-                        warningtxt += '{}\n'.format(warning)
-                    warningtxt += 'Check the gains of the ion chambers'
-                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
-                    #raise
+                    except Warning as warnings:
+                        warningtxt = ''
+                        for warning in warnings.args[0]:
+                            print('Warning: {}'.format(warning))
+                            warningtxt += '{}\n'.format(warning)
+                        warningtxt += 'Check the gains of the ion chambers'
+                        QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                        #raise
 
             self.canvas.draw_idle()
 
