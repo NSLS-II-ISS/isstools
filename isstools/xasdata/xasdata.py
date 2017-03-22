@@ -9,6 +9,7 @@ from datetime import datetime
 from isstools.conversions import xray
 from subprocess import call
 import re
+import collections
 
 class XASdata:
     def __init__(self, **kwargs):
@@ -564,8 +565,8 @@ class XASdataGeneric(XASdata):
             trajectory_name = self.db[self.uid]['start']['trajectory_name']
         else:
             trajectory_name = ''
-        
-        copy_interp = self.interp_arrays.copy()
+        copy_interp = collections.OrderedDict(sorted(self.interp_arrays.items())).copy()
+        #copy_interp = self.interp_arrays.copy()
         if '1' in copy_interp:
             del copy_interp['1']
         keys = copy_interp.keys()
@@ -940,7 +941,8 @@ class XASDataManager:
 
         filename = filename[0: len(filename) - 3] + 'dat'
 
-        copy_interp = self.binned_arrays.copy()
+        copy_interp = collections.OrderedDict(sorted(self.binned_arrays.items())).copy()
+        #copy_interp = self.binned_arrays.copy()
         if '1' in copy_interp:
             del copy_interp['1']
         keys = copy_interp.keys()

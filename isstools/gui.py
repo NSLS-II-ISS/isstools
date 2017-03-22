@@ -499,7 +499,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def addParamControl(self, name, default, annotation):
-        rows = int(self.gridLayout_13.count()/3)
+        rows = int((self.gridLayout_13.count())/3)
         param1 = QtGui.QLabel('Par ' + str(rows + 1))
 
         param2 = None
@@ -868,7 +868,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.canvas.draw_idle()
 
             # Run the scan using the tuple created before
-            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
+            self.current_uid = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
             if self.current_uid == '':
                 self.current_uid = self.db[-1]['start']['uid']
 
@@ -904,22 +904,34 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
 
                 length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
-                #workaround
+
                 mcas = []
-                for mca_number in range(1, 5):
-                    mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
-                mca_sum = sum(mcas)
+                if 'xia_rois' in self.db[self.current_uid]['start']:
+                    xia_rois = self.db[self.current_uid]['start']['xia_rois']
+                    for mca_number in range(1, 5):
+                        mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                    mca_sum = sum(mcas)
+                else:
+                    for mca_number in range(1, 5):
+                        mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
+                    mca_sum = sum(mcas)
 
-                self.gen_parser.interp_arrays['XIA_SUM'] = np.array(mca_sum)
-
+                self.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
 
                 self.figure.ax.cla()
-                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM']/self.gen_parser.interp_arrays['i0'][:, 1]))
+                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
             if self.html_log_func is not None:
                 self.html_log_func(self.current_uid, self.figure)
             self.canvas.draw_idle()
             
+            self.gen_parser.export_trace(self.current_filepath[:-4], '')
+
+            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+                self.tabWidget.setCurrentIndex(4)
+                self.selected_filename_bin = [self.current_filepath]
+                self.label_24.setText(self.current_filepath)
+                self.process_bin_equal()
 
             # Check saturation:
             try: 
