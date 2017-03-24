@@ -1691,6 +1691,19 @@ file and switch to
        </layout>
       </widget>
      </widget>
+     <widget class="QPushButton" name="run_check_gains">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>520</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Check Gains</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">

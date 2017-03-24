@@ -54,6 +54,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #self.fig = fig = self.figure_content()
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
+        self.run_check_gains.clicked.connect(self.run_gains_test)
         self.prep_traj_plan = prep_traj_plan
         self.RE = RE
         self.RE.last_state = ''
@@ -1006,6 +1007,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if self.RE.state != self.RE.last_state:
             self.RE.last_state = self.RE.state
 
+    def run_gains_test(self):
+        if self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
+            self.shutter_b.open()
+            while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
+                QtGui.QApplication.processEvents()
+                ttime.sleep(0.1)
+        if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
+            self.shutter_a.open()
+            while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
+                QtGui.QApplication.processEvents()
+                ttime.sleep(0.1)
+        if self.es_shutter.state == 'closed':
+            self.es_shutter.open()
+
+        for func in self.plan_funcs:
+            if func.__name__ == 'get_offsets':
+                getoffsets_func = func
+                break
+        self.current_uid, self.current_filepath, absorp = getoffsets_func(10, dummy_read=True)
+
+        self.es_shutter.close()
+
+        print('Done!')            
+
+        
 
     def run_gain_matching(self):
         channels = range(4)
