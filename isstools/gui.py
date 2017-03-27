@@ -867,97 +867,102 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.figure.ax.cla()
             self.canvas.draw_idle()
 
-            # Run the scan using the tuple created before
-            self.current_uid = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
-            if self.current_uid == '':
-                self.current_uid = self.db[-1]['start']['uid']
+            # Run the scan using the dict created before
+            self.current_uid_list = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
+            if type(self.current_uid_list) != list:
+                self.current_uid_list = [self.current_uid_list]
 
-            self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
-                                    '{}.txt'.format(self.db[self.current_uid]['start']['year'],
-                                                    self.db[self.current_uid]['start']['cycle'],
-                                                    self.db[self.current_uid]['start']['PROPOSAL'],
-                                                    self.db[self.current_uid]['start']['comment'])
+            for i in range(len(self.current_uid_list)):
+                self.current_uid = self.current_uid_list[i]
+                if self.current_uid == '':
+                    self.current_uid = self.db[-1]['start']['uid']
 
-            self.gen_parser.load(self.current_uid)
+                self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                        '{}.txt'.format(self.db[self.current_uid]['start']['year'],
+                                                        self.db[self.current_uid]['start']['cycle'],
+                                                        self.db[self.current_uid]['start']['PROPOSAL'],
+                                                        self.db[self.current_uid]['start']['comment'])
 
-            key_base = 'i0'
-            if 'xia_filename' in self.db[self.current_uid]['start']:
-                key_base = 'xia_trigger'
-            self.gen_parser.interpolate(key_base = key_base)
+                self.gen_parser.load(self.current_uid)
 
-            self.figure.ax.plot(np.log(self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]))
-            self.figure.ax.set_xlabel('Energy (eV)')
-            self.figure.ax.set_xlabel('log(i0 / it)')
+                key_base = 'i0'
+                if 'xia_filename' in self.db[self.current_uid]['start']:
+                    key_base = 'xia_trigger'
+                self.gen_parser.interpolate(key_base = key_base)
 
-            # self.gen_parser should be able to generate the interpolated file
+                self.figure.ax.plot(np.log(self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]))
+                self.figure.ax.set_xlabel('Energy (eV)')
+                self.figure.ax.set_xlabel('log(i0 / it)')
+
+                # self.gen_parser should be able to generate the interpolated file
             
-            if 'xia_filename' in self.db[self.current_uid]['start']:
-                # Parse xia
-                xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
-                xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
-                smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
-                smbclient.copy()
-                xia_parser = self.xia_parser
-                xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
-                xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
-                xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
+                if 'xia_filename' in self.db[self.current_uid]['start']:
+                    # Parse xia
+                    xia_filename = self.db[self.current_uid]['start']['xia_filename']
+                    xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                    xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                    smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                    smbclient.copy()
+                    xia_parser = self.xia_parser
+                    xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
+                    xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
+                    xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
 
-                length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
+                    length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
 
-                mcas = []
-                if 'xia_rois' in self.db[self.current_uid]['start']:
-                    xia_rois = self.db[self.current_uid]['start']['xia_rois']
-                    for mca_number in range(1, 5):
-                        mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
-                    mca_sum = sum(mcas)
-                else:
-                    for mca_number in range(1, 5):
-                        mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
-                    mca_sum = sum(mcas)
+                    mcas = []
+                    if 'xia_rois' in self.db[self.current_uid]['start']:
+                        xia_rois = self.db[self.current_uid]['start']['xia_rois']
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                        mca_sum = sum(mcas)
+                    else:
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
+                        mca_sum = sum(mcas)
 
-                self.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
+                    self.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
 
-                self.figure.ax.cla()
-                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
+                    self.figure.ax.cla()
+                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
-            if self.html_log_func is not None:
-                self.html_log_func(self.current_uid, self.figure)
-            self.canvas.draw_idle()
+                if self.html_log_func is not None:
+                    self.html_log_func(self.current_uid, self.figure)
+                self.canvas.draw_idle()
             
-            self.gen_parser.export_trace(self.current_filepath[:-4], '')
+                self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
-            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
-                self.tabWidget.setCurrentIndex(4)
-                self.selected_filename_bin = [self.current_filepath]
-                self.label_24.setText(self.current_filepath)
-                self.process_bin_equal()
+                if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+                    self.tabWidget.setCurrentIndex(4)
+                    self.selected_filename_bin = [self.current_filepath]
+                    self.label_24.setText(self.current_filepath)
+                    self.process_bin_equal()
 
-            # Check saturation:
-            try: 
-                warnings = ()
-                if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
-                    warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['it'][:,1])) > 3.9:
-                    warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
-                    warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                if len(warnings):
-                    raise Warning(warnings)
+                # Check saturation:
+                try: 
+                    warnings = ()
+                    if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
+                        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.gen_parser.interp_arrays['it'][:,1])) > 3.9:
+                        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
+                        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                    if len(warnings):
+                        raise Warning(warnings)
 
-            except Warning as warnings:
-                warningtxt = ''
-                for warning in warnings.args[0]:
-                    print('Warning: {}'.format(warning))
-                    warningtxt += '{}\n'.format(warning)
-                warningtxt += 'Check the gains of the ion chambers'
-                QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
-                #raise
+                except Warning as warnings:
+                    warningtxt = ''
+                    for warning in warnings.args[0]:
+                        print('Warning: {}'.format(warning))
+                        warningtxt += '{}\n'.format(warning)
+                    warningtxt += 'Check the gains of the ion chambers'
+                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                    #raise
 
-            self.canvas.draw_idle()
+                self.canvas.draw_idle()
 
-        else:
-            print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
+            else:
+                print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
 
 
     def re_abort(self):
