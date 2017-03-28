@@ -1,5 +1,6 @@
 import numpy as np
-from PyQt4 import uic, QtGui, QtCore
+import PyQt4
+from PyQt4 import uic, QtGui, QtCore, Qt
 from PyQt4.QtCore import QThread, SIGNAL
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
@@ -26,6 +27,7 @@ from os.path import isfile, join
 import inspect
 import re
 import sys
+import collections
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -49,6 +51,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, det_dict, motors_list, general_scan_func, parent=None, *args, **kwargs):
+
+        if 'write_html_log' in kwargs:
+            self.html_log_func = kwargs['write_html_log']
+            del kwargs['write_html_log']
+        else:
+            self.html_log_func = None
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.fig = fig = self.figure_content()
@@ -65,6 +74,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.abs_parser = xasdata.XASdataAbs() 
         self.flu_parser = xasdata.XASdataFlu() 
+        self.gen_parser = xasdata.XASdataGeneric(self.db)
         self.push_update_user.clicked.connect(self.update_user)
         self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
@@ -181,6 +191,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.total_threads = 0
         self.progressBar_processing.setValue(int(np.round(0)))
         self.plotting_list = []
+        self.last_num = ''
+        self.last_den = ''
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -274,7 +286,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def save_bin(self):
         filename = self.curr_filename_save
-        self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+        self.gen_parser.data_manager.export_dat_gen(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
@@ -286,80 +298,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.label_angle_offset.setText('{0:.4f}'.format(float(self.RE.md['angle_offset'])))
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.RE.md['angle_offset']))
 
-    def get_dic(self, module):
-        dic = dict()
-        if self.checkBox_num_i0.checkState() > 0:
-            dic['numerator'] = module.i0_interp
-            if(hasattr(module, 'data_i0')):
-                dic['original_numerator'] = module.data_i0
-        elif self.checkBox_num_it.checkState() > 0:
-            dic['numerator'] = module.it_interp
-            if(hasattr(module, 'data_it')):
-                dic['original_numerator'] = module.data_it
-        elif self.checkBox_num_ir.checkState() > 0:
-            dic['numerator'] = module.ir_interp
-            if(hasattr(module, 'data_ir')):
-                dic['original_numerator'] = module.data_ir
-        elif self.checkBox_num_if.checkState() > 0:
-            dic['numerator'] = module.iff_interp
-            if(hasattr(module, 'data_iff')):
-                dic['original_numerator'] = module.data_iff
-        elif self.checkBox_num_1.checkState() > 0:
-            if len(module.i0_interp.shape) > 1:
-                array_ones = np.copy(module.i0_interp)
-                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
-            else:
-                array_ones = np.ones(len(module.i0_interp))
-            dic['numerator'] = array_ones
-
-            if(hasattr(module, 'data_i0')):
-                if len(module.data_i0.shape) > 1:
-                    array_ones = np.copy(module.data_i0)
-                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
-                else:
-                    array_ones = np.ones(len(module.data_i0))
-                    dic['original_numerator'] = module.data_i0
-            dic['original_numerator'] = array_ones
-
-        if self.checkBox_den_i0.checkState() > 0:
-            dic['denominator'] = module.i0_interp
-            if(hasattr(module, 'data_i0')):
-                dic['original_denominator'] = module.data_i0
-        elif self.checkBox_den_it.checkState() > 0:
-            dic['denominator'] = module.it_interp
-            if(hasattr(module, 'data_it')):
-                dic['original_denominator'] = module.data_it
-        elif self.checkBox_den_ir.checkState() > 0:
-            dic['denominator'] = module.ir_interp
-            if(hasattr(module, 'data_ir')):
-                dic['original_denominator'] = module.data_ir
-        elif self.checkBox_den_if.checkState() > 0:
-            dic['denominator'] = module.iff_interp
-            if(hasattr(module, 'data_iff')):
-                dic['original_denominator'] = module.data_iff
-        elif self.checkBox_den_1.checkState() > 0:
-            if len(module.i0_interp.shape) > 1:
-                array_ones = np.copy(module.i0_interp)
-                array_ones[:,1] = np.ones(len(module.i0_interp[:,0]))
-            else:
-                array_ones = np.ones(len(module.i0_interp))
-            dic['denominator'] = array_ones
-
-            if(hasattr(module, 'data_i0')):
-                if len(module.data_i0.shape) > 1:
-                    array_ones = np.copy(module.data_i0)
-                    array_ones[:,1] = np.ones(len(module.data_i0[:,0]))
-                else:
-                    array_ones = np.ones(len(module.data_i0))
-                    dic['original_denominator'] = module.data_i0
-            dic['original_denominator'] = array_ones
-
-        if self.checkBox_log.checkState() > 0:
-            dic['log'] = True
-        else:
-            dic['log'] = False
-
-        return dic
 
     def update_k_view(self):
         e0 = int(self.edit_E0_2.text())
@@ -370,13 +308,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         exafs_spacing = float(self.edit_exafs_spacing.text())
         k_power = float(self.edit_y_power.text())
 
-        k_data = self.abs_parser.data_manager.get_k_data(e0,
+        energy_string = self.gen_parser.get_energy_string()
+
+        result_orig = self.gen_parser.data_manager.data_arrays[self.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.listWidget_denominator.currentItem().text()]
+
+        if self.checkBox_log.checkState() > 0:
+            result_orig = np.log(result_orig)
+
+        k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
                                                          exafs_spacing,
-                                                         self.abs_parser.data_manager.abs,
-                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
-                                                         self.abs_parser.data_manager.data_en,
-                                                         self.abs_parser.data_manager.abs_orig,
+                                                         result,
+                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.data_manager.data_arrays[energy_string],
+                                                         result_orig,
                                                          k_power)
         self.figure_old_scans.ax.cla()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
@@ -408,36 +353,62 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_3.ax.cla()
-        dic = self.get_dic(self.abs_parser)
-        self.abs_parser.plot(plotting_dic = dic, 
-                             ax = self.figure_old_scans_3.ax, 
-                             color = 'b')
+        
+        energy_string = self.gen_parser.get_energy_string()
+
+        result = self.gen_parser.interp_arrays[self.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.listWidget_denominator.currentItem().text()][:, 1]
+        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
+
+        if self.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+        
+        self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1], result, 'b')
+        self.figure_old_scans_3.ax.set_ylabel(ylabel)
+        self.figure_old_scans_3.ax.set_xlabel(energy_string)
+
 
         self.figure_old_scans_2.ax.cla()
         self.figure_old_scans_2.ax2.cla()
         self.canvas_old_scans_2.draw_idle()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
-        #self.abs_parser.bin_equal()
-        dic = self.get_dic(self.abs_parser.data_manager)
-        self.abs_parser.data_manager.plot(plotting_dic = dic, 
-                                          ax = self.figure_old_scans_2.ax, 
-                                          color = 'b')
-        self.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-        self.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
+
+
+        bin_eq = self.gen_parser.data_manager.binned_eq_arrays
+
+        result = bin_eq[self.listWidget_numerator.currentItem().text()] / bin_eq[self.listWidget_denominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
+
+        if self.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+        ylabel = 'Binned Equally {}'.format(ylabel)
+        
+        self.figure_old_scans_2.ax.plot(bin_eq[energy_string], result, 'b')
+        self.figure_old_scans_2.ax.set_ylabel(ylabel)
+        self.figure_old_scans_2.ax.set_xlabel(energy_string)
+
+
+        self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
         if self.edge_index > 0:
-            x_edge = self.abs_parser.data_manager.en_grid[self.edge_index]
-            y_edge = self.abs_parser.data_manager.abs[self.edge_index]
+                    
+            x_edge = self.gen_parser.data_manager.en_grid[self.edge_index]
+            y_edge = result[self.edge_index]
 
             self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
             edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
             self.figure_old_scans_2.ax.legend(handles = [edge_path])
             self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-            print('Edge: ' + str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
-            self.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.edge_index]))))
+            print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+            self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
         
-        self.abs_parser.data_manager.plot_der(plotting_dic = dic, ax = self.figure_old_scans_2.ax2, color = 'r')
-        self.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
+        result_der = self.gen_parser.data_manager.get_derivative(result)
+        self.figure_old_scans_2.ax2.plot(bin_eq[energy_string], result_der, 'r')
+        self.figure_old_scans_2.ax2.set_ylabel('Derivative')
+        self.figure_old_scans_2.ax2.set_xlabel(energy_string)
+
 
         self.canvas_old_scans_3.draw_idle()
         self.canvas_old_scans_2.draw_idle()
@@ -465,6 +436,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_3.draw_idle()
 
         print('[Launching Threads]')
+        if self.listWidget_numerator.currentRow() is not -1:
+            self.last_num = self.listWidget_numerator.currentRow()
+        if self.listWidget_denominator.currentRow() is not -1:
+            self.last_den = self.listWidget_denominator.currentRow()
+        self.listWidget_numerator.setCurrentRow(-1)
+        self.listWidget_denominator.setCurrentRow(-1)
         t_manager = process_threads_manager(self)
         t_manager.start()
         print('[Finished Launching Threads]')
@@ -523,7 +500,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def addParamControl(self, name, default, annotation):
-        rows = int(self.gridLayout_13.count()/3)
+        rows = int((self.gridLayout_13.count())/3)
         param1 = QtGui.QLabel('Par ' + str(rows + 1))
 
         param2 = None
@@ -875,96 +852,100 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if(self.comment):
             print('\nStarting scan...')
 
-            # Get parameters from the widgets and organize them in a tuple (run_params)
-            run_params = ()
+            # Get parameters from the widgets and organize them in a dictionary (run_params)
+            run_params = {}
             for i in range(len(self.params1)):
                 if (self.param_types[i] == int):
-                    run_params += (self.params2[i].value(),)
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].value()
                 elif (self.param_types[i] == float):
-                    run_params += (self.params2[i].value(),)
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].value()
                 elif (self.param_types[i] == bool):
-                    run_params += (bool(self.params2[i].checkState()),)
+                    run_params[self.params3[i].text().split('=')[0]] = bool(self.params2[i].checkState())
                 elif (self.param_types[i] == str):
-                    run_params += (self.params2[i].text(),)
+                    run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
             
             # Erase last graph
             self.figure.ax.cla()
             self.canvas.draw_idle()
 
-            # Run the scan using the tuple created before
-            self.current_uid, self.current_filepath, absorp = self.plan_funcs[self.run_type.currentIndex()](*run_params, ax=self.figure.ax)
+            # Run the scan using the dict created before
+            self.current_uid_list = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
 
-            if absorp == True:
-                self.parser = xasdata.XASdataAbs()
-                self.parser.loadInterpFile(self.current_filepath)
-                self.parser.plot(ax = self.figure.ax)
-            elif absorp == False:
-                self.parser = xasdata.XASdataFlu()
-                self.parser.loadInterpFile(self.current_filepath)
-                xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
-                xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
-                smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
-                smbclient.copy()
-                xia_parser = self.xia_parser
-                xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
-                xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
-                xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
-            # Fix that later
-                length = min(len(xia_parser.exporting_array1), len(self.parser.energy_interp))
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 1, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 2, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 3, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
-                #xia_parser.plot_roi(xia_filename, '/GPFS/xf08id/xia_files/', range(0, length), 4, 6.7, 6.9, self.figure.ax, self.parser.energy_interp)
+            if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets':
+                return
 
-                #workaround
-                mca1 = xia_parser.parse_roi(range(0, length), 1, 4.8, 5.1)
-                mca2 = xia_parser.parse_roi(range(0, length), 2, 4.8, 5.1)
-                mca3 = xia_parser.parse_roi(range(0, length), 3, 4.8, 5.1)
-                mca4 = xia_parser.parse_roi(range(0, length), 4, 4.8, 5.1)
-                mca_sum = mca1 + mca2 + mca3 + mca4
-                ts = self.parser.energy_interp[:,0]
-                energy_interp = self.parser.energy_interp[:,1]
-                i0_interp = self.parser.i0_interp[:,1]
-                it_interp = self.parser.it_interp[:,1]
-                ir_interp = self.parser.ir_interp[:,1]
-                iff_interp = self.parser.iff_interp[:,1]
+            if type(self.current_uid_list) != list:
+                self.current_uid_list = [self.current_uid_list]
 
-                print(len(energy_interp), len(mca_sum), len(i0_interp))
-                self.figure.ax.plot(energy_interp, -(mca_sum/i0_interp))
+            filepaths = []
+            for i in range(len(self.current_uid_list)):
+                self.current_uid = self.current_uid_list[i]
+                if self.current_uid == '':
+                    self.current_uid = self.db[-1]['start']['uid']
+
+                self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                        '{}.txt'.format(self.db[self.current_uid]['start']['year'],
+                                                        self.db[self.current_uid]['start']['cycle'],
+                                                        self.db[self.current_uid]['start']['PROPOSAL'],
+                                                        self.db[self.current_uid]['start']['comment'])
+
+                filepaths.append(self.current_filepath)
+                self.gen_parser.load(self.current_uid)
+
+                key_base = 'i0'
+                if 'xia_filename' in self.db[self.current_uid]['start']:
+                    key_base = 'xia_trigger'
+                self.gen_parser.interpolate(key_base = key_base)
+
+                self.figure.ax.cla()
                 self.canvas.draw_idle()
 
-                np.savetxt(self.current_filepath[:-4] + '-2.txt', np.array([ts, energy_interp, i0_interp, it_interp, iff_interp, ir_interp, mca_sum]).transpose(), header='time    energy    i0    it    iff    ir    XIA_SUM', fmt = '%f %f %f %f %f %f %d')
-                #workaround end
+                division = self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]
+                division[division < 0] = 1
+                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
+                self.figure.ax.set_xlabel('Energy (eV)')
+                self.figure.ax.set_xlabel('log(i0 / it)')
 
-            if absorp != '' and type(absorp) == bool:
-                self.figure.ax.set_title(self.comment)
+                # self.gen_parser should be able to generate the interpolated file
+            
+                if 'xia_filename' in self.db[self.current_uid]['start']:
+                    # Parse xia
+                    xia_filename = self.db[self.current_uid]['start']['xia_filename']
+                    xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                    xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                    smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                    smbclient.copy()
+                    xia_parser = self.xia_parser
+                    xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
+                    xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
+                    xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
 
-                self.log_path = self.current_filepath[0 : self.current_filepath.rfind('/') + 1] + 'log/'
-                if(not os.path.exists(self.log_path)):
-                    os.makedirs(self.log_path)
+                    length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
 
-                self.snapshots_path = self.log_path + 'snapshots/'
-                if(not os.path.exists(self.snapshots_path)):
-                    os.makedirs(self.snapshots_path)
+                    mcas = []
+                    if 'xia_rois' in self.db[self.current_uid]['start']:
+                        xia_rois = self.db[self.current_uid]['start']['xia_rois']
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                        mca_sum = sum(mcas)
+                    else:
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
+                        mca_sum = sum(mcas)
 
-                self.file_path = 'snapshots/' + self.comment + '.png'
-                fn = self.log_path + self.file_path
-                repeat = 1
-                while(os.path.isfile(fn)):
-                    repeat += 1
-                    self.file_path = 'snapshots/' + self.comment + '-' + str(repeat) + '.png'
-                    fn = self.log_path + self.file_path
-                self.figure.savefig(fn)
+                    self.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
 
+                    self.figure.ax.cla()
+                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
-                if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
-                    self.tabWidget.setCurrentIndex(4)
-                    self.selected_filename_bin = [self.current_filepath]
-                    self.label_24.setText(self.current_filepath)
-                    self.process_bin_equal()
+                if self.html_log_func is not None:
+                    self.html_log_func(self.current_uid, self.figure)
+                self.canvas.draw_idle()
+            
+                self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
                 # Check saturation:
+<<<<<<< HEAD
                 if absorp == True:
                     try: 
                         warnings = ()
@@ -985,8 +966,35 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         warningtxt += 'Check the gains of the ion chambers'
                         QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
                         #raise
+=======
+                try: 
+                    warnings = ()
+                    if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
+                        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.gen_parser.interp_arrays['it'][:,1])) > 3.9:
+                        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                    if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
+                        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                    if len(warnings):
+                        raise Warning(warnings)
 
-            self.canvas.draw_idle()
+                except Warning as warnings:
+                    warningtxt = ''
+                    for warning in warnings.args[0]:
+                        print('Warning: {}'.format(warning))
+                        warningtxt += '{}\n'.format(warning)
+                    warningtxt += 'Check the gains of the ion chambers'
+                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                    #raise
+>>>>>>> improve_processing
+
+                self.canvas.draw_idle()
+
+            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+                self.tabWidget.setCurrentIndex(4)
+                self.selected_filename_bin = filepaths
+                self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in filepaths))
+                self.process_bin_equal()
 
         else:
             print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
@@ -1083,6 +1091,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     diff_old[j] = diff[j]
 
                     self.canvas_gain_matching.draw_idle()
+
+    def update_listWidgets(self, value_num, value_den):
+        if(type(value_num[0]) == int):
+            if value_num[0] < self.listWidget_numerator.count():
+                self.listWidget_numerator.setCurrentRow(value_num[0])
+            else:
+                self.listWidget_numerator.setCurrentRow(0)
+        #else:
+        #    self.listWidget_numerator.setCurrentItem(value_num[0])
+
+        if(type(value_den[0]) == int):
+            if value_den[0] < self.listWidget_denominator.count():
+                self.listWidget_denominator.setCurrentRow(value_den[0])
+            else:
+                self.listWidget_denominator.setCurrentRow(0)
+        #else:
+        #    self.listWidget_denominator.setCurrentItem(value_den[0])
+
+        
+    def create_lists(self, list_num, list_den):
+        self.listWidget_numerator.clear()
+        self.listWidget_denominator.clear()
+        self.listWidget_numerator.insertItems(0, list_num)
+        self.listWidget_denominator.insertItems(0, list_den)
+        
 
 
     def questionMessage(self, title, question):    
@@ -1204,15 +1237,15 @@ class EmittingStream(QtCore.QObject):
 #    return tune
 
 class process_bin_thread(QThread):
-    def __init__(self, gui, index = 1, parent_thread = None, abs_parser = None):
+    def __init__(self, gui, index = 1, parent_thread = None, parser = None):
         QThread.__init__(self)
         self.gui = gui
         self.parent_thread = parent_thread
         self.index = index
-        if abs_parser is None:
-            self.abs_parser = self.gui.abs_parser
+        if parser is None:
+            self.gen_parser = self.gui.gen_parser
         else:
-            self.abs_parser = abs_parser
+            self.gen_parser = parser
 
     def __del__(self):
         self.wait()
@@ -1240,67 +1273,75 @@ class process_bin_thread(QThread):
                 print ('[Binning Thread {}] Binning aborted!'.format(self.index))
                 return False
 
-        self.abs_parser.bin(e0, 
-                            e0 + edge_start, 
-                            e0 + edge_end, 
-                            preedge_spacing, 
-                            xanes_spacing, 
-                            exafs_spacing)
+        binned = self.gen_parser.bin(e0, 
+                                     e0 + edge_start, 
+                                     e0 + edge_end, 
+                                     preedge_spacing, 
+                                     xanes_spacing, 
+                                     exafs_spacing)
 
-        dic = self.gui.get_dic(self.abs_parser.data_manager)
 
-        #while(self.gui.old_scans_3_control != self.index):
-        #    ttime.sleep(.01)
-        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'r')
-        plot_info.append(self.gui.canvas_old_scans_3)
+        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
+        result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+        if self.gui.checkBox_log.checkState() > 0:
+            ylabel = 'log({})'.format(ylabel)
+            result = np.log(result)
+            result_orig = np.log(result_orig)
+        ylabel = 'Binned {}'.format(ylabel)
+
+        energy_string = self.gen_parser.get_energy_string()
+
+        plot_info = [binned[energy_string], 
+                     result, 
+                     'r', 
+                     energy_string, 
+                     ylabel, 
+                     self.gui.figure_old_scans_3.ax, 
+                     self.gui.canvas_old_scans_3]
         self.gui.plotting_list.append(plot_info)
-        #self.gui.canvas_old_scans_3.draw_idle()
-        self.gui.old_scans_3_control += 1
         
 
-        k_data = self.abs_parser.data_manager.get_k_data(e0,
+        k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
                                                          exafs_spacing,
-                                                         self.abs_parser.data_manager.abs,
-                                                         self.abs_parser.data_manager.sorted_matrix[:, 1],
-                                                         self.abs_parser.data_manager.data_en,
-                                                         self.abs_parser.data_manager.abs_orig,
+                                                         result,
+                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.data_manager.data_arrays[energy_string],
+                                                         result_orig,
                                                          k_power)
 
-        while(self.gui.old_scans_control != self.index):
-            ttime.sleep(.01)
-
-        self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
+        #self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
         plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
 
         #self.gui.figure_old_scans.ax.grid(True)
         #self.gui.figure_old_scans.ax.set_xlabel('k')
         #self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
-        #self.gui.canvas_old_scans.draw_idle()
-        self.gui.old_scans_control += 1
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
 
         if self.gui.checkBox_process_bin.checkState() > 0:
-            filename = self.abs_parser.curr_filename_save
-            self.abs_parser.data_manager.export_dat(filename, self.abs_parser.header_read.replace('Timestamp (s)   ','', 1)[:-1])
+            filename = self.gen_parser.curr_filename_save
+            self.gen_parser.data_manager.export_dat_gen(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
         print('[Binning Thread {}] Finished'.format(self.index))
 
-        #optionally: Emit signal
 
 
 
 class process_bin_thread_equal(QThread):
+    update_listWidgets = QtCore.pyqtSignal(list, list)#, int, int)
+    create_lists = QtCore.pyqtSignal(list, list)
     def __init__(self, gui, filename, index = 1):
         QThread.__init__(self)
         self.gui = gui
         self.index = index
         self.filename = filename
-        self.abs_parser = xasdata.XASdataAbs()
-        self.abs_parser.curr_filename_save = filename
+        self.gen_parser = xasdata.XASdataGeneric(gui.db)
+        self.gen_parser.curr_filename_save = filename
 
     def __del__(self):
         self.wait()
@@ -1308,52 +1349,118 @@ class process_bin_thread_equal(QThread):
     def run(self):
         #for filename in self.gui.selected_filename_bin:
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
-        self.abs_parser.loadInterpFile(self.filename) #self.gui.label_24.text())
+        self.gen_parser.loadInterpFile(self.filename)
+        #if self.gui.listWidget_numerator.currentItem() is not None:
+        #    self.gui.last_num = self.gui.listWidget_numerator.currentRow()
+        #if self.gui.listWidget_denominator.currentItem() is not None:
+        #    self.gui.last_den = self.gui.listWidget_denominator.currentRow()
+        #self.gui.listWidget_numerator.clear()
+        #self.gui.listWidget_denominator.clear()
+        #self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
+        #self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
 
-        while(self.gui.old_scans_3_control != self.index):
-            ttime.sleep(.01)
-
-        dic = self.gui.get_dic(self.abs_parser)
-        plot_info = self.abs_parser.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_3.ax, color = 'b')
-        plot_info.append(self.gui.canvas_old_scans_3)
-        self.gui.plotting_list.append(plot_info)
-
-        #self.gui.canvas_old_scans_3.draw_idle()
-        #self.gui.old_scans_3_control += 1
-
-
-        self.abs_parser.bin_equal()
-        dic = self.gui.get_dic(self.abs_parser.data_manager)
-        while(self.gui.old_scans_2_control != self.index):
-            ttime.sleep(.01)
-
-        plot_info = self.abs_parser.data_manager.get_plot_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax, color = 'b')
-        plot_info.append(self.gui.canvas_old_scans_2)
-        self.gui.plotting_list.append(plot_info)
-        #self.gui.figure_old_scans_2.ax.set_ylabel('Log(i0/it)', color='b')
-
-        if self.gui.checkBox_find_edge.checkState() > 0:
-            self.gui.edge_index = self.abs_parser.data_manager.get_edge_index(self.abs_parser.data_manager.abs)
-            if self.gui.edge_index > 0:
-                x_edge = self.abs_parser.data_manager.en_grid[self.gui.edge_index]
-                y_edge = self.abs_parser.data_manager.abs[self.gui.edge_index]
-
-                self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                plot_info = [x_edge, y_edge, 'ys', '', '', self.gui.figure_old_scans_2.ax, self.gui.canvas_old_scans_2]
-                self.gui.plotting_list.append(plot_info)
-                #edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-                #self.gui.figure_old_scans_2.ax.legend(handles = [edge_path])
-                #self.gui.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-                print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
-                self.gui.edit_E0_2.setText(str(int(np.round(self.abs_parser.data_manager.en_grid[self.gui.edge_index]))))
+        ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
+        self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
+        while(self.gui.listWidget_denominator.count() == 0 or self.gui.listWidget_numerator.count() == 0):
+            QtCore.QCoreApplication.processEvents()
+            ttime.sleep(0.1)
+        
+        
+        #print(self.gui.listWidget_numerator.count())
+        if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
+            value_num = ''
+            if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
+                items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
+                value_num = [items_num]
+            if value_num == '':
+                value_num = [3]
             
-        plot_info = self.abs_parser.data_manager.get_plotder_info(plotting_dic = dic, ax = self.gui.figure_old_scans_2.ax2, color = 'r')
-        plot_info.append(self.gui.canvas_old_scans_2)
-        self.gui.plotting_list.append(plot_info)
-        #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+            value_den = ''
+            if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
+                items_den = self.gui.last_den
+                value_den = [items_den]
+            if value_den == '':
+                value_den = [len(self.gen_parser.interp_arrays.keys()) - 1]
 
-        #self.gui.canvas_old_scans_2.draw_idle()
-        self.gui.old_scans_2_control += 1
+            self.update_listWidgets.emit(value_num, value_den)
+            ttime.sleep(0.2)
+            while(self.gui.listWidget_denominator.currentRow() == -1 or self.gui.listWidget_numerator.currentRow() == -1):
+                QtCore.QCoreApplication.processEvents()
+                ttime.sleep(0.1)
+
+            energy_string = self.gen_parser.get_energy_string()
+
+            result = self.gen_parser.interp_arrays[self.gui.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.gui.listWidget_denominator.currentItem().text()][:, 1]
+            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+            if self.gui.checkBox_log.checkState() > 0:
+                ylabel = 'log({})'.format(ylabel)
+                result = np.log(result)
+            
+            plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1], 
+                         result, 
+                         'b', 
+                         energy_string, 
+                         ylabel, 
+                         self.gui.figure_old_scans_3.ax, 
+                         self.gui.canvas_old_scans_3]
+            self.gui.plotting_list.append(plot_info)
+
+
+            bin_eq = self.gen_parser.bin_equal()
+
+            result = bin_eq[self.gui.listWidget_numerator.currentItem().text()] / bin_eq[self.gui.listWidget_denominator.currentItem().text()]
+            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+
+            if self.gui.checkBox_log.checkState() > 0:
+                ylabel = 'log({})'.format(ylabel)
+                result = np.log(result)
+            ylabel = 'Binned Equally {}'.format(ylabel)
+
+            plot_info = [bin_eq[energy_string], 
+                         result, 
+                         'b', 
+                         energy_string, 
+                         ylabel, 
+                         self.gui.figure_old_scans_2.ax, 
+                         self.gui.canvas_old_scans_2]
+            self.gui.plotting_list.append(plot_info)
+
+
+
+            if self.gui.checkBox_find_edge.checkState() > 0:
+
+                self.gui.edge_index = self.gen_parser.data_manager.get_edge_index(result)
+                if self.gui.edge_index > 0:
+                    
+                    x_edge = self.gen_parser.data_manager.en_grid[self.gui.edge_index]
+                    y_edge = result[self.gui.edge_index]
+
+                    self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                    plot_info = [x_edge, 
+                                 y_edge, 
+                                 'ys', 
+                                 '', 
+                                 '', 
+                                 self.gui.figure_old_scans_2.ax, 
+                                 self.gui.canvas_old_scans_2]
+                    self.gui.plotting_list.append(plot_info)
+
+                    print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                    self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                
+
+            result_der = self.gen_parser.data_manager.get_derivative(result)
+            plot_info = [bin_eq[energy_string], 
+                         result_der, 
+                         'r', energy_string, 
+                         'Derivative', 
+                         self.gui.figure_old_scans_2.ax2, 
+                         self.gui.canvas_old_scans_2]
+            self.gui.plotting_list.append(plot_info)
+
+            #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
+
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
 
@@ -1371,6 +1478,8 @@ class process_threads_manager(QThread):
         for filename in self.gui.selected_filename_bin:
             process_thread_equal = process_bin_thread_equal(self.gui, filename, index) 
             self.gui.connect(process_thread_equal, SIGNAL("finished()"), self.gui.reset_processing_tab)
+            process_thread_equal.update_listWidgets.connect(self.gui.update_listWidgets)
+            process_thread_equal.create_lists.connect(self.gui.create_lists)
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
@@ -1378,13 +1487,13 @@ class process_threads_manager(QThread):
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
-                process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.abs_parser) 
+                process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.gen_parser) 
                 self.gui.connect(process_thread, SIGNAL("finished()"), self.gui.reset_processing_tab)
                 process_thread.start()
                 self.gui.active_threads += 1
                 self.gui.total_threads += 1
             index += 1
-        self.gui.abs_parser = process_thread_equal.abs_parser
+        self.gui.gen_parser = process_thread_equal.gen_parser
 
 
 
