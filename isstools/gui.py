@@ -869,9 +869,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             # Run the scan using the dict created before
             self.current_uid_list = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
+
+            if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets':
+                return
+
             if type(self.current_uid_list) != list:
                 self.current_uid_list = [self.current_uid_list]
 
+            filepaths = []
             for i in range(len(self.current_uid_list)):
                 self.current_uid = self.current_uid_list[i]
                 if self.current_uid == '':
@@ -883,6 +888,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                         self.db[self.current_uid]['start']['PROPOSAL'],
                                                         self.db[self.current_uid]['start']['comment'])
 
+                filepaths.append(self.current_filepath)
                 self.gen_parser.load(self.current_uid)
 
                 key_base = 'i0'
@@ -890,7 +896,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     key_base = 'xia_trigger'
                 self.gen_parser.interpolate(key_base = key_base)
 
-                self.figure.ax.plot(np.log(self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]))
+                self.figure.ax.cla()
+                self.canvas.draw_idle()
+
+                division = self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]
+                division[division < 0] = 1
+                self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
                 self.figure.ax.set_xlabel('Energy (eV)')
                 self.figure.ax.set_xlabel('log(i0 / it)')
 
@@ -932,12 +943,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             
                 self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
-                if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
-                    self.tabWidget.setCurrentIndex(4)
-                    self.selected_filename_bin = [self.current_filepath]
-                    self.label_24.setText(self.current_filepath)
-                    self.process_bin_equal()
-
                 # Check saturation:
                 try: 
                     warnings = ()
@@ -961,8 +966,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 self.canvas.draw_idle()
 
-            else:
-                print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
+            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+                self.tabWidget.setCurrentIndex(4)
+                self.selected_filename_bin = filepaths
+                self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in filepaths))
+                self.process_bin_equal()
+
+        else:
+            print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
 
 
     def re_abort(self):
@@ -1313,14 +1324,14 @@ class process_bin_thread_equal(QThread):
                 items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
                 value_num = [items_num]
             if value_num == '':
-                value_num = [2]
+                value_num = [3]
             
             value_den = ''
             if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
                 items_den = self.gui.last_den
                 value_den = [items_den]
             if value_den == '':
-                value_den = [5]
+                value_den = [len(self.gen_parser.interp_arrays.keys()) - 1]
 
             self.update_listWidgets.emit(value_num, value_den)
             ttime.sleep(0.2)

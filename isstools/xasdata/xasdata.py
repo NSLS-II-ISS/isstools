@@ -475,6 +475,7 @@ class XASdataGeneric(XASdata):
             energy = np.copy(self.arrays.get(has_encoder))
             if 'angle_offset' in self.db[uid]['start']:
                 energy[:, 1] = xray.encoder2energy(energy[:, 1], - float(self.db[uid]['start']['angle_offset']))
+            del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
         
@@ -581,12 +582,65 @@ class XASdataGeneric(XASdata):
             del copy_interp['En. (eV)']
             energy_header = 'En. (eV)'
 
+        i0_header = ''
+        if 'i0' in copy_interp.keys():
+            matrix.append(copy_interp['i0'][:,1])
+            del copy_interp['i0']
+            i0_header = 'i0'
+        elif 'i0 (V)' in copy_interp.keys():
+            matrix.append(copy_interp['i0 (V)'][:,1])
+            del copy_interp['i0 (V)']
+            i0_header = 'i0 (V)'
+
+        it_header = ''
+        if 'it' in copy_interp.keys():
+            matrix.append(copy_interp['it'][:,1])
+            del copy_interp['it']
+            it_header = 'it'
+        elif 'it(V)' in copy_interp.keys():
+            matrix.append(copy_interp['it(V)'][:,1])
+            del copy_interp['it(V)']
+            it_header = 'it(V)'
+
+        ir_header = ''
+        if 'ir' in copy_interp.keys():
+            matrix.append(copy_interp['ir'][:,1])
+            del copy_interp['ir']
+            ir_header = 'ir'
+        elif 'ir(V)' in copy_interp.keys():
+            matrix.append(copy_interp['ir(V)'][:,1])
+            del copy_interp['ir(V)']
+            ir_header = 'ir(V)'
+
+        iff_header = ''
+        if 'iff' in copy_interp.keys():
+            matrix.append(copy_interp['iff'][:,1])
+            del copy_interp['iff']
+            iff_header = 'iff'
+        elif 'iff(V)' in copy_interp.keys():
+            matrix.append(copy_interp['iff(V)'][:,1])
+            del copy_interp['iff(V)']
+            iff_header = 'iff(V)'
+        
+
         for key in copy_interp.keys():
             matrix.append(copy_interp[key][:,1])
         matrix = np.array(matrix).transpose()
 
         fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
         header = '  '.join(copy_interp.keys())
+        if iff_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(iff_header, header)
+        if ir_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(ir_header, header)
+        if it_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(it_header, header)
+        if i0_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(i0_header, header)
         if energy_header:
             fmt = '{} {}'.format('%12.6f', fmt)
             header = '{}  {}'.format(energy_header, header)
@@ -947,6 +1001,7 @@ class XASDataManager:
             del copy_interp['1']
         keys = copy_interp.keys()
         matrix = []
+
         energy_header = ''
         if 'energy' in copy_interp.keys():
             matrix.append(copy_interp['energy'])
@@ -957,12 +1012,66 @@ class XASDataManager:
             del copy_interp['En. (eV)']
             energy_header = 'En. (eV)'
 
+        i0_header = ''
+        if 'i0' in copy_interp.keys():
+            matrix.append(copy_interp['i0'])
+            del copy_interp['i0']
+            i0_header = 'i0'
+        elif 'i0 (V)' in copy_interp.keys():
+            matrix.append(copy_interp['i0 (V)'])
+            del copy_interp['i0 (V)']
+            i0_header = 'i0 (V)'
+
+        it_header = ''
+        if 'it' in copy_interp.keys():
+            matrix.append(copy_interp['it'])
+            del copy_interp['it']
+            it_header = 'it'
+        elif 'it(V)' in copy_interp.keys():
+            matrix.append(copy_interp['it(V)'])
+            del copy_interp['it(V)']
+            it_header = 'it(V)'
+
+        ir_header = ''
+        if 'ir' in copy_interp.keys():
+            matrix.append(copy_interp['ir'])
+            del copy_interp['ir']
+            ir_header = 'ir'
+        elif 'ir(V)' in copy_interp.keys():
+            matrix.append(copy_interp['ir(V)'])
+            del copy_interp['ir(V)']
+            ir_header = 'ir(V)'
+
+        iff_header = ''
+        if 'iff' in copy_interp.keys():
+            matrix.append(copy_interp['iff'])
+            del copy_interp['iff']
+            iff_header = 'iff'
+        elif 'iff(V)' in copy_interp.keys():
+            matrix.append(copy_interp['iff(V)'])
+            del copy_interp['iff(V)']
+            iff_header = 'iff(V)'
+
+
         for key in copy_interp.keys():
             matrix.append(copy_interp[key])
         matrix = np.array(matrix).transpose()
 
         fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
         header = '  '.join(copy_interp.keys())
+
+        if iff_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(iff_header, header)
+        if ir_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(ir_header, header)
+        if it_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(it_header, header)
+        if i0_header:
+            fmt = '{} {}'.format('%12.6f', fmt)
+            header = '{}  {}'.format(i0_header, header)
         if energy_header:
             fmt = '{} {}'.format('%12.6f', fmt)
             header = '{}  {}'.format(energy_header, header)
