@@ -945,28 +945,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
                 # Check saturation:
-<<<<<<< HEAD
-                if absorp == True:
-                    try: 
-                        warnings = ()
-                        if np.max(np.abs(self.parser.i0_interp[:,1])) > 3.9:
-                            warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                        if np.max(np.abs(self.parser.it_interp[:,1])) > 3.9:
-                            warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                        if np.max(np.abs(self.parser.ir_interp[:,1])) > 9.9:
-                            warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                        if len(warnings):
-                            raise Warning(warnings)
-
-                    except Warning as warnings:
-                        warningtxt = ''
-                        for warning in warnings.args[0]:
-                            print('Warning: {}'.format(warning))
-                            warningtxt += '{}\n'.format(warning)
-                        warningtxt += 'Check the gains of the ion chambers'
-                        QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
-                        #raise
-=======
                 try: 
                     warnings = ()
                     if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
@@ -986,7 +964,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     warningtxt += 'Check the gains of the ion chambers'
                     QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
                     #raise
->>>>>>> improve_processing
 
                 self.canvas.draw_idle()
 
