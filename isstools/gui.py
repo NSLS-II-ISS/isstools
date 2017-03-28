@@ -28,6 +28,7 @@ import inspect
 import re
 import sys
 import collections
+import signal
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -995,16 +996,38 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.RE.last_state = self.RE.state
 
     def run_gains_test(self):
+
+        def handler(signum, frame):
+            print("Could not open shutters")
+            raise Exception("end of time")
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(6)
+
         if self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
-            self.shutter_b.open()
+            try:
+                self.shutter_b.open()
+            except Exception as exc: 
+                print('Timeout! Aborting!')
+                return
+
             while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
                 QtGui.QApplication.processEvents()
                 ttime.sleep(0.1)
+
         if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
-            self.shutter_a.open()
+            try:
+                self.shutter_a.open()
+            except: 
+                print('Timeout! Aborting!')
+                return
+
             while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
                 QtGui.QApplication.processEvents()
                 ttime.sleep(0.1)
+
+        signal.alarm(0)
+
         if self.es_shutter.state == 'closed':
             self.es_shutter.open()
 
@@ -1012,7 +1035,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if func.__name__ == 'get_offsets':
                 getoffsets_func = func
                 break
-        self.current_uid, self.current_filepath, absorp = getoffsets_func(10, dummy_read=True)
+        self.current_uid_list = getoffsets_func(10, dummy_read=True)
 
         self.es_shutter.close()
 
