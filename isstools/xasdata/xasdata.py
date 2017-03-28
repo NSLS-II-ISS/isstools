@@ -503,7 +503,7 @@ class XASdataGeneric(XASdata):
             timestamp_index = keys.index('timestamp')
         
         matrix = np.loadtxt(filename)
-        for i in range(len(keys)):
+        for i in range(matrix.shape[1]):
             if i != timestamp_index:
                 self.interp_arrays[keys[i]] = np.array([matrix[:, timestamp_index], matrix[:, i]]).transpose()
         self.interp_arrays['1'] = np.array([matrix[:, timestamp_index], np.ones(len(matrix[:, 0]))]).transpose()

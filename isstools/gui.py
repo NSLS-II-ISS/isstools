@@ -118,6 +118,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia = detectors['xia']
         self.pba1 = detectors['pba1']
         self.pba2 = detectors['pba2']
+        self.pb9 = detectors['pb9']
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
@@ -151,6 +152,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.params2 = []
         self.params3 = []
         self.populateParams(0)
+
+        times_arr = np.array(list(self.pba1.adc1.averaging_points.enum_strs))
+        times_arr[times_arr == ''] = 0.0
+        times_arr = list(times_arr.astype(np.float) * self.pba1.adc1.sample_rate.value / 100000)
+        times_arr = [str(elem) for elem in times_arr]
+        self.comboBox_samp_time.addItems(times_arr)
+        self.comboBox_samp_time.setCurrentIndex(self.pba1.adc1.averaging_points.value)
+
+        self.lineEdit_samp_time.setText(str(self.pb9.enc1.filter_dt.value / 100000))
 
         # Initialize Ophyd elements
         self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}', name = 'shutter_a')
@@ -849,6 +859,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 print ('Aborted!')
                 return False 
 
+        # Send sampling time to the pizzaboxes:
+        value = int(round(float(self.comboBox_samp_time.currentText()) / self.pba1.adc1.sample_rate.value * 100000))
+        self.pba1.adc1.averaging_points.put(str(value))
+        self.pba1.adc6.averaging_points.put(str(value))
+        self.pba1.adc7.averaging_points.put(str(value))
+        self.pba2.adc1.averaging_points.put(str(value))
+        self.pba2.adc6.averaging_points.put(str(value))
+        self.pba2.adc7.averaging_points.put(str(value))
+
+        self.pb9.enc1.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+
         self.comment = self.params2[0].text()
         if(self.comment):
             print('\nStarting scan...')
@@ -1373,7 +1394,7 @@ class process_bin_thread_equal(QThread):
                 items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
                 value_num = [items_num]
             if value_num == '':
-                value_num = [3]
+                value_num = [2]
             
             value_den = ''
             if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
