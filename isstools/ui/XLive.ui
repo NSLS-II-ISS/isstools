@@ -1106,7 +1106,7 @@ Offset</string>
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
-      <string>Tune</string>
+      <string>Scan / Tune</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
