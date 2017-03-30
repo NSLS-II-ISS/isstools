@@ -1,7 +1,7 @@
 import numpy as np
 import PyQt4
 from PyQt4 import uic, QtGui, QtCore, Qt
-from PyQt4.QtCore import QThread, SIGNAL
+from PyQt4.QtCore import QThread, SIGNAL, QSettings
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -205,6 +205,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_num = ''
         self.last_den = ''
 
+        # Initialize persistent values
+        self.settings = QSettings('ISS Beamline', 'XLive')
+        self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue = '11470', type = str))
+        self.edit_E0.setText(self.settings.value('e0_trajectory', defaultValue = '11470', type = str))
+        self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
+
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
@@ -277,6 +283,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def getX(self, event):
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+
+    def save_e0_processing_value(self, string):
+        self.settings.setValue('e0_processing', string)
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
@@ -457,21 +466,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         t_manager.start()
         print('[Finished Launching Threads]')
 
-        #for filename in self.selected_filename_bin:
-        #    process_thread_equal = process_bin_thread_equal(self, filename, index) 
-        #    process_thread_equal.start()
-
-        #    self.curr_filename_save = filename
-        #    if self.checkBox_process_bin.checkState() > 0:
-        #        process_thread = process_bin_thread(self, index, process_thread_equal, process_thread_equal.abs_parser) 
-        #        process_thread.start()
-
-        #    index += 1
-
-        #self.push_bin.setEnabled(True)
-        #self.push_replot_exafs.setDisabled(True)
-        #self.push_save_bin.setDisabled(True)
-        #self.push_replot_file.setEnabled(True)
 
     def __del__(self):
         # Restore sys.stdout
