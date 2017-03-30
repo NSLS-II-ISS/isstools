@@ -1795,6 +1795,33 @@ file and switch to
        </item>
       </layout>
      </widget>
+     <widget class="QCheckBox" name="checkBox_piezo_fb">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>690</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Piezo Feedback</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="update_piezo">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>720</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update Piezo
+Parameters</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
