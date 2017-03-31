@@ -150,7 +150,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
 
         self.piezo_line = self.settings.value('piezo_line', defaultValue = 420, type = int)
-        self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = int)
+        self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
 
         # Initialize 'run' tab
         self.plan_funcs = plan_funcs
@@ -240,7 +240,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if dlg.exec_():
             piezo_line, piezo_center = dlg.getValues()
             self.piezo_line = int(piezo_line)
-            self.piezo_center = int(piezo_center)
+            self.piezo_center = float(piezo_center)
             self.settings.setValue('piezo_line', self.piezo_line)
             self.settings.setValue('piezo_center', self.piezo_center)
 
