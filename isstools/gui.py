@@ -588,6 +588,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_tune.set_facecolor(color='0.89')
         self.canvas_tune = FigureCanvas(self.figure_tune)
         self.figure_tune.ax = self.figure_tune.add_subplot(111)
+        self.toolbar_tune = NavigationToolbar(self.canvas_tune, self.tab_2, coordinates=True)
+        self.plot_tune.addWidget(self.toolbar_tune)
         self.plot_tune.addWidget(self.canvas_tune)
         self.canvas_tune.draw_idle()
 
@@ -595,6 +597,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_gen_scan.set_facecolor(color='0.89')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
         self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
+        self.toolbar_gen_scan = NavigationToolbar(self.canvas_gen_scan, self.tab_2, coordinates=True)
+        self.plot_gen_scan.addWidget(self.toolbar_gen_scan)
         self.plot_gen_scan.addWidget(self.canvas_gen_scan)
         self.canvas_gen_scan.draw_idle()
 
