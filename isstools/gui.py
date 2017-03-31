@@ -8,6 +8,8 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.widgets import Cursor
 import matplotlib.patches as mpatches
+from scipy.optimize import curve_fit
+
 import pkg_resources
 import time as ttime
 import math
@@ -20,6 +22,7 @@ from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 from isstools.elements import elements
 from isstools.dialogs import UpdateUserDialog
+from isstools.dialogs import UpdatePiezoDialog
 from isstools.dialogs import UpdateAngleOffset
 from isstools.dialogs import MoveMotorDialog
 from isstools.conversions import xray
@@ -143,6 +146,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
         self.process_detsig()
+        for i in range(self.comboBox_gen_det.count()):
+            if 'bpm_es' == list(self.det_dict.keys())[i].name:
+                self.bpm_es = list(self.det_dict.keys())[i]
+                break
+
+        # Initialize persistent values
+        self.settings = QSettings('ISS Beamline', 'XLive')
+        self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue = '11470', type = str))
+        self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
+
+        self.piezo_line = self.settings.value('piezo_line', defaultValue = 420, type = int)
+        self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
         #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
@@ -152,6 +167,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_type.addItems(self.plan_funcs_names)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
+        self.checkBox_piezo_fb.stateChanged.connect(self.toggle_piezo_fb)
+
+        self.piezo_thread = piezo_fb_thread(self)
+        self.update_piezo.clicked.connect(self.update_piezo_params)
+
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_re_state)
         self.timer.start(1000)
@@ -214,15 +234,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_num = ''
         self.last_den = ''
 
-        # Initialize persistent values
-        self.settings = QSettings('ISS Beamline', 'XLive')
-        self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue = '11470', type = str))
-        self.edit_E0.setText(self.settings.value('e0_trajectory', defaultValue = '11470', type = str))
-        self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
-
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def toggle_piezo_fb(self, value):
+        if value == 0:
+            self.piezo_thread.go = 0
+        else:
+            self.piezo_thread.start()
+
+    def update_piezo_params(self):
+        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center))
+        if dlg.exec_():
+            piezo_line, piezo_center = dlg.getValues()
+            self.piezo_line = int(piezo_line)
+            self.piezo_center = float(piezo_center)
+            self.settings.setValue('piezo_line', self.piezo_line)
+            self.settings.setValue('piezo_center', self.piezo_center)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
@@ -1536,6 +1565,43 @@ class process_threads_manager(QThread):
                 self.gui.total_threads += 1
             index += 1
         self.gui.gen_parser = process_thread_equal.gen_parser
+
+
+class piezo_fb_thread(QThread):
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.gui = gui
+        self.go = 0
+
+    def gauss(self, x, *p):
+        A, mu, sigma = p
+        return A*np.exp(-(x-mu)**2/(2.*sigma**2))
+
+    def gaussian_piezo_feedback(self, line = 420, center_point = 655):
+        image = []
+        image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        image = image.transpose()
+
+        index_max = image[:, 960 - line].argmax()
+        max_value = image[:, 960 - line].max()
+
+        if max_value >= 10 and max_value <= 100:
+            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
+            #print('Index: {}     coeff[1]: {}'.format(index_max, coeff[1]))
+            deviation = -(coeff[1] - center_point)
+            piezo_diff = deviation * 0.0855
+            curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
+            self.gui.hhm.pitch.move(curr_value + piezo_diff)
+
+    def run(self):
+        self.go = 1
+        while(self.go):
+            if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
+                self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center)
+                ttime.sleep(0.001)
+
+
+
 
 
 
