@@ -21,6 +21,7 @@ from isstools.xiaparser import xiaparser
 from isstools.elements import elements
 from isstools.dialogs import UpdateUserDialog
 from isstools.dialogs import UpdateAngleOffset
+from isstools.dialogs import MoveMotorDialog
 from isstools.conversions import xray
 import os
 from os import listdir
@@ -30,6 +31,8 @@ import re
 import sys
 import collections
 import signal
+
+import json
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -110,6 +113,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_plot_traj.clicked.connect(self.plot_traj_file)
         self.push_plot_traj.setDisabled(True)
         self.push_save_trajectory.setDisabled(True)
+        json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+        self.json_data = json.loads(json_data)
+        self.comboBoxElement.addItems([item['name'] for item in self.json_data])
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
@@ -137,6 +143,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
         self.process_detsig()
+        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+        #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
         # Initialize 'run' tab
         self.plan_funcs = plan_funcs
@@ -217,7 +225,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
     def update_user(self):
-        dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text())
+        dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
         if dlg.exec_():
             self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md['PI'] = dlg.getValues()
             self.label_6.setText('{}'.format(self.RE.md['year']))
@@ -284,6 +292,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def getX(self, event):
         self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+
+    def getX_gen_scan(self, event):
+        if event.button == 2:
+            if self.canvas_gen_scan.motor != '':
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position = event.xdata, motor = self.canvas_gen_scan.motor, parent = self.canvas_gen_scan)
+                if dlg.exec_():
+                    pass
 
     def save_e0_processing_value(self, string):
         self.settings.setValue('e0_processing', string)
@@ -598,6 +613,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_gen_scan = Figure()
         self.figure_gen_scan.set_facecolor(color='0.89')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
+        self.canvas_gen_scan.motor = ''
         self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
         self.toolbar_gen_scan = NavigationToolbar(self.canvas_gen_scan, self.tab_2, coordinates=True)
         self.plot_gen_scan.addWidget(self.toolbar_gen_scan)
@@ -676,6 +692,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         curr_det = ''
         curr_mot = ''
+        
+        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
         for i in range(self.comboBox_gen_det.count()):
             if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
@@ -703,7 +721,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.figure_gen_scan.ax.cla()
         self.canvas_gen_scan.draw_idle()
+        self.canvas_gen_scan.motor = curr_mot
         self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, ax = self.figure_gen_scan.ax)
+        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
