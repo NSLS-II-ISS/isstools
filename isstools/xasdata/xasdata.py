@@ -1222,27 +1222,27 @@ class XASDataManager:
         lists = [list() for i in range(len(indexes))]
 
         energy = matrix[:,0]
+        diff = np.diff(matrix[:,0])
+        diff_indexes = np.where(diff==0)[0]
+        diff2 = np.diff(diff_indexes)
 
-        while i < len(energy):
-            condition = (energy[i] == energy)
-            energy_interval = np.extract(condition, energy)
-            #print(energy_interval)
-            energy_index = np.where(energy == energy_interval[0])[0]
-            #print(energy_interval)
-
-            listenergy.append(energy[i])
-            i = energy_index[len(energy_index) - 1] + 1
-
-            f = 0
-            #print(i)
-            #print(len(lists))
-            #print(len(matrix[0]))
-            for j in indexes:
-                lists[f].append(np.mean(np.extract(condition, matrix[:,j])))
-                f += 1
-        listenergy = [listenergy]
-        listenergy.extend(lists)
-        return np.array(listenergy).transpose()
+        import time
+        while len(diff[diff==0]) > 0:
+            diff_index = np.where(diff==0)[0]
+            last_i = diff_index[len(diff_index) - 1] + 2
+            for i in diff_index[::-1]:
+                if i < last_i - 1:
+                    energy = matrix[:,0]
+                    condition = (energy[i] == energy)
+                    energy_interval = np.extract(condition, energy)
+                    energy_index = np.where(energy == energy_interval[0])[0]
+                    for j in range(len(matrix[0])):
+                        matrix[i, j] = np.mean(np.extract(condition, matrix[:,j]))
+                    matrix = np.delete(matrix, energy_index[1:], 0)
+                last_i = i
+            diff = np.diff(matrix[:,0])
+        
+        return matrix
 
 
     def get_edge_index(self, abs):

@@ -901,8 +901,8 @@
      <widget class="QWidget" name="gridLayoutWidget_10">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>130</y>
+        <x>790</x>
+        <y>10</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -973,7 +973,7 @@
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>20</y>
+        <y>80</y>
         <width>201</width>
         <height>102</height>
        </rect>
@@ -1093,7 +1093,7 @@
       <property name="geometry">
        <rect>
         <x>780</x>
-        <y>90</y>
+        <y>150</y>
         <width>71</width>
         <height>31</height>
        </rect>
@@ -1102,6 +1102,38 @@
        <string>Update
 Offset</string>
       </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_17">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>10</y>
+        <width>201</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_20">
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboBoxElement"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_105">
+         <property name="text">
+          <string>Element</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="comboBoxEdge"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_113">
+         <property name="text">
+          <string>Edge</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_5">
