@@ -1223,41 +1223,25 @@ class XASDataManager:
 
         energy = matrix[:,0]
         diff = np.diff(matrix[:,0])
-        #print(energy[0], energy[1], energy[2], energy[3], energy[4], energy[5])
         diff_indexes = np.where(diff==0)[0]
         diff2 = np.diff(diff_indexes)
-        #print(np.where(diff==0))
-        #print(np.where(diff2==1))
 
         import time
         while len(diff[diff==0]) > 0:
-            #print(len(diff[diff==0]))
             diff_index = np.where(diff==0)[0]
             last_i = diff_index[len(diff_index) - 1] + 2
             for i in diff_index[::-1]:
                 if i < last_i - 1:
-                    print(i, last_i)
                     energy = matrix[:,0]
                     condition = (energy[i] == energy)
                     energy_interval = np.extract(condition, energy)
                     energy_index = np.where(energy == energy_interval[0])[0]
                     for j in range(len(matrix[0])):
                         matrix[i, j] = np.mean(np.extract(condition, matrix[:,j]))
-                    #print(len(matrix[:, 0]))
                     matrix = np.delete(matrix, energy_index[1:], 0)
-                    #print(len(matrix[:, 0]))
-                    #time.sleep(0.05)
-                    #break
                 last_i = i
             diff = np.diff(matrix[:,0])
         
-            #diff_index = np.where(diff==0)[0]
-            #for i in diff_index:
-            #    for j in indexes:
-            #        matrix[i, j] = matrix[i, j] matrix[i, j]
-            #    np.delete(energy, i)
-                
-        print(matrix)
         return matrix
 
 
