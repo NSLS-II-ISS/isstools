@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.widgets import Cursor
 import matplotlib.patches as mpatches
 import pkg_resources
 import time as ttime
@@ -592,6 +593,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_tune.addWidget(self.toolbar_tune)
         self.plot_tune.addWidget(self.canvas_tune)
         self.canvas_tune.draw_idle()
+        self.cursor_tune = Cursor(self.figure_tune.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gen_scan = Figure()
         self.figure_gen_scan.set_facecolor(color='0.89')
@@ -601,6 +603,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_gen_scan.addWidget(self.toolbar_gen_scan)
         self.plot_gen_scan.addWidget(self.canvas_gen_scan)
         self.canvas_gen_scan.draw_idle()
+        self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gain_matching = Figure()
         self.figure_gain_matching.set_facecolor(color='0.89')
