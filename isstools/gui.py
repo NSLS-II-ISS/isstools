@@ -158,6 +158,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.piezo_line = self.settings.value('piezo_line', defaultValue = 420, type = int)
         self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
+        self.piezo_nlines = self.settings.value('piezo_nlines', defaultValue = 5, type = int)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
         #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
@@ -245,13 +246,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.start()
 
     def update_piezo_params(self):
-        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center))
+        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines))
         if dlg.exec_():
-            piezo_line, piezo_center = dlg.getValues()
+            piezo_line, piezo_center, piezo_nlines = dlg.getValues()
             self.piezo_line = int(piezo_line)
             self.piezo_center = float(piezo_center)
+            self.piezo_nlines = int(piezo_nlines)
             self.settings.setValue('piezo_line', self.piezo_line)
             self.settings.setValue('piezo_center', self.piezo_center)
+            self.settings.setValue('piezo_nlines', self.piezo_nlines)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
@@ -1583,7 +1586,7 @@ class piezo_fb_thread(QThread):
         A, mu, sigma = p
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
-    def gaussian_piezo_feedback(self, line = 420, center_point = 655):
+    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 5):
         image = []
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
         image = image.transpose()
@@ -1592,7 +1595,8 @@ class piezo_fb_thread(QThread):
         max_value = image[:, 960 - line].max()
 
         if max_value >= 10 and max_value <= 100:
-            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
+            sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
             #print('Index: {}     coeff[1]: {}'.format(index_max, coeff[1]))
             deviation = -(coeff[1] - center_point)
             piezo_diff = deviation * 0.0855
@@ -1603,7 +1607,9 @@ class piezo_fb_thread(QThread):
         self.go = 1
         while(self.go):
             if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
-                self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center)
+                self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines)
+                ttime.sleep(0.001)
+            else:
                 ttime.sleep(0.001)
 
 
