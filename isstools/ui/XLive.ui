@@ -916,6 +916,9 @@
            <height>25</height>
           </size>
          </property>
+         <property name="maximum">
+          <number>50000</number>
+         </property>
          <property name="value">
           <number>1</number>
          </property>
@@ -1157,7 +1160,7 @@ Offset</string>
         <x>30</x>
         <y>30</y>
         <width>291</width>
-        <height>156</height>
+        <height>162</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout">
@@ -1283,7 +1286,7 @@ Offset</string>
         <x>660</x>
         <y>30</y>
         <width>431</width>
-        <height>156</height>
+        <height>162</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_8">
@@ -2706,7 +2709,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
