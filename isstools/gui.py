@@ -118,7 +118,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_save_trajectory.setDisabled(True)
         json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
         self.json_data = json.loads(json_data)
-        self.comboBoxElement.addItems([item['name'] for item in self.json_data])
+        self.comboBoxElement.currentIndexChanged.connect(self.update_combo_edge)
+        self.comboBoxEdge.currentIndexChanged.connect(self.update_e0_value)
+        elems = [item['name'] for item in self.json_data]
+        for i in range(21, 109):
+            elems[i - 21] = '{:3d} {}'.format(i, elems[i - 21])
+        self.comboBoxElement.addItems(elems)
+
+
+#        for i in range(21, 109):
+#            edges[i - 21] = '{:3d} {}'.format(i, edges[i - 21])
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
@@ -237,6 +246,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+
+    def update_combo_edge(self, index):
+        self.comboBoxEdge.clear()
+        edges = [key for key in list(self.json_data[index].keys()) if key != 'name' and key != 'symbol']
+        edges.sort()
+        self.comboBoxEdge.addItems(edges)
+
+    def update_e0_value(self, index):
+        if self.comboBoxEdge.count() > 0:
+            self.edit_E0.setText(str(self.json_data[self.comboBoxElement.currentIndex()][self.comboBoxEdge.currentText()]))
 
     def toggle_piezo_fb(self, value):
         if value == 0:
