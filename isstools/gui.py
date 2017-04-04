@@ -246,7 +246,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.start()
 
     def update_piezo_params(self):
-        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines))
+        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines), parent = self)
         if dlg.exec_():
             piezo_line, piezo_center, piezo_nlines = dlg.getValues()
             self.piezo_line = int(piezo_line)
