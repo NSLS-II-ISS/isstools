@@ -1591,10 +1591,11 @@ class piezo_fb_thread(QThread):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
         image = image.transpose()
 
-        index_max = image[:, 960 - line].argmax()
-        max_value = image[:, 960 - line].max()
+        sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+        index_max = sum_lines.argmax()
+        max_value = sum_lines.max()
 
-        if max_value >= 10 and max_value <= 100:
+        if max_value >= 40 and max_value <= 400:
             sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
             #print('Index: {}     coeff[1]: {}'.format(index_max, coeff[1]))
