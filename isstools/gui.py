@@ -137,6 +137,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia = detectors['xia']
         self.pba1 = detectors['pba1']
         self.pba2 = detectors['pba2']
+        self.pb4 = detectors['pb4']
         self.pb9 = detectors['pb9']
 
         # Initialize 'tune' tab
@@ -199,6 +200,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_samp_time.setCurrentIndex(self.pba1.adc1.averaging_points.value)
 
         self.lineEdit_samp_time.setText(str(self.pb9.enc1.filter_dt.value / 100000))
+        self.lineEdit_xia_samp.setText(str(self.pb4.do0.period_sp.value))
 
         # Initialize Ophyd elements
         self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}', name = 'shutter_a')
@@ -944,6 +946,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.pba2.adc7.averaging_points.put(str(value))
 
         self.pb9.enc1.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+        self.pb4.do0.period_sp.put(int(self.lineEdit_xia_samp.text()))
 
         self.comment = self.params2[0].text()
         if(self.comment):
