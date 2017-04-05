@@ -80,8 +80,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar) 
         self.progressBar.setValue(0)
-        self.abs_parser = xasdata.XASdataAbs() 
-        self.flu_parser = xasdata.XASdataFlu() 
         self.gen_parser = xasdata.XASdataGeneric(self.db)
         self.push_update_user.clicked.connect(self.update_user)
         self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
@@ -101,7 +99,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj = trajectory()
         self.traj_manager = trajectory_manager(hhm)
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
-        #self.get_traj_names()
         self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
         self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
@@ -125,10 +122,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             elems[i - 21] = '{:3d} {}'.format(i, elems[i - 21])
         self.comboBoxElement.addItems(elems)
 
-
-#        for i in range(21, 109):
-#            edges[i - 21] = '{:3d} {}'.format(i, edges[i - 21])
-
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
@@ -146,7 +139,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
-        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()] #[det.name for det in det_dict.keys()]
+        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
         self.mot_list = [motor.name for motor in self.motors_list]
@@ -372,7 +365,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def save_bin(self):
         filename = self.curr_filename_save
-        self.gen_parser.data_manager.export_dat_gen(filename)
+        self.gen_parser.data_manager.export_dat(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
@@ -540,7 +533,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def normalOutputWritten(self, text):
         """Append text to the QtextEdit_terminal."""
-        # Maybe QtextEdit_terminal.append() works as well, but this is how I do it:
         cursor = self.textEdit_terminal.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
@@ -613,8 +605,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.params3.append(param3)
 
     def get_traj_names(self):
-        #self.comboBox.clear()
-        #self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
         self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
         self.push_plot_traj.setEnabled(True)
 
@@ -834,15 +824,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #Plot single trajectory motion
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
-        #ax = self.figure_single_trajectory.add_subplot(111)
-        #ax.hold(False)
         self.figure_single_trajectory.ax.plot(self.traj.time, self.traj.energy, 'ro')
-        #ax.hold(True)
         self.figure_single_trajectory.ax.plot(self.traj.time_grid, self.traj.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time /s')
         self.figure_single_trajectory.ax.set_ylabel('Energy /eV')
-        #self.figure_single_trajectory.ax2 = self.figure_single_trajectory.ax.twinx()
-        #ax2.hold(False)
         self.figure_single_trajectory.ax2.plot(self.traj.time_grid[0:-1], self.traj.energy_grid_der, 'r')
         self.canvas_single_trajectory.draw_idle()
 
@@ -855,8 +840,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj.e2encoder(float(self.label_angle_offset.text()))
         
         # Draw
-        #ax = self.figure_full_trajectory.add_subplot(111)
-        #ax.hold(False)
         self.figure_full_trajectory.ax.plot(self.traj.encoder_grid, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Servo event / 1/16000 s')
         self.figure_full_trajectory.ax.set_ylabel('Encoder count')
@@ -896,12 +879,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
         self.figure_full_trajectory.ax.cla()
-        #self.figure_single_trajectory.add_subplot(111)
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
-        #ax = self.figure_full_trajectory.add_subplot(111)
-        #self.figure_single_trajectory.ax.hold(False)
         self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Time /s')
         self.figure_full_trajectory.ax.set_ylabel('Energy /eV')
@@ -1411,19 +1391,15 @@ class process_bin_thread(QThread):
                                                          result_orig,
                                                          k_power)
 
-        #self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
         plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
 
-        #self.gui.figure_old_scans.ax.grid(True)
-        #self.gui.figure_old_scans.ax.set_xlabel('k')
-        #self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
 
         if self.gui.checkBox_process_bin.checkState() > 0:
             filename = self.gen_parser.curr_filename_save
-            self.gen_parser.data_manager.export_dat_gen(filename)
+            self.gen_parser.data_manager.export_dat(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
         print('[Binning Thread {}] Finished'.format(self.index))
@@ -1446,17 +1422,8 @@ class process_bin_thread_equal(QThread):
         self.wait()
 
     def run(self):
-        #for filename in self.gui.selected_filename_bin:
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
         self.gen_parser.loadInterpFile(self.filename)
-        #if self.gui.listWidget_numerator.currentItem() is not None:
-        #    self.gui.last_num = self.gui.listWidget_numerator.currentRow()
-        #if self.gui.listWidget_denominator.currentItem() is not None:
-        #    self.gui.last_den = self.gui.listWidget_denominator.currentRow()
-        #self.gui.listWidget_numerator.clear()
-        #self.gui.listWidget_denominator.clear()
-        #self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
-        #self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
 
         ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
         self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
@@ -1465,11 +1432,10 @@ class process_bin_thread_equal(QThread):
             ttime.sleep(0.1)
         
         
-        #print(self.gui.listWidget_numerator.count())
         if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
             value_num = ''
             if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
-                items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
+                items_num = self.gui.last_num
                 value_num = [items_num]
             if value_num == '':
                 value_num = [2]
@@ -1558,7 +1524,6 @@ class process_bin_thread_equal(QThread):
                          self.gui.canvas_old_scans_2]
             self.gui.plotting_list.append(plot_info)
 
-            #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
@@ -1582,7 +1547,6 @@ class process_threads_manager(QThread):
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
-            #self.gui.progressBar_processing.setValue(int(np.round(100 * (self.gui.total_threads - self.gui.active_threads)/self.gui.total_threads)))
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
@@ -1615,7 +1579,6 @@ class piezo_fb_thread(QThread):
 
         if max_value >= 10 and max_value <= 100:
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
-            #print('Index: {}     coeff[1]: {}'.format(index_max, coeff[1]))
             deviation = -(coeff[1] - center_point)
             piezo_diff = deviation * 0.0855
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
