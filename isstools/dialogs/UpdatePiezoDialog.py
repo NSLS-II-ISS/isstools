@@ -5,7 +5,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'dialogs/UpdatePiezoDialog
 
 class UpdatePiezoDialog(*uic.loadUiType(ui_path)):
 
-    def __init__(self, line, center, nlines, *args, **kwargs):
+    def __init__(self, line, center, nlines, nmeasures, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.setWindowTitle('Update Piezo Info')
@@ -13,6 +13,7 @@ class UpdatePiezoDialog(*uic.loadUiType(ui_path)):
         self.lineEdit.setText('{}'.format(line))
         self.lineEdit_2.setText('{}'.format(center))
         self.lineEdit_3.setText('{}'.format(nlines))
+        self.lineEdit_4.setText('{}'.format(nmeasures))
 
     def getValues(self):
-        return self.lineEdit.text(), self.lineEdit_2.text(), self.lineEdit_3.text()
+        return self.lineEdit.text(), self.lineEdit_2.text(), self.lineEdit_3.text(), self.lineEdit_4.text()
