@@ -1614,13 +1614,13 @@ class piezo_fb_thread(QThread):
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
             if max_value >= 10 and max_value <= 100:
                 centers.append(coeff[1])
-        print('Centers: {}'.format(centers))
-        print('Old Center Point: {}'.format(center_point))
+        #print('Centers: {}'.format(centers))
+        #print('Old Center Point: {}'.format(center_point))
         if len(centers) > 0:
             center_point = float(sum(centers) / len(centers))
             self.gui.settings.setValue('piezo_center', center_point)
             self.gui.piezo_center = center_point
-            print('New Center Point: {}'.format(center_point))
+            #print('New Center Point: {}'.format(center_point))
 
     def run(self):
         self.go = 1
