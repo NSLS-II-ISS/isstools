@@ -983,11 +983,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 if self.current_uid == '':
                     self.current_uid = self.db[-1]['start']['uid']
 
+
                 self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
                                         '{}.txt'.format(self.db[self.current_uid]['start']['year'],
                                                         self.db[self.current_uid]['start']['cycle'],
                                                         self.db[self.current_uid]['start']['PROPOSAL'],
                                                         self.db[self.current_uid]['start']['comment'])
+                if os.path.isfile(self.current_filepath):
+                    iterator = 2
+                    while True:
+                        self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                                '{}-{}.txt'.format(self.db[self.current_uid]['start']['year'],
+                                                                   self.db[self.current_uid]['start']['cycle'],
+                                                                   self.db[self.current_uid]['start']['PROPOSAL'],
+                                                                   self.db[self.current_uid]['start']['comment'],
+                                                                   iterator)
+                        if not os.path.isfile(self.current_filepath):
+                            break
+                        iterator += 1
+                    
+                
 
                 filepaths.append(self.current_filepath)
                 self.gen_parser.load(self.current_uid)
