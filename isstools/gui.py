@@ -1592,14 +1592,18 @@ class piezo_fb_thread(QThread):
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
         image = image.transpose()
+        image = image.astype(np.int16)
         sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+        #remove background (do it better later)
+        if len(sum_lines) > 0:
+            sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
         index_max = sum_lines.argmax()
         max_value = sum_lines.max()
 
         if max_value >= n_lines * 10 and max_value <= n_lines * 100:
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
             deviation = -(coeff[1] - center_point)
-            piezo_diff = deviation * 0.0855
+            piezo_diff = deviation * 0.0855#0.001
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
             self.gui.hhm.pitch.move(curr_value + piezo_diff)
 
@@ -1609,6 +1613,7 @@ class piezo_fb_thread(QThread):
         for i in range(n_measures):
             image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
             image = image.transpose()
+            image = image.astype(np.int16)
             index_max = image[:, 960-line].argmax()
             max_value = image[:, 960-line].max()
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
@@ -1628,9 +1633,9 @@ class piezo_fb_thread(QThread):
         while(self.go):
             if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
-                ttime.sleep(0.001)
+                ttime.sleep(0.00025)
             else:
-                ttime.sleep(0.001)
+                ttime.sleep(0.00025)
 
 
 
