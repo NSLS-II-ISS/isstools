@@ -168,6 +168,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.piezo_line = self.settings.value('piezo_line', defaultValue = 420, type = int)
         self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
+        self.piezo_nlines = self.settings.value('piezo_nlines', defaultValue = 5, type = int)
+        self.piezo_nmeasures = self.settings.value('piezo_nmeasures', defaultValue = 10, type = int)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
         #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
@@ -266,13 +268,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.start()
 
     def update_piezo_params(self):
-        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center))
+        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines), str(self.piezo_nmeasures), parent = self)
         if dlg.exec_():
-            piezo_line, piezo_center = dlg.getValues()
+            piezo_line, piezo_center, piezo_nlines, piezo_nmeasures = dlg.getValues()
             self.piezo_line = int(piezo_line)
             self.piezo_center = float(piezo_center)
+            self.piezo_nlines = int(piezo_nlines)
+            self.piezo_nmeasures = int(piezo_nmeasures)
             self.settings.setValue('piezo_line', self.piezo_line)
             self.settings.setValue('piezo_center', self.piezo_center)
+            self.settings.setValue('piezo_nlines', self.piezo_nlines)
+            self.settings.setValue('piezo_nmeasures', self.piezo_nmeasures)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
@@ -1620,28 +1626,53 @@ class piezo_fb_thread(QThread):
         A, mu, sigma = p
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
-    def gaussian_piezo_feedback(self, line = 420, center_point = 655):
-        image = []
+    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
         image = image.transpose()
+        image = image.astype(np.int16)
+        sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+        #remove background (do it better later)
+        if len(sum_lines) > 0:
+            sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+        index_max = sum_lines.argmax()
+        max_value = sum_lines.max()
 
-        index_max = image[:, 960 - line].argmax()
-        max_value = image[:, 960 - line].max()
-
-        if max_value >= 10 and max_value <= 100:
-            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
-            #print('Index: {}     coeff[1]: {}'.format(index_max, coeff[1]))
+        if max_value >= n_lines * 10 and max_value <= n_lines * 100:
+            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
             deviation = -(coeff[1] - center_point)
-            piezo_diff = deviation * 0.0855
+            piezo_diff = deviation * 0.0855#0.001
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
             self.gui.hhm.pitch.move(curr_value + piezo_diff)
 
+    def adjust_center_point(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
+        #getting center:
+        centers = []
+        for i in range(n_measures):
+            image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            image = image.transpose()
+            image = image.astype(np.int16)
+            index_max = image[:, 960-line].argmax()
+            max_value = image[:, 960-line].max()
+            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
+            if max_value >= 10 and max_value <= 100:
+                centers.append(coeff[1])
+        #print('Centers: {}'.format(centers))
+        #print('Old Center Point: {}'.format(center_point))
+        if len(centers) > 0:
+            center_point = float(sum(centers) / len(centers))
+            self.gui.settings.setValue('piezo_center', center_point)
+            self.gui.piezo_center = center_point
+            #print('New Center Point: {}'.format(center_point))
+
     def run(self):
         self.go = 1
+        self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
         while(self.go):
             if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
-                self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center)
-                ttime.sleep(0.001)
+                self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
+                ttime.sleep(0.00025)
+            else:
+                ttime.sleep(0.00025)
 
 
 
