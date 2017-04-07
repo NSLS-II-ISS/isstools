@@ -403,9 +403,49 @@ class XASdataGeneric(XASdata):
 
 
 
+# Constants for converting from hwhm -> gaussian parameters
+GAUSS_SIGMA_FACTOR = 1 / (2*(2*np.log(2))**.5)
+
+def generate_sampled_gauss_window(x, fwhm, x0):
+    sigma = fwhm * GAUSS_SIGMA_FACTOR
+    a = 1 / (sigma * (2*np.pi)**.5)
+    data_y = a * np.exp(-.5 * ((x - x0) / sigma) ** 2)
+    data_y = np.array(data_y) #/ np.sum(data_y))
+    #data_y = np.array(data_y / np.sum(data_y))
+    return data_y
+
+def _compute_window_width(sample_points):
+    '''Given smaple points compute windows via approx 1D voronoi
+
+    Parameters
+    ----------
+    sample_points : array
+        Assumed to be monotonic
+
+    Returns
+    -------
+    windows : array
+        Average of distances to neighbors
+    '''
+    d = np.diff(sample_points)
+    fw = (d[1:] + d[:-1]) / 2
+    return np.concatenate((fw[0:1], fw, fw[-1:]))
 
 
+def convolution_bin(sample_points, data_x, data_y):
+    
+    fwhm = _compute_window_width(sample_points)
+    delta_en = _compute_window_width(data_x)
+    
+    mat = generate_sampled_gauss_window(data_x.reshape(1, -1),
+                                        fwhm.reshape(-1, 1),
+                                        sample_points.reshape(-1, 1))
+    mat *= delta_en.reshape(1, -1)
+    return mat @ data_y.reshape(-1, 1)
 
+def sort_bunch_of_array(index, *args):
+    indx = np.argsort(index)
+    return tuple(a[indx] for a in (index,) + args)
 
 class XASDataManager:
     def __init__(self, *args, **kwargs):
