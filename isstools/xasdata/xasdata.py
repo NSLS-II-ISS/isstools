@@ -10,6 +10,7 @@ from isstools.conversions import xray
 from subprocess import call
 import re
 import collections
+import pandas as pd
 
 class XASdata:
     def __init__(self, **kwargs):
@@ -431,9 +432,7 @@ def _compute_window_width(sample_points):
     fw = (d[1:] + d[:-1]) / 2
     return np.concatenate((fw[0:1], fw, fw[-1:]))
 
-
-def convolution_bin(sample_points, data_x, data_y):
-    
+def _gen_convolution_bin_matrix(sample_points, data_x):
     fwhm = _compute_window_width(sample_points)
     delta_en = _compute_window_width(data_x)
     
@@ -441,6 +440,10 @@ def convolution_bin(sample_points, data_x, data_y):
                                         fwhm.reshape(-1, 1),
                                         sample_points.reshape(-1, 1))
     mat *= delta_en.reshape(1, -1)
+    return mat
+
+def convolution_bin(sample_points, data_x, data_y):
+    mat = _gen_convolution_bin_matrix(sample_points, data_x)
     return mat @ data_y.reshape(-1, 1)
 
 def sort_bunch_of_array(index, *args):
@@ -685,24 +688,16 @@ class XASDataManager:
 
 
     def process_equal(self, interp_dict, energy_string = 'energy', delta_en = 2):
-        self.matrix = interp_dict[energy_string][:, 1]
-
-        self.matrix = np.vstack((self.matrix, np.array([interp_dict[array][:, 1] for array in list(interp_dict.keys()) if array != energy_string]))).transpose()
-        self.sorted_matrix = self.sort_data(self.matrix, 0)
-        self.en_grid = self.energy_grid_equal(self.sorted_matrix[:, 0], delta_en)
-
-        self.data_matrix = self.average_points(self.sorted_matrix, 0)
-        self.data_arrays = {energy_string: self.data_matrix[:, 0]}
-        keys = [array for array in list(interp_dict.keys()) if array != energy_string]
-        for i in range(len(keys)):
-            self.data_arrays[keys[i]] = self.data_matrix[:, i + 1]
-
-        self.binned_eq_arrays = {energy_string: self.en_grid}
-        for i in range(len(keys) + 1):
-            if list(self.data_arrays.keys())[i] != energy_string:
-                self.binned_eq_arrays[list(self.data_arrays.keys())[i]] = self.bin(self.en_grid, self.data_arrays[energy_string], self.data_arrays[list(self.data_arrays.keys())[i]])
-
-        return self.binned_eq_arrays
+        E = interp_dict[energy_string][:, 1]
+        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+        self.data_arrays = df
+        en_grid = self.energy_grid_equal(df[energy_string], delta_en)
+        self.en_grid = en_grid
+        convo_mat = _gen_convolution_bin_matrix(en_grid, E)
+        ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
+        ret[energy_string] = en_grid
+        self.binned_eq_arrays = ret
+        return ret
 
 
     def average_points(self, matrix, energy_column = 0):
