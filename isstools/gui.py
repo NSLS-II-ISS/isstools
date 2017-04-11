@@ -26,6 +26,7 @@ from isstools.dialogs import UpdatePiezoDialog
 from isstools.dialogs import UpdateAngleOffset
 from isstools.dialogs import MoveMotorDialog
 from isstools.conversions import xray
+from isstools.pid import PID
 import os
 from os import listdir
 from os.path import isfile, join
@@ -1583,6 +1584,12 @@ class piezo_fb_thread(QThread):
     def __init__(self, gui):
         QThread.__init__(self)
         self.gui = gui
+
+        P = 0.0855
+        I = 0.01
+        D = 0.001
+        self.pid = PID.PID(P, I, D)
+        self.pid.setSampleTime(0.01)
         self.go = 0
 
     def gauss(self, x, *p):
@@ -1593,7 +1600,7 @@ class piezo_fb_thread(QThread):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
         image = image.transpose()
         image = image.astype(np.int16)
-        sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+        sum_lines = sum(image[:, [960 - i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
         #remove background (do it better later)
         if len(sum_lines) > 0:
             sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
@@ -1602,8 +1609,10 @@ class piezo_fb_thread(QThread):
 
         if max_value >= n_lines * 10 and max_value <= n_lines * 100:
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
-            deviation = -(coeff[1] - center_point)
-            piezo_diff = deviation * 0.0855#0.001
+            self.pid.update(coeff[1])
+            deviation = self.pid.output
+            #deviation = -(coeff[1] - center_point)
+            piezo_diff = deviation #* 0.0855
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
             self.gui.hhm.pitch.move(curr_value + piezo_diff)
 
