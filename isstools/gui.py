@@ -1586,10 +1586,12 @@ class piezo_fb_thread(QThread):
         self.gui = gui
 
         P = 0.0855
-        I = 0.01
-        D = 0.001
+        I = 0.02
+        D = 0.01
         self.pid = PID.PID(P, I, D)
-        self.pid.setSampleTime(0.01)
+        self.sampleTime = 0.00025
+        self.pid.setSampleTime(self.sampleTime)
+        self.pid.windup_guard = 3
         self.go = 0
 
     def gauss(self, x, *p):
@@ -1609,12 +1611,13 @@ class piezo_fb_thread(QThread):
 
         if max_value >= n_lines * 10 and max_value <= n_lines * 100:
             coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
+            self.pid.SetPoint = center_point
             self.pid.update(coeff[1])
             deviation = self.pid.output
             #deviation = -(coeff[1] - center_point)
             piezo_diff = deviation #* 0.0855
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            self.gui.hhm.pitch.move(curr_value + piezo_diff)
+            #self.gui.hhm.pitch.move(curr_value + piezo_diff)
 
     def adjust_center_point(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         #getting center:
@@ -1642,9 +1645,9 @@ class piezo_fb_thread(QThread):
         while(self.go):
             if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
-                ttime.sleep(0.00025)
+                ttime.sleep(self.sampleTime)
             else:
-                ttime.sleep(0.00025)
+                ttime.sleep(self.sampleTime)
 
 
 
