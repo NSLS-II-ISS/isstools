@@ -26,6 +26,7 @@ from isstools.dialogs import UpdatePiezoDialog
 from isstools.dialogs import UpdateAngleOffset
 from isstools.dialogs import MoveMotorDialog
 from isstools.conversions import xray
+from isstools.pid import PID
 import os
 from os import listdir
 from os.path import isfile, join
@@ -1620,6 +1621,14 @@ class piezo_fb_thread(QThread):
     def __init__(self, gui):
         QThread.__init__(self)
         self.gui = gui
+
+        P = 0.004#0.016#0.0855
+        I = 0#0.02
+        D = 0#0.01
+        self.pid = PID.PID(P, I, D)
+        self.sampleTime = 0.00025
+        self.pid.setSampleTime(self.sampleTime)
+        self.pid.windup_guard = 3
         self.go = 0
 
     def gauss(self, x, *p):
@@ -1628,32 +1637,36 @@ class piezo_fb_thread(QThread):
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-        image = image.transpose()
+        #image = image.transpose()
         image = image.astype(np.int16)
-        sum_lines = sum(image[:, [960 - i for i in range(420 - math.floor(n_lines/2), 420 + math.ceil(n_lines/2))]].transpose())
+        sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
         #remove background (do it better later)
         if len(sum_lines) > 0:
             sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
         index_max = sum_lines.argmax()
         max_value = sum_lines.max()
 
-        if max_value >= n_lines * 10 and max_value <= n_lines * 100:
-            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), sum_lines, p0=[1, index_max, 5])
-            deviation = -(coeff[1] - center_point)
-            piezo_diff = deviation * 0.0855#0.001
+        if max_value >= 10 and max_value <= n_lines * 100:
+            coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+            self.pid.SetPoint = 960 - center_point
+            self.pid.update(coeff[1])
+            deviation = self.pid.output
+            #deviation = -(coeff[1] - center_point)
+            piezo_diff = deviation #* 0.0855
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            self.gui.hhm.pitch.move(curr_value + piezo_diff)
+            #print(curr_value, piezo_diff, coeff[1])
+            self.gui.hhm.pitch.move(curr_value - piezo_diff)
 
     def adjust_center_point(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         #getting center:
         centers = []
         for i in range(n_measures):
             image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-            image = image.transpose()
+            #image = image.transpose()
             image = image.astype(np.int16)
-            index_max = image[:, 960-line].argmax()
-            max_value = image[:, 960-line].max()
-            coeff, var_matrix = curve_fit(self.gauss, list(range(1280)), image[:, 960-line], p0=[1, index_max, 5])
+            index_max = image[:, line].argmax()
+            max_value = image[:, line].max()
+            coeff, var_matrix = curve_fit(self.gauss, list(range(960)), image[:, line], p0=[1, index_max, 5])
             if max_value >= 10 and max_value <= 100:
                 centers.append(coeff[1])
         #print('Centers: {}'.format(centers))
@@ -1670,9 +1683,9 @@ class piezo_fb_thread(QThread):
         while(self.go):
             if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
-                ttime.sleep(0.00025)
+                ttime.sleep(self.sampleTime)
             else:
-                ttime.sleep(0.00025)
+                ttime.sleep(self.sampleTime)
 
 
 
