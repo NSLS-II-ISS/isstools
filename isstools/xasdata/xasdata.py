@@ -403,16 +403,14 @@ class XASdataGeneric(XASdata):
 
 
 
-
+import numexpr as ne
 # Constants for converting from hwhm -> gaussian parameters
 GAUSS_SIGMA_FACTOR = 1 / (2*(2*np.log(2))**.5)
 
 def generate_sampled_gauss_window(x, fwhm, x0):
     sigma = fwhm * GAUSS_SIGMA_FACTOR
     a = 1 / (sigma * (2*np.pi)**.5)
-    data_y = a * np.exp(-.5 * ((x - x0) / sigma) ** 2)
-    data_y = np.array(data_y) #/ np.sum(data_y))
-    #data_y = np.array(data_y / np.sum(data_y))
+    data_y = ne.evaluate('a * exp(-.5 * ((x - x0) / sigma) ** 2)')
     return data_y
 
 def _compute_window_width(sample_points):
@@ -665,35 +663,42 @@ class XASDataManager:
 
     def process(self, interp_dict, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
 
-        self.matrix = interp_dict[energy_string][:, 1]
+        # self.matrix = interp_dict[energy_string][:, 1]
 
-        self.matrix = np.vstack((self.matrix, np.array([interp_dict[array][:, 1] for array in list(interp_dict.keys()) if array != energy_string]))).transpose()
-        self.sorted_matrix = self.sort_data(self.matrix, 0)
-        self.en_grid = self.energy_grid(self.sorted_matrix[:, 0], e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
+        # self.matrix = np.vstack((self.matrix, np.array([interp_dict[array][:, 1] for array in list(interp_dict.keys()) if array != energy_string]))).transpose()
+        # self.sorted_matrix = self.sort_data(self.matrix, 0)
+        
 
-        self.data_matrix = self.average_points(self.sorted_matrix, 0)
-        self.data_arrays = {energy_string: self.data_matrix[:, 0]}
+        # self.data_matrix = self.average_points(self.sorted_matrix, 0)
+        # self.data_arrays = {energy_string: self.data_matrix[:, 0]}
 
-        keys = [array for array in list(interp_dict.keys()) if array != energy_string]
-        for i in range(len(keys)):
-            self.data_arrays[keys[i]] = self.data_matrix[:, i + 1]
+        # keys = [array for array in list(interp_dict.keys()) if array != energy_string]
+        # for i in range(len(keys)):
+        #     self.data_arrays[keys[i]] = self.data_matrix[:, i + 1]
 
-        self.binned_arrays = {energy_string: self.en_grid}
-        for i in range(len(keys) + 1):
-            if list(self.data_arrays.keys())[i] != energy_string:
-                self.binned_arrays[list(self.data_arrays.keys())[i]] = self.bin(self.en_grid, self.data_arrays[energy_string], self.data_arrays[list(self.data_arrays.keys())[i]])
+        # self.binned_arrays = {energy_string: self.en_grid}
+        # for i in range(len(keys) + 1):
+        #     if list(self.data_arrays.keys())[i] != energy_string:
+        #         self.binned_arrays[list(self.data_arrays.keys())[i]] = self.bin(self.en_grid, self.data_arrays[energy_string], self.data_arrays[list(self.data_arrays.keys())[i]])
 
-        return self.binned_arrays
-
+        # return self.binned_arrays
+        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+        self.data_arrays = df
+        en_grid = self.energy_grid(df[energy_string].values, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
+        self.en_grid = en_grid
+        convo_mat = _gen_convolution_bin_matrix(en_grid, df[energy_string].values)
+        ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
+        ret[energy_string] = en_grid
+        self.binned_eq_arrays = ret
+        return ret
 
 
     def process_equal(self, interp_dict, energy_string = 'energy', delta_en = 2):
-        E = interp_dict[energy_string][:, 1]
         df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
         self.data_arrays = df
         en_grid = self.energy_grid_equal(df[energy_string], delta_en)
         self.en_grid = en_grid
-        convo_mat = _gen_convolution_bin_matrix(en_grid, E)
+        convo_mat = _gen_convolution_bin_matrix(en_grid, df[energy_string].values)
         ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
         ret[energy_string] = en_grid
         self.binned_eq_arrays = ret
