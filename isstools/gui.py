@@ -398,7 +398,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          edge_end,
                                                          exafs_spacing,
                                                          result,
-                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.interp_arrays,
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
                                                          k_power)
@@ -1386,7 +1386,7 @@ class process_bin_thread(QThread):
                                                          edge_end,
                                                          exafs_spacing,
                                                          result,
-                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.interp_arrays,
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
                                                          k_power)
