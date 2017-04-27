@@ -95,7 +95,7 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
-    def __init__(self, db, *args, **kwargs):
+    def __init__(self, db = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arrays = {}
         self.interp_arrays = {}
@@ -106,9 +106,10 @@ class XASdataGeneric(XASdata):
         self.load(uid)
         self.uid = uid
         self.interpolate()
-        #sself.plot()
 
     def load(self, uid):
+        if self.db is None:
+            raise Exception('The databroker was not passed as argument to the parser')
         self.arrays = {}
         self.interp_arrays = {}
         self.uid = uid
@@ -203,6 +204,8 @@ class XASdataGeneric(XASdata):
         pass
 
     def export_trace(self, filename, filepath = '/GPFS/xf08id/Sandbox/', overwrite = False):
+        if self.db is None:
+            raise Exception('The databroker was not passed as argument to the parser')
         suffix = '.txt'
         fn = filepath + filename + suffix
         if not overwrite:
