@@ -59,7 +59,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     es_shutter_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs, tune_funcs, prep_traj_plan, RE, db, hhm, detectors, es_shutter, det_dict, motors_list, general_scan_func, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], tune_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, es_shutter = None, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -74,38 +74,56 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_start.clicked.connect(self.run_scan)
         self.run_check_gains.clicked.connect(self.run_gains_test)
         self.prep_traj_plan = prep_traj_plan
+        if self.prep_traj_plan is None:
+            self.push_prepare_trajectory.setEnabled(False)
         self.RE = RE
-        self.RE.last_state = ''
+        if self.RE is not None:
+            self.RE.last_state = ''
+            # Write metadata in the GUI
+            self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
+            self.label_6.setText('{}'.format(RE.md['year']))
+            self.label_7.setText('{}'.format(RE.md['cycle']))
+            self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
+            self.label_9.setText('{}'.format(RE.md['SAF']))
+            self.label_10.setText('{}'.format(RE.md['PI']))
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.update_re_state)
+            self.timer.start(1000)
+        else:
+            self.push_update_offset.setEnabled(False)
+            self.push_calibrate.setEnabled(False)
+            self.push_update_user.setEnabled(False)
+            self.push_re_abort.setEnabled(False)
+            self.run_start.setEnabled(False)
+            self.run_check_gains.setEnabled(False)
+            self.tabWidget.setTabEnabled(1, False)
+
         self.db = db
-        self.hhm = hhm
-        self.hhm.trajectory_progress.subscribe(self.update_progress)
-        self.progress_sig.connect(self.update_progressbar) 
-        self.progressBar.setValue(0)
-        self.abs_parser = xasdata.XASdataAbs() 
-        self.flu_parser = xasdata.XASdataFlu() 
+        if self.db is None:
+            self.run_start.setEnabled(False)
         self.gen_parser = xasdata.XASdataGeneric(self.db)
         self.push_update_user.clicked.connect(self.update_user)
-        self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
         self.es_shutter = es_shutter
         self.det_dict = det_dict
+
         self.motors_list = motors_list
         self.gen_scan_func = general_scan_func
 
-        # Write metadata in the GUI
-        self.label_6.setText('{}'.format(RE.md['year']))
-        self.label_7.setText('{}'.format(RE.md['cycle']))
-        self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
-        self.label_9.setText('{}'.format(RE.md['SAF']))
-        self.label_10.setText('{}'.format(RE.md['PI']))
-
         # Initialize 'trajectory' tab
+        self.hhm = hhm
+        if self.hhm is not None:
+            self.hhm.trajectory_progress.subscribe(self.update_progress)
+            self.progress_sig.connect(self.update_progressbar) 
+            self.progressBar.setValue(0)
+            self.traj_manager = trajectory_manager(hhm)
+            self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+            self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+            self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
+        else:
+            self.tabWidget.setTabEnabled(0, False)
+
         self.traj = trajectory()
-        self.traj_manager = trajectory_manager(hhm)
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
-        #self.get_traj_names()
-        self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-        self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-        self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.push_update_offset.clicked.connect(self.update_offset)
@@ -127,19 +145,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBoxElement.addItems(elems)
 
 
-#        for i in range(21, 109):
-#            edges[i - 21] = '{:3d} {}'.format(i, edges[i - 21])
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
         self.push_gain_matching.clicked.connect(self.run_gain_matching)
 
-        # Initialize detectors
-        self.xia = detectors['xia']
-        self.pba1 = detectors['pba1']
-        self.pba2 = detectors['pba2']
-        self.pb4 = detectors['pb4']
-        self.pb9 = detectors['pb9']
+        regex = re.compile('xia\d{1}')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.xia_list = [x for x in self.det_dict if x.name in matches]
+        if self.xia_list == []:
+            self.tabWidget.setTabEnabled(2, False)
+            self.xia = None
+        else:
+            self.xia = self.xia_list[0]
+
+        # Looking for analog pizzaboxes:
+        regex = re.compile('pba\d{1}.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.adc_list = [x for x in self.det_dict if x.name in matches]
+        
+        # Looking for encoder pizzaboxes:
+        regex = re.compile('pb\d{1}_enc.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.enc_list = [x for x in self.det_dict if x.name in matches]
+
 
         # Initialize 'tune' tab
         self.push_tune.clicked.connect(self.run_tune)
@@ -147,7 +176,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.tune_funcs = tune_funcs
         self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
         self.comboBox_4.addItems(self.tune_funcs_names)
-        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()] #[det.name for det in det_dict.keys()]
+        if len(self.tune_funcs_names) == 0:
+            self.push_tune.setEnabled(0) # Disable tune if no functions are passed
+        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
         self.mot_list = [motor.name for motor in self.motors_list]
@@ -157,10 +188,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
         self.process_detsig()
+        found_bpm = 0
         for i in range(self.comboBox_gen_det.count()):
             if 'bpm_es' == list(self.det_dict.keys())[i].name:
                 self.bpm_es = list(self.det_dict.keys())[i]
-                break
+                found_bpm = 1
+                break     
+        if found_bpm == 0:
+            self.checkBox_piezo_fb.setEnabled(False)
+            self.update_piezo.setEnabled(False)
+            if self.run_start.isEnabled() == False:
+                self.tabWidget.setTabEnabled(3, False)
+        if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
+            self.push_gen_scan.setEnabled(0)
+        if not self.push_gen_scan.isEnabled() and not self.push_tune.isEnabled():
+            self.tabWidget.setTabEnabled(1, False)
 
         # Initialize persistent values
         self.settings = QSettings('ISS Beamline', 'XLive')
@@ -185,25 +227,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.piezo_thread = piezo_fb_thread(self)
         self.update_piezo.clicked.connect(self.update_piezo_params)
 
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_re_state)
-        self.timer.start(1000)
-
         self.run_type.currentIndexChanged.connect(self.populateParams)
         self.params1 = []
         self.params2 = []
         self.params3 = []
-        self.populateParams(0)
+        if len(self.plan_funcs) != 0:
+            self.populateParams(0)
 
-        times_arr = np.array(list(self.pba1.adc1.averaging_points.enum_strs))
-        times_arr[times_arr == ''] = 0.0
-        times_arr = list(times_arr.astype(np.float) * self.pba1.adc1.sample_rate.value / 100000)
-        times_arr = [str(elem) for elem in times_arr]
-        self.comboBox_samp_time.addItems(times_arr)
-        self.comboBox_samp_time.setCurrentIndex(self.pba1.adc1.averaging_points.value)
+        if len(self.adc_list):
+            times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
+            times_arr[times_arr == ''] = 0.0
+            times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.value / 100000)
+            times_arr = [str(elem) for elem in times_arr]
+            self.comboBox_samp_time.addItems(times_arr)
+            self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.value)
 
-        self.lineEdit_samp_time.setText(str(self.pb9.enc1.filter_dt.value / 100000))
-        self.lineEdit_xia_samp.setText(str(self.pb4.do0.period_sp.value))
+        if len(self.enc_list):
+            self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
+        
+        if hasattr(self.xia, 'input_trigger'):
+            if self.xia.input_trigger is not None:
+                self.xia.input_trigger.unit_sel.put(1) # ms, not us
+                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
         # Initialize Ophyd elements
         self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}', name = 'shutter_a')
@@ -225,8 +270,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutters_sig.connect(self.change_shutter_color)
 
         self.es_shutter_sig.connect(self.change_es_shutter_color)
-        self.es_shutter.subscribe(self.update_es_shutter)
-        self.change_es_shutter_color()
+        if self.es_shutter is not None:
+            self.es_shutter.subscribe(self.update_es_shutter)
+            self.change_es_shutter_color()
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -379,7 +425,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def save_bin(self):
         filename = self.curr_filename_save
-        self.gen_parser.data_manager.export_dat_gen(filename)
+        self.gen_parser.data_manager.export_dat(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
     def calibrate_offset(self):
@@ -412,7 +458,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          edge_end,
                                                          exafs_spacing,
                                                          result,
-                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.interp_arrays,
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
                                                          k_power)
@@ -547,7 +593,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def normalOutputWritten(self, text):
         """Append text to the QtextEdit_terminal."""
-        # Maybe QtextEdit_terminal.append() works as well, but this is how I do it:
         cursor = self.textEdit_terminal.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
@@ -620,8 +665,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.params3.append(param3)
 
     def get_traj_names(self):
-        #self.comboBox.clear()
-        #self.comboBox.addItems([f for f in sorted(listdir(self.trajectory_path)) if isfile(join(self.trajectory_path, f))])
         self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
         self.push_plot_traj.setEnabled(True)
 
@@ -841,15 +884,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #Plot single trajectory motion
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
-        #ax = self.figure_single_trajectory.add_subplot(111)
-        #ax.hold(False)
         self.figure_single_trajectory.ax.plot(self.traj.time, self.traj.energy, 'ro')
-        #ax.hold(True)
         self.figure_single_trajectory.ax.plot(self.traj.time_grid, self.traj.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time /s')
         self.figure_single_trajectory.ax.set_ylabel('Energy /eV')
-        #self.figure_single_trajectory.ax2 = self.figure_single_trajectory.ax.twinx()
-        #ax2.hold(False)
         self.figure_single_trajectory.ax2.plot(self.traj.time_grid[0:-1], self.traj.energy_grid_der, 'r')
         self.canvas_single_trajectory.draw_idle()
 
@@ -862,8 +900,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj.e2encoder(float(self.label_angle_offset.text()))
         
         # Draw
-        #ax = self.figure_full_trajectory.add_subplot(111)
-        #ax.hold(False)
         self.figure_full_trajectory.ax.plot(self.traj.encoder_grid, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Servo event / 1/16000 s')
         self.figure_full_trajectory.ax.set_ylabel('Encoder count')
@@ -903,12 +939,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
         self.figure_full_trajectory.ax.cla()
-        #self.figure_single_trajectory.add_subplot(111)
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
-        #ax = self.figure_full_trajectory.add_subplot(111)
-        #self.figure_single_trajectory.ax.hold(False)
         self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Time /s')
         self.figure_full_trajectory.ax.set_ylabel('Energy /eV')
@@ -944,16 +977,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 return False 
 
         # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.comboBox_samp_time.currentText()) / self.pba1.adc1.sample_rate.value * 100000))
-        self.pba1.adc1.averaging_points.put(str(value))
-        self.pba1.adc6.averaging_points.put(str(value))
-        self.pba1.adc7.averaging_points.put(str(value))
-        self.pba2.adc1.averaging_points.put(str(value))
-        self.pba2.adc6.averaging_points.put(str(value))
-        self.pba2.adc7.averaging_points.put(str(value))
+        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+        
+        for adc in self.adc_list:
+            adc.averaging_points.put(str(value))
 
-        self.pb9.enc1.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
-        self.pb4.do0.period_sp.put(int(self.lineEdit_xia_samp.text()))
+        for enc in self.enc_list:
+            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+
+        if self.xia.input_trigger is not None:
+            self.xia.input_trigger.unit_sel.put(1) # ms, not us
+            self.xia.input_trigger.period_sp.put(int(self.lineEdit_xia_samp.text()))
 
         self.comment = self.params2[0].text()
         if(self.comment):
@@ -1428,24 +1462,20 @@ class process_bin_thread(QThread):
                                                          edge_end,
                                                          exafs_spacing,
                                                          result,
-                                                         self.gen_parser.data_manager.sorted_matrix[:, 0],
+                                                         self.gen_parser.interp_arrays,
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
                                                          k_power)
 
-        #self.gui.figure_old_scans.ax.plot(k_data[0], k_data[1])
         plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
 
-        #self.gui.figure_old_scans.ax.grid(True)
-        #self.gui.figure_old_scans.ax.set_xlabel('k')
-        #self.gui.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
         self.gui.push_replot_exafs.setEnabled(True)
         self.gui.push_save_bin.setEnabled(True)
 
         if self.gui.checkBox_process_bin.checkState() > 0:
             filename = self.gen_parser.curr_filename_save
-            self.gen_parser.data_manager.export_dat_gen(filename)
+            self.gen_parser.data_manager.export_dat(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
         print('[Binning Thread {}] Finished'.format(self.index))
@@ -1468,17 +1498,8 @@ class process_bin_thread_equal(QThread):
         self.wait()
 
     def run(self):
-        #for filename in self.gui.selected_filename_bin:
         print('[Binning Equal Thread {}] Starting...'.format(self.index))
         self.gen_parser.loadInterpFile(self.filename)
-        #if self.gui.listWidget_numerator.currentItem() is not None:
-        #    self.gui.last_num = self.gui.listWidget_numerator.currentRow()
-        #if self.gui.listWidget_denominator.currentItem() is not None:
-        #    self.gui.last_den = self.gui.listWidget_denominator.currentRow()
-        #self.gui.listWidget_numerator.clear()
-        #self.gui.listWidget_denominator.clear()
-        #self.gui.listWidget_numerator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
-        #self.gui.listWidget_denominator.insertItems(0, list(self.gen_parser.interp_arrays.keys()))
 
         ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
         self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
@@ -1487,11 +1508,10 @@ class process_bin_thread_equal(QThread):
             ttime.sleep(0.1)
         
         
-        #print(self.gui.listWidget_numerator.count())
         if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
             value_num = ''
             if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
-                items_num = self.gui.last_num#self.gui.listWidget_numerator.findItems(self.gui.last_num, PyQt4.QtCore.Qt.MatchExactly)
+                items_num = self.gui.last_num
                 value_num = [items_num]
             if value_num == '':
                 value_num = [2]
@@ -1580,7 +1600,6 @@ class process_bin_thread_equal(QThread):
                          self.gui.canvas_old_scans_2]
             self.gui.plotting_list.append(plot_info)
 
-            #self.gui.figure_old_scans_2.ax2.set_ylabel('Derivative', color='r')
 
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
@@ -1604,7 +1623,6 @@ class process_threads_manager(QThread):
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
-            #self.gui.progressBar_processing.setValue(int(np.round(100 * (self.gui.total_threads - self.gui.active_threads)/self.gui.total_threads)))
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
@@ -1637,6 +1655,7 @@ class piezo_fb_thread(QThread):
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+
         #image = image.transpose()
         image = image.astype(np.int16)
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
@@ -1653,6 +1672,7 @@ class piezo_fb_thread(QThread):
             deviation = self.pid.output
             #deviation = -(coeff[1] - center_point)
             piezo_diff = deviation #* 0.0855
+
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
             #print(curr_value, piezo_diff, coeff[1])
             self.gui.hhm.pitch.move(curr_value - piezo_diff)
