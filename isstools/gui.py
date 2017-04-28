@@ -294,6 +294,27 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_num = ''
         self.last_den = ''
 
+
+        # Initialize 'Batch Mode' tab
+        self.treeView_batch.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        self.treeView_samples.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        self.treeView_samples.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
+        self.treeView_samples_loop.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
+        self.treeView_samples_loop_scans.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
+
+        self.push_create_sample.clicked.connect(self.create_new_sample_func)
+        self.model_samples = QtGui.QStandardItemModel(self)
+        self.treeView_samples.setModel(self.model_samples)
+
+        self.push_add_sample.clicked.connect(self.add_new_sample_func)
+        self.model_batch = QtGui.QStandardItemModel(self)
+        self.treeView_batch.setModel(self.model_batch)
+
+        self.push_sel_all_samples.clicked.connect(self.select_all_samples)
+
+        self.model_samples_loop = QtGui.QStandardItemModel(self)
+        self.treeView_samples_loop.setModel(self.model_samples_loop)
+
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
@@ -1332,6 +1353,60 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     line.set_zorder(3)
             self.canvas_old_scans_3.draw_idle()
 
+
+
+# Batch mode functions
+    def create_new_sample_func(self):
+        self.create_new_sample(self.lineEdit_sample_name.text(), self.doubleSpinBox_sample_x.value(), self.doubleSpinBox_sample_y.value())
+
+    def create_new_sample(self, name, x, y):
+        parent = self.model_samples.invisibleRootItem()
+        item = QtGui.QStandardItem('{} X:{} Y:{}'.format(name, x, y))
+        item.setDropEnabled(False)
+        item.x = x
+        item.y = y
+        #subitem = QtGui.QStandardItem('X: {}'.format(x))
+        #subitem.setEnabled(False)
+        #item.appendRow(subitem)
+        #subitem = QtGui.QStandardItem('Y: {}'.format(y))
+        #subitem.setEnabled(False)
+        #item.appendRow(subitem)
+        parent.appendRow(item)
+        self.treeView_samples.expand(self.model_samples.indexFromItem(item))
+
+    def add_new_sample_func(self):
+        indexes = self.treeView_samples.selectedIndexes()
+        for index in indexes:
+            item = index.model().itemFromIndex(index)
+            self.add_new_sample(item)
+
+    def add_new_sample(self, item):
+        parent = self.model_batch.invisibleRootItem()
+        new_item = item.clone()
+        new_item.run_type = 'Sample Move'
+        new_item.x = item.x
+        new_item.y = item.y
+        new_item.setEditable(False)
+        new_item.setDropEnabled(False)
+        name = new_item.text().split()[0]
+        new_item.setText('Move to "{}"'.format(name))
+        for index in range(item.rowCount()):
+            subitem = QtGui.QStandardItem(item.child(index))
+            subitem.setEnabled(False)
+            subitem.setDropEnabled(False)
+            new_item.appendRow(subitem)
+        parent.appendRow(new_item)
+
+    def select_all_samples(self):
+        if len(self.treeView_samples.selectedIndexes()) < self.model_samples.rowCount():
+            self.treeView_samples.selectAll()
+        else:
+            self.treeView_samples.clearSelection()
+
+
+
+
+
 # Class to write terminal output to screen
 class EmittingStream(QtCore.QObject):
 
@@ -1368,28 +1443,12 @@ class EmittingStream(QtCore.QObject):
         # Comment next line if the output should be printed only in the GUI
         sys.__stdout__.write(text)
 
-#    @property
-#    def plan(self):
-#        lp = LivePlot(self.plot_x,
-#                      self.plot_y,
-#                      fig=self.fig)
-
-#        @subs_decorator([lp])
-#        def scan_gui_plan():
-#            return (yield from self.plan_func(self.dets, *self.get_args()))
 
 
-#def tune_factory(motor):
-#    from bluesky.plans import scan
-#    from collections import ChainMap
 
-#    def tune(md=None):
-#        if md is None:
-#            md = {}
-#        md = ChainMap(md, {'plan_name': 'tuning {}'.format(motor)})
-#        yield from scan(motor, -1, 1, 100, md=md)
 
-#    return tune
+
+# Bin threads:
 
 class process_bin_thread(QThread):
     def __init__(self, gui, index = 1, parent_thread = None, parser = None):
