@@ -171,6 +171,7 @@ class trajectory():
 class trajectory_manager():
     def __init__(self, hhm, **kwargs):
         self.hhm = hhm
+        self.traj_info = {}
 
     # Function used to count the number of lines in a file
     def file_len(self, fname):
@@ -322,12 +323,14 @@ class trajectory_manager():
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
     # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
-    def read_info(self, ip = '10.8.2.86'):
+    def read_info(self, ip = '10.8.2.86', silent=False):
         ftp = FTP(ip)
         ftp.login()
         ftp.cwd('/usrflash/lut/')
-        print('-'*62)
-        print('The trajectories found in the controller (ip: {}) are:'.format(ip))
+        if not silent:
+            print('-'*62)
+            print('The trajectories found in the controller (ip: {}) are:'.format(ip))
+        self.traj_info.clear()
     
         def handle_binary(more_data):
             info.append(more_data)
@@ -350,13 +353,22 @@ class trajectory_manager():
                 if(len(info) == 2):
                     size = int(info[0])
                     name = info[1]
-                    print('{}: {:<24} (Size: {})'.format(i, name, size))
+                    self.traj_info[str(i)] = {'name':str(name), 'size':str(size)}
+                    if not silent:
+                        print('{}: {:<24} (Size: {})'.format(i, name, size))
                 else:
-                    print('{}: Could not find the size and name info'.format(i)) 
-            else:
+                    self.traj_info[str(i)] = {'name':'undefined', 'size':'undefined'}
+                    if not silent:
+                        print('{}: Could not find the size and name info'.format(i)) 
+            elif not silent:
+                self.traj_info[str(i)] = {'name':'undefined', 'size':'undefined'}
                 print('{}: Could not find the size and name info'.format(i))    
     
-        print('-'*62)
+        if not silent:
+            print('-'*62)
+
+        return self.traj_info
+    
 
     def current_lut(self):
         return self.hhm.lut_number_rbv.value

@@ -119,6 +119,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
             self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
             self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
+            self.trajectories = self.traj_manager.read_info(silent=True)
+            self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
+            self.comboBox_lut.addItems(['{}:{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories])
         else:
             self.tabWidget.setTabEnabled(0, False)
 
@@ -296,24 +299,55 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Initialize 'Batch Mode' tab
+        self.treeView_batch = elements.TreeView(self, 'all')
+        self.treeView_samples_loop = elements.TreeView(self, 'sample')
+        self.treeView_samples_loop_scans = elements.TreeView(self, 'scan')
+        self.treeView_samples = elements.TreeView(self, 'sample')
+        self.treeView_scans = elements.TreeView(self, 'scan')
+        self.gridLayout_22.addWidget(self.treeView_samples_loop, 1, 0)
+        self.gridLayout_22.addWidget(self.treeView_samples_loop_scans, 1, 1)
+        self.gridLayout_23.addWidget(self.treeView_samples, 0, 0)
+        self.gridLayout_24.addWidget(self.treeView_batch, 0, 0)
+        self.gridLayout_26.addWidget(self.treeView_scans, 0, 0)
         self.treeView_batch.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
-        self.treeView_samples.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        #self.treeView_samples.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
         self.treeView_samples.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
+        self.treeView_scans.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
         self.treeView_samples_loop.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
         self.treeView_samples_loop_scans.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
+
+        self.treeView_batch.header().hide() 
+        self.treeView_samples.header().hide() 
+        self.treeView_scans.header().hide() 
+        self.treeView_samples_loop.header().hide() 
+        self.treeView_samples_loop_scans.header().hide() 
+
 
         self.push_create_sample.clicked.connect(self.create_new_sample_func)
         self.model_samples = QtGui.QStandardItemModel(self)
         self.treeView_samples.setModel(self.model_samples)
 
         self.push_add_sample.clicked.connect(self.add_new_sample_func)
+        self.push_delete_sample.clicked.connect(self.delete_current_sample)
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.setModel(self.model_batch)
 
-        self.push_sel_all_samples.clicked.connect(self.select_all_samples)
-
+        self.push_add_sample_loop.clicked.connect(self.add_new_sample_loop_func)
+        self.push_delete_sample_loop.clicked.connect(self.delete_current_samples_loop)
         self.model_samples_loop = QtGui.QStandardItemModel(self)
         self.treeView_samples_loop.setModel(self.model_samples_loop)
+
+        self.push_delete_sample_loop_scan.clicked.connect(self.delete_current_samples_loop_scans)
+        self.model_samples_loop_scans = QtGui.QStandardItemModel(self)
+        self.treeView_samples_loop_scans.setModel(self.model_samples_loop_scans)
+
+        self.push_create_scan.clicked.connect(self.create_new_scan_func)
+        self.push_delete_scan.clicked.connect(self.delete_current_scan)
+        self.model_scans = QtGui.QStandardItemModel(self)
+        self.treeView_scans.setModel(self.model_scans)
+
+        self.comboBox_scans.addItems(self.plan_funcs_names)
+
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -1363,6 +1397,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         parent = self.model_samples.invisibleRootItem()
         item = QtGui.QStandardItem('{} X:{} Y:{}'.format(name, x, y))
         item.setDropEnabled(False)
+        item.item_type = 'sample'
         item.x = x
         item.y = y
         #subitem = QtGui.QStandardItem('X: {}'.format(x))
@@ -1383,7 +1418,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def add_new_sample(self, item):
         parent = self.model_batch.invisibleRootItem()
         new_item = item.clone()
-        new_item.run_type = 'Sample Move'
+        new_item.item_type = 'sample'
         new_item.x = item.x
         new_item.y = item.y
         new_item.setEditable(False)
@@ -1403,6 +1438,77 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.treeView_samples.clearSelection()
 
+    def create_new_scan_func(self):
+        self.create_new_scan(self.comboBox_scans.currentText(), self.comboBox_lut.currentText())
+
+    def create_new_scan(self, type, traj):
+        parent = self.model_scans.invisibleRootItem()
+        item = QtGui.QStandardItem('{} Traj:{}'.format(type, traj))
+        item.setDropEnabled(False)
+        item.item_type = 'sample'
+        parent.appendRow(item)
+        self.treeView_samples.expand(self.model_samples.indexFromItem(item))
+
+    def add_new_sample_loop_func(self):
+        model_samples = self.treeView_samples_loop.model()
+        data_samples = []
+        for row in range(model_samples.rowCount()):
+            index = model_samples.index(row, 0)
+            data_samples.append(str(model_samples.data(index)))
+
+        model_scans = self.treeView_samples_loop_scans.model()
+        data_scans = []
+        for row in range(model_scans.rowCount()):
+            index = model_scans.index(row, 0)
+            data_scans.append(str(model_scans.data(index)))
+
+        self.add_new_sample_loop(data_samples, data_scans)
+
+    def add_new_sample_loop(self, samples, scans):
+        parent = self.model_batch.invisibleRootItem()
+        new_item = QtGui.QStandardItem('Sample Loop')
+        new_item.setEditable(False)
+
+        repetitions_item = QtGui.QStandardItem('Repetitions:{}'.format(self.spinBox_sample_loop_rep.value()))
+        new_item.appendRow(repetitions_item)
+
+        samples_item = QtGui.QStandardItem('Samples')
+        samples_item.setDropEnabled(False)
+        for index in range(len(samples)):
+            subitem = QtGui.QStandardItem(samples[index])
+            subitem.setDropEnabled(False)
+            samples_item.appendRow(subitem)
+
+        new_item.appendRow(samples_item)
+        for index in range(len(scans)):
+            subitem = QtGui.QStandardItem(scans[index])
+            subitem.setDropEnabled(False)
+            new_item.appendRow(subitem)
+        parent.appendRow(new_item)
+
+    def delete_current_sample(self):
+        view = self.treeView_samples
+        index = view.currentIndex()
+        if index.row() < view.model().rowCount():
+            view.model().removeRows(index.row(), 1)
+
+    def delete_current_scan(self):
+        view = self.treeView_scans
+        index = view.currentIndex()
+        if index.row() < view.model().rowCount():
+            view.model().removeRows(index.row(), 1)
+
+    def delete_current_samples_loop(self):
+        view = self.treeView_samples_loop
+        index = view.currentIndex()
+        if index.row() < view.model().rowCount():
+            view.model().removeRows(index.row(), 1)
+
+    def delete_current_samples_loop_scans(self):
+        view = self.treeView_samples_loop_scans
+        index = view.currentIndex()
+        if index.row() < view.model().rowCount():
+            view.model().removeRows(index.row(), 1)
 
 
 
