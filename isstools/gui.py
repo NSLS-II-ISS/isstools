@@ -1076,7 +1076,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
                     xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
 
-                    length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
+                    if xia_parser.channelsCount():
+                        length = min(xia_parser.pixelsCount(0), len(self.gen_parser.interp_arrays['energy']))
+                    else:
+                        raise Exception("Could not find channels data in the XIA file")
 
                     mcas = []
                     if 'xia_rois' in self.db[self.current_uid]['start']:
