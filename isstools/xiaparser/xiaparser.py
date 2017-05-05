@@ -57,11 +57,6 @@ class xiaparser:
                 print("-"*80)
 
             for ds_index, ds in enumerate(self.data):
-                #ds = ds[0]
-                #self.chan0 = []
-                #self.chan1 = []
-                #self.chan2 = []
-                #self.chan3 = []
                 for board_number, curr_ds in enumerate(ds):
                     if(ds_index == 0):
                         self.exporting_arrays.append([])
@@ -81,10 +76,6 @@ class xiaparser:
                         self.next_pos = self.read_pixel_block(curr_ds, board_number, i, self.next_pos, plotdata, pixelnumber, silent)
                     for index, channel in enumerate([channel_num + board_number * 4 for channel_num in range(4)]):
                         self.exporting_arrays[channel] = self.exporting_arrays[channel] + self.chans[index]
-                    #self.exporting_arrays.append(self.chan0)
-                    #self.exporting_arrays.append(self.chan1)
-                    #self.exporting_arrays.append(self.chan2)
-                    #self.exporting_arrays.append(self.chan3)
 
     def export_files(self, dest_filepath, dest_filename = '', all_in_one = True):
 
@@ -105,7 +96,7 @@ class xiaparser:
             with open(dest_filepath + tmpfilename + '-allchans.txt', 'wb') as f:
                 i = 0
                 for row in output_data:
-                    print('Channel number: {}'.format(i))
+                    print('XIA channel number: {}'.format(i))
                     i += 1
                     np.savetxt(f, np.array(row), fmt='%i',delimiter=' ', footer='============================================================')
                 
