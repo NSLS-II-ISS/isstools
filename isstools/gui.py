@@ -1529,7 +1529,7 @@ class process_bin_thread_equal(QThread):
                 items_den = self.gui.last_den
                 value_den = [items_den]
             if value_den == '':
-                if len(self.gen_parser.interp_arrays.keys()) >= 2):
+                if len(self.gen_parser.interp_arrays.keys()) >= 2:
                     value_den = [len(self.gen_parser.interp_arrays.keys()) - 2]
                 else:
                     value_den = [0]
