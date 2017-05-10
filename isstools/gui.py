@@ -121,7 +121,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
             self.trajectories = self.traj_manager.read_info(silent=True)
             self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
-            self.comboBox_lut.addItems(['{}:{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories])
+            self.update_batch_traj()
         else:
             self.tabWidget.setTabEnabled(0, False)
 
@@ -346,7 +346,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.model_scans = QtGui.QStandardItemModel(self)
         self.treeView_scans.setModel(self.model_scans)
 
+        self.push_batch_run.clicked.connect(self.run_batch)
+        self.push_batch_delete.clicked.connect(self.delete_current_batch)
+
         self.comboBox_scans.addItems(self.plan_funcs_names)
+        self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
+        self.push_create_scan_update.clicked.connect(self.update_batch_traj)
+        self.params1_batch = []
+        self.params2_batch = []
+        self.params3_batch = []
+        if len(self.plan_funcs) != 0:
+            self.populateParams_batch(0)
+
 
 
         # Redirect terminal output to GUI
@@ -655,6 +666,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.textEdit_terminal.ensureCursorVisible()
         #sys.__stdout__.writelines(text)
 
+
     def populateParams(self, index):
         for i in range(len(self.params1)):
             self.gridLayout_13.removeWidget(self.params1[i])
@@ -673,13 +685,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
             if default == str(signature.parameters[list(signature.parameters)[i]]):
                 default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
-            self.addParamControl(list(signature.parameters)[i], default, signature.parameters[list(signature.parameters)[i]].annotation)
+            self.addParamControl(list(signature.parameters)[i], default, signature.parameters[list(signature.parameters)[i]].annotation, grid = self.gridLayout_13, params = [self.params1, self.params2, self.params3])
             self.param_types.append(signature.parameters[list(signature.parameters)[i]].annotation)
 
 
-    def addParamControl(self, name, default, annotation):
-        rows = int((self.gridLayout_13.count())/3)
-        param1 = QtGui.QLabel('Par ' + str(rows + 1))
+    def addParamControl(self, name, default, annotation, grid, params):
+        rows = int((grid.count())/3)
+        param1 = QtGui.QLabel(str(rows + 1))
 
         param2 = None
         def_val = ''
@@ -712,12 +724,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         if param2 is not None:
             param3 = QtGui.QLabel(default)
-            self.gridLayout_13.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
-            self.gridLayout_13.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
-            self.gridLayout_13.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
-            self.params1.append(param1)
-            self.params2.append(param2)
-            self.params3.append(param3)
+            grid.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
+            grid.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
+            grid.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
+            params[0].append(param1)
+            params[1].append(param2)
+            params[2].append(param3)
 
     def get_traj_names(self):
         self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
@@ -1008,6 +1020,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def load_trajectory(self):
         self.traj_manager.load(orig_file_name = self.label_56.text(), new_file_path = self.comboBox_2.currentText())
+        self.update_batch_traj()
 
     def init_trajectory(self):
         self.run_start.setDisabled(True)
@@ -1441,13 +1454,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def create_new_scan_func(self):
         self.create_new_scan(self.comboBox_scans.currentText(), self.comboBox_lut.currentText())
 
-    def create_new_scan(self, type, traj):
+    def create_new_scan(self, curr_type, traj):
+
+        run_params = {}
+        for i in range(len(self.params1_batch)):
+            if (self.param_types_batch[i] == int):
+                run_params[self.params3_batch[i].text().split('=')[0]] = self.params2_batch[i].value()
+            elif (self.param_types_batch[i] == float):
+                run_params[self.params3_batch[i].text().split('=')[0]] = self.params2_batch[i].value()
+            elif (self.param_types_batch[i] == bool):
+                run_params[self.params3_batch[i].text().split('=')[0]] = bool(self.params2_batch[i].checkState())
+            elif (self.param_types_batch[i] == str):
+                run_params[self.params3_batch[i].text().split('=')[0]] = self.params2_batch[i].text()
+        params = str(run_params)[1:-1].replace(': ', ':').replace(',', '').replace("'", "")
+
+
         parent = self.model_scans.invisibleRootItem()
-        item = QtGui.QStandardItem('{} Traj:{}'.format(type, traj))
+        if self.comboBox_lut.isEnabled():
+            item = QtGui.QStandardItem('{} Traj:{} {}'.format(curr_type, traj, params))
+        else:
+            item = QtGui.QStandardItem('{} {}'.format(curr_type, params))
         item.setDropEnabled(False)
         item.item_type = 'sample'
         parent.appendRow(item)
         self.treeView_samples.expand(self.model_samples.indexFromItem(item))
+
+
 
     def add_new_sample_loop_func(self):
         model_samples = self.treeView_samples_loop.model()
@@ -1478,13 +1510,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
             subitem = QtGui.QStandardItem(samples[index])
             subitem.setDropEnabled(False)
             samples_item.appendRow(subitem)
-
         new_item.appendRow(samples_item)
+
+        scans_item = QtGui.QStandardItem('Scans')
+        scans_item.setDropEnabled(False)
         for index in range(len(scans)):
             subitem = QtGui.QStandardItem(scans[index])
             subitem.setDropEnabled(False)
-            new_item.appendRow(subitem)
+            scans_item.appendRow(subitem)
+        new_item.appendRow(scans_item)
+
         parent.appendRow(new_item)
+        self.treeView_batch.expand(self.model_batch.indexFromItem(new_item))
+        for index in range(new_item.rowCount()):
+            self.treeView_batch.expand(new_item.child(index).index())
 
     def delete_current_sample(self):
         view = self.treeView_samples
@@ -1509,6 +1548,129 @@ class ScanGui(*uic.loadUiType(ui_path)):
         index = view.currentIndex()
         if index.row() < view.model().rowCount():
             view.model().removeRows(index.row(), 1)
+
+    def delete_current_batch(self):
+        view = self.treeView_batch_loop_scans
+        index = view.currentIndex()
+        if index.row() < view.model().rowCount():
+            view.model().removeRows(index.row(), 1)
+
+    def populateParams_batch(self, index):
+        if self.comboBox_scans.currentText() == 'get_offsets':
+            self.comboBox_lut.setEnabled(False)
+        else:
+            self.comboBox_lut.setEnabled(True)
+
+        for i in range(len(self.params1_batch)):
+            self.gridLayout_31.removeWidget(self.params1_batch[i])
+            self.gridLayout_31.removeWidget(self.params2_batch[i])
+            self.gridLayout_31.removeWidget(self.params3_batch[i])
+            self.params1_batch[i].deleteLater()
+            self.params2_batch[i].deleteLater()
+            self.params3_batch[i].deleteLater()
+        self.params1_batch = []
+        self.params2_batch = []
+        self.params3_batch = []
+        self.param_types_batch = []
+        plan_func = self.plan_funcs[index]
+        signature = inspect.signature(plan_func)
+        for i in range(0, len(signature.parameters)):
+            default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
+            if default == str(signature.parameters[list(signature.parameters)[i]]):
+                default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
+            self.addParamControl(list(signature.parameters)[i], default, signature.parameters[list(signature.parameters)[i]].annotation, grid = self.gridLayout_31, params = [self.params1_batch, self.params2_batch, self.params3_batch])
+            self.param_types_batch.append(signature.parameters[list(signature.parameters)[i]].annotation)
+
+    def update_batch_traj(self):
+        self.comboBox_lut.clear()
+        self.comboBox_lut.addItems(['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories])
+        
+
+    def run_batch(self):
+        current_index = 0
+        self.current_uid_list = []
+        for batch_index in range(self.model_batch.rowCount()):
+            index = self.model_batch.index(batch_index, 0)
+            text = str(self.model_batch.data(index))
+
+            if text == 'Sample Loop':
+                print('Running Sample Loop...')
+                item = self.model_batch.item(0)
+                repetitions = item.child(0).text()
+                repetitions = int(repetitions[repetitions.find(':') + 1:])
+
+                samples = collections.OrderedDict({})
+                if item.child(1).text() != 'Samples':
+                    raise Exception('Where are the samples?')
+                samples_tree = item.child(1)
+                for sample_index in range(samples_tree.rowCount()):
+                    sample_text = samples_tree.child(sample_index).text()
+                    sample_name = sample_text[:sample_text.find(' X:')]
+                    sample_text = sample_text[sample_text.find(' X:') + 1:].split()
+                    samples[sample_name] = collections.OrderedDict({sample_text[0][0:sample_text[0].find(':')]:float(sample_text[0][sample_text[0].find(':') + 1:]), sample_text[1][0:sample_text[1].find(':')]:float(sample_text[1][sample_text[1].find(':') + 1:])})
+
+                scans = collections.OrderedDict({})
+                if item.child(2).text() != 'Scans':
+                    raise Exception('Where are the scans?')
+                scans_tree = item.child(2)
+                for scans_index in range(scans_tree.rowCount()):
+                    scans_text = scans_tree.child(scans_index).text()
+                    scan_name = scans_text[:scans_text.find(' ')]
+                    scans_text = scans_text[scans_text.find(' ') + 1:]
+
+                    i = 2
+                    if scan_name in scans:
+                        sn = scan_name
+                        while sn in scans:
+                            sn = '{}-{}'.format(scan_name, i)
+                            i += 1
+                        scan_name = sn
+                    scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k,v in
+                                                               (item.split(':') for item in scans_text.split(' ')))
+
+                print(json.dumps(samples, indent=2))
+                print(json.dumps(scans, indent=2))
+
+                print('-' * 40)
+                for rep in range(repetitions):
+                    print('Repetition #{}'.format(rep + 1))
+                    for index, sample in enumerate(samples):
+                        print('-' * 40)
+                        print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
+                        ### Uncomment
+                        #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                        #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                        ### Uncomment
+                        last_lut = 0
+                        for scan in scans:
+                            lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
+                            traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
+                            ### Uncomment
+                            if last_lut != lut:
+                                print('Init trajectory {} - {}'.format(lut, traj_name))
+                                #self.traj_manager.init(int(lut))
+                                last_lut = lut
+                            #self.run_prep_traj()
+                            print('Prepare trajectory {} - {}'.format(lut, traj_name))
+
+                            old_comment = scans[scan]['comment']
+                            scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+
+                            if scan.find('-') != -1:
+                                scan_name = scan[:scan.find('-')]
+                            else:
+                                scan_name = scan
+                                
+                            print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                            ### Uncomment
+                            #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                            ### Uncomment (previous line)
+                            scans[scan]['comment'] = old_comment
+
+                            #self.current_uid_list.append(self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax))
+                    print('-' * 40)
+                
+            
 
 
 

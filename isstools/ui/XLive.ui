@@ -1898,6 +1898,12 @@ Parameters</string>
        <string>Samples</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_25">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <property name="horizontalSpacing">
+        <number>6</number>
+       </property>
        <item row="0" column="0" colspan="2">
         <layout class="QGridLayout" name="gridLayout_23">
          <property name="sizeConstraint">
@@ -2021,7 +2027,7 @@ Parameters</string>
        <property name="geometry">
         <rect>
          <x>140</x>
-         <y>160</y>
+         <y>170</y>
          <width>61</width>
          <height>21</height>
         </rect>
@@ -2036,7 +2042,7 @@ Parameters</string>
          <x>0</x>
          <y>10</y>
          <width>411</width>
-         <height>151</height>
+         <height>161</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_22">
@@ -2063,7 +2069,7 @@ Parameters</string>
        <property name="geometry">
         <rect>
          <x>340</x>
-         <y>160</y>
+         <y>170</y>
          <width>61</width>
          <height>21</height>
         </rect>
@@ -2137,7 +2143,7 @@ Parameters</string>
        <rect>
         <x>790</x>
         <y>30</y>
-        <width>411</width>
+        <width>451</width>
         <height>221</height>
        </rect>
       </property>
@@ -2145,6 +2151,9 @@ Parameters</string>
        <string>Scans</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_28">
+       <property name="margin">
+        <number>0</number>
+       </property>
        <item row="0" column="0" colspan="2">
         <layout class="QGridLayout" name="gridLayout_26">
          <property name="sizeConstraint">
@@ -2174,7 +2183,7 @@ Parameters</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="label_122">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -2187,13 +2196,23 @@ Parameters</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QComboBox" name="comboBox_lut"/>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="1" column="0" colspan="2">
+           <layout class="QGridLayout" name="gridLayout_31"/>
+          </item>
+          <item row="3" column="0">
            <widget class="QPushButton" name="push_create_scan">
             <property name="text">
              <string>Create</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="push_create_scan_update">
+            <property name="text">
+             <string>Update Trajectories List</string>
             </property>
            </widget>
           </item>
@@ -2227,6 +2246,44 @@ Parameters</string>
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QPushButton" name="push_batch_run">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>680</y>
+        <width>75</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Run</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_batch_delete">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>680</y>
+        <width>75</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Delete</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
@@ -3080,7 +3137,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
