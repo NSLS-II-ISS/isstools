@@ -324,6 +324,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         self.push_create_sample.clicked.connect(self.create_new_sample_func)
+        self.push_get_sample.clicked.connect(self.get_sample_pos)
         self.model_samples = QtGui.QStandardItemModel(self)
         self.treeView_samples.setModel(self.model_samples)
 
@@ -1422,6 +1423,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         parent.appendRow(item)
         self.treeView_samples.expand(self.model_samples.indexFromItem(item))
 
+    def get_sample_pos(self):
+        if 'samplexy_x' not in self.mot_list:
+            raise Exception('samplexy_x was not passed to the GUI')
+        if 'samplexy_y' not in self.mot_list:
+            raise Exception('samplexy_y was not passed to the GUI')
+
+        if not self.motors_list[self.mot_list.index('samplexy_x')].connected or not self.motors_list[self.mot_list.index('samplexy_y')].connected:
+            raise Exception('SampleXY stage IOC not connected')
+
+        x_value = self.motors_list[self.mot_list.index('samplexy_x')].read()['samplexy_x']['value']
+        y_value = self.motors_list[self.mot_list.index('samplexy_y')].read()['samplexy_y']['value']
+        self.doubleSpinBox_sample_x.setValue(x_value)
+        self.doubleSpinBox_sample_y.setValue(y_value)
+
     def add_new_sample_func(self):
         indexes = self.treeView_samples.selectedIndexes()
         for index in indexes:
@@ -1504,6 +1519,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         repetitions_item = QtGui.QStandardItem('Repetitions:{}'.format(self.spinBox_sample_loop_rep.value()))
         new_item.appendRow(repetitions_item)
 
+        if self.radioButton_sample_loop.isChecked():
+            primary = 'Samples'
+        else:
+            primary = 'Scans' 
+        primary_item = QtGui.QStandardItem('Primary:{}'.format(primary))
+        new_item.appendRow(primary_item)
+
         samples_item = QtGui.QStandardItem('Samples')
         samples_item.setDropEnabled(False)
         for index in range(len(samples)):
@@ -1550,7 +1572,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             view.model().removeRows(index.row(), 1)
 
     def delete_current_batch(self):
-        view = self.treeView_batch_loop_scans
+        view = self.treeView_batch
         index = view.currentIndex()
         if index.row() < view.model().rowCount():
             view.model().removeRows(index.row(), 1)
@@ -1595,14 +1617,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             if text == 'Sample Loop':
                 print('Running Sample Loop...')
-                item = self.model_batch.item(0)
+                item = self.model_batch.item(batch_index)
                 repetitions = item.child(0).text()
                 repetitions = int(repetitions[repetitions.find(':') + 1:])
 
+                primary = item.child(1).text()
+                primary = primary[primary.find(':') + 1:]
+
                 samples = collections.OrderedDict({})
-                if item.child(1).text() != 'Samples':
+                if item.child(2).text() != 'Samples':
                     raise Exception('Where are the samples?')
-                samples_tree = item.child(1)
+                samples_tree = item.child(2)
                 for sample_index in range(samples_tree.rowCount()):
                     sample_text = samples_tree.child(sample_index).text()
                     sample_name = sample_text[:sample_text.find(' X:')]
@@ -1610,9 +1635,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     samples[sample_name] = collections.OrderedDict({sample_text[0][0:sample_text[0].find(':')]:float(sample_text[0][sample_text[0].find(':') + 1:]), sample_text[1][0:sample_text[1].find(':')]:float(sample_text[1][sample_text[1].find(':') + 1:])})
 
                 scans = collections.OrderedDict({})
-                if item.child(2).text() != 'Scans':
+                if item.child(3).text() != 'Scans':
                     raise Exception('Where are the scans?')
-                scans_tree = item.child(2)
+                scans_tree = item.child(3)
                 for scans_index in range(scans_tree.rowCount()):
                     scans_text = scans_tree.child(scans_index).text()
                     scan_name = scans_text[:scans_text.find(' ')]
@@ -1628,49 +1653,83 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k,v in
                                                                (item.split(':') for item in scans_text.split(' ')))
 
-                print(json.dumps(samples, indent=2))
-                print(json.dumps(scans, indent=2))
+                #print(json.dumps(samples, indent=2))
+                #print(json.dumps(scans, indent=2))
 
                 print('-' * 40)
                 for rep in range(repetitions):
                     print('Repetition #{}'.format(rep + 1))
-                    for index, sample in enumerate(samples):
-                        print('-' * 40)
-                        print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
-                        ### Uncomment
-                        #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                        #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
-                        ### Uncomment
-                        last_lut = 0
-                        for scan in scans:
-                            lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
-                            traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
+                    last_lut = 0
+
+                    if primary == 'Samples':
+                        for index, sample in enumerate(samples):
+                            print('-' * 40)
+                            print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                             ### Uncomment
-                            if last_lut != lut:
-                                print('Init trajectory {} - {}'.format(lut, traj_name))
-                                #self.traj_manager.init(int(lut))
-                                last_lut = lut
-                            #self.run_prep_traj()
-                            print('Prepare trajectory {} - {}'.format(lut, traj_name))
-
-                            old_comment = scans[scan]['comment']
-                            scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
-
-                            if scan.find('-') != -1:
-                                scan_name = scan[:scan.find('-')]
-                            else:
-                                scan_name = scan
-                                
-                            print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                            #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                            #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
                             ### Uncomment
-                            #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
-                            ### Uncomment (previous line)
-                            scans[scan]['comment'] = old_comment
+                            for scan in scans:
+                                lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
+                                traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
+                                ### Uncomment
+                                if last_lut != lut:
+                                    print('Init trajectory {} - {}'.format(lut, traj_name))
+                                    #self.traj_manager.init(int(lut))
+                                    last_lut = lut
+                                print('Prepare trajectory {} - {}'.format(lut, traj_name))
+                                #self.run_prep_traj()
+    
+                                old_comment = scans[scan]['comment']
+                                scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+    
+                                if scan.find('-') != -1:
+                                    scan_name = scan[:scan.find('-')]
+                                else:
+                                    scan_name = scan
+                                    
+                                print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                                ### Uncomment
+                                #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                ### Uncomment (previous line)
+                                scans[scan]['comment'] = old_comment
+    
+                                #self.current_uid_list.append(self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax))
 
-                            #self.current_uid_list.append(self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax))
+                    elif primary == 'Scans':    
+                        for index_scan, scan in enumerate(scans):
+                            for index, sample in enumerate(samples):
+                                print('-' * 40)
+                                print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
+                                ### Uncomment
+                                #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                                #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                                ### Uncomment
+    
+                                lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
+                                traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
+                                if last_lut != lut:
+                                    print('Init trajectory {} - {}'.format(lut, traj_name))
+                                    #self.traj_manager.init(int(lut))
+                                    last_lut = lut
+                                print('Prepare trajectory {} - {}'.format(lut, traj_name))
+                                #self.run_prep_traj()
+    
+                                old_comment = scans[scan]['comment']
+                                scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+    
+                                if scan.find('-') != -1:
+                                    scan_name = scan[:scan.find('-')]
+                                else:
+                                    scan_name = scan
+    
+                                print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                                ### Uncomment
+                                #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                ### Uncomment (previous line)
+                                scans[scan]['comment'] = old_comment
+    
                     print('-' * 40)
-                
-            
 
 
 

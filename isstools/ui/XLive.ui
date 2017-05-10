@@ -1963,7 +1963,7 @@ Parameters</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
+          <item row="4" column="0" colspan="2">
            <widget class="QPushButton" name="push_create_sample">
             <property name="text">
              <string>Create</string>
@@ -1979,6 +1979,13 @@ Parameters</string>
           </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="lineEdit_sample_name"/>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QPushButton" name="push_get_sample">
+            <property name="text">
+             <string>Get Current Positions</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -2081,7 +2088,7 @@ Parameters</string>
       <widget class="QWidget" name="gridLayoutWidget_19">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>0</x>
          <y>190</y>
          <width>206</width>
          <height>41</height>
@@ -2121,6 +2128,42 @@ Parameters</string>
          <widget class="QPushButton" name="push_add_sample_loop">
           <property name="text">
            <string>&lt; Add</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_23">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>190</y>
+         <width>201</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_33">
+        <item row="0" column="1">
+         <widget class="QRadioButton" name="radioButton_sample_loop">
+          <property name="text">
+           <string>Samp.</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_127">
+          <property name="text">
+           <string>Primary:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QRadioButton" name="radioButton_sample_loop_scans">
+          <property name="text">
+           <string>Scans</string>
           </property>
          </widget>
         </item>
@@ -3137,7 +3180,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
