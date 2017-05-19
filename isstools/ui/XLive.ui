@@ -2435,6 +2435,32 @@ Parameters</string>
        <string>Delete</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="push_load_csv">
+      <property name="geometry">
+       <rect>
+        <x>1210</x>
+        <y>890</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load .csv</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_save_csv">
+      <property name="geometry">
+       <rect>
+        <x>1360</x>
+        <y>890</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save .csv</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">

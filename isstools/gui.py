@@ -27,6 +27,7 @@ from isstools.dialogs import UpdateAngleOffset
 from isstools.dialogs import MoveMotorDialog
 from isstools.conversions import xray
 from isstools.pid import PID
+from isstools.batch.batch import BatchManager
 import os
 from os import listdir
 from os.path import isfile, join
@@ -299,6 +300,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Initialize 'Batch Mode' tab
+        self.uids_to_process = []
         self.treeView_batch = elements.TreeView(self, 'all')
         self.treeView_samples_loop = elements.TreeView(self, 'sample')
         self.treeView_samples_loop_scans = elements.TreeView(self, 'scan')
@@ -348,7 +350,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.model_scans = QtGui.QStandardItemModel(self)
         self.treeView_scans.setModel(self.model_scans)
 
-        self.push_batch_run.clicked.connect(self.run_batch)
+        self.push_batch_run.clicked.connect(self.start_batch)
         self.push_batch_delete.clicked.connect(self.delete_current_batch)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
@@ -366,6 +368,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.spinBox_sample_loop_rep.valueChanged.connect(self.doubleSpinBox_motor_range_stop.setDisabled)
         self.spinBox_sample_loop_rep.valueChanged.connect(self.doubleSpinBox_motor_range_step.setDisabled)
         self.last_lut = 0
+
+        self.push_load_csv.clicked.connect(self.load_csv)
+        self.push_save_csv.clicked.connect(self.save_csv)
 
 
 
@@ -1460,7 +1465,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         new_item.setEditable(False)
         new_item.setDropEnabled(False)
         name = new_item.text().split()[0]
-        new_item.setText('Move to "{}"'.format(name))
+        new_item.setText('Move to "{}" X:{} Y:{}'.format(name, item.x, item.y))
         for index in range(item.rowCount()):
             subitem = QtGui.QStandardItem(item.child(index))
             subitem.setEnabled(False)
@@ -1641,6 +1646,34 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBox_lut.clear()
         self.comboBox_lut.addItems(['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories])
         
+    def load_csv(self):
+        user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
+                                                                  self.RE.md['cycle'],
+                                                                  self.RE.md['PROPOSAL'])
+        filename = QtGui.QFileDialog.getOpenFileName(caption = 'Select file to load', 
+                                                     directory = user_filepath, 
+                                                     filter = '*.csv')
+        if filename:
+            batman = BatchManager(self)
+            batman.load_csv(filename)
+
+    def save_csv(self):
+        user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
+                                                                  self.RE.md['cycle'],
+                                                                  self.RE.md['PROPOSAL'])
+        filename = QtGui.QFileDialog.getSaveFileName(caption = 'Select file to save', 
+                                                     directory = user_filepath, 
+                                                     filter = '*.csv')
+        if filename:
+            batman = BatchManager(self)
+            batman.save_csv(filename)
+
+    def start_batch(self):
+        print('[Launching Threads]')
+        self.batch_processor = process_batch_thread(self)
+        self.batch_processor.start()
+        self.run_batch()
+        print('[Finished Launching Threads]')
 
     def run_batch(self):
         self.last_lut = 0
@@ -1653,12 +1686,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             if text.find('Move to ') == 0:
                 name = text[text.find('"') + 1:text.rfind('"')]
-                print('Move to sample {} (X: {}, Y: {})'.format(name, item.x, item.y))#sample, samples[sample]['X'], samples[sample]['Y']))
+                item_x = text[text.find('" X:') + 4:text.find(' Y:')]
+                item_y = text[text.find(' Y:') + 3:]
+                print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))#sample, samples[sample]['X'], samples[sample]['Y']))
                 ### Uncomment
-                #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                #self.motors_list[self.mot_list.index('samplexy_x')].move(item_x )#samples[sample]['X'])
+                #self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
                 ### Uncomment
-                #print(item.x)
 
             if text.find('Run ') == 0:
                 scan_type = text.split()[0]
@@ -1701,9 +1735,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         scan_name = scan
 
                     ### Uncomment
-                    #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                    self.uids_to_process.append('ee0a0d82-2853-49d4-a5fc-94d789755f9a')
+                    # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                     ### Uncomment (previous line)
-                    
+
                     if 'comment' in scans[scan]:
                         print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
                         scans[scan]['comment'] = old_comment
@@ -1807,7 +1842,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     scan_name = scan
             
                                 ### Uncomment
-                                #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                self.uids_to_process.append('d79c0b52-1135-4ba4-88c8-37a7e2bef186')
+                                # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 
                                 if 'comment' in scans[scan]:    
@@ -1816,36 +1852,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 else:
                                     print('Execute {}'.format(scan_name))
 
-
-
-
-
-#                            for scan in scans:
-#                                lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
-#                                traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
-#                                ### Uncomment
-#                                if self.last_lut != lut:
-#                                    print('Init trajectory {} - {}'.format(lut, traj_name))
-#                                    #self.traj_manager.init(int(lut))
-#                                    self.last_lut = lut
-#                                print('Prepare trajectory {} - {}'.format(lut, traj_name))
-#                                #self.run_prep_traj()
-#    
-#                                old_comment = scans[scan]['comment']
-#                                scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
-#    
-#                                if scan.find('-') != -1:
-#                                    scan_name = scan[:scan.find('-')]
-#                                else:
-#                                    scan_name = scan
-#                                    
-#                                print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
-#                                ### Uncomment
-#                                #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
-#                                ### Uncomment (previous line)
-#                                scans[scan]['comment'] = old_comment
-#    
-#                                #self.current_uid_list.append(self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax))
 
 
 
@@ -1880,12 +1886,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
     
                                 print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
                                 ### Uncomment
-                                #self.current_uid_list.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                self.uids_to_process.append('d4400059-560e-4928-ae5b-fb792d12f9af')
+                                # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 scans[scan]['comment'] = old_comment
     
                     print('-' * 40)
 
+        self.batch_processor.go = 0
 
 
 
@@ -1927,6 +1935,129 @@ class EmittingStream(QtCore.QObject):
 
 
 
+
+# Process batch thread
+
+class process_batch_thread(QThread):
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.gui = gui
+
+    def run(self):
+        uid_list = []
+        filepaths = []
+
+        self.go = 1
+        while(self.go or len(self.gui.uids_to_process) > 0):
+        #for uid in self.gui.run_batch():
+            if len(self.gui.uids_to_process) > 0:
+                uid = self.gui.uids_to_process.pop(0)
+
+                if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
+                    print('get_offsets, nothing to process')
+                    continue
+    
+                self.gui.current_uid = uid
+    
+                self.gui.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                        '{}.txt'.format(self.gui.db[self.gui.current_uid]['start']['year'],
+                                                        self.gui.db[self.gui.current_uid]['start']['cycle'],
+                                                        self.gui.db[self.gui.current_uid]['start']['PROPOSAL'],
+                                                        self.gui.db[self.gui.current_uid]['start']['comment'])
+                if os.path.isfile(self.gui.current_filepath):
+                    iterator = 2
+                    while True:
+                        self.gui.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+                                                '{}-{}.txt'.format(self.gui.db[self.gui.current_uid]['start']['year'],
+                                                                   self.gui.db[self.gui.current_uid]['start']['cycle'],
+                                                                   self.gui.db[self.gui.current_uid]['start']['PROPOSAL'],
+                                                                   self.gui.db[self.gui.current_uid]['start']['comment'],
+                                                                   iterator)
+                        if not os.path.isfile(self.gui.current_filepath):
+                            break
+                        iterator += 1
+                    
+                
+    
+                filepaths.append(self.gui.current_filepath)
+                self.gui.gen_parser.load(self.gui.current_uid)
+    
+                key_base = 'i0'
+                if 'xia_filename' in self.gui.db[self.gui.current_uid]['start']:
+                    key_base = 'xia_trigger'
+                self.gui.gen_parser.interpolate(key_base = key_base)
+    
+                #self.gui.figure.ax.cla()
+                #self.gui.canvas.draw_idle()
+    
+                division = self.gui.gen_parser.interp_arrays['i0'][:, 1] / self.gui.gen_parser.interp_arrays['it'][:, 1]
+                division[division < 0] = 1
+                #self.gui.figure.ax.plot(self.gui.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
+                #self.gui.figure.ax.set_xlabel('Energy (eV)')
+                #self.gui.figure.ax.set_xlabel('log(i0 / it)')
+    
+                # self.gui.gen_parser should be able to generate the interpolated file
+            
+                if 'xia_filename' in self.gui.db[self.gui.current_uid]['start']:
+                    # Parse xia
+                    xia_filename = self.gui.db[self.gui.current_uid]['start']['xia_filename']
+                    xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                    xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                    smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                    smbclient.copy()
+                    xia_parser = self.gui.xia_parser
+                    xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
+                    xia_parsed_filepath = self.gui.current_filepath[0 : self.gui.current_filepath.rfind('/') + 1]
+                    xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
+    
+                    length = min(len(xia_parser.exporting_array1), len(self.gui.gen_parser.interp_arrays['energy']))
+    
+                    mcas = []
+                    if 'xia_rois' in self.gui.db[self.gui.current_uid]['start']:
+                        xia_rois = self.gui.db[self.gui.current_uid]['start']['xia_rois']
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                        mca_sum = sum(mcas)
+                    else:
+                        for mca_number in range(1, 5):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
+                        mca_sum = sum(mcas)
+    
+                    self.gui.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
+    
+                    #self.gui.figure.ax.cla()
+                    #self.gui.figure.ax.plot(self.gui.gen_parser.interp_arrays['energy'][:, 1], -(self.gui.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gui.gen_parser.interp_arrays['i0'][:, 1]))
+    
+                #if self.gui.html_log_func is not None:
+                #    self.gui.html_log_func(self.gui.current_uid, self.gui.figure)
+                #self.gui.canvas.draw_idle()
+            
+                self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
+    
+                # Check saturation:
+                #try: 
+                #    warnings = ()
+                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
+                #        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['it'][:,1])) > 3.9:
+                #        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
+                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
+                #        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
+                #    if len(warnings):
+                #        raise Warning(warnings)
+    
+                #except Warning as warnings:
+                #    warningtxt = ''
+                #    for warning in warnings.args[0]:
+                #        print('Warning: {}'.format(warning))
+                #        warningtxt += '{}\n'.format(warning)
+                #    warningtxt += 'Check the gains of the ion chambers'
+                    #QtGui.QMessageBox.warning(self.gui. 'Warning!', warningtxt)
+                    #raise
+    
+                #self.gui.canvas.draw_idle()
+            else:
+                QtCore.QCoreApplication.processEvents()
 
 
 
