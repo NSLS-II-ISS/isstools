@@ -51,9 +51,9 @@ class XASdata:
     def loadTRIGtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         array_out = []
         with open(filepath + str(filename)) as f:
-            for line in f:  # read rest of lines
+            for index, line in enumerate(f):  # read rest of lines
                 current_line = line.split()
-                if(int(current_line[3]) % 2 == 0):
+                if(index % 2 == 0):
                     array_out.append([int(current_line[0])+1e-9*int(current_line[1]), int(current_line[3])])
         return np.array(array_out)
 

@@ -13,6 +13,7 @@ from pexpect import pxssh
 from ftplib import FTP
 
 from isstools.conversions import xray
+import pandas as pd
 
 class trajectory():
     def __init__(self):
@@ -200,6 +201,15 @@ class trajectory_manager():
         file_size = self.file_len(orig_file_path + orig_file_name)
         print('[Load Trajectory] Number of lines in file: {}'.format(file_size))
 
+        # Get min and max of trajectory in eV
+        if orig_file_path[-1] != '/':
+            fp += '/'
+        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name))
+        min_energy = int(xray.encoder2energy((-traj).min()))
+        max_energy = int(xray.encoder2energy((-traj).max()))
+        print('[Load Trajectory] Min energy: {}'.format(min_energy))
+        print('[Load Trajectory] Max energy: {}'.format(max_energy))
+
         # Create ftp connection with default credential
         ftp = FTP(ip)
         ftp.login()
@@ -244,7 +254,7 @@ class trajectory_manager():
                     print('[Load Trajectory] File sent OK')
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
-                    s.sendline ('echo "{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, new_file_path))
+                    s.sendline ('echo "{}\n{}\n{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, min_energy, max_energy, new_file_path))
                     ttime.sleep(0.01)
                     ftp.close()
                     print('[Load Trajectory] Permissions OK')
@@ -305,6 +315,11 @@ class trajectory_manager():
             if(len(info) == 2):
                 size = int(info[0])
                 name = info[1]
+            elif(len(info) == 4):
+                size = int(info[0])
+                name = info[1]
+                min_en = int(info[2])
+                max_en = int(info[3])
             else:
                 print('[Init Trajectory] Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')    
                 return False
@@ -356,6 +371,14 @@ class trajectory_manager():
                     self.traj_info[str(i)] = {'name':str(name), 'size':str(size)}
                     if not silent:
                         print('{}: {:<24} (Size: {})'.format(i, name, size))
+                elif(len(info) == 4):
+                    size = int(info[0])
+                    name = info[1]
+                    min_en = int(info[2])
+                    max_en = int(info[3])
+                    self.traj_info[str(i)] = {'name':str(name), 'size':str(size), 'min':str(min_en), 'max':str(max_en)}
+                    if not silent:
+                        print('{}: {:<24} (Size: {}, min: {}, max: {})'.format(i, name, size, min_en, max_en))
                 else:
                     self.traj_info[str(i)] = {'name':'undefined', 'size':'undefined'}
                     if not silent:

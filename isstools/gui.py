@@ -1690,8 +1690,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 item_y = text[text.find(' Y:') + 3:]
                 print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))#sample, samples[sample]['X'], samples[sample]['Y']))
                 ### Uncomment
-                #self.motors_list[self.mot_list.index('samplexy_x')].move(item_x )#samples[sample]['X'])
-                #self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
+                self.motors_list[self.mot_list.index('samplexy_x')].move(item_x )#samples[sample]['X'])
+                self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
                 ### Uncomment
 
             if text.find('Run ') == 0:
@@ -1720,10 +1720,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         ### Uncomment
                         if self.last_lut != lut:
                             print('Init trajectory {} - {}'.format(lut, traj_name))
-                            #self.traj_manager.init(int(lut))
+                            self.traj_manager.init(int(lut))
                             self.last_lut = lut
                         print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                        #self.run_prep_traj()
+                        self.run_prep_traj()
     
                     if 'comment' in scans[scan]:
                         old_comment = scans[scan]['comment']
@@ -1735,8 +1735,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         scan_name = scan
 
                     ### Uncomment
-                    self.uids_to_process.append('ee0a0d82-2853-49d4-a5fc-94d789755f9a')
-                    # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                    #self.uids_to_process.append('ee0a0d82-2853-49d4-a5fc-94d789755f9a')
+                    self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                     ### Uncomment (previous line)
 
                     if 'comment' in scans[scan]:
@@ -1808,7 +1808,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if rep_type == 'Motor':
                         print('Move {} to {} {}'.format(rep_motor.name, rep, rep_motor.egu)) 
                         ### Uncomment
-                        #rep_motor.move(rep)
+                        rep_motor.move(rep)
                         ### Uncomment
 
                     if primary == 'Samples':
@@ -1816,8 +1816,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             print('-' * 40)
                             print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                             ### Uncomment
-                            #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                            #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                            self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                            self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
                             ### Uncomment
 
                             for scan in scans:
@@ -1827,10 +1827,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     ### Uncomment
                                     if self.last_lut != lut:
                                         print('Init trajectory {} - {}'.format(lut, traj_name))
-                                        #self.traj_manager.init(int(lut))
+                                        self.traj_manager.init(int(lut))
                                         self.last_lut = lut
                                     print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                    #self.run_prep_traj()
+                                    self.run_prep_traj()
                 
                                 if 'comment' in scans[scan]:
                                     old_comment = scans[scan]['comment']
@@ -1842,8 +1842,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     scan_name = scan
             
                                 ### Uncomment
-                                self.uids_to_process.append('d79c0b52-1135-4ba4-88c8-37a7e2bef186')
-                                # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                # self.uids_to_process.append('d79c0b52-1135-4ba4-88c8-37a7e2bef186')
+                                self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 
                                 if 'comment' in scans[scan]:    
@@ -1863,18 +1863,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 print('-' * 40)
                                 print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                                 ### Uncomment
-                                #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                                #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                                self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                                self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
                                 ### Uncomment
     
                                 lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
                                 traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
                                 if self.last_lut != lut:
                                     print('Init trajectory {} - {}'.format(lut, traj_name))
-                                    #self.traj_manager.init(int(lut))
+                                    self.traj_manager.init(int(lut))
                                     self.last_lut = lut
                                 print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                #self.run_prep_traj()
+                                self.run_prep_traj()
     
                                 old_comment = scans[scan]['comment']
                                 scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
@@ -1886,8 +1886,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
     
                                 print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
                                 ### Uncomment
-                                self.uids_to_process.append('d4400059-560e-4928-ae5b-fb792d12f9af')
-                                # self.uids_to_process.append(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                # self.uids_to_process.append('d4400059-560e-4928-ae5b-fb792d12f9af')
+                                self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 scans[scan]['comment'] = old_comment
     
