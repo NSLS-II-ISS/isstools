@@ -13,6 +13,7 @@ from pexpect import pxssh
 from ftplib import FTP
 
 from isstools.conversions import xray
+import pandas as pd
 
 class trajectory():
     def __init__(self):
@@ -171,6 +172,7 @@ class trajectory():
 class trajectory_manager():
     def __init__(self, hhm, **kwargs):
         self.hhm = hhm
+        self.traj_info = {}
 
     # Function used to count the number of lines in a file
     def file_len(self, fname):
@@ -198,6 +200,15 @@ class trajectory_manager():
         # Get number of lines in file
         file_size = self.file_len(orig_file_path + orig_file_name)
         print('[Load Trajectory] Number of lines in file: {}'.format(file_size))
+
+        # Get min and max of trajectory in eV
+        if orig_file_path[-1] != '/':
+            fp += '/'
+        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name))
+        min_energy = int(xray.encoder2energy((-traj).min()))
+        max_energy = int(xray.encoder2energy((-traj).max()))
+        print('[Load Trajectory] Min energy: {}'.format(min_energy))
+        print('[Load Trajectory] Max energy: {}'.format(max_energy))
 
         # Create ftp connection with default credential
         ftp = FTP(ip)
@@ -243,7 +254,7 @@ class trajectory_manager():
                     print('[Load Trajectory] File sent OK')
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
-                    s.sendline ('echo "{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, new_file_path))
+                    s.sendline ('echo "{}\n{}\n{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, min_energy, max_energy, new_file_path))
                     ttime.sleep(0.01)
                     ftp.close()
                     print('[Load Trajectory] Permissions OK')
@@ -304,6 +315,11 @@ class trajectory_manager():
             if(len(info) == 2):
                 size = int(info[0])
                 name = info[1]
+            elif(len(info) == 4):
+                size = int(info[0])
+                name = info[1]
+                min_en = int(info[2])
+                max_en = int(info[3])
             else:
                 print('[Init Trajectory] Could not find the size and name info in the controller. Please, try sending the trajectory file again using trajectory_load(...)')    
                 return False
@@ -322,12 +338,14 @@ class trajectory_manager():
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
     # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
-    def read_info(self, ip = '10.8.2.86'):
+    def read_info(self, ip = '10.8.2.86', silent=False):
         ftp = FTP(ip)
         ftp.login()
         ftp.cwd('/usrflash/lut/')
-        print('-'*62)
-        print('The trajectories found in the controller (ip: {}) are:'.format(ip))
+        if not silent:
+            print('-'*62)
+            print('The trajectories found in the controller (ip: {}) are:'.format(ip))
+        self.traj_info.clear()
     
         def handle_binary(more_data):
             info.append(more_data)
@@ -350,13 +368,30 @@ class trajectory_manager():
                 if(len(info) == 2):
                     size = int(info[0])
                     name = info[1]
-                    print('{}: {:<24} (Size: {})'.format(i, name, size))
+                    self.traj_info[str(i)] = {'name':str(name), 'size':str(size)}
+                    if not silent:
+                        print('{}: {:<24} (Size: {})'.format(i, name, size))
+                elif(len(info) == 4):
+                    size = int(info[0])
+                    name = info[1]
+                    min_en = int(info[2])
+                    max_en = int(info[3])
+                    self.traj_info[str(i)] = {'name':str(name), 'size':str(size), 'min':str(min_en), 'max':str(max_en)}
+                    if not silent:
+                        print('{}: {:<24} (Size: {}, min: {}, max: {})'.format(i, name, size, min_en, max_en))
                 else:
-                    print('{}: Could not find the size and name info'.format(i)) 
-            else:
+                    self.traj_info[str(i)] = {'name':'undefined', 'size':'undefined'}
+                    if not silent:
+                        print('{}: Could not find the size and name info'.format(i)) 
+            elif not silent:
+                self.traj_info[str(i)] = {'name':'undefined', 'size':'undefined'}
                 print('{}: Could not find the size and name info'.format(i))    
     
-        print('-'*62)
+        if not silent:
+            print('-'*62)
+
+        return self.traj_info
+    
 
     def current_lut(self):
         return self.hhm.lut_number_rbv.value

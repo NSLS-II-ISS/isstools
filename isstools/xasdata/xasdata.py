@@ -46,7 +46,8 @@ class XASdata:
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
         df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
         df['timestamps'] = df['times'] + 1e-9 * df['timens']
-        df = df[df['counter'] % 2 == 0]
+        df = df.iloc[::2]
+        #df = df[df['counter'] % 2 == 0]
         return np.array(df.iloc[:, [5, 3]])
 
     def loadINTERPtrace(self, filename):
