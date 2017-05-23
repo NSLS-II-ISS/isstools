@@ -25,37 +25,30 @@ class XASdata:
         self.header_read = ''
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
-        array_out=[]
-        with open(filepath + str(filename)) as f:
-            for line in f:
-                current_line = line.split()
-                current_line[3] = int(current_line[3],0) >> 8
-                if current_line[3] > 0x1FFFF:
-                    current_line[3] -= 0x40000
-                current_line[3] = float(current_line[3]) * 7.62939453125e-05
-                array_out.append(
-                        [int(current_line[0])+1e-9*int(current_line[1]), current_line[3], int(current_line[2])])
-        return np.array(array_out)
+        keys = ['times', 'timens', 'counter', 'adc']
+        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+        df['timestamps'] = df['times'] + 1e-9 * df['timens']
+        #del df['times']
+        #del df['timens']
+        df['adc'] = df['adc'].apply(lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x, 16) >> 8) * 7.62939453125e-05
+        return np.array(df.iloc[:, 4:1:-1])
+
 
     def loadENCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
-        array_out = []
-        with open(filepath + str(filename)) as f:
-            for line in f:  # read rest of lines
-                current_line = line.split()
-                current_line[2] = int(current_line[2])
-                if current_line[2] > 0:
-                    current_line[2] = -(current_line[2] ^ 0xffffff - 1)
-                array_out.append([int(current_line[0])+1e-9*int(current_line[1]), current_line[2], int(current_line[3])])
-        return np.array(array_out)
+        keys = ['times', 'timens', 'encoder', 'counter', 'di']
+        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+        df['timestamps'] = df['times'] + 1e-9 * df['timens']
+        df['encoder'] = df['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
+        return np.array(df.iloc[:, [5, 2]])
+
 
     def loadTRIGtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
-        array_out = []
-        with open(filepath + str(filename)) as f:
-            for index, line in enumerate(f):  # read rest of lines
-                current_line = line.split()
-                if(index % 2 == 0):
-                    array_out.append([int(current_line[0])+1e-9*int(current_line[1]), int(current_line[3])])
-        return np.array(array_out)
+        keys = ['times', 'timens', 'encoder', 'counter', 'di']
+        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+        df['timestamps'] = df['times'] + 1e-9 * df['timens']
+        df = df.iloc[::2]
+        #df = df[df['counter'] % 2 == 0]
+        return np.array(df.iloc[:, [5, 3]])
 
     def loadINTERPtrace(self, filename):
         array_timestamp=[]
@@ -164,12 +157,12 @@ class XASdataGeneric(XASdata):
             timestamp_index = keys.index('Timestamp (s)')
         elif 'timestamp' in keys:
             timestamp_index = keys.index('timestamp')
-        
-        matrix = np.loadtxt(filename)
-        for i in range(matrix.shape[1]):
-            if i != timestamp_index:
-                self.interp_arrays[keys[i]] = np.array([matrix[:, timestamp_index], matrix[:, i]]).transpose()
-        self.interp_arrays['1'] = np.array([matrix[:, timestamp_index], np.ones(len(matrix[:, 0]))]).transpose()
+
+        df = pd.read_table('/GPFS/xf08id/User Data/2017.1.301348/NiMOF_0_5mVs 9.txt', delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])   
+        for index, key in enumerate(df.keys()):
+            if index != timestamp_index:
+                self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index], df.iloc[:, index]]).transpose()
+            self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index], np.ones(len(df.iloc[:, 0]))]).transpose()
 
 
     def interpolate(self, key_base = 'i0'):
