@@ -158,7 +158,7 @@ class XASdataGeneric(XASdata):
         elif 'timestamp' in keys:
             timestamp_index = keys.index('timestamp')
 
-        df = pd.read_table('/GPFS/xf08id/User Data/2017.1.301348/NiMOF_0_5mVs 9.txt', delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])   
+        df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])   
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
                 self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index], df.iloc[:, index]]).transpose()
