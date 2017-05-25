@@ -5,7 +5,7 @@ import pkg_resources
 import scipy
 from scipy import interpolate
 import math
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 import time as ttime
 #import pexpect
