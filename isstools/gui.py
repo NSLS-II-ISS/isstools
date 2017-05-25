@@ -38,6 +38,7 @@ import collections
 import signal
 
 import json
+import pandas as pd
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -73,7 +74,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #self.fig = fig = self.figure_content()
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
-        self.run_check_gains.clicked.connect(self.run_gains_test)
         self.prep_traj_plan = prep_traj_plan
         if self.prep_traj_plan is None:
             self.push_prepare_trajectory.setEnabled(False)
@@ -117,8 +117,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.progress_sig.connect(self.update_progressbar) 
             self.progressBar.setValue(0)
             self.traj_manager = trajectory_manager(hhm)
-            self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-            self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+            self.comboBox_2.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
+            self.comboBox_3.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
             self.comboBox_3.setCurrentIndex(self.traj_manager.current_lut() - 1)
             self.trajectories = self.traj_manager.read_info(silent=True)
             self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
@@ -126,7 +126,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.tabWidget.setTabEnabled(0, False)
 
-        self.traj = trajectory()
+        self.traj_creator = trajectory()
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
@@ -224,6 +224,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
+        self.run_check_gains.clicked.connect(self.run_gains_test)
+        self.run_check_gains_scan.clicked.connect(self.run_gains_test_scan)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
         self.checkBox_piezo_fb.stateChanged.connect(self.toggle_piezo_fb)
@@ -956,32 +958,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
         traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
 
         #Create and interpolate trajectory
-        self.traj.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
+        self.traj_creator.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
                         stitching = ([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi, postedge_stitch_lo, postedge_stitch_hi]),\
                         servocycle = 16000, padding_lo = padding_preedge ,padding_hi=padding_postedge, sine_duration = sine_duration, 
                         dsine_preedge_duration = dsine_preedge_duration, dsine_postedge_duration = dsine_postedge_duration, trajectory_type = traj_type)
-        self.traj.interpolate()
+        self.traj_creator.interpolate()
 
         #Plot single trajectory motion
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
-        self.figure_single_trajectory.ax.plot(self.traj.time, self.traj.energy, 'ro')
-        self.figure_single_trajectory.ax.plot(self.traj.time_grid, self.traj.energy_grid, 'b')
+        self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
+        self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time /s')
         self.figure_single_trajectory.ax.set_ylabel('Energy /eV')
-        self.figure_single_trajectory.ax2.plot(self.traj.time_grid[0:-1], self.traj.energy_grid_der, 'r')
+        self.figure_single_trajectory.ax2.plot(self.traj_creator.time_grid[0:-1], self.traj_creator.energy_grid_der, 'r')
         self.canvas_single_trajectory.draw_idle()
 
         # Tile trajectory
         self.figure_full_trajectory.ax.cla()
         self.canvas_full_trajectory.draw_idle()
-        self.traj.tile(reps=self.spinBox_tiling_repetitions.value())
+        self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value())
 
         # Convert to encoder counts
-        self.traj.e2encoder(float(self.label_angle_offset.text()))
+        self.traj_creator.e2encoder(float(self.label_angle_offset.text()))
         
         # Draw
-        self.figure_full_trajectory.ax.plot(self.traj.encoder_grid, 'b')
+        self.figure_full_trajectory.ax.plot(self.traj_creator.encoder_grid, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Servo event / 1/16000 s')
         self.figure_full_trajectory.ax.set_ylabel('Encoder count')
         self.canvas_full_trajectory.draw_idle()
@@ -1003,9 +1005,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             return
         print('Filename = {}'.format(filename))
 
-        if(len(self.traj.energy_grid)):
+        if(len(self.traj_creator.energy_grid)):
             np.savetxt(filename, 
-	               self.traj.encoder_grid, fmt='%d')
+	               self.traj_creator.encoder_grid, fmt='%d')
             call(['chmod', '666', filename])
             #self.get_traj_names()
             self.label_56.setText(filename.rsplit('/',1)[1])
@@ -1015,7 +1017,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('\nCreate the trajectory first...')
 
     def plot_traj_file(self):
-        self.traj.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text())#self.comboBox.currentText())
+        self.traj_creator.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text())#self.comboBox.currentText())
 
         self.figure_single_trajectory.ax.cla()
         self.figure_single_trajectory.ax2.cla()
@@ -1023,7 +1025,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
-        self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj.energy_grid_loaded)/16000, 1/16000), self.traj.energy_grid_loaded, 'b')
+        self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj_creator.energy_grid_loaded)/16000, 1/16000), self.traj_creator.energy_grid_loaded, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Time /s')
         self.figure_full_trajectory.ax.set_ylabel('Energy /eV')
         self.figure_full_trajectory.ax.set_title(self.label_56.text())#self.comboBox.currentText())
@@ -1278,6 +1280,141 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         print('Done!')            
 
+
+    def run_gains_test_scan(self):
+
+        def handler(signum, frame):
+            print("Could not open shutters")
+            raise Exception("end of time")
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(6)
+
+
+#        if self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
+#            try:
+#                self.shutter_b.open()
+#            except Exception as exc: 
+#                print('Timeout! Aborting!')
+#                return
+#
+#            while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
+#                QtGui.QApplication.processEvents()
+#                ttime.sleep(0.1)
+#
+#        if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
+#            try:
+#                self.shutter_a.open()
+#            except: 
+#                print('Timeout! Aborting!')
+#                return
+#
+#            while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
+#                QtGui.QApplication.processEvents()
+#                ttime.sleep(0.1)
+
+        
+        signal.alarm(0)
+
+        current_adc_index = self.comboBox_samp_time.currentIndex()
+        current_enc_value = self.lineEdit_samp_time.text()
+
+        info = self.traj_manager.read_info(silent=True)
+        current_lut = int(self.hhm.lut_number_rbv.value)
+
+        if 'max' not in info[str(current_lut)] or 'min' not in info[str(current_lut)]:
+            raise Exception('Could not find max or min information in the trajectory. Try sending it again to the controller.')
+
+        min_en = int(info[str(current_lut)]['min'])
+        max_en = int(info[str(current_lut)]['max'])
+
+        edge_energy = int(round((max_en + min_en) / 2))
+        preedge_lo = min_en - edge_energy
+        postedge_hi = max_en - edge_energy
+
+        self.traj_creator.define(edge_energy = edge_energy, offsets=[preedge_lo, 0, 0, postedge_hi], sine_duration=2.5, trajectory_type='Sine')
+        self.traj_creator.interpolate()
+        self.traj_creator.tile(reps=1)
+        self.traj_creator.e2encoder(0)#float(self.RE.md['angle_offset']))
+        # Don't need the offset since we're getting the data already with the offset
+
+        if not len(self.traj_creator.energy_grid):
+            raise Exception('Trajectory creation failed. Try again.')
+
+        #Everything ready, send the new daq sampling times:
+        self.comboBox_samp_time.setCurrentIndex(8)
+        self.current_enc_value = self.lineEdit_samp_time.setText('0.896')
+        # Send sampling time to the pizzaboxes:
+        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+        for adc in self.adc_list:
+            adc.averaging_points.put(str(value))
+        for enc in self.enc_list:
+            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+
+        filename = '/GPFS/xf08id/trajectory/gain_aux.txt'
+        np.savetxt(filename,
+                   self.traj_creator.encoder_grid, fmt='%d')
+        call(['chmod', '666', filename])
+        #print('Trajectory saved! [{}]'.format(filename))
+
+        self.traj_manager.load(orig_file_name = filename[filename.rfind('/') + 1:], orig_file_path = filename[:filename.rfind('/') + 1], new_file_path = '9', ip = '10.8.2.86')
+
+        ttime.sleep(1)
+
+        self.traj_manager.init(9, ip = '10.8.2.86')
+
+        if self.es_shutter.state == 'closed':
+            self.es_shutter.open()
+
+        for func in self.plan_funcs:
+            if func.__name__ == 'tscan':
+                tscan_func = func
+                break
+        self.current_uid_list = tscan_func('Check gains')
+
+        # Send sampling time to the pizzaboxes:
+        self.comboBox_samp_time.setCurrentIndex(current_adc_index)
+        self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
+        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+        for adc in self.adc_list:
+            adc.averaging_points.put(str(value))
+        for enc in self.enc_list:
+            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+
+        run = self.db[-1]
+        table = self.db.get_table(run)
+        regex = re.compile('pba\d{1}.*')
+        matches = [string for string in table.keys() if re.match(regex, string)]
+        
+        print_message = ''
+        for adc in matches:
+            data = []
+            dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
+            for chunk in dd:
+                data.extend(chunk[adc])
+            data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+            print('{}:   Max = {}   Min = {}'.format(adc, data.max(), data.min()))
+
+            if data.max() > 0 and data.min() > 0:
+                print_message += '{} is always positive. Perhaps it\'s floating\n'.format(adc)
+            elif data.min() > -0.04:
+                print_message += 'Increase {} gain by 10^2\n'.format(adc)
+            elif data.min() <= -0.04 and data.min() > -0.4:
+                print_message += 'Increase {} gain by 10^1\n'.format(adc)
+            else:
+                print_message += '{} seems to be configured properly.\n'.format(adc)
+
+        print('-' * 30)
+        if print_message:
+            print(print_message[:-1])
+        #else:
+        #    print('Everything seems to be configured properly!')
+        print('-' * 30)
+
+        self.es_shutter.close()
+        self.traj_manager.init(current_lut, ip = '10.8.2.86')
+
+        print('**** Check gains finished! ****')
         
 
     def run_gain_matching(self):
@@ -1644,7 +1781,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def update_batch_traj(self):
         self.comboBox_lut.clear()
-        self.comboBox_lut.addItems(['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories])
+        self.comboBox_lut.addItems(['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
         
     def load_csv(self):
         user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],

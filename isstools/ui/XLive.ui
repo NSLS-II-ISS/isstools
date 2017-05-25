@@ -1880,6 +1880,19 @@ file and switch to
 Parameters</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="run_check_gains_scan">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>520</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Check Gains Scan</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_9">
      <attribute name="title">
@@ -2178,7 +2191,7 @@ Parameters</string>
          <x>210</x>
          <y>200</y>
          <width>191</width>
-         <height>100</height>
+         <height>104</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_30">
@@ -3313,7 +3326,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
