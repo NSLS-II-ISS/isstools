@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1880,6 +1880,600 @@ file and switch to
 Parameters</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="run_check_gains_scan">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>520</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Check Gains Scan</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_9">
+     <attribute name="title">
+      <string>Batch Mode</string>
+     </attribute>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>30</y>
+        <width>411</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Samples</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_25">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <property name="horizontalSpacing">
+        <number>6</number>
+       </property>
+       <item row="0" column="0" colspan="2">
+        <layout class="QGridLayout" name="gridLayout_23">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+        </layout>
+       </item>
+       <item row="0" column="2" rowspan="2">
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Create new sample</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_21">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_117">
+            <property name="text">
+             <string>Y</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_116">
+            <property name="text">
+             <string>X</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_x">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-100000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_y">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-100000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QPushButton" name="push_create_sample">
+            <property name="text">
+             <string>Create</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_118">
+            <property name="text">
+             <string>Name</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_sample_name"/>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QPushButton" name="push_get_sample">
+            <property name="text">
+             <string>Get Current Positions</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="push_add_sample">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&lt; Add</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="push_delete_sample">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Delete</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>260</y>
+        <width>411</width>
+        <height>311</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Sample Loop</string>
+      </property>
+      <widget class="QPushButton" name="push_delete_sample_loop">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>170</y>
+         <width>61</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_18">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>411</width>
+         <height>161</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_22">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_119">
+          <property name="text">
+           <string>Samples</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_120">
+          <property name="text">
+           <string>Scans</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="push_delete_sample_loop_scan">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>170</y>
+         <width>61</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_19">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>270</y>
+         <width>206</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_29">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_123">
+          <property name="text">
+           <string>Repetitions</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QSpinBox" name="spinBox_sample_loop_rep">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>26</height>
+           </size>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>999</number>
+          </property>
+          <property name="value">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="push_add_sample_loop">
+          <property name="text">
+           <string>&lt; Add</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_23">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>200</y>
+         <width>201</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_33">
+        <item row="0" column="1">
+         <widget class="QRadioButton" name="radioButton_sample_loop">
+          <property name="text">
+           <string>Samp.</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_127">
+          <property name="text">
+           <string>Primary:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QRadioButton" name="radioButton_sample_loop_scans">
+          <property name="text">
+           <string>Scans</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_21">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>200</y>
+         <width>191</width>
+         <height>104</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_30">
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_sample_loop_motor">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_126">
+          <property name="text">
+           <string>Stop</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_124">
+          <property name="text">
+           <string>Motor</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_125">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_128">
+          <property name="text">
+           <string>Step</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_start">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_stop">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_step">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_20">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>321</width>
+        <height>641</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_24"/>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_5">
+      <property name="geometry">
+       <rect>
+        <x>790</x>
+        <y>30</y>
+        <width>451</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Scans</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_28">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item row="0" column="0" colspan="2">
+        <layout class="QGridLayout" name="gridLayout_26">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+        </layout>
+       </item>
+       <item row="0" column="2" rowspan="2">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Create new scan</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_27">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox_scans"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_121">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_122">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Traj</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_lut"/>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <layout class="QGridLayout" name="gridLayout_31"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="push_create_scan">
+            <property name="text">
+             <string>Create</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="push_create_scan_update">
+            <property name="text">
+             <string>Update Trajectories List</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="push_add_scan">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&lt; Add</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="push_delete_scan">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Delete</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QPushButton" name="push_batch_run">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>680</y>
+        <width>75</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Run</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_batch_delete">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>680</y>
+        <width>75</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Delete</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_load_csv">
+      <property name="geometry">
+       <rect>
+        <x>1210</x>
+        <y>890</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load .csv</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_save_csv">
+      <property name="geometry">
+       <rect>
+        <x>1360</x>
+        <y>890</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save .csv</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -2680,7 +3274,7 @@ to find the edge</string>
      </rect>
     </property>
     <property name="value">
-     <number>24</number>
+     <number>0</number>
     </property>
    </widget>
    <widget class="QPushButton" name="push_update_user">
@@ -2751,6 +3345,103 @@ to find the edge</string>
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>push_update_user</tabstop>
+  <tabstop>push_fe_shutter</tabstop>
+  <tabstop>push_ph_shutter</tabstop>
+  <tabstop>push_es_shutter</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>edit_preedge_hi</tabstop>
+  <tabstop>edit_edge_hi</tabstop>
+  <tabstop>edit_preedge_stitch_lo</tabstop>
+  <tabstop>edit_preedge_stitch_hi</tabstop>
+  <tabstop>edit_edge_stitch_lo</tabstop>
+  <tabstop>edit_edge_stitch_hi</tabstop>
+  <tabstop>edit_postedge_stitch_lo</tabstop>
+  <tabstop>edit_postedge_stitch_hi</tabstop>
+  <tabstop>edit_velocity_preedge</tabstop>
+  <tabstop>edit_velocity_edge</tabstop>
+  <tabstop>edit_velocity_postedge</tabstop>
+  <tabstop>edit_padding_postedge</tabstop>
+  <tabstop>edit_padding_preedge</tabstop>
+  <tabstop>comboBoxElement</tabstop>
+  <tabstop>comboBoxEdge</tabstop>
+  <tabstop>spinBox_tiling_repetitions</tabstop>
+  <tabstop>edit_E0</tabstop>
+  <tabstop>edit_preedge_lo</tabstop>
+  <tabstop>edit_postedge_hi</tabstop>
+  <tabstop>push_update_offset</tabstop>
+  <tabstop>push_build_trajectory</tabstop>
+  <tabstop>push_save_trajectory</tabstop>
+  <tabstop>label_56</tabstop>
+  <tabstop>push_select_traj_file</tabstop>
+  <tabstop>push_plot_traj</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>push_load_trajectory</tabstop>
+  <tabstop>comboBox_3</tabstop>
+  <tabstop>push_init_trajectory</tabstop>
+  <tabstop>push_read_traj_info</tabstop>
+  <tabstop>push_prepare_trajectory</tabstop>
+  <tabstop>edit_sine_total_duration</tabstop>
+  <tabstop>edit_ds_pree_duration</tabstop>
+  <tabstop>edit_ds_poste_duration</tabstop>
+  <tabstop>comboBox_4</tabstop>
+  <tabstop>edit_tune_range</tabstop>
+  <tabstop>edit_tune_step</tabstop>
+  <tabstop>spinBox_tune_retries</tabstop>
+  <tabstop>push_tune</tabstop>
+  <tabstop>comboBox_gen_det</tabstop>
+  <tabstop>comboBox_gen_detsig</tabstop>
+  <tabstop>comboBox_gen_mot</tabstop>
+  <tabstop>edit_gen_range</tabstop>
+  <tabstop>edit_gen_step</tabstop>
+  <tabstop>push_gen_scan</tabstop>
+  <tabstop>edit_center_gain_matching</tabstop>
+  <tabstop>edit_gain_matching_target</tabstop>
+  <tabstop>edit_range_gain_matching</tabstop>
+  <tabstop>edit_gain_matching_iterations</tabstop>
+  <tabstop>checkBox_gm_ch1</tabstop>
+  <tabstop>checkBox_gm_ch3</tabstop>
+  <tabstop>checkBox_gm_ch2</tabstop>
+  <tabstop>checkBox_gm_ch4</tabstop>
+  <tabstop>push_gain_matching</tabstop>
+  <tabstop>run_type</tabstop>
+  <tabstop>pushButton_scantype_help</tabstop>
+  <tabstop>run_start</tabstop>
+  <tabstop>checkBox_auto_process</tabstop>
+  <tabstop>run_check_gains</tabstop>
+  <tabstop>comboBox_samp_time</tabstop>
+  <tabstop>lineEdit_samp_time</tabstop>
+  <tabstop>lineEdit_xia_samp</tabstop>
+  <tabstop>checkBox_piezo_fb</tabstop>
+  <tabstop>update_piezo</tabstop>
+  <tabstop>lineEdit_sample_name</tabstop>
+  <tabstop>doubleSpinBox_sample_x</tabstop>
+  <tabstop>doubleSpinBox_sample_y</tabstop>
+  <tabstop>push_create_sample</tabstop>
+  <tabstop>listWidget_numerator</tabstop>
+  <tabstop>listWidget_denominator</tabstop>
+  <tabstop>push_replot_file</tabstop>
+  <tabstop>checkBox_log</tabstop>
+  <tabstop>push_select_file</tabstop>
+  <tabstop>checkBox_process_bin</tabstop>
+  <tabstop>checkBox_find_edge</tabstop>
+  <tabstop>edit_E0_2</tabstop>
+  <tabstop>edit_ECal</tabstop>
+  <tabstop>push_calibrate</tabstop>
+  <tabstop>edit_preedge_spacing</tabstop>
+  <tabstop>edit_xanes_spacing</tabstop>
+  <tabstop>edit_exafs_spacing</tabstop>
+  <tabstop>edit_edge_start</tabstop>
+  <tabstop>edit_edge_end</tabstop>
+  <tabstop>edit_y_power</tabstop>
+  <tabstop>push_bin</tabstop>
+  <tabstop>push_save_bin</tabstop>
+  <tabstop>push_replot_exafs</tabstop>
+  <tabstop>push_re_abort</tabstop>
+  <tabstop>textEdit_terminal</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
