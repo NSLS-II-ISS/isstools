@@ -277,22 +277,24 @@ class trajectory_manager():
 
         self.hhm.lut_number.put(lut_number)
 
-        ttime.sleep(0.1)
-        while (self.hhm.lut_number_rbv.value != lut_number):
-            ttime.sleep(.01)
+        ttime.sleep(0.5)
+        while (int(self.hhm.lut_number_rbv.value) != int(lut_number)):
+            ttime.sleep(.001)
+            QtCore.QCoreApplication.processEvents()
     
         self.hhm.lut_start_transfer.put("1")    
         while (self.hhm.lut_transfering.value == 0):
-            ttime.sleep(.01)
+            ttime.sleep(.001)
             QtCore.QCoreApplication.processEvents()
         while (self.hhm.lut_transfering.value == 1):
-            ttime.sleep(.01)
+            ttime.sleep(.001)
             QtCore.QCoreApplication.processEvents()
-        while (self.hhm.trajectory_loading.value == 0):
-            ttime.sleep(.01)
-            QtCore.QCoreApplication.processEvents()
+        ttime.sleep(.25)
+        #while (self.hhm.trajectory_loading.value == 0):
+        #    ttime.sleep(.001)
+        #    QtCore.QCoreApplication.processEvents()
         while (self.hhm.trajectory_loading.value == 1):
-            ttime.sleep(.01)
+            ttime.sleep(.001)
             QtCore.QCoreApplication.processEvents()
     
         ftp = FTP(ip)
