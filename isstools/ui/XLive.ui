@@ -1752,7 +1752,7 @@ file and switch to
         <x>10</x>
         <y>580</y>
         <width>350</width>
-        <height>83</height>
+        <height>85</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_19">
@@ -2060,9 +2060,9 @@ Parameters</string>
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>10</y>
+         <y>20</y>
          <width>411</width>
-         <height>161</height>
+         <height>151</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_22">
@@ -2103,7 +2103,7 @@ Parameters</string>
         <rect>
          <x>0</x>
          <y>270</y>
-         <width>206</width>
+         <width>217</width>
          <height>41</height>
         </rect>
        </property>
@@ -2191,7 +2191,7 @@ Parameters</string>
          <x>210</x>
          <y>200</y>
          <width>191</width>
-         <height>104</height>
+         <height>108</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_30">
@@ -3206,64 +3206,6 @@ to find the edge</string>
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="push_fe_shutter">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>30</y>
-      <width>81</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_ph_shutter">
-    <property name="geometry">
-     <rect>
-      <x>610</x>
-      <y>30</y>
-      <width>81</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_25">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>10</y>
-      <width>81</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>FE Shutter</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_71">
-    <property name="geometry">
-     <rect>
-      <x>610</x>
-      <y>10</y>
-      <width>81</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Ph Shutter</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
@@ -3290,34 +3232,42 @@ to find the edge</string>
      <string>Update User Info</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_92">
+   <widget class="QGroupBox" name="groupBox_shutters">
     <property name="geometry">
      <rect>
-      <x>710</x>
-      <y>10</y>
-      <width>81</width>
-      <height>20</height>
+      <x>500</x>
+      <y>0</y>
+      <width>111</width>
+      <height>111</height>
      </rect>
     </property>
-    <property name="text">
-     <string>ES Shutter</string>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
+    <property name="title">
+     <string>Shutters</string>
     </property>
-   </widget>
-   <widget class="QPushButton" name="push_es_shutter">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>30</y>
-      <width>81</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_shutters">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+     <property name="margin">
+      <number>2</number>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_shutters">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+      </layout>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -3326,7 +3276,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
@@ -3347,9 +3297,6 @@ to find the edge</string>
  </widget>
  <tabstops>
   <tabstop>push_update_user</tabstop>
-  <tabstop>push_fe_shutter</tabstop>
-  <tabstop>push_ph_shutter</tabstop>
-  <tabstop>push_es_shutter</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>edit_preedge_hi</tabstop>
