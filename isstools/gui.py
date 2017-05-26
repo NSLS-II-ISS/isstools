@@ -880,11 +880,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
-        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the tuning with the shutter closed?') 
-            if not ret:
-                print ('Aborted!')
-                return False 
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+            if shutter.state.value:
+                ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print ('Aborted!')
+                    return False
+                break
 
         self.figure_tune.ax.cla()
         self.canvas_tune.draw_idle()
@@ -892,11 +894,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def run_gen_scan(self):
-        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?') 
-            if not ret:
-                print ('Aborted!')
-                return False 
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+            if shutter.state.value:
+                ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print ('Aborted!')
+                    return False
+                break
 
         curr_det = ''
         curr_mot = ''
@@ -2552,7 +2556,6 @@ class piezo_fb_thread(QThread):
 
             if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if self.gui.shutters[shutter].shutter_type != 'SP' and self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]) == 0:
 
-            #if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
