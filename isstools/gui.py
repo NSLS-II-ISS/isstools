@@ -880,11 +880,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return fig1
 
     def run_tune(self):
-        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the tuning with the shutter closed?') 
-            if not ret:
-                print ('Aborted!')
-                return False 
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+            if shutter.state.value:
+                ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print ('Aborted!')
+                    return False
+                break
 
         self.figure_tune.ax.cla()
         self.canvas_tune.draw_idle()
@@ -892,11 +894,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def run_gen_scan(self):
-        if self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?') 
-            if not ret:
-                print ('Aborted!')
-                return False 
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+            if shutter.state.value:
+                ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print ('Aborted!')
+                    return False
+                break
 
         curr_det = ''
         curr_mot = ''
@@ -1072,17 +1076,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def run_scan(self):
         if self.run_type.currentText() == 'get_offsets':
-            if self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
-                self.shutter_b.close()
-                while self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'PH' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 1]:
+                shutter.close()
+                while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
                     QtWidgets.QApplication.processEvents()
                     ttime.sleep(0.1)
 
-        elif self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')    
-            if not ret:
-                print ('Aborted!')
-                return False 
+        else:
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+                if shutter.state.value:
+                    ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                    if not ret:
+                        print ('Aborted!')
+                        return False
+                    break
 
         # Send sampling time to the pizzaboxes:
         value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
@@ -1275,32 +1282,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
 
-        if self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
             try:
-                self.shutter_b.open()
+                shutter.open()
             except Exception as exc: 
                 print('Timeout! Aborting!')
                 return
 
-            while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
-                QtWidgets.QApplication.processEvents()
-                ttime.sleep(0.1)
-
-        if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
-            try:
-                self.shutter_a.open()
-            except: 
-                print('Timeout! Aborting!')
-                return
-
-            while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
+            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
                 QtWidgets.QApplication.processEvents()
                 ttime.sleep(0.1)
 
         signal.alarm(0)
 
-        if self.es_shutter.state == 'closed':
-            self.es_shutter.open()
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
+            shutter.open()
 
         for func in self.plan_funcs:
             if func.__name__ == 'get_offsets':
@@ -1308,7 +1304,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 break
         self.current_uid_list = getoffsets_func(10, dummy_read=True)
 
-        self.es_shutter.close()
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
+            shutter.close()
 
         print('Done!')            
 
@@ -1322,29 +1319,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
 
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
+            try:
+                shutter.open()
+            except Exception as exc: 
+                print('Timeout! Aborting!')
+                return
 
-#        if self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
-#            try:
-#                self.shutter_b.open()
-#            except Exception as exc: 
-#                print('Timeout! Aborting!')
-#                return
-#
-#            while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
-#                QtGui.QApplication.processEvents()
-#                ttime.sleep(0.1)
-#
-#        if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
-#            try:
-#                self.shutter_a.open()
-#            except: 
-#                print('Timeout! Aborting!')
-#                return
-#
-#            while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
-#                QtGui.QApplication.processEvents()
-#                ttime.sleep(0.1)
-
+            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+                QtWidgets.QApplication.processEvents()
+                ttime.sleep(0.1)
         
         signal.alarm(0)
 
@@ -1395,14 +1379,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.traj_manager.init(9, ip = '10.8.2.86')
 
-        if self.es_shutter.state == 'closed':
-            self.es_shutter.open()
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
+            shutter.open()
 
         for func in self.plan_funcs:
             if func.__name__ == 'tscan':
                 tscan_func = func
                 break
         self.current_uid_list = tscan_func('Check gains')
+
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
+            shutter.close()
 
         # Send sampling time to the pizzaboxes:
         self.comboBox_samp_time.setCurrentIndex(current_adc_index)
@@ -1440,11 +1427,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('-' * 30)
         if print_message:
             print(print_message[:-1])
-        #else:
-        #    print('Everything seems to be configured properly!')
         print('-' * 30)
 
-        self.es_shutter.close()
         self.traj_manager.init(current_lut, ip = '10.8.2.86')
 
         print('**** Check gains finished! ****')
@@ -2580,7 +2564,9 @@ class piezo_fb_thread(QThread):
         self.go = 1
         self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
         while(self.go):
-            if self.gui.shutter_a.state.value == 0 and self.gui.shutter_b.state.value == 0:
+
+            if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if self.gui.shutters[shutter].shutter_type != 'SP' and self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]) == 0:
+
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
