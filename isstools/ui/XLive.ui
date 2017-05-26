@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1752,7 +1752,7 @@ file and switch to
         <x>10</x>
         <y>580</y>
         <width>350</width>
-        <height>83</height>
+        <height>85</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_19">
@@ -2060,9 +2060,9 @@ Parameters</string>
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>10</y>
+         <y>20</y>
          <width>411</width>
-         <height>161</height>
+         <height>151</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_22">
@@ -2103,7 +2103,7 @@ Parameters</string>
         <rect>
          <x>0</x>
          <y>270</y>
-         <width>206</width>
+         <width>217</width>
          <height>41</height>
         </rect>
        </property>
@@ -2191,7 +2191,7 @@ Parameters</string>
          <x>210</x>
          <y>200</y>
          <width>191</width>
-         <height>104</height>
+         <height>108</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_30">
@@ -3326,7 +3326,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
