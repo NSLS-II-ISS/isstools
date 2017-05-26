@@ -59,10 +59,10 @@ def auto_redraw_factory(fnc):
 #class ScanGui(QtWidgets.QMainWindow):
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
-    es_shutter_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], tune_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, es_shutter = None, det_dict = {}, motors_list = [], general_scan_func = None, parent=None,*args, **kwargs):
+    def __init__(self, plan_funcs = [], tune_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {}, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
+
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -112,7 +112,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.run_start.setEnabled(False)
         self.gen_parser = xasdata.XASdataGeneric(self.db)
         self.push_update_user.clicked.connect(self.update_user)
-        self.es_shutter = es_shutter
         self.det_dict = det_dict
 
         self.motors_list = motors_list
@@ -265,28 +264,68 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
         # Initialize Ophyd elements
-        self.shutter_a = elements.shutter('XF:08ID-PPS{Sh:FE}', name = 'shutter_a')
-        self.shutter_b = elements.shutter('XF:08IDA-PPS{PSh}', name = 'shutter_b')
-        self.shutter_a.state.subscribe(self.update_shutter)
-        self.shutter_b.state.subscribe(self.update_shutter)
-        self.push_fe_shutter.clicked.connect(self.toggle_fe_button)
-        self.push_ph_shutter.clicked.connect(self.toggle_ph_button)
-        self.push_es_shutter.clicked.connect(self.toggle_es_button)
-
-        if self.shutter_a.state.value == 0:
-            self.push_fe_shutter.setStyleSheet("background-color: lime")
-        else:
-            self.push_fe_shutter.setStyleSheet("background-color: red")
-        if self.shutter_b.state.value == 0:
-            self.push_ph_shutter.setStyleSheet("background-color: lime")
-        else:
-            self.push_ph_shutter.setStyleSheet("background-color: red")
         self.shutters_sig.connect(self.change_shutter_color)
+        self.shutters = shutters
+        self.shutters_buttons = []
+        for key, item in zip(self.shutters.keys(), self.shutters.items()):
+            self.shutter_layout = QtWidgets.QVBoxLayout()
 
-        self.es_shutter_sig.connect(self.change_es_shutter_color)
-        if self.es_shutter is not None:
-            self.es_shutter.subscribe(self.update_es_shutter)
-            self.change_es_shutter_color()
+            label = QtWidgets.QLabel(key)
+            label.setAlignment(QtCore.Qt.AlignCenter)
+            self.shutter_layout.addWidget(label)
+            label.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+
+            button = QtWidgets.QPushButton('')
+            button.setFixedSize(self.height() * 0.06, self.height() * 0.06)
+            self.shutter_layout.addWidget(button)
+            #button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
+
+            self.horizontalLayout_shutters.addLayout(self.shutter_layout)
+
+            self.shutters_buttons.append(button)
+            button.setFixedWidth(button.height() * 1.2)
+            QtCore.QCoreApplication.processEvents()
+
+            if hasattr(item[1].state, 'subscribe'):
+                item[1].button = button
+                item[1].state.subscribe(self.update_shutter)
+
+                def toggle_shutter_call(shutter):
+                    def toggle_shutter():
+                        if int(shutter.state.value):
+                            shutter.open()
+                        else:
+                            shutter.close()
+                    return toggle_shutter
+                button.clicked.connect(toggle_shutter_call(item[1]))
+
+                if item[1].state.value == 0:
+                    button.setStyleSheet("background-color: lime")
+                else:
+                    button.setStyleSheet("background-color: red")
+
+            elif hasattr(item[1], 'subscribe'):
+                item[1].output.parent.button = button
+                item[1].subscribe(self.update_shutter)
+
+                def toggle_shutter_call(shutter):
+                    def toggle_shutter():
+                        if shutter.state == 'closed':
+                            shutter.open()
+                        else:
+                            shutter.close()
+                    return toggle_shutter
+
+                if item[1].state == 'closed':
+                    button.setStyleSheet("background-color: red")
+                elif item[1].state == 'open':
+                    button.setStyleSheet("background-color: lime")
+
+                button.clicked.connect(toggle_shutter_call(item[1]))
+
+        if self.horizontalLayout_shutters.count() <= 1:
+            self.groupBox_shutters.setVisible(False)
+
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -436,48 +475,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.RE.md['angle_offset'] = dlg.getValues()
             self.label_angle_offset.setText('{}'.format(self.RE.md['angle_offset']))
 
-    def update_es_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
-        self.es_shutter_sig.emit()
-
-    def change_es_shutter_color(self):
-        if self.es_shutter.state == 'closed':
-            self.push_es_shutter.setStyleSheet("background-color: red")
-        elif self.es_shutter.state == 'open':
-            self.push_es_shutter.setStyleSheet("background-color: lime")
-
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
-        if(kwargs['obj'] == self.shutter_a.state):
-            current_button = self.push_fe_shutter
-        elif(kwargs['obj'] == self.shutter_b.state):
-            current_button = self.push_ph_shutter
+        if 'obj' in kwargs.keys():
+            if hasattr(kwargs['obj'].parent, 'button'):
+                self.current_button = kwargs['obj'].parent.button 
 
-        self.current_button = current_button
-        if int(value) == 0:
-            self.current_button_color = 'lime'
-        if int(value) == 1:
-            self.current_button_color = 'red'
-        self.shutters_sig.emit()
+                if int(value) == 0:
+                    self.current_button_color = 'lime'
+                elif int(value) == 1:
+                    self.current_button_color = 'red'
+                    
+                self.shutters_sig.emit()
 
     def change_shutter_color(self):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
-
-    def toggle_fe_button(self):
-        if(int(self.shutter_a.state.value)):
-            self.shutter_a.open()
-        else:
-            self.shutter_a.close()
-
-    def toggle_ph_button(self):
-        if(int(self.shutter_b.state.value)):
-            self.shutter_b.open()
-        else:
-            self.shutter_b.close()
-
-    def toggle_es_button(self):
-        if(self.es_shutter.state == 'closed'):
-            self.es_shutter.open()
-        else:
-            self.es_shutter.close()
 
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
