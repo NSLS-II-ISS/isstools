@@ -1184,16 +1184,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
                     xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
 
-                    length = min(len(xia_parser.exporting_array1), len(self.gen_parser.interp_arrays['energy']))
+                    if xia_parser.channelsCount():
+                        length = min(xia_parser.pixelsCount(0), len(self.gen_parser.interp_arrays['energy']))
+                    else:
+                        raise Exception("Could not find channels data in the XIA file")
 
                     mcas = []
                     if 'xia_rois' in self.db[self.current_uid]['start']:
                         xia_rois = self.db[self.current_uid]['start']['xia_rois']
-                        for mca_number in range(1, 5):
-                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                        # TODO FIX NEXT FOR TO ACCEPT MORE DETECTORS (FIX METADATA IN THE SCAN)
+                        for mca_number in range(1, xia_parser.channelsCount() + 1):
+                            if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                            else:
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']))
+                                
                         mca_sum = sum(mcas)
                     else:
-                        for mca_number in range(1, 5):
+                        for mca_number in range(1, xia_parser.channelsCount() + 1):
                             mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
                         mca_sum = sum(mcas)
 
@@ -2381,7 +2389,10 @@ class process_bin_thread_equal(QThread):
                 items_den = self.gui.last_den
                 value_den = [items_den]
             if value_den == '':
-                value_den = [len(self.gen_parser.interp_arrays.keys()) - 1]
+                if len(self.gen_parser.interp_arrays.keys()) >= 2:
+                    value_den = [len(self.gen_parser.interp_arrays.keys()) - 2]
+                else:
+                    value_den = [0]
 
             self.update_listWidgets.emit()
             ttime.sleep(0.2)
