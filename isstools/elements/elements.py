@@ -1,15 +1,17 @@
-from PyQt4 import QtGui, QtCore
 
-class TreeView(QtGui.QTreeView):
+from PyQt5 import QtWidgets, QtCore, QtGui
+
+
+class TreeView(QtWidgets.QTreeView):
     def __init__(self, parent, accepted_type):
-        QtGui.QTreeView.__init__(self, parent)
+        QtWidgets.QTreeView.__init__(self, parent)
         self.accepted_type = accepted_type
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
 
     def startDrag(self, dropAction):
         mime = QtCore.QMimeData()
-        mime.setData('accepted_type', self.accepted_type)
+        mime.setData('accepted_type', self.accepted_type.encode('utf-8'))
         index = self.currentIndex()
         item = index.model().itemFromIndex(index)
         mime.setText(item.text())
@@ -18,7 +20,7 @@ class TreeView(QtGui.QTreeView):
         #print('Start dragging')
         drag = QtGui.QDrag(self)
         drag.setMimeData(mime)
-        drag.start(QtCore.Qt.CopyAction)#(QtCore.Qt.CopyAction)
+        drag.exec(QtCore.Qt.CopyAction)#start(QtCore.Qt.CopyAction)#(QtCore.Qt.CopyAction)
 
     def dragMoveEvent(self, event):
         if event.mimeData().hasFormat("accepted_type"):
@@ -35,7 +37,7 @@ class TreeView(QtGui.QTreeView):
 
     def dropEvent(self, event):
         #if self.accepted_type = event.mimeData().data('accepted_type'):
-        #QtGui.QTreeView.dropEvent(self, event)
+        #QtWidgets.QTreeView.dropEvent(self, event)
         #if event.isAccepted():
         #    print('dropEvent', hasattr(self, 'x'))
         #print('Formats: {}'.format(event.mimeData().formats()))
@@ -55,7 +57,7 @@ class TreeView(QtGui.QTreeView):
             item.setText(curr_item_text)
             parent = self.model().invisibleRootItem()
             parent.appendRow(item)
-            QtGui.QTreeView.dropEvent(self, event)
+            QtWidgets.QTreeView.dropEvent(self, event)
 
 
 

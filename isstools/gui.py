@@ -1,9 +1,9 @@
 import numpy as np
-import PyQt4
-from PyQt4 import uic, QtGui, QtCore, Qt
-from PyQt4.QtCore import QThread, SIGNAL, QSettings
+#import PyQt5
+from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
+from PyQt5.QtCore import QThread, pyqtSignal, QSettings
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.widgets import Cursor
@@ -56,11 +56,13 @@ def auto_redraw_factory(fnc):
 
     return stale_callback
 
+#class ScanGui(QtWidgets.QMainWindow):
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self, plan_funcs = [], tune_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {}, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
+
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -70,7 +72,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        #uic.loadUi(ui_path, self)
+        #self.show()
         #self.fig = fig = self.figure_content()
+        #self.app = QtWidgets.QApplication([])
+        #self.app = app
+        #self.show()
+        print(QtWidgets.QApplication.instance())
+
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
         self.prep_traj_plan = prep_traj_plan
@@ -259,30 +268,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutters = shutters
         self.shutters_buttons = []
         for key, item in zip(self.shutters.keys(), self.shutters.items()):
-            self.shutter_layout = QtGui.QVBoxLayout()
+            self.shutter_layout = QtWidgets.QVBoxLayout()
 
-            label = QtGui.QLabel(key)
+            label = QtWidgets.QLabel(key)
             label.setAlignment(QtCore.Qt.AlignCenter)
             self.shutter_layout.addWidget(label)
-            label.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Maximum)
+            label.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
 
-            button = QtGui.QPushButton('')
+            button = QtWidgets.QPushButton('')
             button.setFixedSize(self.height() * 0.06, self.height() * 0.06)
             self.shutter_layout.addWidget(button)
             #button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
 
             self.horizontalLayout_shutters.addLayout(self.shutter_layout)
 
-            for i in range(1000):
-                QtCore.QCoreApplication.processEvents()
-
             self.shutters_buttons.append(button)
             button.setFixedWidth(button.height() * 1.2)
             QtCore.QCoreApplication.processEvents()
-
-            for i in range(1000):
-                QtCore.QCoreApplication.processEvents()
-
 
             if hasattr(item[1].state, 'subscribe'):
                 item[1].button = button
@@ -333,6 +335,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_replot_exafs.clicked.connect(self.update_k_view)
         self.push_replot_file.clicked.connect(self.replot_bin_equal)
         self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+        self.edge_found = -1
         # Disable buttons
         self.push_bin.setDisabled(True)
         self.push_save_bin.setDisabled(True)
@@ -344,6 +347,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plotting_list = []
         self.last_num = ''
         self.last_den = ''
+        self.last_num_text = 'i0'
+        self.last_den_text = 'it'
 
 
         # Initialize 'Batch Mode' tab
@@ -358,12 +363,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.gridLayout_23.addWidget(self.treeView_samples, 0, 0)
         self.gridLayout_24.addWidget(self.treeView_batch, 0, 0)
         self.gridLayout_26.addWidget(self.treeView_scans, 0, 0)
-        self.treeView_batch.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
-        #self.treeView_samples.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
-        self.treeView_samples.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
-        self.treeView_scans.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
-        self.treeView_samples_loop.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
-        self.treeView_samples_loop_scans.setDragDropMode(QtGui.QAbstractItemView.DropOnly)
+        self.treeView_batch.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        #self.treeView_samples.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.treeView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.treeView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.treeView_samples_loop.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
+        self.treeView_samples_loop_scans.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
 
         self.treeView_batch.header().hide() 
         self.treeView_samples.header().hide() 
@@ -422,8 +427,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Redirect terminal output to GUI
-        sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
-        sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+        # sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
+        # sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
     def update_combo_edge(self, index):
         self.comboBoxEdge.clear()
@@ -507,9 +512,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
-            self.selected_filename_bin = QtGui.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]
         else:
-            self.selected_filename_bin = [QtGui.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')]
+            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]]
         if self.selected_filename_bin:
             if len(self.selected_filename_bin) > 1:
                 filenames = []
@@ -523,7 +528,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.process_bin_equal()
 
     def save_bin(self):
-        filename = self.curr_filename_save
+        filename = self.curr_filename_save[0]
         self.gen_parser.data_manager.export_dat(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
@@ -575,7 +580,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('[Launching Threads]')
         process_thread = process_bin_thread(self) 
         self.canvas_old_scans_2.mpl_disconnect(self.cid)
-        self.connect(process_thread, SIGNAL("finished()"), self.reset_processing_tab)
+        process_thread.finished.connect(self.reset_processing_tab)
         self.active_threads += 1
         self.total_threads += 1
         self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
@@ -676,8 +681,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('[Launching Threads]')
         if self.listWidget_numerator.currentRow() is not -1:
             self.last_num = self.listWidget_numerator.currentRow()
+            self.last_num_text = self.listWidget_numerator.currentItem().text()
         if self.listWidget_denominator.currentRow() is not -1:
             self.last_den = self.listWidget_denominator.currentRow()
+            self.last_den_text = self.listWidget_denominator.currentItem().text()
         self.listWidget_numerator.setCurrentRow(-1)
         self.listWidget_denominator.setCurrentRow(-1)
         t_manager = process_threads_manager(self)
@@ -693,7 +700,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def normalOutputWritten(self, text):
         """Append text to the QtextEdit_terminal."""
         cursor = self.textEdit_terminal.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.movePosition(QtWidgets.QTextCursor.End)
         cursor.insertText(text)
         self.textEdit_terminal.setTextCursor(cursor)
         self.textEdit_terminal.ensureCursorVisible()
@@ -724,26 +731,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def addParamControl(self, name, default, annotation, grid, params):
         rows = int((grid.count())/3)
-        param1 = QtGui.QLabel(str(rows + 1))
+        param1 = QtWidgets.QLabel(str(rows + 1))
 
         param2 = None
         def_val = ''
         if default.find('=') != -1:
             def_val = re.sub(r'.*=', '', default)
         if annotation == int:
-            param2 = QtGui.QSpinBox()
+            param2 = QtWidgets.QSpinBox()
             param2.setMaximum(100000)
             param2.setMinimum(-100000)
             def_val = int(def_val)
             param2.setValue(def_val)
         elif annotation == float:
-            param2 = QtGui.QDoubleSpinBox()
+            param2 = QtWidgets.QDoubleSpinBox()
             param2.setMaximum(100000)
             param2.setMinimum(-100000)
             def_val = float(def_val)
             param2.setValue(def_val)
         elif annotation == bool:
-            param2 = QtGui.QCheckBox()
+            param2 = QtWidgets.QCheckBox()
             if def_val == 'True':
                 def_val = True
             else:
@@ -751,12 +758,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             param2.setCheckState(def_val)
             param2.setTristate(False)
         elif annotation == str:
-            param2 = QtGui.QLineEdit()
+            param2 = QtWidgets.QLineEdit()
             def_val = str(def_val)
             param2.setText(def_val)
 
         if param2 is not None:
-            param3 = QtGui.QLabel(default)
+            param3 = QtWidgets.QLabel(default)
             grid.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
             grid.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
             grid.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
@@ -765,7 +772,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             params[2].append(param3)
 
     def get_traj_names(self):
-        self.label_56.setText(QtGui.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt').rsplit('/',1)[1])
+        self.label_56.setText(QtWidgets.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt')[0].rsplit('/',1)[1])
         self.push_plot_traj.setEnabled(True)
 
     def addCanvas(self):
@@ -1009,7 +1016,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def save_trajectory(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')[0]
         if filename[-4:] != '.txt' and len(filename):
             filename += '.txt'
             if (os.path.isfile(filename)): 
@@ -1068,7 +1075,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
                 self.shutter_b.close()
                 while self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
-                    QtGui.QApplication.processEvents()
+                    QtWidgets.QApplication.processEvents()
                     ttime.sleep(0.1)
 
         elif self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
@@ -1219,7 +1226,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         print('Warning: {}'.format(warning))
                         warningtxt += '{}\n'.format(warning)
                     warningtxt += 'Check the gains of the ion chambers'
-                    QtGui.QMessageBox.warning(self, 'Warning!', warningtxt)
+                    QtWidgets.QMessageBox.warning(self, 'Warning!', warningtxt)
                     #raise
 
                 self.canvas.draw_idle()
@@ -1268,7 +1275,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 return
 
             while self.shutter_b.state.read()['shutter_b_state']['value'] != 0:
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 ttime.sleep(0.1)
 
         if self.shutter_a.state.read()['shutter_a_state']['value'] != 0:
@@ -1279,7 +1286,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 return
 
             while self.shutter_b.state.read()['shutter_a_state']['value'] != 0:
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 ttime.sleep(0.1)
 
         signal.alarm(0)
@@ -1399,10 +1406,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
         run = self.db[-1]
-        table = self.db.get_table(run)
+        keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
         regex = re.compile('pba\d{1}.*')
-        matches = [string for string in table.keys() if re.match(regex, string)]
+        matches = [string for string in keys if re.match(regex, string)]
         
+        print(matches)
         print_message = ''
         for adc in matches:
             data = []
@@ -1483,20 +1491,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                     self.canvas_gain_matching.draw_idle()
 
-    def update_listWidgets(self, value_num, value_den):
-        if(type(value_num[0]) == int):
-            if value_num[0] < self.listWidget_numerator.count():
-                self.listWidget_numerator.setCurrentRow(value_num[0])
-            else:
-                self.listWidget_numerator.setCurrentRow(0)
+    def update_listWidgets(self):#, value_num, value_den):
+        index = [index for index, item in enumerate([self.listWidget_numerator.item(index) for index in range(self.listWidget_numerator.count())]) if item.text() == self.last_num_text]
+        if len(index):
+            self.listWidget_numerator.setCurrentRow(index[0])
+        else:
+            self.listWidget_numerator.setCurrentRow(0)
+
+        index = [index for index, item in enumerate([self.listWidget_denominator.item(index) for index in range(self.listWidget_denominator.count())]) if item.text() == self.last_den_text]
+        if len(index):
+            self.listWidget_denominator.setCurrentRow(index[0])
+        else:
+            self.listWidget_denominator.setCurrentRow(0)
+
+        #if(type(value_num[0]) == int):
+        #    if value_num[0] < self.listWidget_numerator.count():
+        #        self.listWidget_numerator.setCurrentRow(value_num[0])
+        #    else:
+        #        self.listWidget_numerator.setCurrentRow(0)
         #else:
         #    self.listWidget_numerator.setCurrentItem(value_num[0])
 
-        if(type(value_den[0]) == int):
-            if value_den[0] < self.listWidget_denominator.count():
-                self.listWidget_denominator.setCurrentRow(value_den[0])
-            else:
-                self.listWidget_denominator.setCurrentRow(0)
+        #if(type(value_den[0]) == int):
+        #    if value_den[0] < self.listWidget_denominator.count():
+        #        self.listWidget_denominator.setCurrentRow(value_den[0])
+        #    else:
+        #        self.listWidget_denominator.setCurrentRow(0)
         #else:
         #    self.listWidget_denominator.setCurrentItem(value_den[0])
 
@@ -1506,16 +1526,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.listWidget_denominator.clear()
         self.listWidget_numerator.insertItems(0, list_num)
         self.listWidget_denominator.insertItems(0, list_den)
-        
 
 
     def questionMessage(self, title, question):    
-        reply = QtGui.QMessageBox.question(self, title,
+        reply = QtWidgets.QMessageBox.question(self, title,
                 question,
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             return True
-        elif reply == QtGui.QMessageBox.No:
+        elif reply == QtWidgets.QMessageBox.No:
             return False
         else:
             return False
@@ -1523,15 +1542,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def show_scan_help(self):
         title = self.run_type.currentText()
         message = self.plan_funcs[self.run_type.currentIndex()].__doc__
-        QtGui.QMessageBox.question(self, 
+        QtWidgets.QMessageBox.question(self, 
                                    'Help! - {}'.format(title), 
                                    message, 
-                                   QtGui.QMessageBox.Ok)
+                                   QtWidgets.QMessageBox.Ok)
 
     def reset_processing_tab(self):
         self.active_threads -= 1
-        self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         print('[Threads] Number of active threads: {}'.format(self.active_threads))
+        self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
 
         while len(self.plotting_list) > 0:
             plot_info = self.plotting_list.pop()
@@ -1543,11 +1562,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.figure_old_scans_2.ax.legend(handles = [edge_path])
                 self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(plot_info[0], plot_info[1]), xy=(plot_info[0], plot_info[1]), textcoords='data')
             plot_info[6].draw_idle()
+        if self.edge_found != -1:
+            self.edit_E0_2.setText(str(self.edge_found))
 
         if self.active_threads == 0:
             print('[ #### All Threads Finished #### ]')
             self.total_threads = 0
-            self.progressBar_processing.setValue(int(np.round(100)))
+            #self.progressBar_processing.setValue(int(np.round(100)))
             self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
             if len(self.selected_filename_bin) > 1:
                 self.push_bin.setDisabled(True)
@@ -1804,9 +1825,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
                                                                   self.RE.md['cycle'],
                                                                   self.RE.md['PROPOSAL'])
-        filename = QtGui.QFileDialog.getOpenFileName(caption = 'Select file to load', 
+        filename = QtWidgets.QFileDialog.getOpenFileName(caption = 'Select file to load', 
                                                      directory = user_filepath, 
-                                                     filter = '*.csv')
+                                                     filter = '*.csv')[0]
         if filename:
             batman = BatchManager(self)
             batman.load_csv(filename)
@@ -1815,9 +1836,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
                                                                   self.RE.md['cycle'],
                                                                   self.RE.md['PROPOSAL'])
-        filename = QtGui.QFileDialog.getSaveFileName(caption = 'Select file to save', 
+        filename = QtWidgets.QFileDialog.getSaveFileName(caption = 'Select file to save', 
                                                      directory = user_filepath, 
-                                                     filter = '*.csv')
+                                                     filter = '*.csv')[0]
         if filename:
             batman = BatchManager(self)
             batman.save_csv(filename)
@@ -2133,6 +2154,7 @@ class process_batch_thread(QThread):
                     
                 
     
+                print('Processing scan {}'.format(self.gui.current_filepath))
                 filepaths.append(self.gui.current_filepath)
                 self.gui.gen_parser.load(self.gui.current_uid)
     
@@ -2187,6 +2209,7 @@ class process_batch_thread(QThread):
                 #self.gui.canvas.draw_idle()
             
                 self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
+                print('Finished processing scan {}'.format(self.gui.current_filepath))
     
                 # Check saturation:
                 #try: 
@@ -2248,11 +2271,11 @@ class process_bin_thread(QThread):
         exafs_spacing = float(self.gui.edit_exafs_spacing.text())
         k_power = float(self.gui.edit_y_power.text())
 
-        if e0 < self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
-            ret = self.gui.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
-            if not ret:
-                print ('[Binning Thread {}] Binning aborted!'.format(self.index))
-                return False
+        #if e0 < self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
+            #ret = self.gui.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
+            #if not ret:
+            #    print ('[Binning Thread {}] Binning aborted!'.format(self.index))
+            #    return False
 
         binned = self.gen_parser.bin(e0, 
                                      e0 + edge_start, 
@@ -2262,9 +2285,11 @@ class process_bin_thread(QThread):
                                      exafs_spacing)
 
 
-        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
-        result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
-        ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+        result = binned[self.gui.last_num_text] / binned[self.gui.last_den_text]
+        result_orig = self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]
+        #result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
+        #result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
         if self.gui.checkBox_log.checkState() > 0:
             ylabel = 'log({})'.format(ylabel)
@@ -2310,12 +2335,13 @@ class process_bin_thread(QThread):
 
 
 class process_bin_thread_equal(QThread):
-    update_listWidgets = QtCore.pyqtSignal(list, list)#, int, int)
+    update_listWidgets = QtCore.pyqtSignal()#list, list)
     create_lists = QtCore.pyqtSignal(list, list)
     def __init__(self, gui, filename, index = 1):
         QThread.__init__(self)
         self.gui = gui
         self.index = index
+        print(filename)
         self.filename = filename
         self.gen_parser = xasdata.XASdataGeneric(gui.db)
         self.gen_parser.curr_filename_save = filename
@@ -2329,12 +2355,20 @@ class process_bin_thread_equal(QThread):
 
         ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
         self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
-        while(self.gui.listWidget_denominator.count() == 0 or self.gui.listWidget_numerator.count() == 0):
-            QtCore.QCoreApplication.processEvents()
-            ttime.sleep(0.1)
+        #while(self.gui.listWidget_denominator.count() == 0 or self.gui.listWidget_numerator.count() == 0):
+            #print('stuck here')
+            #self.gui.app.processEvents()
+            #QtCore.QCoreApplication.processEvents()
+            #QtWidgets.QApplication.instance().processEvents()
+            #ttime.sleep(0.1)
+            #self.gui.app.processEvents()
         
+        if not (self.gui.last_num_text in ordered_dict.keys() and self.gui.last_den_text in ordered_dict.keys()):
+             self.gui.last_num_text = list(ordered_dict.keys())[2]
+             self.gui.last_den_text = list(ordered_dict.keys())[3]
         
-        if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
+        #if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
+        if (self.gui.last_num_text in ordered_dict.keys() and self.gui.last_den_text in ordered_dict.keys()): 
             value_num = ''
             if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
                 items_num = self.gui.last_num
@@ -2349,16 +2383,19 @@ class process_bin_thread_equal(QThread):
             if value_den == '':
                 value_den = [len(self.gen_parser.interp_arrays.keys()) - 1]
 
-            self.update_listWidgets.emit(value_num, value_den)
+            self.update_listWidgets.emit()
             ttime.sleep(0.2)
-            while(self.gui.listWidget_denominator.currentRow() == -1 or self.gui.listWidget_numerator.currentRow() == -1):
-                QtCore.QCoreApplication.processEvents()
-                ttime.sleep(0.1)
+            #while(self.gui.listWidget_denominator.currentRow() == -1 or self.gui.listWidget_numerator.currentRow() == -1):
+                #self.gui.app.processEvents()
+                #QtCore.QCoreApplication.processEvents()
+                #QtWidgets.QApplication.instance().processEvents()
+                #ttime.sleep(0.001)
 
             energy_string = self.gen_parser.get_energy_string()
 
-            result = self.gen_parser.interp_arrays[self.gui.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.gui.listWidget_denominator.currentItem().text()][:, 1]
-            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+            #result = self.gen_parser.interp_arrays[self.gui.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.gui.listWidget_denominator.currentItem().text()][:, 1]
+            result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
+            ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
             if self.gui.checkBox_log.checkState() > 0:
                 ylabel = 'log({})'.format(ylabel)
@@ -2376,8 +2413,9 @@ class process_bin_thread_equal(QThread):
 
             bin_eq = self.gen_parser.bin_equal()
 
-            result = bin_eq[self.gui.listWidget_numerator.currentItem().text()] / bin_eq[self.gui.listWidget_denominator.currentItem().text()]
-            ylabel = '{} / {}'.format(self.gui.listWidget_numerator.currentItem().text(), self.gui.listWidget_denominator.currentItem().text())
+            #result = bin_eq[self.gui.listWidget_numerator.currentItem().text()] / bin_eq[self.gui.listWidget_denominator.currentItem().text()]
+            result = bin_eq[self.gui.last_num_text] / bin_eq[self.gui.last_den_text]
+            ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
             if self.gui.checkBox_log.checkState() > 0:
                 ylabel = 'log({})'.format(ylabel)
@@ -2398,6 +2436,7 @@ class process_bin_thread_equal(QThread):
             if self.gui.checkBox_find_edge.checkState() > 0:
 
                 self.gui.edge_index = self.gen_parser.data_manager.get_edge_index(result)
+                self.gui.edge_found = -1
                 if self.gui.edge_index > 0:
                     
                     x_edge = self.gen_parser.data_manager.en_grid[self.gui.edge_index]
@@ -2414,7 +2453,7 @@ class process_bin_thread_equal(QThread):
                     self.gui.plotting_list.append(plot_info)
 
                     print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
-                    self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                    self.gui.edge_found = str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index])))#self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
                 
 
             result_der = self.gen_parser.data_manager.get_derivative(result)
@@ -2442,10 +2481,12 @@ class process_threads_manager(QThread):
         index = 1
         self.gui.canvas_old_scans_2.mpl_disconnect(self.gui.cid)
         for filename in self.gui.selected_filename_bin:
+            print(filename)
             process_thread_equal = process_bin_thread_equal(self.gui, filename, index) 
-            self.gui.connect(process_thread_equal, SIGNAL("finished()"), self.gui.reset_processing_tab)
+            #self.gui.connect(process_thread_equal, pyqtSignal("finished()"), self.gui.reset_processing_tab)
             process_thread_equal.update_listWidgets.connect(self.gui.update_listWidgets)
             process_thread_equal.create_lists.connect(self.gui.create_lists)
+            process_thread_equal.finished.connect(self.gui.reset_processing_tab)
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
@@ -2453,7 +2494,8 @@ class process_threads_manager(QThread):
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
                 process_thread = process_bin_thread(self.gui, index, process_thread_equal, process_thread_equal.gen_parser) 
-                self.gui.connect(process_thread, SIGNAL("finished()"), self.gui.reset_processing_tab)
+                #self.gui.connect(process_thread, pyqtSignal("finished()"), self.gui.reset_processing_tab)
+                process_thread.finished.connect(self.gui.reset_processing_tab)
                 process_thread.start()
                 self.gui.active_threads += 1
                 self.gui.total_threads += 1
