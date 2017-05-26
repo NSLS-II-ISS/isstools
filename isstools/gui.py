@@ -1072,17 +1072,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def run_scan(self):
         if self.run_type.currentText() == 'get_offsets':
-            if self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
-                self.shutter_b.close()
-                while self.shutter_b.state.read()['shutter_b_state']['value'] != 1:
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'PH' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 1]:
+                shutter.close()
+                while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
                     QtWidgets.QApplication.processEvents()
                     ttime.sleep(0.1)
 
-        elif self.shutter_a.state.value == 1 or self.shutter_b.state.value == 1:
-            ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')    
-            if not ret:
-                print ('Aborted!')
-                return False 
+        else:
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+                if shutter.state.value:
+                    ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                    if not ret:
+                        print ('Aborted!')
+                        return False
+                    break
 
         # Send sampling time to the pizzaboxes:
         value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
