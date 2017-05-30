@@ -777,7 +777,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
         self.figure = Figure()
-        self.figure.set_facecolor(color='0.89')
+        self.figure.set_facecolor(color='#FcF9F6')
         self.canvas = FigureCanvas(self.figure)
         self.figure.ax = self.figure.add_subplot(111)
         self.toolbar = NavigationToolbar(self.canvas, self.tab_2, coordinates=True)
@@ -787,7 +787,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
         self.figure_single_trajectory = Figure()
-        self.figure_single_trajectory.set_facecolor(color='0.89')
+        self.figure_single_trajectory.set_facecolor(color='#FcF9F6')
         self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
         self.figure_single_trajectory.ax = self.figure_single_trajectory.add_subplot(111)
         self.figure_single_trajectory.ax2 = self.figure_single_trajectory.ax.twinx()
@@ -798,7 +798,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
 
         self.figure_full_trajectory = Figure()
-        self.figure_full_trajectory.set_facecolor(color='0.89')
+        self.figure_full_trajectory.set_facecolor(color='#FcF9F6')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.figure_full_trajectory.add_subplot(111)
         self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
@@ -809,7 +809,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_full_trajectory.draw_idle()
 
         self.figure_tune = Figure()
-        self.figure_tune.set_facecolor(color='0.89')
+        self.figure_tune.set_facecolor(color='#FcF9F6')
         self.canvas_tune = FigureCanvas(self.figure_tune)
         self.figure_tune.ax = self.figure_tune.add_subplot(111)
         self.toolbar_tune = NavigationToolbar(self.canvas_tune, self.tab_2, coordinates=True)
@@ -819,7 +819,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.cursor_tune = Cursor(self.figure_tune.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gen_scan = Figure()
-        self.figure_gen_scan.set_facecolor(color='0.89')
+        self.figure_gen_scan.set_facecolor(color='#FcF9F6')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
         self.canvas_gen_scan.motor = ''
         self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
@@ -830,14 +830,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gain_matching = Figure()
-        self.figure_gain_matching.set_facecolor(color='0.89')
+        self.figure_gain_matching.set_facecolor(color='#FcF9F6')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.figure_gain_matching.add_subplot(111)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
         self.canvas_gain_matching.draw_idle()
 
         self.figure_old_scans = Figure()
-        self.figure_old_scans.set_facecolor(color='0.89')
+        self.figure_old_scans.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
         self.figure_old_scans.ax = self.figure_old_scans.add_subplot(111)
         self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self.tab_2, coordinates=True)
@@ -846,7 +846,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2 = Figure()
-        self.figure_old_scans_2.set_facecolor(color='0.89')
+        self.figure_old_scans_2.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans_2 = FigureCanvas(self.figure_old_scans_2)
         self.figure_old_scans_2.ax = self.figure_old_scans_2.add_subplot(111)
         self.figure_old_scans_2.ax2 = self.figure_old_scans_2.ax.twinx()
@@ -856,7 +856,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3 = Figure()
-        self.figure_old_scans_3.set_facecolor(color='0.89')
+        self.figure_old_scans_3.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
         self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
         self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
