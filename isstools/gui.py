@@ -358,6 +358,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.treeView_samples_loop_scans = elements.TreeView(self, 'scan')
         self.treeView_samples = elements.TreeView(self, 'sample')
         self.treeView_scans = elements.TreeView(self, 'scan')
+        self.push_batch_delete_all.clicked.connect(self.delete_all_batch)
         self.gridLayout_22.addWidget(self.treeView_samples_loop, 1, 0)
         self.gridLayout_22.addWidget(self.treeView_samples_loop_scans, 1, 1)
         self.gridLayout_23.addWidget(self.treeView_samples, 0, 0)
@@ -1831,6 +1832,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
         index = view.currentIndex()
         if index.row() < view.model().rowCount():
             view.model().removeRows(index.row(), 1)
+
+    def delete_all_batch(self):
+        view = self.treeView_samples
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_scans
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_samples_loop
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_samples_loop_scans
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_batch
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+        
 
     def populateParams_batch(self, index):
         if self.comboBox_scans.currentText() == 'get_offsets':
