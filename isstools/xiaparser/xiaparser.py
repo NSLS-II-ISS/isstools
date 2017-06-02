@@ -285,19 +285,35 @@ class xiaparser:
             return len(self.exporting_arrays[channel])
         raise Exception("There is no channel {}".format(channel))
 
-
-    def parse_roi(self, pixels, channel_number, min_energy = 0, max_energy = 20):
+    def parse_roi(self, pixels, channel_number, rois = [[0, 20]]): #min_energy = 0, max_energy = 20):
         energies = []
-        integs = []
+        roi_integrations = []
         for i in frange(0, 20, 20/2047):
             energies.append(i)
-        curr_pixel = self.exporting_arrays[channel_number - 1]#getattr(self, "exporting_array" + "{}".format(channel_number))
-        for i in pixels:
-            condition = (np.array(energies) <= max_energy) == (np.array(energies) >= min_energy)
-            interval = np.extract(condition, curr_pixel[i][:])
-            integ = sum(interval)
-            integs.append(integ)
-        return np.array(integs)
+        curr_pixel = self.exporting_arrays[channel_number - 1]
+        for roi in rois:
+            current_integration = []
+            for i in pixels:
+                condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
+                interval = np.extract(condition, curr_pixel[i][:])
+                integ = sum(interval)
+                current_integration.append(integ)
+                #print(integ)
+            roi_integrations.append(current_integration)
+        return np.array(roi_integrations) #current_integration)
+
+    #def parse_roi(self, pixels, channel_number, min_energy = 0, max_energy = 20):
+    #    energies = []
+    #    integs = []
+    #    for i in frange(0, 20, 20/2047):
+    #        energies.append(i)
+    #    curr_pixel = self.exporting_arrays[channel_number - 1]#getattr(self, "exporting_array" + "{}".format(channel_number))
+    #    for i in pixels:
+    #        condition = (np.array(energies) <= max_energy) == (np.array(energies) >= min_energy)
+    #        interval = np.extract(condition, curr_pixel[i][:])
+    #        integ = sum(interval)
+    #        integs.append(integ)
+    #    return np.array(integs)
 
 
 

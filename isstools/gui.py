@@ -1175,7 +1175,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 division[division < 0] = 1
                 self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
                 self.figure.ax.set_xlabel('Energy (eV)')
-                self.figure.ax.set_xlabel('log(i0 / it)')
+                self.figure.ax.set_ylabel('log(i0 / it)')
 
                 # self.gen_parser should be able to generate the interpolated file
             
@@ -1199,23 +1199,34 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     mcas = []
                     if 'xia_rois' in self.db[self.current_uid]['start']:
                         xia_rois = self.db[self.current_uid]['start']['xia_rois']
-                        # TODO FIX NEXT FOR TO ACCEPT MORE DETECTORS (FIX METADATA IN THE SCAN)
+                        
+                        self.figure.ax.cla()
                         for mca_number in range(1, xia_parser.channelsCount() + 1):
                             if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
-                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
+                                aux = 'xia1_mca{}_roi'.format(mca_number)#\d{1}.*'
+                                regex = re.compile(aux + '\d{1}.*')
+                                matches = [string for string in xia_rois if re.match(regex, string)]
+                                rois_array = []
+                                for roi_number in range(int(len(matches)/2)):
+                                    rois_array.append([xia_rois['xia1_mca{}_roi{}_high'.format(mca_number, roi_number)], xia_rois['xia1_mca{}_roi{}_low'.format(mca_number, roi_number)]])
+
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, rois_array))
                             else:
-                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']))
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']]]))
                                 
-                        mca_sum = sum(mcas)
                     else:
                         for mca_number in range(1, xia_parser.channelsCount() + 1):
-                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
-                        mca_sum = sum(mcas)
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[6.7, 6.9]]))
 
-                    self.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
+                    for index_roi, roi in enumerate([[i for i in zip(*mcas)][k] for k in range(int(len(matches)/2))]):
+                        [sum(i) for i in zip(*roi)]
+                        self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
+                        self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
-                    self.figure.ax.cla()
-                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
+                    self.figure.ax.set_xlabel('Energy (eV)')
+                    self.figure.ax.set_ylabel('XIA ROIs')
+
+
 
                 if self.html_log_func is not None:
                     self.html_log_func(self.current_uid, self.figure)
@@ -2160,11 +2171,6 @@ class process_batch_thread(QThread):
     
                 division = self.gui.gen_parser.interp_arrays['i0'][:, 1] / self.gui.gen_parser.interp_arrays['it'][:, 1]
                 division[division < 0] = 1
-                #self.gui.figure.ax.plot(self.gui.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
-                #self.gui.figure.ax.set_xlabel('Energy (eV)')
-                #self.gui.figure.ax.set_xlabel('log(i0 / it)')
-    
-                # self.gui.gen_parser should be able to generate the interpolated file
             
                 if 'xia_filename' in self.gui.db[self.gui.current_uid]['start']:
                     # Parse xia
@@ -2178,27 +2184,40 @@ class process_batch_thread(QThread):
                     xia_parsed_filepath = self.gui.current_filepath[0 : self.gui.current_filepath.rfind('/') + 1]
                     xia_parser.export_files(dest_filepath = xia_parsed_filepath, all_in_one = True)
     
-                    length = min(len(xia_parser.exporting_array1), len(self.gui.gen_parser.interp_arrays['energy']))
-    
+                    if xia_parser.channelsCount():
+                        length = min(xia_parser.pixelsCount(0), len(self.gui.gen_parser.interp_arrays['energy']))
+                    else:
+                        raise Exception("Could not find channels data in the XIA file")
+
+
                     mcas = []
                     if 'xia_rois' in self.gui.db[self.gui.current_uid]['start']:
                         xia_rois = self.gui.db[self.gui.current_uid]['start']['xia_rois']
-                        for mca_number in range(1, 5):
-                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, xia_rois['xia1_mca{}_roi0_low'.format(mca_number)], xia_rois['xia1_mca{}_roi0_high'.format(mca_number)]))
-                        mca_sum = sum(mcas)
+                        
+                        for mca_number in range(1, xia_parser.channelsCount() + 1):
+                            if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
+                                aux = 'xia1_mca{}_roi'.format(mca_number)
+                                regex = re.compile(aux + '\d{1}.*')
+                                matches = [string for string in xia_rois if re.match(regex, string)]
+                                rois_array = []
+                                for roi_number in range(int(len(matches)/2)):
+                                    rois_array.append([xia_rois['xia1_mca{}_roi{}_high'.format(mca_number, roi_number)], xia_rois['xia1_mca{}_roi{}_low'.format(mca_number, roi_number)]])
+
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, rois_array))
+                            else:
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']]]))
+                                
                     else:
-                        for mca_number in range(1, 5):
-                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, 6.7, 6.9))
-                        mca_sum = sum(mcas)
-    
-                    self.gui.gen_parser.interp_arrays['XIA_SUM'] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], mca_sum]).transpose()
-    
-                    #self.gui.figure.ax.cla()
-                    #self.gui.figure.ax.plot(self.gui.gen_parser.interp_arrays['energy'][:, 1], -(self.gui.gen_parser.interp_arrays['XIA_SUM'][:, 1]/self.gui.gen_parser.interp_arrays['i0'][:, 1]))
-    
-                #if self.gui.html_log_func is not None:
-                #    self.gui.html_log_func(self.gui.current_uid, self.gui.figure)
-                #self.gui.canvas.draw_idle()
+                        for mca_number in range(1, xia_parser.channelsCount() + 1):
+                            mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[6.7, 6.9]]))
+
+                    for index_roi, roi in enumerate([[i for i in zip(*mcas)][k] for k in range(int(len(matches)/2))]):
+                        [sum(i) for i in zip(*roi)]
+                        self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
+
+
+
+
             
                 self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
                 print('Finished processing scan {}'.format(self.gui.current_filepath))
