@@ -358,6 +358,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.treeView_samples_loop_scans = elements.TreeView(self, 'scan')
         self.treeView_samples = elements.TreeView(self, 'sample')
         self.treeView_scans = elements.TreeView(self, 'scan')
+        self.push_batch_delete_all.clicked.connect(self.delete_all_batch)
         self.gridLayout_22.addWidget(self.treeView_samples_loop, 1, 0)
         self.gridLayout_22.addWidget(self.treeView_samples_loop_scans, 1, 1)
         self.gridLayout_23.addWidget(self.treeView_samples, 0, 0)
@@ -415,10 +416,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.populateParams_batch(0)
 
         self.comboBox_sample_loop_motor.addItems(self.mot_sorted_list)
+        self.comboBox_sample_loop_motor.currentTextChanged.connect(self.update_loop_values)
+        self.spinBox_sample_loop_rep.valueChanged.connect(self.restore_add_loop)
         self.spinBox_sample_loop_rep.valueChanged.connect(self.comboBox_sample_loop_motor.setDisabled)
         self.spinBox_sample_loop_rep.valueChanged.connect(self.doubleSpinBox_motor_range_start.setDisabled)
         self.spinBox_sample_loop_rep.valueChanged.connect(self.doubleSpinBox_motor_range_stop.setDisabled)
         self.spinBox_sample_loop_rep.valueChanged.connect(self.doubleSpinBox_motor_range_step.setDisabled)
+        self.spinBox_sample_loop_rep.valueChanged.connect(self.radioButton_sample_rel.setDisabled)
+        self.spinBox_sample_loop_rep.valueChanged.connect(self.radioButton_sample_abs.setDisabled)
+        self.radioButton_sample_rel.toggled.connect(self.set_loop_values)
         self.last_lut = 0
 
         self.push_load_csv.clicked.connect(self.load_csv)
@@ -427,8 +433,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Redirect terminal output to GUI
-        # sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
-        # sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+        #sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
+        #sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
 
     def update_combo_edge(self, index):
         self.comboBoxEdge.clear()
@@ -777,7 +783,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
         self.figure = Figure()
-        self.figure.set_facecolor(color='0.89')
+        self.figure.set_facecolor(color='#FcF9F6')
         self.canvas = FigureCanvas(self.figure)
         self.figure.ax = self.figure.add_subplot(111)
         self.toolbar = NavigationToolbar(self.canvas, self.tab_2, coordinates=True)
@@ -787,7 +793,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
         self.figure_single_trajectory = Figure()
-        self.figure_single_trajectory.set_facecolor(color='0.89')
+        self.figure_single_trajectory.set_facecolor(color='#FcF9F6')
         self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
         self.figure_single_trajectory.ax = self.figure_single_trajectory.add_subplot(111)
         self.figure_single_trajectory.ax2 = self.figure_single_trajectory.ax.twinx()
@@ -798,7 +804,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
 
         self.figure_full_trajectory = Figure()
-        self.figure_full_trajectory.set_facecolor(color='0.89')
+        self.figure_full_trajectory.set_facecolor(color='#FcF9F6')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
         self.figure_full_trajectory.add_subplot(111)
         self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
@@ -809,7 +815,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_full_trajectory.draw_idle()
 
         self.figure_tune = Figure()
-        self.figure_tune.set_facecolor(color='0.89')
+        self.figure_tune.set_facecolor(color='#FcF9F6')
         self.canvas_tune = FigureCanvas(self.figure_tune)
         self.figure_tune.ax = self.figure_tune.add_subplot(111)
         self.toolbar_tune = NavigationToolbar(self.canvas_tune, self.tab_2, coordinates=True)
@@ -819,7 +825,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.cursor_tune = Cursor(self.figure_tune.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gen_scan = Figure()
-        self.figure_gen_scan.set_facecolor(color='0.89')
+        self.figure_gen_scan.set_facecolor(color='#FcF9F6')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
         self.canvas_gen_scan.motor = ''
         self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
@@ -830,14 +836,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75 )
 
         self.figure_gain_matching = Figure()
-        self.figure_gain_matching.set_facecolor(color='0.89')
+        self.figure_gain_matching.set_facecolor(color='#FcF9F6')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.figure_gain_matching.add_subplot(111)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
         self.canvas_gain_matching.draw_idle()
 
         self.figure_old_scans = Figure()
-        self.figure_old_scans.set_facecolor(color='0.89')
+        self.figure_old_scans.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
         self.figure_old_scans.ax = self.figure_old_scans.add_subplot(111)
         self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self.tab_2, coordinates=True)
@@ -846,7 +852,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2 = Figure()
-        self.figure_old_scans_2.set_facecolor(color='0.89')
+        self.figure_old_scans_2.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans_2 = FigureCanvas(self.figure_old_scans_2)
         self.figure_old_scans_2.ax = self.figure_old_scans_2.add_subplot(111)
         self.figure_old_scans_2.ax2 = self.figure_old_scans_2.ax.twinx()
@@ -856,7 +862,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3 = Figure()
-        self.figure_old_scans_3.set_facecolor(color='0.89')
+        self.figure_old_scans_3.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
         self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
         self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
@@ -1706,6 +1712,58 @@ class ScanGui(*uic.loadUiType(ui_path)):
             new_item.appendRow(subitem)
         parent.appendRow(new_item)
 
+    def update_loop_values(self, text):
+        for i in range(self.comboBox_sample_loop_motor.count()):
+            if text == self.mot_list[i]:
+                curr_mot = self.motors_list[i]
+        if self.radioButton_sample_rel.isChecked():
+            if curr_mot.connected == True:
+                self.push_add_sample_loop.setEnabled(True)
+                self.doubleSpinBox_motor_range_start.setValue(-0.5)
+                self.doubleSpinBox_motor_range_stop.setValue(0.5)
+                self.doubleSpinBox_motor_range_step.setValue(0.25)
+                self.push_add_sample_loop.setEnabled(True)
+            else:
+                self.push_add_sample_loop.setEnabled(False)
+                self.doubleSpinBox_motor_range_start.setValue(0)
+                self.doubleSpinBox_motor_range_stop.setValue(0)
+                self.doubleSpinBox_motor_range_step.setValue(0.025)
+        else:
+            if curr_mot.connected == True:
+                self.push_add_sample_loop.setEnabled(True)
+                curr_pos = curr_mot.read()[curr_mot.name]['value']
+                self.doubleSpinBox_motor_range_start.setValue(curr_pos - 0.1)
+                self.doubleSpinBox_motor_range_stop.setValue(curr_pos + 0.1)
+                self.doubleSpinBox_motor_range_step.setValue(0.025)
+            else:
+                self.push_add_sample_loop.setEnabled(False)
+                self.doubleSpinBox_motor_range_start.setValue(0)
+                self.doubleSpinBox_motor_range_stop.setValue(0)
+                self.doubleSpinBox_motor_range_step.setValue(0.025)
+        
+    def restore_add_loop(self, value):
+        if value:
+            self.push_add_sample_loop.setEnabled(True)
+
+    def set_loop_values(self, checked):
+        if checked:
+            self.doubleSpinBox_motor_range_start.setValue(-0.5)
+            self.doubleSpinBox_motor_range_stop.setValue(0.5)
+            self.doubleSpinBox_motor_range_step.setValue(0.25)
+            self.push_add_sample_loop.setEnabled(True)
+        else:
+            motor_text = self.comboBox_sample_loop_motor.currentText()
+            self.update_loop_values(motor_text)
+            #for i in range(self.comboBox_sample_loop_motor.count()):
+            #    if motor_text == self.mot_list[i]:
+            #        curr_mot = self.motors_list[i]
+            
+            #if curr_mot.connected == True:
+            #    curr_pos = curr_mot.read()[curr_mot.name]['value']
+            #    self.doubleSpinBox_motor_range_start.setValue(curr_pos - 0.1)
+            #    self.doubleSpinBox_motor_range_stop.setValue(curr_pos + 0.1)
+            #    self.doubleSpinBox_motor_range_step.setValue(0.025)
+            
 
     def add_new_sample_loop_func(self):
         model_samples = self.treeView_samples_loop.model()
@@ -1794,6 +1852,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if index.row() < view.model().rowCount():
             view.model().removeRows(index.row(), 1)
 
+    def delete_all_batch(self):
+        view = self.treeView_samples
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_scans
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_samples_loop
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_samples_loop_scans
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+
+        view = self.treeView_batch
+        if view.model().hasChildren():
+            view.model().removeRows(0, view.model().rowCount())
+        
+
     def populateParams_batch(self, index):
         if self.comboBox_scans.currentText() == 'get_offsets':
             self.comboBox_lut.setEnabled(False)
@@ -1868,8 +1948,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 item_y = text[text.find(' Y:') + 3:]
                 print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))#sample, samples[sample]['X'], samples[sample]['Y']))
                 ### Uncomment
-                self.motors_list[self.mot_list.index('samplexy_x')].move(item_x )#samples[sample]['X'])
-                self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
+                #self.motors_list[self.mot_list.index('samplexy_x')].move(item_x)#samples[sample]['X'])
+                #self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
+                self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait = False)
+                self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait = False)
+                ttime.sleep(0.2)
+                while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                      self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                    QtCore.QCoreApplication.processEvents()
                 ### Uncomment
 
             if text.find('Run ') == 0:
@@ -1994,8 +2080,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             print('-' * 40)
                             print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                             ### Uncomment
-                            self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                            self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                            #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                            #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                            self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
+                            self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                            ttime.sleep(0.2)
+                            while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                                  self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                QtCore.QCoreApplication.processEvents()
                             ### Uncomment
 
                             for scan in scans:
@@ -2041,8 +2133,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 print('-' * 40)
                                 print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                                 ### Uncomment
-                                self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                                self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                                #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
+                                #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
+                                self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
+                                self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                                ttime.sleep(0.2)
+                                while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                                      self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                    QtCore.QCoreApplication.processEvents()
                                 ### Uncomment
     
                                 lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]

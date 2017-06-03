@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -2037,7 +2037,7 @@ Parameters</string>
         <x>370</x>
         <y>260</y>
         <width>411</width>
-        <height>311</height>
+        <height>331</height>
        </rect>
       </property>
       <property name="title">
@@ -2102,8 +2102,8 @@ Parameters</string>
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>270</y>
-         <width>217</width>
+         <y>280</y>
+         <width>205</width>
          <height>41</height>
         </rect>
        </property>
@@ -2190,19 +2190,12 @@ Parameters</string>
         <rect>
          <x>210</x>
          <y>200</y>
-         <width>191</width>
-         <height>108</height>
+         <width>201</width>
+         <height>130</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_30">
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox_sample_loop_motor">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_126">
           <property name="text">
            <string>Stop</string>
@@ -2216,14 +2209,14 @@ Parameters</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="label_125">
           <property name="text">
            <string>Start</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="label_128">
           <property name="text">
            <string>Step</string>
@@ -2231,6 +2224,43 @@ Parameters</string>
          </widget>
         </item>
         <item row="1" column="1">
+         <widget class="QRadioButton" name="radioButton_sample_rel">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Rel</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_129">
+          <property name="text">
+           <string>Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QRadioButton" name="radioButton_sample_abs">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Abs</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QComboBox" name="comboBox_sample_loop_motor">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_start">
           <property name="enabled">
            <bool>false</bool>
@@ -2245,11 +2275,11 @@ Parameters</string>
            <double>100000.000000000000000</double>
           </property>
           <property name="value">
-           <double>0.000000000000000</double>
+           <double>-0.500000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1" colspan="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_stop">
           <property name="enabled">
            <bool>false</bool>
@@ -2264,11 +2294,11 @@ Parameters</string>
            <double>100000.000000000000000</double>
           </property>
           <property name="value">
-           <double>0.000000000000000</double>
+           <double>0.500000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="4" column="1" colspan="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_motor_range_step">
           <property name="enabled">
            <bool>false</bool>
@@ -2283,7 +2313,7 @@ Parameters</string>
            <double>100000.000000000000000</double>
           </property>
           <property name="value">
-           <double>0.000000000000000</double>
+           <double>0.250000000000000</double>
           </property>
          </widget>
         </item>
@@ -2472,6 +2502,25 @@ Parameters</string>
       </property>
       <property name="text">
        <string>Save .csv</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_batch_delete_all">
+      <property name="geometry">
+       <rect>
+        <x>1060</x>
+        <y>890</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Delete All</string>
       </property>
      </widget>
     </widget>
@@ -3276,7 +3325,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
