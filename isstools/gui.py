@@ -1205,6 +1205,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     mcas = []
                     if 'xia_rois' in self.db[self.current_uid]['start']:
                         xia_rois = self.db[self.current_uid]['start']['xia_rois']
+                        if 'xia_max_energy' in self.db[self.current_uid]['start']:
+                            xia_max_energy = self.db[self.current_uid]['start']['xia_max_energy']
+                        else:
+                            xia_max_energy = 20
                         
                         self.figure.ax.cla()
                         for mca_number in range(1, xia_parser.channelsCount() + 1):
@@ -1216,9 +1220,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 for roi_number in range(int(len(matches)/2)):
                                     rois_array.append([xia_rois['xia1_mca{}_roi{}_high'.format(mca_number, roi_number)], xia_rois['xia1_mca{}_roi{}_low'.format(mca_number, roi_number)]])
 
-                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, rois_array))
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, rois_array, xia_max_energy))
                             else:
-                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']]]))
+                                mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[xia_rois['xia1_mca1_roi0_low'], xia_rois['xia1_mca1_roi0_high']]], xia_max_energy))
                                 
                     else:
                         for mca_number in range(1, xia_parser.channelsCount() + 1):

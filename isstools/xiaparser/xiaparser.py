@@ -285,10 +285,10 @@ class xiaparser:
             return len(self.exporting_arrays[channel])
         raise Exception("There is no channel {}".format(channel))
 
-    def parse_roi(self, pixels, channel_number, rois = [[0, 20]]): #min_energy = 0, max_energy = 20):
+    def parse_roi(self, pixels, channel_number, rois = [[0, 20]], energy_range = 20): #min_energy = 0, max_energy = 20):
         energies = []
         roi_integrations = []
-        for i in frange(0, 20, 20/2047):
+        for i in frange(0, float(energy_range), float(energy_range)/2047):
             energies.append(i)
         curr_pixel = self.exporting_arrays[channel_number - 1]
         for roi in rois:
