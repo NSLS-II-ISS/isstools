@@ -404,6 +404,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.treeView_scans.setModel(self.model_scans)
 
         self.push_batch_run.clicked.connect(self.start_batch)
+        self.push_batch_print_steps.clicked.connect(self.print_batch)
         self.push_batch_delete.clicked.connect(self.delete_current_batch)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
@@ -1942,7 +1943,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_batch()
         print('[Finished Launching Threads]')
 
-    def run_batch(self):
+    def print_batch(self):
+        print('\n***** Printing Batch Steps *****')
+        self.run_batch(print_only = True)
+        print('***** Finished Batch Steps *****')
+
+    def run_batch(self, print_only = False):
         self.last_lut = 0
         current_index = 0
         self.current_uid_list = []
@@ -1957,14 +1963,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 item_y = text[text.find(' Y:') + 3:]
                 print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))#sample, samples[sample]['X'], samples[sample]['Y']))
                 ### Uncomment
-                #self.motors_list[self.mot_list.index('samplexy_x')].move(item_x)#samples[sample]['X'])
-                #self.motors_list[self.mot_list.index('samplexy_y')].move(item_y) #samples[sample]['Y'])
-                self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait = False)
-                self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait = False)
-                ttime.sleep(0.2)
-                while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                      self.motors_list[self.mot_list.index('samplexy_y')].moving):
-                    QtCore.QCoreApplication.processEvents()
+                if print_only == False:
+                    self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait = False)
+                    self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait = False)
+                    ttime.sleep(0.2)
+                    while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                          self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                        QtCore.QCoreApplication.processEvents()
                 ### Uncomment
 
             if text.find('Run ') == 0:
@@ -1993,10 +1998,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         ### Uncomment
                         if self.last_lut != lut:
                             print('Init trajectory {} - {}'.format(lut, traj_name))
-                            self.traj_manager.init(int(lut))
+                            if print_only == False:
+                                self.traj_manager.init(int(lut))
                             self.last_lut = lut
                         print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                        self.run_prep_traj()
+                        if print_only == False:
+                            self.run_prep_traj()
     
                     if 'comment' in scans[scan]:
                         old_comment = scans[scan]['comment']
@@ -2008,8 +2015,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         scan_name = scan
 
                     ### Uncomment
-                    #self.uids_to_process.append('ee0a0d82-2853-49d4-a5fc-94d789755f9a')
-                    self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                    if print_only == False:
+                        self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                     ### Uncomment (previous line)
 
                     if 'comment' in scans[scan]:
@@ -2081,7 +2088,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if rep_type == 'Motor':
                         print('Move {} to {} {}'.format(rep_motor.name, rep, rep_motor.egu)) 
                         ### Uncomment
-                        rep_motor.move(rep)
+                        if print_only == False:
+                            rep_motor.move(rep)
                         ### Uncomment
 
                     if primary == 'Samples':
@@ -2089,14 +2097,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             print('-' * 40)
                             print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                             ### Uncomment
-                            #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                            #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
-                            self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
-                            self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
-                            ttime.sleep(0.2)
-                            while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                  self.motors_list[self.mot_list.index('samplexy_y')].moving):
-                                QtCore.QCoreApplication.processEvents()
+                            if print_only == False:
+                                self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
+                                self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                                ttime.sleep(0.2)
+                                while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                                      self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                    QtCore.QCoreApplication.processEvents()
                             ### Uncomment
 
                             for scan in scans:
@@ -2106,10 +2113,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     ### Uncomment
                                     if self.last_lut != lut:
                                         print('Init trajectory {} - {}'.format(lut, traj_name))
-                                        self.traj_manager.init(int(lut))
+                                        if print_only == False:
+                                            self.traj_manager.init(int(lut))
                                         self.last_lut = lut
                                     print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                    self.run_prep_traj()
+                                    if print_only == False:
+                                        self.run_prep_traj()
                 
                                 if 'comment' in scans[scan]:
                                     old_comment = scans[scan]['comment']
@@ -2121,8 +2130,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     scan_name = scan
             
                                 ### Uncomment
-                                # self.uids_to_process.append('d79c0b52-1135-4ba4-88c8-37a7e2bef186')
-                                self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                if print_only == False:
+                                    self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 
                                 if 'comment' in scans[scan]:    
@@ -2142,24 +2151,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 print('-' * 40)
                                 print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                                 ### Uncomment
-                                #self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'])
-                                #self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'])
-                                self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
-                                self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
-                                ttime.sleep(0.2)
-                                while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                      self.motors_list[self.mot_list.index('samplexy_y')].moving):
-                                    QtCore.QCoreApplication.processEvents()
+                                if print_only == False:
+                                    self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
+                                    self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                                    ttime.sleep(0.2)
+                                    while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
+                                          self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                        QtCore.QCoreApplication.processEvents()
                                 ### Uncomment
     
                                 lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
                                 traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
                                 if self.last_lut != lut:
                                     print('Init trajectory {} - {}'.format(lut, traj_name))
-                                    self.traj_manager.init(int(lut))
+                                    if print_only == False:
+                                        self.traj_manager.init(int(lut))
                                     self.last_lut = lut
                                 print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                self.run_prep_traj()
+                                if print_only == False:
+                                    self.run_prep_traj()
     
                                 old_comment = scans[scan]['comment']
                                 scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
@@ -2171,14 +2181,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
     
                                 print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
                                 ### Uncomment
-                                # self.uids_to_process.append('d4400059-560e-4928-ae5b-fb792d12f9af')
-                                self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                if print_only == False:
+                                    self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 scans[scan]['comment'] = old_comment
     
                     print('-' * 40)
 
-        self.batch_processor.go = 0
+        if print_only == False:
+            self.batch_processor.go = 0
 
 
 
@@ -2328,29 +2339,7 @@ class process_batch_thread(QThread):
             
                 self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
                 print('Finished processing scan {}'.format(self.gui.current_filepath))
-    
-                # Check saturation:
-                #try: 
-                #    warnings = ()
-                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
-                #        warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['it'][:,1])) > 3.9:
-                #        warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                #    if np.max(np.abs(self.gui.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
-                #        warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                #    if len(warnings):
-                #        raise Warning(warnings)
-    
-                #except Warning as warnings:
-                #    warningtxt = ''
-                #    for warning in warnings.args[0]:
-                #        print('Warning: {}'.format(warning))
-                #        warningtxt += '{}\n'.format(warning)
-                #    warningtxt += 'Check the gains of the ion chambers'
-                    #QtGui.QMessageBox.warning(self.gui. 'Warning!', warningtxt)
-                    #raise
-    
-                #self.gui.canvas.draw_idle()
+
             else:
                 QtCore.QCoreApplication.processEvents()
 
