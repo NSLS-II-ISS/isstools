@@ -1961,9 +1961,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 name = text[text.find('"') + 1:text.rfind('"')]
                 item_x = text[text.find('" X:') + 4:text.find(' Y:')]
                 item_y = text[text.find(' Y:') + 3:]
-                print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))#sample, samples[sample]['X'], samples[sample]['Y']))
+                print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
                 ### Uncomment
                 if print_only == False:
+                    self.label_batch_step.setText('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
                     self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait = False)
                     self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait = False)
                     ttime.sleep(0.2)
@@ -1999,10 +2000,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         if self.last_lut != lut:
                             print('Init trajectory {} - {}'.format(lut, traj_name))
                             if print_only == False:
+                                self.label_batch_step.setText('Init trajectory {} - {}'.format(lut, traj_name))
                                 self.traj_manager.init(int(lut))
                             self.last_lut = lut
                         print('Prepare trajectory {} - {}'.format(lut, traj_name))
                         if print_only == False:
+                            self.label_batch_step.setText('Prepare trajectory {} - {}'.format(lut, traj_name))
                             self.run_prep_traj()
     
                     if 'comment' in scans[scan]:
@@ -2016,6 +2019,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                     ### Uncomment
                     if print_only == False:
+                        if 'comment' in scans[scan]:
+                            self.label_batch_step.setText('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                        else:
+                            self.label_batch_step.setText('Execute {}'.format(scan_name))
                         self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                     ### Uncomment (previous line)
 
@@ -2089,7 +2096,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         print('Move {} to {} {}'.format(rep_motor.name, rep, rep_motor.egu)) 
                         ### Uncomment
                         if print_only == False:
-                            rep_motor.move(rep)
+                            self.label_batch_step.setText('Move {} to {} {} | Loop step number: {}'.format(rep_motor.name, rep, rep_motor.egu, step_number + 1))
+                            if hasattr(rep_motor, 'move'):
+                                rep_motor.move(rep)
+                            elif hasattr(rep_motor, 'put'):
+                                rep_motor.put(rep)
                         ### Uncomment
 
                     if primary == 'Samples':
@@ -2098,6 +2109,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                             ### Uncomment
                             if print_only == False:
+                                self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1))
                                 self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
                                 self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
                                 ttime.sleep(0.2)
@@ -2114,10 +2126,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     if self.last_lut != lut:
                                         print('Init trajectory {} - {}'.format(lut, traj_name))
                                         if print_only == False:
+                                            self.label_batch_step.setText('Init trajectory {} - {} | Loop step number: {}'.format(lut, traj_name, step_number + 1))
                                             self.traj_manager.init(int(lut))
                                         self.last_lut = lut
                                     print('Prepare trajectory {} - {}'.format(lut, traj_name))
                                     if print_only == False:
+                                        self.label_batch_step.setText('Prepare trajectory {} - {} | Loop step number: {}'.format(lut, traj_name, step_number + 1))
                                         self.run_prep_traj()
                 
                                 if 'comment' in scans[scan]:
@@ -2131,6 +2145,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             
                                 ### Uncomment
                                 if print_only == False:
+                                    if 'comment' in scans[scan]:
+                                        self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}'.format(scan_name, scans[scan]['comment'], step_number + 1))
+                                    else:
+                                        self.label_batch_step.setText('Execute {} | Loop step number: {}'.format(scan_name), step_number + 1)
                                     self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 
@@ -2152,6 +2170,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'], samples[sample]['Y']))
                                 ### Uncomment
                                 if print_only == False:
+                                    self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1))
                                     self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
                                     self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
                                     ttime.sleep(0.2)
@@ -2165,10 +2184,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 if self.last_lut != lut:
                                     print('Init trajectory {} - {}'.format(lut, traj_name))
                                     if print_only == False:
+                                        self.label_batch_step.setText('Init trajectory {} - {} | Loop step number: {}'.format(lut, traj_name, step_number + 1))
                                         self.traj_manager.init(int(lut))
                                     self.last_lut = lut
                                 print('Prepare trajectory {} - {}'.format(lut, traj_name))
                                 if print_only == False:
+                                    self.label_batch_step.setText('Prepare trajectory {} - {} | Loop step number: {}'.format(lut, traj_name, step_number + 1))
                                     self.run_prep_traj()
     
                                 old_comment = scans[scan]['comment']
@@ -2182,6 +2203,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
                                 ### Uncomment
                                 if print_only == False:
+                                    self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}'.format(scan_name, scans[scan]['comment'], step_number + 1))
                                     self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                 ### Uncomment (previous line)
                                 scans[scan]['comment'] = old_comment
@@ -2190,6 +2212,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         if print_only == False:
             self.batch_processor.go = 0
+            self.label_batch_step.setText('Finished (Idle)')
 
 
 
