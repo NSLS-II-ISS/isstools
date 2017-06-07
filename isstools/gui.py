@@ -605,8 +605,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         
         energy_string = self.gen_parser.get_energy_string()
 
-        result = self.gen_parser.interp_arrays[self.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.listWidget_denominator.currentItem().text()][:, 1]
-        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
+        self.last_num = self.listWidget_numerator.currentRow()
+        self.last_num_text = self.listWidget_numerator.currentItem().text()
+        self.last_den = self.listWidget_denominator.currentRow()
+        self.last_den_text = self.listWidget_denominator.currentItem().text()
+
+        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / self.gen_parser.interp_arrays[self.last_den_text][:, 1]
+        ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
 
         if self.checkBox_log.checkState() > 0:
             ylabel = 'log({})'.format(ylabel)
