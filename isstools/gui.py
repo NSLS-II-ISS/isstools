@@ -535,7 +535,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.process_bin_equal()
 
     def save_bin(self):
-        filename = self.curr_filename_save[0]
+        filename = self.curr_filename_save
         self.gen_parser.data_manager.export_dat(filename)
         print('[Save File] File Saved! [{}]'.format(filename[:-3] + 'dat'))
 
