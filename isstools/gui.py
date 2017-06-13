@@ -373,8 +373,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.batch_running = False
         self.batch_pause = False
         self.batch_abort = False
+        self.batch_results = {}
         self.push_batch_pause.clicked.connect(self.pause_unpause_batch)
         self.push_batch_abort.clicked.connect(self.abort_batch)
+        self.push_replot_batch.clicked.connect(self.plot_batches)
+        self.last_num_batch_text = 'i0'
+        self.last_den_batch_text = 'it'
 
         self.treeView_batch.header().hide() 
         self.treeView_samples.header().hide() 
@@ -881,6 +885,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
         self.canvas_old_scans_3.draw_idle()
 
+        self.figure_batch_waterfall = Figure()
+        self.figure_batch_waterfall.set_facecolor(color='#FcF9F6')
+        self.canvas_batch_waterfall = FigureCanvas(self.figure_batch_waterfall)
+        self.canvas_batch_waterfall.motor = ''
+        self.figure_batch_waterfall.ax = self.figure_batch_waterfall.add_subplot(111)
+        self.toolbar_batch_waterfall = NavigationToolbar(self.canvas_batch_waterfall, self.tab_2, coordinates=True)
+        self.plot_batch_waterfall.addWidget(self.toolbar_batch_waterfall)
+        self.plot_batch_waterfall.addWidget(self.canvas_batch_waterfall)
+        self.canvas_batch_waterfall.draw_idle()
+        self.cursor_batch_waterfall = Cursor(self.figure_batch_waterfall.ax, useblit=True, color='green', linewidth=0.75 )
+
+        self.figure_batch_average = Figure()
+        self.figure_batch_average.set_facecolor(color='#FcF9F6')
+        self.canvas_batch_average = FigureCanvas(self.figure_batch_average)
+        self.canvas_batch_average.motor = ''
+        self.figure_batch_average.ax = self.figure_batch_average.add_subplot(111)
+        self.toolbar_batch_average = NavigationToolbar(self.canvas_batch_average, self.tab_2, coordinates=True)
+        self.plot_batch_average.addWidget(self.toolbar_batch_average)
+        self.plot_batch_average.addWidget(self.canvas_batch_average)
+        self.canvas_batch_average.draw_idle()
+        self.cursor_batch_average = Cursor(self.figure_batch_average.ax, useblit=True, color='green', linewidth=0.75 )
+
 
 
     @property
@@ -1039,7 +1065,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def save_trajectory(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')[0]
         if filename[-4:] != '.txt' and len(filename):
-            filename += '.txt'
+            filename += '-{}.txt'.format(self.edit_E0.text())
             if (os.path.isfile(filename)): 
                 ret = self.questionMessage('Save trajectory...', '{} already exists. Do you want to replace it?'.format(filename.rsplit('/',1)[1]))
                 if not ret:
@@ -1048,9 +1074,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         elif not len(filename):
             print('\nInvalid name! Select a valid name...')
             return
-        print('Filename = {}'.format(filename))
+        else:
+            filename = '{}-{}.txt'.format(filename[:-4], self.edit_E0.text())
 
         if(len(self.traj_creator.energy_grid)):
+            if (os.path.isfile(filename)): 
+                ret = self.questionMessage('Save trajectory...', '{} already exists. Do you want to replace it?'.format(filename.rsplit('/',1)[1]))
+                if not ret:
+                    print ('Aborted!')
+                    return
+            print('Filename = {}'.format(filename))
             np.savetxt(filename, 
 	               self.traj_creator.encoder_grid, fmt='%d')
             call(['chmod', '666', filename])
@@ -1664,7 +1697,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         new_item.y = item.y
         new_item.setEditable(False)
         new_item.setDropEnabled(False)
-        name = new_item.text().split()[0]
+        name = new_item.text()[:new_item.text().find(' X:')]#.split()[0]
         new_item.setText('Move to "{}" X:{} Y:{}'.format(name, item.x, item.y))
         for index in range(item.rowCount()):
             subitem = QtGui.QStandardItem(item.child(index))
@@ -1955,7 +1988,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def start_batch(self):
         print('[Launching Threads]')
         self.batch_processor = process_batch_thread(self)
+        self.batch_processor.finished_processing.connect(self.plot_batches)
         self.batch_processor.start()
+        self.listWidget_numerator_batch.clear()
+        self.listWidget_denominator_batch.clear()
+        self.figure_batch_waterfall.ax.cla()
+        self.canvas_batch_waterfall.draw_idle()
         self.run_batch()
         print('[Finished Launching Threads]')
 
@@ -1964,6 +2002,41 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_batch(print_only = True)
         print('***** Finished Batch Steps *****')
 
+    def plot_batches(self):
+        self.figure_batch_waterfall.ax.cla()
+        diff = []
+        for sample_index, sample in enumerate(self.batch_results):
+            for data_index, data_set in enumerate(self.batch_results[sample]['data']):
+                if self.listWidget_numerator_batch.count() == 0:
+                    self.listWidget_numerator_batch.insertItems(0, list(data_set.keys()))
+                    self.listWidget_denominator_batch.insertItems(0, list(data_set.keys()))
+                    index_num = [index for index, item in enumerate([self.listWidget_numerator_batch.item(index) for index in range(self.listWidget_numerator_batch.count())]) if item.text() == self.listWidget_numerator_batch.currentItem().text()]
+                    if len(index_num):
+                        self.listWidget_numerator_batch.setCurrentRow(index_num[0])
+                    index_den = [index for index, item in enumerate([self.listWidget_denominator_batch.item(index) for index in range(self.listWidget_denominator_batch.count())]) if item.text() == self.listWidget_denominator_batch.currentItem().text()]
+                    if len(index_den):
+                        self.listWidget_denominator_batch.setCurrentRow(index_den[0])
+
+                if self.listWidget_numerator_batch.currentRow() != -1:
+                    self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
+                if self.listWidget_denominator_batch.currentRow() != -1:
+                    self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
+
+                energy_string = 'energy'
+                result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
+                if self.checkBox_log_batch.checkState() > 0:
+                    result = np.log(result)
+
+                #if sample_index == 0:
+                diff = np.abs(result.max() - result.min())
+
+                if data_index == 0:
+                    text_y = (sample_index * diff * 1.25) + (result.max() + result.min())/2
+                    bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=1.3)
+                    self.figure_batch_waterfall.ax.text(data_set[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', bbox=bbox_props)
+
+                self.figure_batch_waterfall.ax.plot(data_set[energy_string], (sample_index * diff * 1.25) + result)
+        self.canvas_batch_waterfall.draw_idle()
 
     def check_pause_abort_batch(self):
         if self.batch_abort:
@@ -1983,6 +2056,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.batch_running = True
                 self.batch_pause = False
                 self.batch_abort = False
+                self.batch_results = {}
             for batch_index in range(self.model_batch.rowCount()):
                 index = self.model_batch.index(batch_index, 0)
                 text = str(self.model_batch.data(index))
@@ -2136,7 +2210,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             print('Move {} to {} {}'.format(rep_motor.name, rep, rep_motor.egu)) 
                             ### Uncomment
                             if print_only == False:
-                                self.label_batch_step.setText('Move {} to {} {} | Loop step number: {}/{}'.format(rep_motor.name, rep, rep_motor.egu, step_number + 1, len(repetitions)))
+                                self.label_batch_step.setText('Move {} to {} {}  |  Loop step number: {}/{}'.format(rep_motor.name, rep, rep_motor.egu, step_number + 1, len(repetitions)))
                                 self.check_pause_abort_batch()
                                 if hasattr(rep_motor, 'move'):
                                     rep_motor.move(rep)
@@ -2180,7 +2254,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     
                                     if 'comment' in scans[scan]:
                                         old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                        scans[scan]['comment'] = '{}|{}|{}|{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
                     
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -2242,7 +2316,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         self.run_prep_traj()
         
                                     old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{}-{}-{}-{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                    scans[scan]['comment'] = '{}|{}|{}|{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
         
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -2321,7 +2395,16 @@ class EmittingStream(QtCore.QObject):
 
 # Process batch thread
 
+def represents_int(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 class process_batch_thread(QThread):
+    finished_processing = QtCore.pyqtSignal()
+
     def __init__(self, gui):
         QThread.__init__(self)
         self.gui = gui
@@ -2422,9 +2505,34 @@ class process_batch_thread(QThread):
 
 
 
-
-            
                 self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
+                traj_name = self.gui.db[uid]['start']['trajectory_name']
+                if represents_int(traj_name[traj_name.rfind('-') + 1 : traj_name.rfind('.')]):
+                    #bin data
+                    e0 = int(traj_name[traj_name.rfind('-') + 1 : traj_name.rfind('.')])
+                    edge_start = -30
+                    edge_end = 50
+                    preedge_spacing = 10
+                    xanes_spacing = 0.2
+                    exafs_spacing = 0.04
+
+                    binned = self.gui.gen_parser.bin(e0, 
+                                                 e0 + edge_start, 
+                                                 e0 + edge_end, 
+                                                 preedge_spacing, 
+                                                 xanes_spacing, 
+                                                 exafs_spacing)
+
+                    index1 = self.gui.db[uid]['start']['comment'].find('|') + 1
+                    index2 = self.gui.db[uid]['start']['comment'].find('|', index1)
+                    sample_name = self.gui.db[uid]['start']['comment'][index1:index2]
+
+                    if sample_name in self.gui.batch_results:
+                        self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)
+                    else:
+                        self.gui.batch_results[sample_name] = {'data':[self.gui.gen_parser.data_manager.binned_arrays]}
+                    self.finished_processing.emit()
+
                 print('Finished processing scan {}'.format(self.gui.current_filepath))
 
             else:
@@ -2464,12 +2572,6 @@ class process_bin_thread(QThread):
         xanes_spacing = float(self.gui.edit_xanes_spacing.text())
         exafs_spacing = float(self.gui.edit_exafs_spacing.text())
         k_power = float(self.gui.edit_y_power.text())
-
-        #if e0 < self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[0] or e0 > self.gui.figure_old_scans_2.axes[0].xaxis.get_data_interval()[1]:
-            #ret = self.gui.questionMessage('E0 Confirmation', 'E0 seems to be out of the scan range. Would you like to proceed?')
-            #if not ret:
-            #    print ('[Binning Thread {}] Binning aborted!'.format(self.index))
-            #    return False
 
         binned = self.gen_parser.bin(e0, 
                                      e0 + edge_start, 
