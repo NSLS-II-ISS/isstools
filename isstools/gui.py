@@ -2010,17 +2010,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 if self.listWidget_numerator_batch.count() == 0:
                     self.listWidget_numerator_batch.insertItems(0, list(data_set.keys()))
                     self.listWidget_denominator_batch.insertItems(0, list(data_set.keys()))
-                    index_num = [index for index, item in enumerate([self.listWidget_numerator_batch.item(index) for index in range(self.listWidget_numerator_batch.count())]) if item.text() == self.listWidget_numerator_batch.currentItem().text()]
+                    if len(data_set.keys()):
+                        while self.listWidget_numerator_batch.count() == 0 or self.listWidget_denominator_batch.count() == 0:
+                            QtCore.QCoreApplication.processEvents()
+                    index_num = [index for index, item in enumerate([self.listWidget_numerator_batch.item(index) for index in range(self.listWidget_numerator_batch.count())]) if item.text() == self.last_num_batch_text]
                     if len(index_num):
                         self.listWidget_numerator_batch.setCurrentRow(index_num[0])
-                    index_den = [index for index, item in enumerate([self.listWidget_denominator_batch.item(index) for index in range(self.listWidget_denominator_batch.count())]) if item.text() == self.listWidget_denominator_batch.currentItem().text()]
+                    index_den = [index for index, item in enumerate([self.listWidget_denominator_batch.item(index) for index in range(self.listWidget_denominator_batch.count())]) if item.text() == self.last_den_batch_text]
                     if len(index_den):
                         self.listWidget_denominator_batch.setCurrentRow(index_den[0])
 
-                if self.listWidget_numerator_batch.currentRow() != -1:
-                    self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
-                if self.listWidget_denominator_batch.currentRow() != -1:
-                    self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
+                else:
+                    if self.listWidget_numerator_batch.currentRow() != -1:
+                        self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
+                    if self.listWidget_denominator_batch.currentRow() != -1:
+                        self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
 
                 energy_string = 'energy'
                 result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
