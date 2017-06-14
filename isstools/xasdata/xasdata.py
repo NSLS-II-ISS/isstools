@@ -680,7 +680,10 @@ class XASDataManager:
         #         self.binned_arrays[list(self.data_arrays.keys())[i]] = self.bin(self.en_grid, self.data_arrays[energy_string], self.data_arrays[list(self.data_arrays.keys())[i]])
 
         # return self.binned_arrays
-        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+        if len(interp_dict[list(interp_dict.keys())[0]].shape) > 1:
+            df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+        else:
+            df = pd.DataFrame({k: v for k, v in interp_dict.items()}).sort_values(energy_string)
         self.data_arrays = df
         en_grid = self.energy_grid(df[energy_string].values, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
         self.en_grid = en_grid
