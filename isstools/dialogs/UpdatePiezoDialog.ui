@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>271</width>
-    <height>171</height>
+    <height>199</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>130</y>
+     <y>160</y>
      <width>251</width>
      <height>32</height>
     </rect>
@@ -38,17 +38,27 @@
      <x>10</x>
      <y>10</y>
      <width>251</width>
-     <height>111</height>
+     <height>141</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEdit_2"/>
+    </item>
     <item row="0" column="1">
      <widget class="QLineEdit" name="lineEdit"/>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_4">
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_7">
       <property name="text">
-       <string>Center</string>
+       <string>N_measures</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>N_lines</string>
       </property>
      </widget>
     </item>
@@ -59,28 +69,28 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_2"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_6">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_4">
       <property name="text">
-       <string>N_lines</string>
+       <string>Center</string>
       </property>
      </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineEdit_3"/>
     </item>
     <item row="3" column="1">
      <widget class="QLineEdit" name="lineEdit_4"/>
     </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_7">
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="lineEdit_3"/>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>N_measures</string>
+       <string>Kp</string>
       </property>
      </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="lineEdit_5"/>
     </item>
    </layout>
   </widget>
