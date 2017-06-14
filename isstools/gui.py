@@ -582,7 +582,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
                                                          k_power)
-        self.figure_old_scans.ax.cla()
+        self.figure_old_scans.ax.clear()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
         self.figure_old_scans.ax.set_xlabel('k')
         self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
@@ -605,13 +605,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
-        self.figure_old_scans_3.ax.cla()
+        self.figure_old_scans_3.ax.clear()
         self.canvas_old_scans_3.draw_idle()
 
-        self.figure_old_scans.ax.cla()
+        self.figure_old_scans.ax.clear()
         self.canvas_old_scans.draw_idle()
 
-        self.figure_old_scans_3.ax.cla()
+        self.figure_old_scans_3.ax.clear()
         
         energy_string = self.gen_parser.get_energy_string()
 
@@ -632,8 +632,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3.ax.set_xlabel(energy_string)
 
 
-        self.figure_old_scans_2.ax.cla()
-        self.figure_old_scans_2.ax2.cla()
+        self.figure_old_scans_2.ax.clear()
+        self.figure_old_scans_2.ax2.clear()
         self.canvas_old_scans_2.draw_idle()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
@@ -687,16 +687,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_2_control = 1
         self.old_scans_3_control = 1
 
-        self.figure_old_scans.ax.cla()
+        self.figure_old_scans.ax.clear()
         self.canvas_old_scans.draw_idle()
 
-        self.figure_old_scans_2.ax.cla()
-        self.figure_old_scans_2.ax2.cla()
+        self.figure_old_scans_2.ax.clear()
+        self.figure_old_scans_2.ax2.clear()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
         self.canvas_old_scans_2.draw_idle()
 
-        self.figure_old_scans_3.ax.cla()
+        self.figure_old_scans_3.ax.clear()
         self.canvas_old_scans_3.draw_idle()
 
         print('[Launching Threads]')
@@ -931,7 +931,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     return False
                 break
 
-        self.figure_tune.ax.cla()
+        self.figure_tune.ax.clear()
         self.canvas_tune.draw_idle()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), ax = self.figure_tune.ax)
 
@@ -974,7 +974,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        self.figure_gen_scan.ax.cla()
+        self.figure_gen_scan.ax.clear()
         self.canvas_gen_scan.draw_idle()
         self.canvas_gen_scan.motor = curr_mot
         self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, ax = self.figure_gen_scan.ax)
@@ -1036,8 +1036,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_creator.interpolate()
 
         #Plot single trajectory motion
-        self.figure_single_trajectory.ax.cla()
-        self.figure_single_trajectory.ax2.cla()
+        self.figure_single_trajectory.ax.clear()
+        self.figure_single_trajectory.ax2.clear()
         self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
         self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time /s')
@@ -1046,7 +1046,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
 
         # Tile trajectory
-        self.figure_full_trajectory.ax.cla()
+        self.figure_full_trajectory.ax.clear()
         self.canvas_full_trajectory.draw_idle()
         self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value())
 
@@ -1097,9 +1097,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def plot_traj_file(self):
         self.traj_creator.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text())#self.comboBox.currentText())
 
-        self.figure_single_trajectory.ax.cla()
-        self.figure_single_trajectory.ax2.cla()
-        self.figure_full_trajectory.ax.cla()
+        self.figure_single_trajectory.ax.clear()
+        self.figure_single_trajectory.ax2.clear()
+        self.figure_full_trajectory.ax.clear()
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
@@ -1171,7 +1171,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
             
             # Erase last graph
-            self.figure.ax.cla()
+            self.figure.ax.clear()
             self.canvas.draw_idle()
 
             # Run the scan using the dict created before
@@ -1218,7 +1218,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     key_base = 'xia_trigger'
                 self.gen_parser.interpolate(key_base = key_base)
 
-                self.figure.ax.cla()
+                self.figure.ax.clear()
                 self.canvas.draw_idle()
 
                 division = self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]
@@ -1254,7 +1254,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         else:
                             xia_max_energy = 20
                         
-                        self.figure.ax.cla()
+                        self.figure.ax.clear()
                         for mca_number in range(1, xia_parser.channelsCount() + 1):
                             if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
                                 aux = 'xia1_mca{}_roi'.format(mca_number)#\d{1}.*'
@@ -1519,7 +1519,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             ttime.sleep(0.05)
             self.xia.erase_start.put(1)
             ttime.sleep(2)
-            ax.cla()
+            ax.clear()
 
             # For each channel:
             for j in channels:
@@ -1992,8 +1992,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.batch_processor.start()
         self.listWidget_numerator_batch.clear()
         self.listWidget_denominator_batch.clear()
-        self.figure_batch_waterfall.ax.cla()
+        self.figure_batch_waterfall.ax.clear()
         self.canvas_batch_waterfall.draw_idle()
+        self.figure_batch_average.ax.clear()
+        self.canvas_batch_average.draw_idle()
         self.run_batch()
         print('[Finished Launching Threads]')
 
@@ -2003,8 +2005,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('***** Finished Batch Steps *****')
 
     def plot_batches(self):
-        self.figure_batch_waterfall.ax.cla()
-        diff = []
+        self.figure_batch_waterfall.ax.clear()
+        self.figure_batch_average.ax.clear()
+        self.toolbar_batch_waterfall._views.clear()
+        self.toolbar_batch_average._views.clear()
+        self.toolbar_batch_waterfall._positions.clear()
+        self.toolbar_batch_average._positions.clear()
+        self.toolbar_batch_waterfall._update_view()
+        self.toolbar_batch_average._update_view()
+        self.canvas_batch_waterfall.draw_idle()
+        self.canvas_batch_average.draw_idle()
+
+        largest_range = 0
         for sample_index, sample in enumerate(self.batch_results):
             for data_index, data_set in enumerate(self.batch_results[sample]['data']):
                 if self.listWidget_numerator_batch.count() == 0:
@@ -2028,19 +2040,39 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 energy_string = 'energy'
                 result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
+
                 if self.checkBox_log_batch.checkState() > 0:
                     result = np.log(result)
 
-                #if sample_index == 0:
-                diff = np.abs(result.max() - result.min())
+                if result.max() - result.min() > largest_range:
+                    largest_range = result.max() - result.min()
+                
+
+        for sample_index, sample in enumerate(self.batch_results):
+            for data_index, data_set in enumerate(self.batch_results[sample]['data']):
+
+                energy_string = 'energy'
+                result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
+                data_set_all = self.batch_results[sample]['data_all']
+                result_all = data_set_all[self.last_num_batch_text] / data_set_all[self.last_den_batch_text]
+                #print('data_set', len(data_set['i0']))
+
+                if self.checkBox_log_batch.checkState() > 0:
+                    result = np.log(result)
+                    result_all = np.log(result_all)
+
+                distance_multiplier = 1.25
 
                 if data_index == 0:
-                    text_y = (sample_index * diff * 1.25) + (result.max() + result.min())/2
+                    text_y = (sample_index * largest_range * distance_multiplier) + (result.max() + result.min())/2
                     bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=1.3)
-                    self.figure_batch_waterfall.ax.text(data_set[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', bbox=bbox_props)
+                    self.figure_batch_waterfall.ax.text(data_set[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', clip_on=True, bbox=bbox_props)
+                    self.figure_batch_average.ax.text(data_set_all[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', clip_on=True, bbox=bbox_props)
 
-                self.figure_batch_waterfall.ax.plot(data_set[energy_string], (sample_index * diff * 1.25) + result)
+                self.figure_batch_waterfall.ax.plot(data_set[energy_string], (sample_index * largest_range * distance_multiplier) + result)
+                self.figure_batch_average.ax.plot(data_set_all[energy_string], (sample_index * largest_range * distance_multiplier) + result_all)
         self.canvas_batch_waterfall.draw_idle()
+        self.canvas_batch_average.draw_idle()
 
     def check_pause_abort_batch(self):
         if self.batch_abort:
@@ -2458,7 +2490,7 @@ class process_batch_thread(QThread):
                     key_base = 'xia_trigger'
                 self.gui.gen_parser.interpolate(key_base = key_base)
     
-                #self.gui.figure.ax.cla()
+                #self.gui.figure.ax.clear()
                 #self.gui.canvas.draw_idle()
     
                 division = self.gui.gen_parser.interp_arrays['i0'][:, 1] / self.gui.gen_parser.interp_arrays['it'][:, 1]
@@ -2521,20 +2553,48 @@ class process_batch_thread(QThread):
                     exafs_spacing = 0.04
 
                     binned = self.gui.gen_parser.bin(e0, 
-                                                 e0 + edge_start, 
-                                                 e0 + edge_end, 
-                                                 preedge_spacing, 
-                                                 xanes_spacing, 
-                                                 exafs_spacing)
+                                                     e0 + edge_start, 
+                                                     e0 + edge_end, 
+                                                     preedge_spacing, 
+                                                     xanes_spacing, 
+                                                     exafs_spacing)
 
                     index1 = self.gui.db[uid]['start']['comment'].find('|') + 1
                     index2 = self.gui.db[uid]['start']['comment'].find('|', index1)
                     sample_name = self.gui.db[uid]['start']['comment'][index1:index2]
 
                     if sample_name in self.gui.batch_results:
+                       # print('#2+')
+                       # print(len(binned['i0']))
                         self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)
+                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                            self.gui.batch_results[sample_name]['orig_all'][key] = np.append(self.gui.batch_results[sample_name]['orig_all'][key], self.gui.gen_parser.data_manager.binned_arrays[key])
+                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                        binned = self.gui.gen_parser.bin(e0, 
+                                                         e0 + edge_start, 
+                                                         e0 + edge_end, 
+                                                         preedge_spacing, 
+                                                         xanes_spacing, 
+                                                         exafs_spacing)
+                        self.gui.batch_results[sample_name]['data_all'] = binned
+                        #print(len(binned['i0']))
+                        
                     else:
+                       # print('#1')
+                       # print(len(self.gui.gen_parser.data_manager.binned_arrays['i0']))
                         self.gui.batch_results[sample_name] = {'data':[self.gui.gen_parser.data_manager.binned_arrays]}
+                        self.gui.batch_results[sample_name]['orig_all'] = {}
+                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                            self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(self.gui.gen_parser.data_manager.binned_arrays[key])
+                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                        binned = self.gui.gen_parser.bin(e0, 
+                                                         e0 + edge_start, 
+                                                         e0 + edge_end, 
+                                                         preedge_spacing, 
+                                                         xanes_spacing, 
+                                                         exafs_spacing)
+                        self.gui.batch_results[sample_name]['data_all'] = binned
+                        #print(len(binned['i0']))
                     self.finished_processing.emit()
 
                 print('Finished processing scan {}'.format(self.gui.current_filepath))
@@ -2835,8 +2895,9 @@ class piezo_fb_thread(QThread):
             sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
         index_max = sum_lines.argmax()
         max_value = sum_lines.max()
+        min_value = sum_lines.min()
 
-        if max_value >= 10 and max_value <= n_lines * 100:
+        if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
             coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
             self.pid.SetPoint = 960 - center_point
             self.pid.update(coeff[1])
@@ -2857,8 +2918,9 @@ class piezo_fb_thread(QThread):
             image = image.astype(np.int16)
             index_max = image[:, line].argmax()
             max_value = image[:, line].max()
+            min_value = image[:, line].min()
             coeff, var_matrix = curve_fit(self.gauss, list(range(960)), image[:, line], p0=[1, index_max, 5])
-            if max_value >= 10 and max_value <= 100:
+            if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
                 centers.append(coeff[1])
         #print('Centers: {}'.format(centers))
         #print('Old Center Point: {}'.format(center_point))
@@ -2874,11 +2936,12 @@ class piezo_fb_thread(QThread):
         while(self.go):
 
             if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if self.gui.shutters[shutter].shutter_type != 'SP' and self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]) == 0:
-
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
-                ttime.sleep(self.sampleTime)
+                self.gui.checkBox_piezo_fb.setChecked(0)
+                self.go = 0
+                #ttime.sleep(self.sampleTime)
 
 
 
