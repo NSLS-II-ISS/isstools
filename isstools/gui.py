@@ -224,6 +224,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
         self.piezo_nlines = self.settings.value('piezo_nlines', defaultValue = 5, type = int)
         self.piezo_nmeasures = self.settings.value('piezo_nmeasures', defaultValue = 10, type = int)
+        self.piezo_kp = self.settings.value('piezo_kp', defaultValue = 0.004, type = float)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
         #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
@@ -463,17 +464,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.start()
 
     def update_piezo_params(self):
-        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines), str(self.piezo_nmeasures), parent = self)
+        dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines), str(self.piezo_nmeasures), str(self.piezo_kp), parent = self)
         if dlg.exec_():
-            piezo_line, piezo_center, piezo_nlines, piezo_nmeasures = dlg.getValues()
+            piezo_line, piezo_center, piezo_nlines, piezo_nmeasures, piezo_kp = dlg.getValues()
             self.piezo_line = int(piezo_line)
             self.piezo_center = float(piezo_center)
             self.piezo_nlines = int(piezo_nlines)
             self.piezo_nmeasures = int(piezo_nmeasures)
+            self.piezo_kp = float(piezo_kp)
             self.settings.setValue('piezo_line', self.piezo_line)
             self.settings.setValue('piezo_center', self.piezo_center)
             self.settings.setValue('piezo_nlines', self.piezo_nlines)
             self.settings.setValue('piezo_nmeasures', self.piezo_nmeasures)
+            self.settings.setValue('piezo_kp', self.piezo_kp)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
@@ -2917,7 +2920,7 @@ class piezo_fb_thread(QThread):
         QThread.__init__(self)
         self.gui = gui
 
-        P = 0.004#0.016#0.0855
+        P = self.gui.piezo_kp#0.004#0.016#0.0855
         I = 0#0.02
         D = 0#0.01
         self.pid = PID.PID(P, I, D)
