@@ -531,7 +531,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]
         else:
             self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]]
-        if self.selected_filename_bin:
+        if len(self.selected_filename_bin[0]):
             if len(self.selected_filename_bin) > 1:
                 filenames = []
                 for name in self.selected_filename_bin:
@@ -583,6 +583,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                          result_orig,
                                                          k_power)
         self.figure_old_scans.ax.clear()
+        self.toolbar_old_scans._views.clear()
+        self.toolbar_old_scans._positions.clear()
+        self.toolbar_old_scans._update_view()
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
         self.figure_old_scans.ax.set_xlabel('k')
         self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power)) #'ϰ * k ^ {}'.format(k_power))
@@ -612,6 +615,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
+        self.canvas_old_scans_3.draw_idle()
+        self.toolbar_old_scans_3._views.clear()
+        self.toolbar_old_scans_3._positions.clear()
+        self.toolbar_old_scans_3._update_view()
         
         energy_string = self.gen_parser.get_energy_string()
 
@@ -637,6 +644,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
+        self.toolbar_old_scans_2._update_view()
 
 
         bin_eq = self.gen_parser.data_manager.binned_eq_arrays
@@ -653,19 +661,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans_2.ax.set_ylabel(ylabel)
         self.figure_old_scans_2.ax.set_xlabel(energy_string)
 
+        if self.checkBox_find_edge.checkState() > 0:
+            self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
+            if self.edge_index > 0:
+                        
+                x_edge = self.gen_parser.data_manager.en_grid[self.edge_index]
+                y_edge = result[self.edge_index]
 
-        self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
-        if self.edge_index > 0:
-                    
-            x_edge = self.gen_parser.data_manager.en_grid[self.edge_index]
-            y_edge = result[self.edge_index]
-
-            self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-            edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
-            self.figure_old_scans_2.ax.legend(handles = [edge_path])
-            self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-            print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
-            self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+                self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
+                edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
+                self.figure_old_scans_2.ax.legend(handles = [edge_path])
+                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
+                print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+                self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
         
 
         result_der = self.gen_parser.data_manager.get_derivative(result)
@@ -688,15 +696,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.old_scans_3_control = 1
 
         self.figure_old_scans.ax.clear()
+        self.toolbar_old_scans._views.clear()
+        self.toolbar_old_scans._positions.clear()
+        self.toolbar_old_scans._update_view()
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
         self.toolbar_old_scans_2._views.clear()
         self.toolbar_old_scans_2._positions.clear()
+        self.toolbar_old_scans_2._update_view()
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
+        self.toolbar_old_scans_3._views.clear()
+        self.toolbar_old_scans_3._positions.clear()
+        self.toolbar_old_scans_3._update_view()
         self.canvas_old_scans_3.draw_idle()
 
         print('[Launching Threads]')
@@ -932,6 +947,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 break
 
         self.figure_tune.ax.clear()
+        self.toolbar_tune._views.clear()
+        self.toolbar_tune._positions.clear()
+        self.toolbar_tune._update_view()
         self.canvas_tune.draw_idle()
         self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), ax = self.figure_tune.ax)
 
@@ -975,6 +993,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
         self.figure_gen_scan.ax.clear()
+        self.toolbar_gen_scan._views.clear()
+        self.toolbar_gen_scan._positions.clear()
+        self.toolbar_gen_scan._update_view()
         self.canvas_gen_scan.draw_idle()
         self.canvas_gen_scan.motor = curr_mot
         self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, ax = self.figure_gen_scan.ax)
@@ -1038,6 +1059,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         #Plot single trajectory motion
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
+        self.toolbar_single_trajectory._views.clear()
+        self.toolbar_single_trajectory._positions.clear()
+        self.toolbar_single_trajectory._update_view()
         self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
         self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time /s')
@@ -1047,6 +1071,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Tile trajectory
         self.figure_full_trajectory.ax.clear()
+        self.toolbar_full_trajectory._views.clear()
+        self.toolbar_full_trajectory._positions.clear()
+        self.toolbar_full_trajectory._update_view()
         self.canvas_full_trajectory.draw_idle()
         self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value())
 
@@ -1099,7 +1126,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
+        self.toolbar_single_trajectory._views.clear()
+        self.toolbar_single_trajectory._positions.clear()
+        self.toolbar_single_trajectory._update_view()
         self.figure_full_trajectory.ax.clear()
+        self.toolbar_full_trajectory._views.clear()
+        self.toolbar_full_trajectory._positions.clear()
+        self.toolbar_full_trajectory._update_view()
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
@@ -1172,6 +1205,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             
             # Erase last graph
             self.figure.ax.clear()
+            self.toolbar._views.clear()
+            self.toolbar._positions.clear()
+            self.toolbar._update_view()
             self.canvas.draw_idle()
 
             # Run the scan using the dict created before
@@ -1219,6 +1255,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.gen_parser.interpolate(key_base = key_base)
 
                 self.figure.ax.clear()
+                self.toolbar._views.clear()
+                self.toolbar._positions.clear()
+                self.toolbar._update_view()
                 self.canvas.draw_idle()
 
                 division = self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]
@@ -1255,6 +1294,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             xia_max_energy = 20
                         
                         self.figure.ax.clear()
+                        self.toolbar._views.clear()
+                        self.toolbar._positions.clear()
+                        self.toolbar._update_view()
                         for mca_number in range(1, xia_parser.channelsCount() + 1):
                             if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
                                 aux = 'xia1_mca{}_roi'.format(mca_number)#\d{1}.*'
@@ -1520,6 +1562,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.xia.erase_start.put(1)
             ttime.sleep(2)
             ax.clear()
+            self.toolbar_gain_matching._views.clear()
+            self.toolbar_gain_matching._positions.clear()
+            self.toolbar_gain_matching._update_view()
 
             # For each channel:
             for j in channels:
@@ -2006,14 +2051,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def plot_batches(self):
         self.figure_batch_waterfall.ax.clear()
-        self.figure_batch_average.ax.clear()
         self.toolbar_batch_waterfall._views.clear()
-        self.toolbar_batch_average._views.clear()
         self.toolbar_batch_waterfall._positions.clear()
-        self.toolbar_batch_average._positions.clear()
         self.toolbar_batch_waterfall._update_view()
-        self.toolbar_batch_average._update_view()
         self.canvas_batch_waterfall.draw_idle()
+
+        self.figure_batch_average.ax.clear()
+        self.toolbar_batch_average._views.clear()
+        self.toolbar_batch_average._positions.clear()
+        self.toolbar_batch_average._update_view()
         self.canvas_batch_average.draw_idle()
 
         largest_range = 0
