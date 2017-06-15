@@ -2989,9 +2989,9 @@ class piezo_fb_thread(QThread):
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
-                self.gui.checkBox_piezo_fb.setChecked(0)
-                self.go = 0
-                #ttime.sleep(self.sampleTime)
+                #self.gui.checkBox_piezo_fb.setChecked(0)
+                #self.go = 0
+                ttime.sleep(self.sampleTime)
 
 
 
