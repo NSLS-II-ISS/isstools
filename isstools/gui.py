@@ -2920,7 +2920,7 @@ class piezo_fb_thread(QThread):
         QThread.__init__(self)
         self.gui = gui
 
-        P = self.gui.piezo_kp#0.004#0.016#0.0855
+        P = 0.004 * self.gui.piezo_kp
         I = 0#0.02
         D = 0#0.01
         self.pid = PID.PID(P, I, D)
