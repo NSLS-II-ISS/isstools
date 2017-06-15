@@ -2902,6 +2902,7 @@ class process_threads_manager(QThread):
             process_thread_equal.start()
             self.gui.active_threads += 1
             self.gui.total_threads += 1
+            self.gui.edge_found = -1
 
             self.gui.curr_filename_save = filename
             if self.gui.checkBox_process_bin.checkState() > 0:
