@@ -904,7 +904,7 @@
         <x>780</x>
         <y>10</y>
         <width>201</width>
-        <height>51</height>
+        <height>74</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_14">
@@ -915,6 +915,9 @@
            <width>0</width>
            <height>25</height>
           </size>
+         </property>
+         <property name="minimum">
+          <number>1</number>
          </property>
          <property name="maximum">
           <number>50000</number>
@@ -941,6 +944,19 @@
          </property>
          <property name="text">
           <string>Tiling</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QCheckBox" name="checkBox_traj_single_dir">
+         <property name="text">
+          <string>Single direction</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -2743,7 +2759,7 @@ Parameters</string>
        <string>Replot</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2775,7 +2791,7 @@ Parameters</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>50</x>

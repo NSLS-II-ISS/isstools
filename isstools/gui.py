@@ -154,6 +154,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         for i in range(21, 109):
             elems[i - 21] = '{:3d} {}'.format(i, elems[i - 21])
         self.comboBoxElement.addItems(elems)
+        self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
 
 
 
@@ -1078,7 +1079,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_full_trajectory._positions.clear()
         self.toolbar_full_trajectory._update_view()
         self.canvas_full_trajectory.draw_idle()
-        self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value())
+        self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value(), single_direction = self.checkBox_traj_single_dir.isChecked())
 
         # Convert to encoder counts
         self.traj_creator.e2encoder(float(self.label_angle_offset.text()))
@@ -1159,6 +1160,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def read_trajectory_info(self):
         self.traj_manager.read_info()
+
+    def update_repetitions_spinbox(self):
+        if self.checkBox_traj_single_dir.isChecked():
+            self.spinBox_tiling_repetitions.setValue(1)
+            self.spinBox_tiling_repetitions.setEnabled(0)
+        else:
+            self.spinBox_tiling_repetitions.setEnabled(1)
+            
 
     def run_scan(self):
         if self.run_type.currentText() == 'get_offsets':
