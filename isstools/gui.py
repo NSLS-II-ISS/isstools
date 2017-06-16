@@ -2141,7 +2141,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.batch_running = True
                 self.batch_pause = False
                 self.batch_abort = False
+
+                # Send sampling time to the pizzaboxes:
+                value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+                
+                for adc in self.adc_list:
+                    adc.averaging_points.put(str(value))
+
+                for enc in self.enc_list:
+                    enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+
+                if self.xia.input_trigger is not None:
+                    self.xia.input_trigger.unit_sel.put(1) # ms, not us
+                    self.xia.input_trigger.period_sp.put(int(self.lineEdit_xia_samp.text()))
+
                 self.batch_results = {}
+
             for batch_index in range(self.model_batch.rowCount()):
                 index = self.model_batch.index(batch_index, 0)
                 text = str(self.model_batch.data(index))
