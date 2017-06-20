@@ -39,6 +39,7 @@ import signal
 
 import json
 import pandas as pd
+import warnings
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -603,6 +604,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('[Launching Threads]')
         process_thread = process_bin_thread(self) 
         self.canvas_old_scans_2.mpl_disconnect(self.cid)
+        if self.edge_found != int(self.edit_E0_2.text()):
+            self.edge_found = -1
         process_thread.finished.connect(self.reset_processing_tab)
         self.active_threads += 1
         self.total_threads += 1
@@ -631,13 +634,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_den = self.listWidget_denominator.currentRow()
         self.last_den_text = self.listWidget_denominator.currentItem().text()
 
-        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / self.gen_parser.interp_arrays[self.last_den_text][:, 1]
+        self.den_offset = 0
+        if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.last_den_text][:, 1])))[0]):
+            self.den_offset = self.gen_parser.interp_arrays[self.last_den_text][:, 1].max() + 0.2
+            print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.den_offset))
+            
+        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / (self.gen_parser.interp_arrays[self.last_den_text][:, 1] - self.den_offset)
         ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
 
+        self.bin_offset = 0
         if self.checkBox_log.checkState() > 0:
             ylabel = 'log({})'.format(ylabel)
-            result = np.log(result)
-        
+            warnings.filterwarnings('error')
+            try:
+                result_log = np.log(result)
+            except Warning as wrn:
+                self.bin_offset = 0.1 + np.abs(result.min())
+                print('{}: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(wrn, self.bin_offset))
+                result_log = np.log(result + self.bin_offset)
+                #self.checkBox_log.setChecked(False)
+            warnings.filterwarnings('default')
+            result = result_log
+    
         self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1], result, 'b')
         self.figure_old_scans_3.ax.set_ylabel(ylabel)
         self.figure_old_scans_3.ax.set_xlabel(energy_string)
@@ -678,6 +696,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
                 print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
                 self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+        else:
+            self.edge_index = -1
         
 
         result_der = self.gen_parser.data_manager.get_derivative(result)
@@ -2717,9 +2737,16 @@ class process_bin_thread(QThread):
                                      xanes_spacing, 
                                      exafs_spacing)
 
+        warnings.filterwarnings('error')
+        try:
+            #print(self.gui.bin_offset)
+            result = (binned[self.gui.last_num_text] / (binned[self.gui.last_den_text] - self.gui.den_offset)) + self.gui.bin_offset
+        except Warning as wrn:
+            print('{}: This is not supposed to happen. If it is plotting properly, ignore this message.'.format(wrn))
+            #self.gui.checkBox_log.setChecked(False)
+        warnings.filterwarnings('default')
 
-        result = binned[self.gui.last_num_text] / binned[self.gui.last_den_text]
-        result_orig = self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]
+        result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
         #result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
         #result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
         ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
@@ -2829,13 +2856,27 @@ class process_bin_thread_equal(QThread):
 
             energy_string = self.gen_parser.get_energy_string()
 
-            #result = self.gen_parser.interp_arrays[self.gui.listWidget_numerator.currentItem().text()][:, 1] / self.gen_parser.interp_arrays[self.gui.listWidget_denominator.currentItem().text()][:, 1]
-            result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
+            self.gui.den_offset = 0
+            self.gui.bin_offset = 0
+            if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1])))[0]):
+                self.gui.den_offset = self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1].max() + 0.2
+                print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.gui.den_offset))
+
+            result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / (self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1] - self.gui.den_offset)
             ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
             if self.gui.checkBox_log.checkState() > 0:
                 ylabel = 'log({})'.format(ylabel)
-                result = np.log(result)
+                warnings.filterwarnings('error')
+                try:
+                    result_log = np.log(result)
+                except Warning as wrn:
+                    self.gui.bin_offset = 0.1 + np.abs(result.min())
+                    print('{}: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(wrn, self.gui.bin_offset))
+                    result_log = np.log(result + self.gui.bin_offset)
+                    #self.gui.checkBox_log.setChecked(False)
+                warnings.filterwarnings('default')
+                result = result_log
             
             plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1], 
                          result, 
@@ -2890,6 +2931,8 @@ class process_bin_thread_equal(QThread):
 
                     print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
                     self.gui.edge_found = str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index])))#self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+            else:
+                self.gui.edge_index = -1
                 
 
             result_der = self.gen_parser.data_manager.get_derivative(result)

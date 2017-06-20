@@ -486,7 +486,10 @@ class XASDataManager:
         condition = en_orig >= e0 + edge_end 
         en_orig = np.extract(condition, en_orig)
         data_orig = np.extract(condition, data_orig)
-        polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+        try:
+            polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+        except Exception as exc:
+            print(exc)
         p = np.poly1d(polyfit)
         calibration = p(e_interval)
 
