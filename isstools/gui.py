@@ -73,12 +73,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        #uic.loadUi(ui_path, self)
-        #self.show()
-        #self.fig = fig = self.figure_content()
-        #self.app = QtWidgets.QApplication([])
-        #self.app = app
-        #self.show()
         print(QtWidgets.QApplication.instance())
 
         self.addCanvas()
@@ -131,8 +125,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.trajectories = self.traj_manager.read_info(silent=True)
             self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
             self.update_batch_traj()
+
+            self.piezo_line = int(self.hhm.fb_line.value)
+            self.piezo_center = float(self.hhm.fb_center.value)
+            self.piezo_nlines = int(self.hhm.fb_nlines.value)
+            self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
+            self.piezo_kp = float(self.hhm.fb_pcoeff.value)
         else:
             self.tabWidget.setTabEnabled(0, False)
+            self.checkBox_piezo_fb.setEnabled(False)
+            self.update_piezo.setEnabled(False)
 
         self.traj_creator = trajectory()
         self.trajectory_path = '/GPFS/xf08id/trajectory/'
@@ -222,13 +224,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue = '11470', type = str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
 
-        self.piezo_line = self.settings.value('piezo_line', defaultValue = 420, type = int)
-        self.piezo_center = self.settings.value('piezo_center', defaultValue = 655, type = float)
-        self.piezo_nlines = self.settings.value('piezo_nlines', defaultValue = 5, type = int)
-        self.piezo_nmeasures = self.settings.value('piezo_nmeasures', defaultValue = 10, type = int)
-        self.piezo_kp = self.settings.value('piezo_kp', defaultValue = 0.004, type = float)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
-        #self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
         # Initialize 'run' tab
         self.plan_funcs = plan_funcs
@@ -466,19 +462,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.start()
 
     def update_piezo_params(self):
+        self.piezo_line = int(self.hhm.fb_line.value)
+        self.piezo_center = float(self.hhm.fb_center.value)
+        self.piezo_nlines = int(self.hhm.fb_nlines.value)
+        self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
+        self.piezo_kp = float(self.hhm.fb_pcoeff.value)
         dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines), str(self.piezo_nmeasures), str(self.piezo_kp), parent = self)
         if dlg.exec_():
             piezo_line, piezo_center, piezo_nlines, piezo_nmeasures, piezo_kp = dlg.getValues()
-            self.piezo_line = int(piezo_line)
+            self.piezo_line = int(round(float(piezo_line)))
             self.piezo_center = float(piezo_center)
-            self.piezo_nlines = int(piezo_nlines)
-            self.piezo_nmeasures = int(piezo_nmeasures)
+            self.piezo_nlines = int(round(float(piezo_nlines)))
+            self.piezo_nmeasures = int(round(float(piezo_nmeasures)))
             self.piezo_kp = float(piezo_kp)
-            self.settings.setValue('piezo_line', self.piezo_line)
-            self.settings.setValue('piezo_center', self.piezo_center)
-            self.settings.setValue('piezo_nlines', self.piezo_nlines)
-            self.settings.setValue('piezo_nmeasures', self.piezo_nmeasures)
-            self.settings.setValue('piezo_kp', self.piezo_kp)
+            self.hhm.fb_line.put(self.piezo_line)
+            self.hhm.fb_center.put(self.piezo_center)
+            self.hhm.fb_nlines.put(self.piezo_nlines)
+            self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
+            self.hhm.fb_pcoeff.put(self.piezo_kp)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
