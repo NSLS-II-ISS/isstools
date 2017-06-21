@@ -131,6 +131,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_nlines = int(self.hhm.fb_nlines.value)
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
+            self.hhm.fb_status.subscribe(self.update_fb_status)
+            self.fb_master = 0
         else:
             self.tabWidget.setTabEnabled(0, False)
             self.checkBox_piezo_fb.setEnabled(False)
@@ -234,7 +236,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_check_gains_scan.clicked.connect(self.run_gains_test_scan)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
-        self.checkBox_piezo_fb.stateChanged.connect(self.toggle_piezo_fb)
+        self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)#toggle_piezo_fb)
 
         self.piezo_thread = piezo_fb_thread(self)
         self.update_piezo.clicked.connect(self.update_piezo_params)
@@ -455,11 +457,35 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if self.comboBoxEdge.count() > 0:
             self.edit_E0.setText(str(self.json_data[self.comboBoxElement.currentIndex()][self.comboBoxEdge.currentText()]))
 
+    def enable_fb(self, value):
+        if value == 0:
+            if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.value != 0:
+                self.toggle_piezo_fb(0)
+        else:
+            if self.fb_master == -1:
+                return
+            self.fb_master = 1
+            self.toggle_piezo_fb(2)
+
     def toggle_piezo_fb(self, value):
         if value == 0:
             self.piezo_thread.go = 0
+            self.hhm.fb_status.put(0)
+            self.fb_master = 0
+            self.checkBox_piezo_fb.setChecked(False)
         else:
-            self.piezo_thread.start()
+            if self.fb_master:
+                self.piezo_thread.start()
+                self.hhm.fb_status.put(1)
+                self.fb_master = -1
+            else:
+                self.fb_master = -1
+                self.checkBox_piezo_fb.setChecked(True)
+
+    def update_fb_status(self, pvname=None, value=None, char_value=None, **kwargs):
+        if value:
+            value = 2
+        self.toggle_piezo_fb(value)
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)
