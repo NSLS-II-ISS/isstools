@@ -1909,6 +1909,20 @@ Parameters</string>
        <string>Check Gains Scan</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="push_prepare_bl">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>770</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prepare
+Beamline</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_9">
      <attribute name="title">

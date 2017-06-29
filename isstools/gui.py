@@ -16,6 +16,8 @@ import math
 import bluesky.plans as bp
 from subprocess import call
 
+from ophyd import (Component as Cpt, EpicsSignal, EpicsSignalRO, EpicsMotor)
+
 from isstools.trajectory.trajectory  import trajectory
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.xasdata import xasdata
@@ -25,6 +27,7 @@ from isstools.dialogs import UpdateUserDialog
 from isstools.dialogs import UpdatePiezoDialog
 from isstools.dialogs import UpdateAngleOffset
 from isstools.dialogs import MoveMotorDialog
+from isstools.dialogs import Prepare_BL_Dialog
 from isstools.conversions import xray
 from isstools.pid import PID
 from isstools.batch.batch import BatchManager
@@ -161,6 +164,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.comboBoxElement.addItems(elems)
         self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
 
+        json_data = open(pkg_resources.resource_filename('isstools', 'beamline_preparation.json')).read()
+        self.json_blprep = json.loads(json_data)
+        self.beamline_prep = self.json_blprep[0]
+        self.fb_positions = self.json_blprep[1]['FB Positions']
+        #curr_energy = 5500
+        #for pv, value in [ran['pvs'] for ran in self.json_blprep[0] if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy][0].items():
 
 
         # Initialize XIA tab
@@ -236,6 +245,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.run_check_gains_scan.clicked.connect(self.run_gains_test_scan)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
+        self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
         self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)#toggle_piezo_fb)
 
         self.piezo_thread = piezo_fb_thread(self)
@@ -267,6 +277,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Initialize Ophyd elements
         self.shutters_sig.connect(self.change_shutter_color)
         self.shutters = shutters
+
+        self.fe_shutters = [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'FE']
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'FE']:
+            del self.shutters[shutter.name]
+
         self.shutters_buttons = []
         for key, item in zip(self.shutters.keys(), self.shutters.items()):
             self.shutter_layout = QtWidgets.QVBoxLayout()
@@ -506,6 +521,124 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.hhm.fb_nlines.put(self.piezo_nlines)
             self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
             self.hhm.fb_pcoeff.put(self.piezo_kp)
+    
+    def prepare_bl_dialog(self):
+        curr_energy = self.hhm.energy.read()['hhm_energy']['value']
+
+        curr_range = [ran for ran in self.beamline_prep if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
+        if not len(curr_range):
+            print('Current energy is not valid. :( Aborted.')
+            return
+
+        dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.json_blprep, parent = self)
+        if dlg.exec_():
+            curr_range = curr_range[0]
+            pv_he = EpicsSignal(curr_range['pvs']['IC Gas He']['RB PV'], write_pv = curr_range['pvs']['IC Gas He']['PV'])
+            #pv_he.put(curr_range['pvs']['IC Gas He']['value'], wait = True)
+
+            pv_n2 = EpicsSignal(curr_range['pvs']['IC Gas N2']['RB PV'], write_pv = curr_range['pvs']['IC Gas N2']['PV'])
+            #pv_n2.put(curr_range['pvs']['IC Gas N2']['value'], wait = True)
+
+            #If you go from less than 1000 V to more than 1400 V, you need a delay. 2 minutes
+
+            pv_i0_volt = EpicsSignal(curr_range['pvs']['I0 Voltage']['RB PV'], write_pv = curr_range['pvs']['I0 Voltage']['PV'])
+            old_i0 = pv_i0_volt.value
+
+            pv_it_volt = EpicsSignal(curr_range['pvs']['It Voltage']['RB PV'], write_pv = curr_range['pvs']['It Voltage']['PV'])
+            old_it = pv_it_volt.value
+
+            pv_ir_volt = EpicsSignal(curr_range['pvs']['Ir Voltage']['RB PV'], write_pv = curr_range['pvs']['Ir Voltage']['PV'])
+            old_ir = pv_ir_volt.value
+
+            if (curr_range['pvs']['I0 Voltage']['value'] > 1400 and old_i0 < 1000) or \
+               (curr_range['pvs']['It Voltage']['value'] > 1400 and old_it < 1000) or \
+               (curr_range['pvs']['Ir Voltage']['value'] > 1400 and old_ir < 1000):
+                old_time = ttime.time()
+                while time.time() - old_time < 120:
+                    QtWidgets.QApplication.processEvents()
+                    ttime.sleep(0.1)
+
+            #pv_i0_volt.put(curr_range['pvs']['I0 Voltage']['value'], wait = True)
+            #pv_it_volt.put(curr_range['pvs']['It Voltage']['value'], wait = True)
+            #pv_ir_volt.put(curr_range['pvs']['Ir Voltage']['value'], wait = True)
+
+            for shutter in [self.fe_shutters[fe_shutter] for fe_shutter in self.fe_shutters if self.fe_shutters[fe_shutter].state.read()['{}_state'.format(fe_shutter)]['value'] != 1]:
+                shutter.close()
+                while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
+                    QtWidgets.QApplication.processEvents()
+                    ttime.sleep(0.1)
+
+            def handler(signum, frame):
+                print("Could not close shutter")
+                raise Exception("Timeout")
+
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(6)
+            #for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 1]:
+            #    try:
+            #        shutter.close()
+            #    except Exception as exc: 
+            #        print('Timeout! Could not close the shutter. Aborting! (Try once again, maybe?)')
+            #        return
+
+            #    tries = 3
+            #    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
+            #        QtWidgets.QApplication.processEvents()
+            #        ttime.sleep(0.1)
+            #        if tries:
+            #            shutter.close()
+            #            tries -= 1
+            signal.alarm(0)
+
+            pv_fb_motor = EpicsMotor(curr_range['pvs']['Filterbox Pos']['PV'])
+            fb_value = self.fb_positions[curr_range['pvs']['Filterbox Pos']['value'] - 1]
+            fb_sts_pv = EpicsSignal(curr_range['pvs']['Filterbox Pos']['STS PVS'][curr_range['pvs']['Filterbox Pos']['value'] - 1])
+            #pv_fb_motor.move(fb_value) 
+
+            pv_hhrm_hor = EpicsMotor(curr_range['pvs']['HHRM Hor Trans']['PV'])
+            #pv_hhrm_hor.move(curr_range['pvs']['HHRM Hor Trans']['value'])
+
+            bpm_pvs = []
+            for bpm in curr_range['pvs']['BPMs']:
+                if bpm['value'] == 'IN':
+                    pv = EpicsSignal(bpm['IN RB PV'], write_pv=bpm['IN PV'])
+                elif bpm['value'] == 'OUT':
+                    pv = EpicsSignal(bpm['OUT RB PV'], write_pv=bpm['OUT PV'])
+                try:
+                    if pv:
+                #        pv.put(1)
+                        bpm_pvs.append(pv)
+                except Exception as exp:
+                    print(exp)
+
+            ttime.sleep(0.1)
+            #while abs(pv_n2.value - curr_range['pvs']['IC Gas N2']['value']) > pv_n2.tolerance * 3 or \
+            #      abs(pv_he.value - curr_range['pvs']['IC Gas He']['value']) > pv_he.tolerance * 3 or \
+            #      abs(pv_i0_volt.value) - abs(curr_range['pvs']['I0 Voltage']['value']) > pv_i0_volt.tolerance * 100 or \
+            #      abs(pv_it_volt.value) - abs(curr_range['pvs']['It Voltage']['value']) > pv_it_volt.tolerance * 100 or \
+            #      abs(pv_ir_volt.value) - abs(curr_range['pvs']['Ir Voltage']['value']) > pv_ir_volt.tolerance * 100 or \
+            #      fb_sts_pv != 1 or \
+            #      abs(pv_hhrm_hor.position - curr_range['pvs']['HHRM Hor Trans']['value']) > 3 * (10 ** (-pv_hhrm_hor.precision)) or \
+            #      len([pv for pv in bpm_pvs if pv.value != 1]):
+            #    QtCore.QCoreApplication.processEvents()
+
+            signal.alarm(6)
+            #for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 0]:
+            #    try:
+            #        shutter.open()
+            #    except Exception as exc: 
+            #        print('Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
+            #        return
+
+            #    tries = 3
+            #    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+            #        QtWidgets.QApplication.processEvents()
+            #        ttime.sleep(0.1)
+            #        if tries:
+            #            shutter.open()
+            #            tries -= 1
+            signal.alarm(0)
+            
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(), self.label_9.text(), self.label_10.text(), parent = self)
