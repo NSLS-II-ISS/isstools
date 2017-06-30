@@ -1709,25 +1709,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
         keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
         regex = re.compile('pba\d{1}.*')
         matches = [string for string in keys if re.match(regex, string)]
+        devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
         
-        print(matches)
         print_message = ''
-        for adc in matches:
+        for index, adc in enumerate(matches):
             data = []
             dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
             for chunk in dd:
                 data.extend(chunk[adc])
             data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
-            print('{}:   Max = {}   Min = {}'.format(adc, data.max(), data.min()))
+            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
             if data.max() > 0 and data.min() > 0:
-                print_message += '{} is always positive. Perhaps it\'s floating\n'.format(adc)
-            elif data.min() > -0.04:
-                print_message += 'Increase {} gain by 10^2\n'.format(adc)
-            elif data.min() <= -0.04 and data.min() > -0.4:
-                print_message += 'Increase {} gain by 10^1\n'.format(adc)
+                print_message += '{} is always positive. Perhaps it\'s floating\n'.format(devnames[index])
+            elif data.min() > -0.039:
+                print_message += 'Increase {} gain by 10^2\n'.format(devnames[index])
+            elif data.max() <= -0.039 and data.min() > -0.39:
+                print_message += 'Increase {} gain by 10^1\n'.format(devnames[index])
             else:
-                print_message += '{} seems to be configured properly.\n'.format(adc)
+                print_message += '{} seems to be configured properly.\n'.format(devnames[index])
 
         print('-' * 30)
         if print_message:
