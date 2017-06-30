@@ -297,16 +297,9 @@ class xiaparser:
         pix_max = max(pixels) + 1
         for roi in rois:
             current_integration = []
-
             condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
             roi_integrations.append(list([v.values[channel_number - 1] @ condition.astype(int) for k, v in self.df.items()])[:pix_max])
 
-            #for i in pixels:
-            #    condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
-            #    interval = np.extract(condition, curr_pixel[i][:])
-            #    integ = sum(interval)
-            #    current_integration.append(integ)
-            #roi_integrations.append(current_integration)
         return np.array(roi_integrations)
 
 
