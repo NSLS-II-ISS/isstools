@@ -1923,6 +1923,20 @@ Parameters</string>
 Beamline</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="push_update_piezo_center">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>720</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set Center
+to Curr. Position</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_9">
      <attribute name="title">

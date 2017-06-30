@@ -129,13 +129,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
             self.update_batch_traj()
 
+            self.fb_master = 0
             self.piezo_line = int(self.hhm.fb_line.value)
             self.piezo_center = float(self.hhm.fb_center.value)
             self.piezo_nlines = int(self.hhm.fb_nlines.value)
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
-            self.fb_master = 0
         else:
             self.tabWidget.setTabEnabled(0, False)
             self.checkBox_piezo_fb.setEnabled(False)
@@ -250,6 +250,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.piezo_thread = piezo_fb_thread(self)
         self.update_piezo.clicked.connect(self.update_piezo_params)
+        self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
         self.run_type.currentIndexChanged.connect(self.populateParams)
         self.params1 = []
@@ -521,6 +522,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.hhm.fb_nlines.put(self.piezo_nlines)
             self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
             self.hhm.fb_pcoeff.put(self.piezo_kp)
+
+    def update_piezo_center(self):
+        nmeasures = self.piezo_nmeasures
+        if nmeasures == 0:
+            nmeasures = 1
+        self.piezo_thread.adjust_center_point(line = self.piezo_line, center_point = self.piezo_center, n_lines = self.piezo_nlines, n_measures = nmeasures)
     
     def prepare_bl_dialog(self):
         curr_energy = self.hhm.energy.read()['hhm_energy']['value']
@@ -1721,7 +1728,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
             if data.max() > 0 and data.min() > 0:
-                print_message += '{} is always positive. Perhaps it\'s floating\n'.format(devnames[index])
+                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
             elif data.min() > -0.039:
                 print_message += 'Increase {} gain by 10^2\n'.format(devnames[index])
             elif data.max() <= -0.039 and data.min() > -0.39:
@@ -3200,20 +3207,27 @@ class piezo_fb_thread(QThread):
         centers = []
         for i in range(n_measures):
             image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-            #image = image.transpose()
+
             image = image.astype(np.int16)
-            index_max = image[:, line].argmax()
-            max_value = image[:, line].max()
-            min_value = image[:, line].min()
-            coeff, var_matrix = curve_fit(self.gauss, list(range(960)), image[:, line], p0=[1, index_max, 5])
+            sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
+            #remove background (do it better later)
+            if len(sum_lines) > 0:
+                sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+
+            index_max = sum_lines.argmax()
+            max_value = sum_lines.max()
+            min_value = sum_lines.min()
+            #print('n_lines * 100: {} | max_value: {} | ((max_value - min_value) / n_lines): {}'.format(n_lines, max_value, ((max_value - min_value) / n_lines)))
             if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-                centers.append(coeff[1])
+                coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+                centers.append(960 - coeff[1])
         #print('Centers: {}'.format(centers))
         #print('Old Center Point: {}'.format(center_point))
         if len(centers) > 0:
             center_point = float(sum(centers) / len(centers))
             self.gui.settings.setValue('piezo_center', center_point)
             self.gui.piezo_center = center_point
+            self.gui.hhm.fb_center.put(self.gui.piezo_center)
             #print('New Center Point: {}'.format(center_point))
 
     def run(self):
