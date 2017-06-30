@@ -1726,8 +1726,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 print_message += 'Increase {} gain by 10^2\n'.format(devnames[index])
             elif data.max() <= -0.039 and data.min() > -0.39:
                 print_message += 'Increase {} gain by 10^1\n'.format(devnames[index])
-            else:
+            elif data.max() < 0 and data.min() > -3.9:
                 print_message += '{} seems to be configured properly.\n'.format(devnames[index])
+            elif data.min() <= -3.9:
+                print_message += 'Decrease {} gain by 10^1\n'.format(devnames[index])
+            else:
+                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
 
         print('-' * 30)
         if print_message:
