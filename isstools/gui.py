@@ -693,9 +693,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
-            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt', parent = self)[0]
         else:
-            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt')[0]]
+            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt', parent = self)[0]]
         if len(self.selected_filename_bin[0]):
             if len(self.selected_filename_bin) > 1:
                 filenames = []
@@ -992,7 +992,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             params[2].append(param3)
 
     def get_traj_names(self):
-        self.label_56.setText(QtWidgets.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt')[0].rsplit('/',1)[1])
+        self.label_56.setText(QtWidgets.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt', parent = self)[0].rsplit('/',1)[1])
         self.push_plot_traj.setEnabled(True)
 
     def addCanvas(self):
@@ -1274,7 +1274,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def save_trajectory(self):
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')[0]
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt', parent = self)[0]
         if filename[-4:] != '.txt' and len(filename):
             filename += '-{}.txt'.format(self.edit_E0.text())
             if (os.path.isfile(filename)): 
@@ -2188,7 +2188,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                   self.RE.md['PROPOSAL'])
         filename = QtWidgets.QFileDialog.getOpenFileName(caption = 'Select file to load', 
                                                      directory = user_filepath, 
-                                                     filter = '*.csv')[0]
+                                                     filter = '*.csv', 
+                                                     parent = self)[0]
         if filename:
             batman = BatchManager(self)
             batman.load_csv(filename)
@@ -2199,7 +2200,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                   self.RE.md['PROPOSAL'])
         filename = QtWidgets.QFileDialog.getSaveFileName(caption = 'Select file to save', 
                                                      directory = user_filepath, 
-                                                     filter = '*.csv')[0]
+                                                     filter = '*.csv', 
+                                                     parent = self)[0]
         if filename:
             if filename[-4:] != '.csv': 
                 filename += '.csv'
