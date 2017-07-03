@@ -1557,7 +1557,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 self.canvas.draw_idle()
 
-            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+            if len(self.current_uid_list) and self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
                 self.tabWidget.setCurrentIndex(5)
                 self.selected_filename_bin = filepaths
                 self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in filepaths))
@@ -2168,7 +2168,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         
 
     def populateParams_batch(self, index):
-        if self.comboBox_scans.currentText() == 'get_offsets':
+        if self.comboBox_scans.currentText()[: 5] != 'tscan':
             self.comboBox_lut.setEnabled(False)
         else:
             self.comboBox_lut.setEnabled(True)
@@ -2331,7 +2331,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def check_pause_abort_batch(self):
         if self.batch_abort:
             print('**** Aborting Batch! ****')
-            raise Exception('User Abort')
+            raise Exception('Abort button pressed by user')
         elif self.batch_pause:
             self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
             while self.batch_pause:
@@ -2572,7 +2572,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                             self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['comment'], step_number + 1, len(repetitions)))
                                             self.check_pause_abort_batch()
                                         else:
-                                            self.label_batch_step.setText('Execute {} | Loop step number: {}'.format(scan_name), step_number + 1)
+                                            self.label_batch_step.setText('Execute {} | Loop step number: {}'.format(scan_name, step_number + 1))
                                             self.check_pause_abort_batch()
                                         self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
                                     ### Uncomment (previous line)
@@ -2649,6 +2649,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.label_batch_step.setText('Finished (Idle)')
 
         except Exception as e:
+            print(e)
             print('Batch run aborted!')
             font = QtGui.QFont()
             item.setFont(font)
