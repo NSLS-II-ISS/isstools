@@ -1573,8 +1573,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[6.7, 6.9]]))
 
                         for index_roi, roi in enumerate([[i for i in zip(*mcas)][k] for k in range(int(len(matches)/2))]):
-                            [sum(i) for i in zip(*roi)]
-                            self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
+                            xia_sum = [sum(i) for i in zip(*roi)]
+                            if len(self.gen_parser.interp_arrays['energy']) > length:
+                                xia_sum.extend([xia_sum[-1]] * (len(self.gen_parser.interp_arrays['energy']) - length))
+                            self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
                             self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
                         self.figure.ax.set_xlabel('Energy (eV)')
@@ -2865,8 +2867,13 @@ class process_batch_thread(QThread):
                                 mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[6.7, 6.9]]))
 
                         for index_roi, roi in enumerate([[i for i in zip(*mcas)][k] for k in range(int(len(matches)/2))]):
-                            [sum(i) for i in zip(*roi)]
-                            self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
+                            xia_sum = [sum(i) for i in zip(*roi)]
+                            if len(self.gui.gen_parser.interp_arrays['energy']) > length:
+                                xia_sum.extend([xia_sum[-1]] * (len(self.gui.gen_parser.interp_arrays['energy']) - length))
+                            self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
+
+                            #[sum(i) for i in zip(*roi)]
+                            #self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
 
 
 

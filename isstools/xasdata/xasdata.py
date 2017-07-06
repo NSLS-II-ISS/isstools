@@ -183,9 +183,13 @@ class XASdataGeneric(XASdata):
         
         condition = timestamps > max_timestamp
         timestamps = timestamps[: len(timestamps) - np.sum(condition)]
+
+        #time = [np.mean(array) for array in np.array_split(self.arrays[key_base][:,0], len(timestamps))]
         
         for key in self.arrays.keys():
-            self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key)[:,0], self.arrays.get(key)[:,1])]).transpose()
+            time = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 0], len(timestamps))]
+            val = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 1], len(timestamps))]
+            self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, time, val)]).transpose()#self.arrays.get(key)[:,0], self.arrays.get(key)[:,1])]).transpose()
         self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
 
 
