@@ -4,11 +4,14 @@ import matplotlib.pyplot as plt
 import sys
 import ctypes
 import numpy as np
+import pandas as pd
+import h5py
 import os
 import os.path
 from scipy.optimize import curve_fit
 import smbc
 import time as ttime
+import warnings
 
 
 '''
@@ -76,6 +79,7 @@ class xiaparser:
                         self.next_pos = self.read_pixel_block(curr_ds, board_number, i, self.next_pos, plotdata, pixelnumber, silent)
                     for index, channel in enumerate([channel_num + board_number * 4 for channel_num in range(4)]):
                         self.exporting_arrays[channel] = self.exporting_arrays[channel] + self.chans[index]
+            self.df = pd.DataFrame(self.exporting_arrays)
 
     def export_files(self, dest_filepath, dest_filename = '', all_in_one = True):
 
@@ -90,21 +94,20 @@ class xiaparser:
             tmpfilename = self.filename[0:len(self.filename)-3] + '-' + str(try_number)
             try_number += 1
 
-        if all_in_one:
-            print("Creating file for all channels...")
-            output_data = np.array([array for array in self.exporting_arrays])
-            with open(dest_filepath + tmpfilename + '-allchans.txt', 'wb') as f:
-                i = 0
-                for row in output_data:
-                    print('XIA channel number: {}'.format(i))
-                    i += 1
-                    np.savetxt(f, np.array(row), fmt='%i',delimiter=' ', footer='============================================================')
-                
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            if all_in_one:
+                print('Saving XIA file...')
 
-        else:
-            for index, array in enumerate(exporting_arrays):
-                print('Creating file for channel {}...'.format(index))
-                np.savetxt('{}{}-chan{}.txt'.format(dest_filepath, tmpfilename, index), array, fmt='%i', delimiter=' ')
+                f = h5py.File(dest_filepath + tmpfilename + '-allchans.hdf5', mode='w')
+                f.create_dataset('AllChans', data=self.exporting_arrays, compression='gzip')
+
+            else:
+                for index, array in enumerate(self.exporting_arrays):
+                    print('Creating file for channel {}...'.format(index))
+                    f = h5py.File('{}{}-chan{}.hdf5'.format(dest_filepath, tmpfilename, index), mode='a')
+                    f.create_dataset('Chan{}'.format(index), data=array, compression='gzip')
+            print('Saving done!')
       
         
     def read_pixel_block(self, dataset, board_number, pixel, start_pos, plot_data, pixel_to_parse, silent):
@@ -291,29 +294,13 @@ class xiaparser:
         for i in frange(0, float(energy_range), float(energy_range)/2047):
             energies.append(i)
         curr_pixel = self.exporting_arrays[channel_number - 1]
+        pix_max = max(pixels) + 1
         for roi in rois:
             current_integration = []
-            for i in pixels:
-                condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
-                interval = np.extract(condition, curr_pixel[i][:])
-                integ = sum(interval)
-                current_integration.append(integ)
-                #print(integ)
-            roi_integrations.append(current_integration)
-        return np.array(roi_integrations) #current_integration)
+            condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
+            roi_integrations.append(list([v.values[channel_number - 1] @ condition.astype(int) for k, v in self.df.items()])[:pix_max])
 
-    #def parse_roi(self, pixels, channel_number, min_energy = 0, max_energy = 20):
-    #    energies = []
-    #    integs = []
-    #    for i in frange(0, 20, 20/2047):
-    #        energies.append(i)
-    #    curr_pixel = self.exporting_arrays[channel_number - 1]#getattr(self, "exporting_array" + "{}".format(channel_number))
-    #    for i in pixels:
-    #        condition = (np.array(energies) <= max_energy) == (np.array(energies) >= min_energy)
-    #        interval = np.extract(condition, curr_pixel[i][:])
-    #        integ = sum(interval)
-    #        integs.append(integ)
-    #    return np.array(integs)
+        return np.array(roi_integrations)
 
 
 
