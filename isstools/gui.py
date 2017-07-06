@@ -1334,7 +1334,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
     def save_trajectory(self):
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt', parent = self)[0]
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt')[0]
         if filename[-4:] != '.txt' and len(filename):
             filename += '-{}.txt'.format(self.edit_E0.text())
             if (os.path.isfile(filename)): 
