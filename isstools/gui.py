@@ -1111,6 +1111,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_gain_matching.set_facecolor(color='#FcF9F6')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.figure_gain_matching.add_subplot(111)
+        self.toolbar_gain_matching = NavigationToolbar(self.canvas_gain_matching, self.tab_2, coordinates=True)
+        self.plot_gen_scan.addWidget(self.toolbar_gain_matching)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
         self.canvas_gain_matching.draw_idle()
 
