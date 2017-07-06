@@ -96,17 +96,23 @@ class xiaparser:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            if all_in_one:
-                print('Saving XIA file...')
 
-                f = h5py.File(dest_filepath + tmpfilename + '-allchans.hdf5', mode='w')
-                f.create_dataset('AllChans', data=self.exporting_arrays, compression='gzip')
+            try:
+                if all_in_one:
+                    print('Saving XIA file...')
 
-            else:
-                for index, array in enumerate(self.exporting_arrays):
-                    print('Creating file for channel {}...'.format(index))
-                    f = h5py.File('{}{}-chan{}.hdf5'.format(dest_filepath, tmpfilename, index), mode='a')
-                    f.create_dataset('Chan{}'.format(index), data=array, compression='gzip')
+                    f = h5py.File(dest_filepath + tmpfilename + '-allchans.hdf5', mode='w')
+                    f.create_dataset('AllChans', data=self.exporting_arrays, compression='gzip')
+
+                else:
+                    for index, array in enumerate(self.exporting_arrays):
+                        print('Creating file for channel {}...'.format(index))
+                        f = h5py.File('{}{}-chan{}.hdf5'.format(dest_filepath, tmpfilename, index), mode='a')
+                        f.create_dataset('Chan{}'.format(index), data=array, compression='gzip')
+            except Exception as exc:
+                print(exc)
+                return
+            
             print('Saving done!')
       
         

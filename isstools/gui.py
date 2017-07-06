@@ -1540,7 +1540,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         else:
                             raise Exception("Could not find channels data in the XIA file")
                     except Exception as exc:
-                        print('***', Exception, '***')
+                        print('***', exc, '***')
 
                     mcas = []
                     if 'xia_rois' in self.db[self.current_uid]['start']:
