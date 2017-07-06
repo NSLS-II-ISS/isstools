@@ -1537,7 +1537,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             if xia_parser.channelsCount():
                                 length = min(xia_parser.pixelsCount(0), len(self.gen_parser.interp_arrays['energy']))
                                 if xia_parser.pixelsCount(0) != len(self.gen_parser.interp_arrays['energy']):
-                                    raise Exception("XIA Pixels number != Pizzabox Trigger file")
+                                    raise Exception("XIA Pixels number ({}) != Pizzabox Trigger file ({})".format(xia_parser.pixelsCount(0), len(self.gen_parser.interp_arrays['energy'])))
                             else:
                                 raise Exception("Could not find channels data in the XIA file")
                         except Exception as exc:
