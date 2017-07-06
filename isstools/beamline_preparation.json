@@ -87,6 +87,270 @@
                }
             ]
          }
+      },
+      {
+         "energy_start": 6000,
+         "energy_end": 10000,
+         "pvs": {
+            "IC Gas He": {
+                "PV": "XF:08IDB-OP{IC}FLW:He-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:He-RB",
+                "value": 5
+            },
+            "IC Gas N2": {
+                "PV": "XF:08IDB-OP{IC}FLW:N2-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:N2-RB",
+                "value": 3
+            },
+            "I0 Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Sense",
+                "value": 1100
+            },
+            "It Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Sense",
+                "value": 1100
+            },
+            "Ir Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Sense",
+                "value": 1100
+            },
+            "Filterbox Pos": {
+                "PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr",
+                "RB PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr.RBV",
+                "STS PVS": ["XF:08IDA-OP{Fltr:FB}Fltr1:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr2:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr3:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr4:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr5:In-Sts"],
+                "value": 2
+            },
+            "HHRM Hor Trans": {
+                "PV": "XF:08IDB-OP{Mir:HRM:H}Mtr",
+                "RB PV": "XF:08IDB-OP{Mir:HRM:H}Mtr.RBV",
+                "value": 0
+            },
+            "BPMs": [
+               {
+                   "Name": "CM",
+                   "IN PV": "XF:08IDA-BI{BPM:CM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:CM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:CM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:CM}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "FM",
+                   "IN PV": "XF:08IDA-BI{BPM:FM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:FM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:FM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:FM}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "1-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:1-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:1-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "2-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:2-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:2-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "ES",
+                   "IN PV": "XF:08IDB-BI{BPM:ES}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDB-BI{BPM:ES}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDB-BI{BPM:ES}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDB-BI{BPM:ES}Sw:OutLim-Sts",
+                   "value": "IN"
+               }
+            ]
+         }
+      },
+      {
+         "energy_start": 10000,
+         "energy_end": 17000,
+         "pvs": {
+            "IC Gas He": {
+                "PV": "XF:08IDB-OP{IC}FLW:He-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:He-RB",
+                "value": 5
+            },
+            "IC Gas N2": {
+                "PV": "XF:08IDB-OP{IC}FLW:N2-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:N2-RB",
+                "value": 5
+            },
+            "I0 Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Sense",
+                "value": 1700
+            },
+            "It Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Sense",
+                "value": 1700
+            },
+            "Ir Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Sense",
+                "value": 1700
+            },
+            "Filterbox Pos": {
+                "PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr",
+                "RB PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr.RBV",
+                "STS PVS": ["XF:08IDA-OP{Fltr:FB}Fltr1:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr2:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr3:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr4:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr5:In-Sts"],
+                "value": 3
+            },
+            "HHRM Hor Trans": {
+                "PV": "XF:08IDB-OP{Mir:HRM:H}Mtr",
+                "RB PV": "XF:08IDB-OP{Mir:HRM:H}Mtr.RBV",
+                "value": 80
+            },
+            "BPMs": [
+               {
+                   "Name": "CM",
+                   "IN PV": "XF:08IDA-BI{BPM:CM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:CM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:CM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:CM}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "FM",
+                   "IN PV": "XF:08IDA-BI{BPM:FM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:FM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:FM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:FM}Sw:OutLim-Sts",
+                   "value": "IN"
+               },
+               {
+                   "Name": "1-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:1-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:1-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "2-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:2-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:2-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "ES",
+                   "IN PV": "XF:08IDB-BI{BPM:ES}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDB-BI{BPM:ES}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDB-BI{BPM:ES}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDB-BI{BPM:ES}Sw:OutLim-Sts",
+                   "value": "IN"
+               }
+            ]
+         }
+      },
+      {
+         "energy_start": 17000,
+         "energy_end": 50000,
+         "pvs": {
+            "IC Gas He": {
+                "PV": "XF:08IDB-OP{IC}FLW:He-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:He-RB",
+                "value": 5
+            },
+            "IC Gas N2": {
+                "PV": "XF:08IDB-OP{IC}FLW:N2-SP",
+                "RB PV": "XF:08IDB-OP{IC}FLW:N2-RB",
+                "value": 5
+            },
+            "I0 Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u302}V-Sense",
+                "value": 1700
+            },
+            "It Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u303}V-Sense",
+                "value": 1700
+            },
+            "Ir Voltage": {
+                "PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Set",
+                "RB PV": "XF:08IDB-OP{WPS:01-HV:u305}V-Sense",
+                "value": 1700
+            },
+            "Filterbox Pos": {
+                "PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr",
+                "RB PV": "XF:08IDA-OP{Fltr:FB-Ax:Y}Mtr.RBV",
+                "STS PVS": ["XF:08IDA-OP{Fltr:FB}Fltr1:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr2:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr3:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr4:In-Sts",
+                            "XF:08IDA-OP{Fltr:FB}Fltr5:In-Sts"],
+                "value": 4
+            },
+            "HHRM Hor Trans": {
+                "PV": "XF:08IDB-OP{Mir:HRM:H}Mtr",
+                "RB PV": "XF:08IDB-OP{Mir:HRM:H}Mtr.RBV",
+                "value": 80
+            },
+            "BPMs": [
+               {
+                   "Name": "CM",
+                   "IN PV": "XF:08IDA-BI{BPM:CM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:CM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:CM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:CM}Sw:OutLim-Sts",
+                   "value": "IN"
+               },
+               {
+                   "Name": "FM",
+                   "IN PV": "XF:08IDA-BI{BPM:FM}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:FM}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:FM}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:FM}Sw:OutLim-Sts",
+                   "value": "IN"
+               },
+               {
+                   "Name": "1-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:1-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:1-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:1-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "2-BT",
+                   "IN PV": "XF:08IDA-BI{BPM:2-BT}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDA-BI{BPM:2-BT}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDA-BI{BPM:2-BT}Sw:OutLim-Sts",
+                   "value": "OUT"
+               },
+               {
+                   "Name": "ES",
+                   "IN PV": "XF:08IDB-BI{BPM:ES}Cmd:In-Cmd",
+                   "IN RB PV": "XF:08IDB-BI{BPM:ES}Sw:InLim-Sts",
+                   "OUT PV": "XF:08IDB-BI{BPM:ES}Cmd:Out-Cmd",
+                   "OUT RB PV": "XF:08IDB-BI{BPM:ES}Sw:OutLim-Sts",
+                   "value": "IN"
+               }
+            ]
+         }
       }
    ],  
    {

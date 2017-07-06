@@ -21,6 +21,8 @@ class PrepareBLDialog(*uic.loadUiType(ui_path)):
         self.label_i0_voltage.setText('{}'.format(curr_range['pvs']['I0 Voltage']['value']))
         self.label_it_voltage.setText('{}'.format(curr_range['pvs']['It Voltage']['value']))
         self.label_ir_voltage.setText('{}'.format(curr_range['pvs']['Ir Voltage']['value']))
+        self.label_fb_pos.setText('{}'.format(curr_range['pvs']['Filterbox Pos']['value']))
+        self.label_hhrm_hor_trans.setText('{}'.format(curr_range['pvs']['HHRM Hor Trans']['value']))
 
         for index, bpm in enumerate(curr_range['pvs']['BPMs']):
             label = QtWidgets.QLabel(bpm['Name'])
