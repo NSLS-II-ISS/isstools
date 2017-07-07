@@ -163,6 +163,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             elems[i - 21] = '{:3d} {}'.format(i, elems[i - 21])
         self.comboBoxElement.addItems(elems)
         self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
+        self.checkBox_traj_single_dir.stateChanged.connect(self.checkBox_traj_revert.setEnabled)
+
 
         json_data = open(pkg_resources.resource_filename('isstools', 'beamline_preparation.json')).read()
         self.json_blprep = json.loads(json_data)
@@ -1300,6 +1302,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         dsine_preedge_duration = dsine_preedge_duration, dsine_postedge_duration = dsine_postedge_duration, trajectory_type = traj_type)
         self.traj_creator.interpolate()
 
+        #Revert trajectory if checkbox checked
+        if self.checkBox_traj_revert.isChecked() and self.checkBox_traj_revert.isEnabled():
+            self.traj_creator.revert()
+
         #Plot single trajectory motion
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
@@ -1478,6 +1484,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if self.current_uid == '':
                         self.current_uid = self.db[-1]['start']['uid']
 
+                    if 'xia_filename' in self.db[self.current_uid]['start']:
+                            # Parse xia
+                            xia_filename = self.db[self.current_uid]['start']['xia_filename']
+                            xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                            xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                            smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                            try:
+                                smbclient.copy()
+                            except Exception as exc:
+                                if exc.args[1] == 'No such file or directory':
+                                    print('*** File not found in the XIA! Check if the hard drive is full! ***')
+                                else:
+                                    print(exc)
+                                print('Abort current scan processing!\nDone!')
+                                continue
+
 
                     self.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
                                             '{}.txt'.format(self.db[self.current_uid]['start']['year'],
@@ -1523,11 +1545,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 
                     if 'xia_filename' in self.db[self.current_uid]['start']:
                         # Parse xia
-                        xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                        xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
-                        xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
-                        smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
-                        smbclient.copy()
                         xia_parser = self.xia_parser
                         xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
                         xia_parsed_filepath = self.current_filepath[0 : self.current_filepath.rfind('/') + 1]
@@ -2785,12 +2802,27 @@ class process_batch_thread(QThread):
             if len(self.gui.uids_to_process) > 0:
                 try:
                     uid = self.gui.uids_to_process.pop(0)
+                    self.gui.current_uid = uid
 
                     if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
                         print('get_offsets, nothing to process')
                         continue
-        
-                    self.gui.current_uid = uid
+
+                    if 'xia_filename' in self.gui.db[self.gui.current_uid]['start']:
+                        # Parse xia
+                        xia_filename = self.gui.db[self.gui.current_uid]['start']['xia_filename']
+                        xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                        xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
+                        smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
+                        try:
+                            smbclient.copy()
+                        except Exception as exc:
+                            if exc.args[1] == 'No such file or directory':
+                                print('*** File not found in the XIA! Check if the hard drive is full! ***')
+                            else:
+                                print(exc)
+                            print('Abort current scan processing!\nDone!')
+                            continue
         
                     self.gui.current_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/' \
                                             '{}.txt'.format(self.gui.db[self.gui.current_uid]['start']['year'],
@@ -2828,12 +2860,6 @@ class process_batch_thread(QThread):
                     division[division < 0] = 1
                 
                     if 'xia_filename' in self.gui.db[self.gui.current_uid]['start']:
-                        # Parse xia
-                        xia_filename = self.gui.db[self.gui.current_uid]['start']['xia_filename']
-                        xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
-                        xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
-                        smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
-                        smbclient.copy()
                         xia_parser = self.gui.xia_parser
                         xia_parser.parse(xia_filename, '/GPFS/xf08id/xia_files/')
                         xia_parsed_filepath = self.gui.current_filepath[0 : self.gui.current_filepath.rfind('/') + 1]

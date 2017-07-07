@@ -143,12 +143,12 @@ class trajectory():
         self.energy_grid=cs(self.time_grid)
         self.energy_grid_der=np.diff(self.energy_grid)
 
+    def revert(self):
+        self.energy = self.energy[::-1]
+        self.energy_grid = self.energy_grid[::-1]
+        self.energy_grid_der = self.energy_grid_der[::-1]
 
     def tile (self,reps = 1, single_direction = False):
-        #if single_direction:
-        #    self.time_grid = np.append(self.time_grid, (self.time_grid + self.time_grid[-1]))
-        #    self.energy_grid = np.append(self.energy_grid, np.flipud(self.energy_grid))
-        #else:
         if not single_direction:
             self.time_grid = np.append(self.time_grid, (self.time_grid + self.time_grid[-1]))
             self.energy_grid = np.append(self.energy_grid, np.flipud(self.energy_grid))

@@ -903,8 +903,8 @@
        <rect>
         <x>780</x>
         <y>10</y>
-        <width>201</width>
-        <height>74</height>
+        <width>211</width>
+        <height>101</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_14">
@@ -914,6 +914,12 @@
           <size>
            <width>0</width>
            <height>25</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>54</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="minimum">
@@ -947,10 +953,26 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
+       <item row="2" column="0">
         <widget class="QCheckBox" name="checkBox_traj_single_dir">
          <property name="text">
           <string>Single direction</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="checkBox_traj_revert">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Revert Trajectory</string>
          </property>
          <property name="checked">
           <bool>false</bool>
