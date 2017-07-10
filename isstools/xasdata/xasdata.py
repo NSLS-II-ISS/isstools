@@ -2,9 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import os
-from bluesky.global_state import gs
-from databroker import (DataBroker as db, get_events, get_images,
-                        get_table, get_fields, restream, process)
 from datetime import datetime
 from isstools.conversions import xray
 from subprocess import call
