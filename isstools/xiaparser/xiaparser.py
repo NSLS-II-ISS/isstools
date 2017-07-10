@@ -79,6 +79,11 @@ class xiaparser:
                         self.next_pos = self.read_pixel_block(curr_ds, board_number, i, self.next_pos, plotdata, pixelnumber, silent)
                     for index, channel in enumerate([channel_num + board_number * 4 for channel_num in range(4)]):
                         self.exporting_arrays[channel] = self.exporting_arrays[channel] + self.chans[index]
+
+            #workaround (FIX LATER): arrays of different cards have different lengths (WHY?)
+            min_val = min([len(array) for array in self.exporting_arrays])
+            for array in self.exporting_arrays:
+                del array[min_val:]
             self.df = pd.DataFrame(self.exporting_arrays)
 
     def export_files(self, dest_filepath, dest_filename = '', all_in_one = True):
