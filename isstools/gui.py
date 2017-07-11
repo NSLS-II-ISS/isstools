@@ -13,7 +13,6 @@ from scipy.optimize import curve_fit
 import pkg_resources
 import time as ttime
 import math
-import bluesky.plans as bp
 from subprocess import call
 
 from ophyd import (Component as Cpt, EpicsSignal, EpicsSignalRO, EpicsMotor)
@@ -138,6 +137,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.hhm.fb_status.subscribe(self.update_fb_status)
         else:
             self.tabWidget.setTabEnabled(0, False)
+            self.tabWidget.setTabEnabled(4, False)
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
@@ -222,7 +222,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.bpm_es = list(self.det_dict.keys())[i]
                 found_bpm = 1
                 break     
-        if found_bpm == 0:
+        if found_bpm == 0 or self.hhm is None:
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
@@ -250,7 +250,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
         self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)#toggle_piezo_fb)
 
-        self.piezo_thread = piezo_fb_thread(self)
+        if self.hhm is not None:
+            self.piezo_thread = piezo_fb_thread(self)
         self.update_piezo.clicked.connect(self.update_piezo_params)
         self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
@@ -435,6 +436,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_batch_print_steps.clicked.connect(self.print_batch)
         self.push_batch_delete.clicked.connect(self.delete_current_batch)
 
+        self.plan_funcs.append(self.prepare_bl)
+        self.plan_funcs_names.append(self.prepare_bl.__name__)
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
         self.push_create_scan_update.clicked.connect(self.update_batch_traj)
@@ -530,24 +533,29 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if nmeasures == 0:
             nmeasures = 1
         self.piezo_thread.adjust_center_point(line = self.piezo_line, center_point = self.piezo_center, n_lines = self.piezo_nlines, n_measures = nmeasures)
-    
-    def prepare_bl_dialog(self):
-        curr_energy = self.hhm.energy.read()['hhm_energy']['value']
 
-        curr_range = [ran for ran in self.beamline_prep if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
-        if not len(curr_range):
-            print('Current energy is not valid. :( Aborted.')
-            return
+    def prepare_bl(self, energy:int = -1):
+            energy = int(energy)
+            if energy < 0:
+                curr_energy = self.hhm.energy.read()['hhm_energy']['value']
+            else:
+                curr_energy = energy
 
-        dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.json_blprep, parent = self)
-        if dlg.exec_():
+            print('[Prepare BL] Setting up the beamline to {} eV'.format(curr_energy))
+
+
+            curr_range = [ran for ran in self.beamline_prep if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
+            if not len(curr_range):
+                print('Current energy is not valid. :( Aborted.')
+                return
+
             curr_range = curr_range[0]
             pv_he = EpicsSignal(curr_range['pvs']['IC Gas He']['RB PV'], write_pv = curr_range['pvs']['IC Gas He']['PV'])
-            print('HE {}'.format(curr_range['pvs']['IC Gas He']['value']))
+            print('[Prepare BL] HE {}'.format(curr_range['pvs']['IC Gas He']['value']))
             pv_he.put(curr_range['pvs']['IC Gas He']['value'], wait = True)
 
             pv_n2 = EpicsSignal(curr_range['pvs']['IC Gas N2']['RB PV'], write_pv = curr_range['pvs']['IC Gas N2']['PV'])
-            print('N2 {}'.format(curr_range['pvs']['IC Gas He']['value']))
+            print('[Prepare BL] N2 {}'.format(curr_range['pvs']['IC Gas He']['value']))
             pv_n2.put(curr_range['pvs']['IC Gas N2']['value'], wait = True)
 
             # If you go from less than 1000 V to more than 1400 V, you need a delay. 2 minutes
@@ -555,15 +563,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             pv_i0_volt = EpicsSignal(curr_range['pvs']['I0 Voltage']['RB PV'], write_pv = curr_range['pvs']['I0 Voltage']['PV'])
             old_i0 = abs(pv_i0_volt.value)
-            print('Old I0 Voltage: {} | New I0 Voltage: {}'.format(old_i0, curr_range['pvs']['I0 Voltage']['value']))
+            print('[Prepare BL] Old I0 Voltage: {} | New I0 Voltage: {}'.format(old_i0, curr_range['pvs']['I0 Voltage']['value']))
 
             pv_it_volt = EpicsSignal(curr_range['pvs']['It Voltage']['RB PV'], write_pv = curr_range['pvs']['It Voltage']['PV'])
             old_it = abs(pv_it_volt.value)
-            print('Old It Voltage: {} | New It Voltage: {}'.format(old_it, curr_range['pvs']['It Voltage']['value']))
+            print('[Prepare BL] Old It Voltage: {} | New It Voltage: {}'.format(old_it, curr_range['pvs']['It Voltage']['value']))
 
             pv_ir_volt = EpicsSignal(curr_range['pvs']['Ir Voltage']['RB PV'], write_pv = curr_range['pvs']['Ir Voltage']['PV'])
             old_ir = abs(pv_ir_volt.value)
-            print('Old Ir Voltage: {} | New Ir Voltage: {}'.format(old_ir, curr_range['pvs']['Ir Voltage']['value']))
+            print('[Prepare BL] Old Ir Voltage: {} | New Ir Voltage: {}'.format(old_ir, curr_range['pvs']['Ir Voltage']['value']))
 
             #if (curr_range['pvs']['I0 Voltage']['value'] > 1400 and old_i0 < 1000) or \
             #   (curr_range['pvs']['It Voltage']['value'] > 1400 and old_it < 1000) or \
@@ -573,27 +581,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
                curr_range['pvs']['Ir Voltage']['value'] - old_ir > 2 :
                 old_time = ttime.time()
                 wait_time = 120
-                print('Waiting for gas ({}s)...'.format(wait_time))
+                print('[Prepare BL] Waiting for gas ({}s)...'.format(wait_time))
                 percentage = 0
                 while ttime.time() - old_time < wait_time: # 120 seconds
                     if ttime.time() - old_time >= percentage * wait_time:
-                        print('{:3}% ({:.1f}s)'.format(int(np.round(percentage * 100)), percentage * wait_time))
+                        print('[Prepare BL] {:3}% ({:.1f}s)'.format(int(np.round(percentage * 100)), percentage * wait_time))
                         percentage += 0.1
                     QtWidgets.QApplication.processEvents()
                     ttime.sleep(0.1)
-                print('100% ({:.1f}s)'.format(wait_time))
-                print('Done waiting for gas...')
+                print('[Prepare BL] 100% ({:.1f}s)'.format(wait_time))
+                print('[Prepare BL] Done waiting for gas...')
 
             pv_i0_volt.put(curr_range['pvs']['I0 Voltage']['value'], wait = True)
             pv_it_volt.put(curr_range['pvs']['It Voltage']['value'], wait = True)
             pv_ir_volt.put(curr_range['pvs']['Ir Voltage']['value'], wait = True)
-
-            #for shutter in [fe_shutter for index, fe_shutter in enumerate(self.fe_shutters) if fe_shutter.state.read()['{}_state'.format(fe_shutter.name)]['value'] != 1]:
-            #    shutter.close()
-            #    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
-            #        QtWidgets.QApplication.processEvents()
-            #        ttime.sleep(0.1)
-
 
 
 
@@ -620,7 +621,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
             def handler(signum, frame):
-                print("Could not close shutter")
+                print("[Prepare BL] Could not close shutter")
                 raise Exception("Timeout")
 
             if close_shutter:
@@ -630,7 +631,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     try:
                         shutter.close()
                     except Exception as exc: 
-                        print('Timeout! Could not close the shutter. Aborting! (Try once again, maybe?)')
+                        print('[Prepare BL] Timeout! Could not close the shutter. Aborting! (Try once again, maybe?)')
                         return
 
                     tries = 3
@@ -685,7 +686,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     try:
                         shutter.open()
                     except Exception as exc: 
-                        print('Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
+                        print('[Prepare BL] Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
                         return
 
                     tries = 3
@@ -697,7 +698,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             tries -= 1
                 signal.alarm(0)
 
-            print('Beamline preparation done!')
+            print('[Prepare BL] Beamline preparation done!')
+
+    def prepare_bl_dialog(self):
+        curr_energy = self.hhm.energy.read()['hhm_energy']['value']
+
+        curr_range = [ran for ran in self.beamline_prep if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
+        if not len(curr_range):
+            print('Current energy is not valid. :( Aborted.')
+            return
+
+        dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.json_blprep, parent = self)
+        if dlg.exec_():
+            self.prepare_bl()
             
 
     def update_user(self):
@@ -2482,7 +2495,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             i += 1
                         scan_name = sn
                     scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k,v in
-                                                               (item.split(':') for item in scans_text.split(' ')))
+                                                               (item.split(':') for item in scans_text.split(' ') if len(item) > 1))
                     #print(json.dumps(scans, indent=2))
 
                     for scan in scans:
@@ -2520,7 +2533,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                             else:
                                 self.label_batch_step.setText('Execute {}'.format(scan_name))
                                 self.check_pause_abort_batch()
-                            self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                            uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                            if uid:
+                                self.uids_to_process.extend(uid)
                         ### Uncomment (previous line)
 
                         if 'comment' in scans[scan]:
@@ -2581,7 +2596,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 i += 1
                             scan_name = sn
                         scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k,v in
-                                                                   (item.split(':') for item in scans_text.split(' ')))
+                                                                   (item.split(':') for item in scans_text.split(' ') if len(item) > 1))
 
                     #print(json.dumps(samples, indent=2))
                     #print(json.dumps(scans, indent=2))
@@ -2652,7 +2667,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         else:
                                             self.label_batch_step.setText('Execute {} | Loop step number: {}'.format(scan_name, step_number + 1))
                                             self.check_pause_abort_batch()
-                                        self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                                        if uid:
+                                            self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
                                     
                                     if 'comment' in scans[scan]:    
@@ -2711,7 +2728,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     if print_only == False:
                                         self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['comment'], step_number + 1, len(repetitions)))
                                         self.check_pause_abort_batch()
-                                        self.uids_to_process.extend(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan]))
+                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                                        if uid:
+                                            self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
                                     scans[scan]['comment'] = old_comment
         
