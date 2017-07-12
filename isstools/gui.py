@@ -176,7 +176,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
-        self.push_gain_matching.clicked.connect(self.run_gain_matching)
+        self.push_gain_matching.clicked.connect(self.run_gain_matching)        
+        self.xia_graphs_names = []
+        self.xia_handles = []
 
         regex = re.compile('xia\d{1}')
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
@@ -186,6 +188,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.xia = None
         else:
             self.xia = self.xia_list[0]
+            self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
+            for channel in self.xia_channels:
+                getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
+                getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
@@ -1127,9 +1133,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
         self.figure_gain_matching.add_subplot(111)
         self.toolbar_gain_matching = NavigationToolbar(self.canvas_gain_matching, self.tab_2, coordinates=True)
-        self.plot_gen_scan.addWidget(self.toolbar_gain_matching)
+        self.plot_gain_matching.addWidget(self.toolbar_gain_matching)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
         self.canvas_gain_matching.draw_idle()
+
+        self.figure_xia_all_graphs = Figure()
+        self.figure_xia_all_graphs.set_facecolor(color='#FcF9F6')
+        self.canvas_xia_all_graphs = FigureCanvas(self.figure_xia_all_graphs)
+        self.figure_xia_all_graphs.ax = self.figure_xia_all_graphs.add_subplot(111)
+        self.toolbar_xia_all_graphs = NavigationToolbar(self.canvas_xia_all_graphs, self.tab_2, coordinates=True)
+        self.plot_xia_all_graphs.addWidget(self.toolbar_xia_all_graphs)
+        self.plot_xia_all_graphs.addWidget(self.canvas_xia_all_graphs)
+        self.canvas_xia_all_graphs.draw_idle()
+        self.cursor_xia_all_graphs = Cursor(self.figure_xia_all_graphs.ax, useblit=True, color='green', linewidth=0.75 )
+        self.figure_xia_all_graphs.ax.clear()
 
         self.figure_old_scans = Figure()
         self.figure_old_scans.set_facecolor(color='#FcF9F6')
@@ -1839,13 +1856,29 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('**** Check gains finished! ****')
         
 
+    def update_xia_graph(self, value, **kwargs):
+        curr_name = kwargs['obj'].name
+        curr_index = -1
+        if curr_name in self.xia_graphs_names:
+            for index, name in enumerate(self.xia_graphs_names):
+                if curr_name == name:
+                    curr_index = index
+                    line = self.figure_xia_all_graphs.ax.lines[curr_index]
+                    line.set_ydata(value)
+                    break
+        else:
+            self.xia_graphs_names.append(curr_name)
+            handles, = self.figure_xia_all_graphs.ax.plot(np.arange(0, 40 + 40/2047, 40/2047), value, label=curr_name)
+            #self.xia_handles.append(handles)
+            #self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_names)
+        self.canvas_xia_all_graphs.draw_idle()
+
+
     def run_gain_matching(self):
-        channels = range(4)
-            
         ax = self.figure_gain_matching.add_subplot(111)
-        gain_adjust = [0.001, 0.001, 0.001, 0.001]
-        diff = [0, 0, 0, 0]
-        diff_old = [0, 0, 0, 0]
+        gain_adjust = [0.001] * len(channels)#, 0.001, 0.001, 0.001]
+        diff = [0] * len(channels)#, 0, 0, 0]
+        diff_old = [0] * len(channels)#, 0, 0, 0]
 
         # Run number of iterations defined in the text edit edit_gain_matching_iterations:
         for i in range(int(self.edit_gain_matching_iterations.text())):
@@ -1864,30 +1897,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.toolbar_gain_matching._update_view()
 
             # For each channel:
-            for j in channels:
+            for j in self.xia_channels:
                 # If checkbox of current channel is checked:
-                if getattr(self, "checkBox_gm_ch{}".format(j + 1)).checkState() > 0:
+                if getattr(self, "checkBox_gm_ch{}".format(j)).checkState() > 0:
         
                     # Get current channel pre-amp gain:
-                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(j + 1))
+                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(j))
 
                     coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
-                                              self.edit_range_gain_matching.text(), channels[j] + 1, ax)
+                                              self.edit_range_gain_matching.text(), channels[j - 1] + 1, ax)
                     # coeff[0] = Intensity
                     # coeff[1] = Fitted mean
                     # coeff[2] = Sigma
 
-                    diff[j] = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
+                    diff[j - 1] = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
 
                     if i != 0:
-                        sign = (diff[j] * diff_old[j]) /  math.fabs(diff[j] * diff_old[j])
+                        sign = (diff[j - 1] * diff_old[j - 1]) /  math.fabs(diff[j - 1] * diff_old[j - 1])
                         if int(sign) == -1:
-                            gain_adjust[j] /= 2
-                    print('Chan ' + str(j + 1) + ': ' + str(diff[j]) + '\n')
+                            gain_adjust[j - 1] /= 2
+                    print('Chan ' + str(j) + ': ' + str(diff[j - 1]) + '\n')
 
                     # Update current channel pre-amp gain:
-                    curr_ch_gain.put(curr_ch_gain.value - diff[j] * gain_adjust[j])
-                    diff_old[j] = diff[j]
+                    curr_ch_gain.put(curr_ch_gain.value - diff[j - 1] * gain_adjust[j - 1])
+                    diff_old[j - 1] = diff[j - 1]
 
                     self.canvas_gain_matching.draw_idle()
 
