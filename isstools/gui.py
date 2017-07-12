@@ -84,7 +84,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_prepare_trajectory.setEnabled(False)
         self.RE = RE
         if self.RE is not None:
-            self.RE.last_state = ''
+            #self.RE.last_state = ''
+            self.RE.is_aborted = False
             # Write metadata in the GUI
             self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
             self.label_6.setText('{}'.format(RE.md['year']))
@@ -1659,6 +1660,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def re_abort(self):
         if self.RE.state != 'idle':
             self.RE.abort()
+            self.RE.is_aborted = True
 
 
     def update_re_state(self):
@@ -1669,10 +1671,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(0, 165, 0))
         elif(self.RE.state == 'paused'):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
+        elif(self.RE.state == 'abort'):
+            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
-        if self.RE.state != self.RE.last_state:
-            self.RE.last_state = self.RE.state
+        #if self.RE.state != self.RE.last_state:
+        #    self.RE.last_state = self.RE.state
 
     def run_gains_test(self):
 
