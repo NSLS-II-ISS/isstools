@@ -535,7 +535,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             nmeasures = 1
         self.piezo_thread.adjust_center_point(line = self.piezo_line, center_point = self.piezo_center, n_lines = self.piezo_nlines, n_measures = nmeasures)
 
-    def prepare_bl(self, energy:int = -1):
+    def prepare_bl(self, energy:int = -1, debug = False):
+            if debug:
+                print('[Prepare BL] Running Prepare Beamline in Debug Mode! (Not moving anything)')
+
             energy = int(energy)
             if energy < 0:
                 curr_energy = self.hhm.energy.read()['hhm_energy']['value']
@@ -552,12 +555,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             curr_range = curr_range[0]
             pv_he = EpicsSignal(curr_range['pvs']['IC Gas He']['RB PV'], write_pv = curr_range['pvs']['IC Gas He']['PV'])
-            print('[Prepare BL] HE {}'.format(curr_range['pvs']['IC Gas He']['value']))
-            pv_he.put(curr_range['pvs']['IC Gas He']['value'], wait = True)
+            print('[Prepare BL] Setting HE to {}'.format(curr_range['pvs']['IC Gas He']['value']))
+            if not debug:
+                pv_he.put(curr_range['pvs']['IC Gas He']['value'], wait = True)
 
             pv_n2 = EpicsSignal(curr_range['pvs']['IC Gas N2']['RB PV'], write_pv = curr_range['pvs']['IC Gas N2']['PV'])
-            print('[Prepare BL] N2 {}'.format(curr_range['pvs']['IC Gas He']['value']))
-            pv_n2.put(curr_range['pvs']['IC Gas N2']['value'], wait = True)
+            print('[Prepare BL] Setting N2 to {}'.format(curr_range['pvs']['IC Gas He']['value']))
+            if not debug:
+                pv_n2.put(curr_range['pvs']['IC Gas N2']['value'], wait = True)
 
             # If you go from less than 1000 V to more than 1400 V, you need a delay. 2 minutes
             # For now if you increase the voltage (any values), we will have the delay. 2 minutes
@@ -573,29 +578,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             pv_ir_volt = EpicsSignal(curr_range['pvs']['Ir Voltage']['RB PV'], write_pv = curr_range['pvs']['Ir Voltage']['PV'])
             old_ir = abs(pv_ir_volt.value)
             print('[Prepare BL] Old Ir Voltage: {} | New Ir Voltage: {}'.format(old_ir, curr_range['pvs']['Ir Voltage']['value']))
-
-            #if (curr_range['pvs']['I0 Voltage']['value'] > 1400 and old_i0 < 1000) or \
-            #   (curr_range['pvs']['It Voltage']['value'] > 1400 and old_it < 1000) or \
-            #   (curr_range['pvs']['Ir Voltage']['value'] > 1400 and old_ir < 1000):
-            if curr_range['pvs']['I0 Voltage']['value'] - old_i0 > 2 or \
-               curr_range['pvs']['It Voltage']['value'] - old_it > 2  or \
-               curr_range['pvs']['Ir Voltage']['value'] - old_ir > 2 :
-                old_time = ttime.time()
-                wait_time = 120
-                print('[Prepare BL] Waiting for gas ({}s)...'.format(wait_time))
-                percentage = 0
-                while ttime.time() - old_time < wait_time: # 120 seconds
-                    if ttime.time() - old_time >= percentage * wait_time:
-                        print('[Prepare BL] {:3}% ({:.1f}s)'.format(int(np.round(percentage * 100)), percentage * wait_time))
-                        percentage += 0.1
-                    QtWidgets.QApplication.processEvents()
-                    ttime.sleep(0.1)
-                print('[Prepare BL] 100% ({:.1f}s)'.format(wait_time))
-                print('[Prepare BL] Done waiting for gas...')
-
-            pv_i0_volt.put(curr_range['pvs']['I0 Voltage']['value'], wait = True)
-            pv_it_volt.put(curr_range['pvs']['It Voltage']['value'], wait = True)
-            pv_ir_volt.put(curr_range['pvs']['Ir Voltage']['value'], wait = True)
 
 
 
@@ -622,38 +604,45 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
             def handler(signum, frame):
-                print("[Prepare BL] Could not close shutter")
+                print("[Prepare BL] Could not activate shutter")
                 raise Exception("Timeout")
 
             if close_shutter:
-                signal.signal(signal.SIGALRM, handler)
-                signal.alarm(6)
-                for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 1]:
-                    try:
-                        shutter.close()
-                    except Exception as exc: 
-                        print('[Prepare BL] Timeout! Could not close the shutter. Aborting! (Try once again, maybe?)')
-                        return
-
-                    tries = 3
-                    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
-                        QtWidgets.QApplication.processEvents()
-                        ttime.sleep(0.1)
-                        if tries:
+                print('[Prepare BL] Closing shutter...')
+                if not debug:
+                    signal.signal(signal.SIGALRM, handler)
+                    signal.alarm(6)
+                    for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 1]:
+                        try:
                             shutter.close()
-                            tries -= 1
-                signal.alarm(0)
+                        except Exception as exc: 
+                            print('[Prepare BL] Timeout! Could not close the shutter. Aborting! (Try once again, maybe?)')
+                            return
+
+                        tries = 3
+                        while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
+                            QtWidgets.QApplication.processEvents()
+                            ttime.sleep(0.1)
+                            if tries:
+                                shutter.close()
+                                tries -= 1
+                    signal.alarm(0)
+                print('[Prepare BL] Shutter closed')
 
             pv_fb_motor = EpicsMotor(curr_range['pvs']['Filterbox Pos']['PV'])
             ttime.sleep(0.1)
             fb_value = self.fb_positions[curr_range['pvs']['Filterbox Pos']['value'] - 1]
             fb_sts_pv = EpicsSignal(curr_range['pvs']['Filterbox Pos']['STS PVS'][curr_range['pvs']['Filterbox Pos']['value'] - 1])
             if mv_fb:
-                pv_fb_motor.move(fb_value, wait=False) 
+                print('[Prepare BL] Moving Filterbox to {}'.format(fb_value))
+                if not debug:
+                    pv_fb_motor.move(fb_value, wait=False) 
 
             pv_hhrm_hor = EpicsMotor(curr_range['pvs']['HHRM Hor Trans']['PV'])
             ttime.sleep(0.1)
-            pv_hhrm_hor.move(curr_range['pvs']['HHRM Hor Trans']['value'], wait=False)
+            print('[Prepare BL] Moving HHRM Horizontal to {}'.format(curr_range['pvs']['HHRM Hor Trans']['value']))
+            if not debug:
+                pv_hhrm_hor.move(curr_range['pvs']['HHRM Hor Trans']['value'], wait=False)
 
             bpm_pvs = []
             for bpm in curr_range['pvs']['BPMs']:
@@ -663,41 +652,79 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     pv = EpicsSignal(bpm['OUT RB PV'], write_pv=bpm['OUT PV'])
                 try:
                     if pv:
+                        print('[Prepare BL] Moving {} {}'.format(bpm['Name'], bpm['value']))
                         for i in range(3):
-                            pv.put(1)
+                            if not debug:
+                                pv.put(1)
                             ttime.sleep(0.1)
                         bpm_pvs.append(pv)
                 except Exception as exp:
                     print(exp)
 
-            ttime.sleep(0.1)
-            while abs(pv_n2.value - curr_range['pvs']['IC Gas N2']['value']) > pv_n2.tolerance * 3 or \
-                  abs(pv_he.value - curr_range['pvs']['IC Gas He']['value']) > pv_he.tolerance * 3 or \
-                  abs(pv_i0_volt.value) - abs(curr_range['pvs']['I0 Voltage']['value']) > pv_i0_volt.tolerance * 100 or \
-                  abs(pv_it_volt.value) - abs(curr_range['pvs']['It Voltage']['value']) > pv_it_volt.tolerance * 100 or \
-                  abs(pv_ir_volt.value) - abs(curr_range['pvs']['Ir Voltage']['value']) > pv_ir_volt.tolerance * 100 or \
-                  fb_sts_pv.value != 1 or \
-                  abs(pv_hhrm_hor.position - curr_range['pvs']['HHRM Hor Trans']['value']) > 3 * (10 ** (-pv_hhrm_hor.precision)) or \
-                  len([pv for pv in bpm_pvs if pv.value != 1]):
-                QtCore.QCoreApplication.processEvents()
 
-            if close_shutter:
-                signal.alarm(6)
-                for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 0]:
-                    try:
-                        shutter.open()
-                    except Exception as exc: 
-                        print('[Prepare BL] Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
-                        return
-
-                    tries = 3
-                    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+            #if (curr_range['pvs']['I0 Voltage']['value'] > 1400 and old_i0 < 1000) or \
+            #   (curr_range['pvs']['It Voltage']['value'] > 1400 and old_it < 1000) or \
+            #   (curr_range['pvs']['Ir Voltage']['value'] > 1400 and old_ir < 1000):
+            if curr_range['pvs']['I0 Voltage']['value'] - old_i0 > 2 or \
+               curr_range['pvs']['It Voltage']['value'] - old_it > 2  or \
+               curr_range['pvs']['Ir Voltage']['value'] - old_ir > 2 :
+                old_time = ttime.time()
+                wait_time = 120
+                print('[Prepare BL] Waiting for gas ({}s)...'.format(wait_time))
+                percentage = 0
+                if not debug:
+                    while ttime.time() - old_time < wait_time: # 120 seconds
+                        if ttime.time() - old_time >= percentage * wait_time:
+                            print('[Prepare BL] {:3}% ({:.1f}s)'.format(int(np.round(percentage * 100)), percentage * wait_time))
+                            percentage += 0.1
                         QtWidgets.QApplication.processEvents()
                         ttime.sleep(0.1)
-                        if tries:
+                print('[Prepare BL] 100% ({:.1f}s)'.format(wait_time))
+                print('[Prepare BL] Done waiting for gas...')
+
+            print('[Prepare BL] Setting i0 {}'.format(curr_range['pvs']['I0 Voltage']['value']))
+            print('[Prepare BL] Setting it {}'.format(curr_range['pvs']['It Voltage']['value']))
+            print('[Prepare BL] Setting ir {}'.format(curr_range['pvs']['Ir Voltage']['value']))
+            if not debug:
+                pv_i0_volt.put(curr_range['pvs']['I0 Voltage']['value'], wait = True)
+                pv_it_volt.put(curr_range['pvs']['It Voltage']['value'], wait = True)
+                pv_ir_volt.put(curr_range['pvs']['Ir Voltage']['value'], wait = True)
+
+
+            ttime.sleep(0.1)
+            print('[Prepare BL] Waiting for everything to be in position...')
+            if not debug:
+                while abs(pv_n2.value - curr_range['pvs']['IC Gas N2']['value']) > pv_n2.tolerance * 10 or \
+                      abs(pv_he.value - curr_range['pvs']['IC Gas He']['value']) > pv_he.tolerance * 10 or \
+                      abs(pv_i0_volt.value) - abs(curr_range['pvs']['I0 Voltage']['value']) > pv_i0_volt.tolerance * 300 or \
+                      abs(pv_it_volt.value) - abs(curr_range['pvs']['It Voltage']['value']) > pv_it_volt.tolerance * 300 or \
+                      abs(pv_ir_volt.value) - abs(curr_range['pvs']['Ir Voltage']['value']) > pv_ir_volt.tolerance * 300 or \
+                      fb_sts_pv.value != 1 or \
+                      abs(pv_hhrm_hor.position - curr_range['pvs']['HHRM Hor Trans']['value']) > 10 * (10 ** (-pv_hhrm_hor.precision)) or \
+                      len([pv for pv in bpm_pvs if pv.value != 1]):
+                    QtCore.QCoreApplication.processEvents()
+            print('[Prepare BL] Everything seems to be in position')
+
+            if close_shutter:
+                print('[Prepare BL] Opening shutter...')
+                if not debug:
+                    signal.alarm(6)
+                    for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 0]:
+                        try:
                             shutter.open()
-                            tries -= 1
-                signal.alarm(0)
+                        except Exception as exc: 
+                            print('[Prepare BL] Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
+                            return
+
+                        tries = 3
+                        while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+                            QtWidgets.QApplication.processEvents()
+                            ttime.sleep(0.1)
+                            if tries:
+                                shutter.open()
+                                tries -= 1
+                    signal.alarm(0)
+                print('[Prepare BL] Shutter open')
 
             print('[Prepare BL] Beamline preparation done!')
 
@@ -3071,7 +3098,8 @@ class process_bin_thread(QThread):
                                                          self.gen_parser.interp_arrays,
                                                          self.gen_parser.data_manager.data_arrays[energy_string],
                                                          result_orig,
-                                                         k_power)
+                                                         k_power,
+                                                         energy_string)
 
         plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
