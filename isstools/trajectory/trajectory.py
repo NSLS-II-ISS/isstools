@@ -23,7 +23,7 @@ class trajectory():
 
     def define(self, edge_energy = 11564, offsets = ([-200,-30,50,1000]),velocities = ([200, 20, 200]), stitching = ([75, 75, 10, 10, 100, 100]),
               servocycle = 16000, padding_lo = 1, padding_hi=1, trajectory_type = 'Step', sine_duration = 20, dsine_preedge_duration = 10,
-              dsine_postedge_duration = 20):
+              dsine_postedge_duration = 20, vel_edge = 10):
 
         self.servocycle=servocycle
         if trajectory_type == 'Step':
@@ -105,6 +105,76 @@ class trajectory():
             self.energy = energy
             self.time = time
 
+        elif trajectory_type == 'Double Sine 2':
+            edge_duration = (offsets[2] - offsets[1]) / vel_edge
+            total_time = float(dsine_preedge_duration) + float(edge_duration) + float(dsine_postedge_duration)
+            preedge_dur = float(dsine_preedge_duration) / total_time
+            edge_dur = float(edge_duration) / total_time
+            postedge_dur = float(dsine_postedge_duration) / total_time
+            preedge_lo = edge_energy + offsets[0]
+            preedge_hi = edge_energy + offsets[1]
+            postedge_lo = edge_energy + offsets[2]
+            postedge_hi = edge_energy + offsets[3]
+            edge = edge_energy
+
+            x1_num = int(np.round(preedge_dur * 1000))
+            xedge_num = int(np.round(edge_dur * 1000))
+            x2_num = int(np.round(postedge_dur * 1000))
+            x1 = np.linspace(-np.pi / 2, (3 * np.pi / 2), x1_num)
+            x2 = np.linspace(-np.pi / 2, (3 * np.pi / 2), x2_num)
+
+
+            time1 = np.linspace(0, (preedge_dur * total_time), 2 * len(x1))
+            time_int = np.linspace((preedge_dur * total_time) + (time1[1] - time1[0]), (preedge_dur * total_time) + (edge_dur * total_time), 2 * xedge_num)
+            time2 = np.linspace(time_int[-1] + (time_int[1] - time_int[0]), total_time, 2 * len(x2))
+            self.time = np.concatenate((time1, time_int, time2))
+
+            m_factor = 1
+            m_factor_der = 0.005
+            pos1 = [0, 1000 + abs(preedge_hi - preedge_lo)]
+            last_error = abs((pos1[-1] - pos1[0]) - (preedge_hi - preedge_lo))
+            while abs((pos1[-1] - pos1[0]) - (preedge_hi - preedge_lo)) > 0.5:
+                accel1_1 = m_factor * (preedge_hi - preedge_lo) * (np.sin(x1) + 1) / 1000
+                factor = (max(accel1_1) - (vel_edge * (time_int[1] - time_int[0]))) / max(accel1_1)
+                accel1_2 = -factor * m_factor * (preedge_hi - preedge_lo) * (np.sin(x1) + 1) / 1000
+
+                vel1_1 = scipy.integrate.cumtrapz(accel1_1 * (1 / (x1_num/2)), initial = 0)
+                vel1_2 = scipy.integrate.cumtrapz(accel1_2 * (1 / (x1_num/2)), initial = 0) + vel1_1[-1]
+
+                vel1 = np.concatenate((vel1_1, vel1_2))
+                pos1 = scipy.integrate.cumtrapz(vel1, initial = 0) + preedge_lo
+                #print("1:", abs((pos1[-1] - pos1[0]) - (preedge_hi - preedge_lo)), m_factor)
+                error = abs((pos1[-1] - pos1[0]) - (preedge_hi - preedge_lo))
+                if(error > last_error):
+                    m_factor_der = -(m_factor_der / 2)
+                m_factor += m_factor_der
+                last_error = error
+
+            vel_int = np.array([np.diff(time_int)[0]/np.diff(time1)[0] * vel1_2[-1]] * xedge_num * 2)
+            pos_int = scipy.integrate.cumtrapz(vel_int, initial = 0) + pos1[-1] + (pos1[-1] - pos1[-2])
+
+            m_factor = 1
+            m_factor_der = 0.005
+            pos2 = [0, 1000 + abs(postedge_hi - postedge_lo)]
+            last_error = abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo))
+            while abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo)) > 0.5:
+                accel2_1 = m_factor * (postedge_hi - postedge_lo) * (np.sin(x2) + 1) / 1000
+                acc_factor = m_factor * (postedge_hi - postedge_lo) * (np.sin(x2) + 1) / 1000
+                accel2_2 = - acc_factor * (((vel_int[0] * len(acc_factor) / 2) + sum(acc_factor)) / sum(acc_factor))
+
+                time_adj = np.diff(time2)[0]/np.diff(time_int)[0]
+                vel2_1 = scipy.integrate.cumtrapz(accel2_1 * (1 / (x2_num/2)), initial = 0) + time_adj * vel_int[-1]
+                vel2_2 = scipy.integrate.cumtrapz(accel2_2 * (1 / (x2_num/2)), initial = 0) + vel2_1[-1]
+                vel2 = np.concatenate((vel2_1, vel2_2))
+                pos2 = scipy.integrate.cumtrapz(vel2, initial = 0) + pos_int[-1] + (pos_int[-1] - pos_int[-2])
+                #print("2:", abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo)), m_factor)
+                error = abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo))
+                if(error > last_error):
+                    m_factor_der = -(m_factor_der / 2)
+                m_factor += m_factor_der
+                last_error = error
+
+            self.energy = np.concatenate((pos1, pos_int, pos2))
 
         elif trajectory_type == 'Double Sine':
             total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)

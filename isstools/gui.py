@@ -1331,16 +1331,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         sine_duration = float(self.edit_sine_total_duration.text())
 
-        dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
-        dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
-
         traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
+        if traj_type == 'Double Sine': 
+            dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
+            dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
+        else:
+            dsine_preedge_duration = float(self.edit_ds2_pree_duration.text())
+            dsine_postedge_duration = float(self.edit_ds2_poste_duration.text())
+
+        vel_edge = float(self.edit_vel_edge.text())
 
         #Create and interpolate trajectory
         self.traj_creator.define(edge_energy = E0, offsets = ([preedge_lo,preedge_hi,edge_hi,postedge_hi]),velocities = ([velocity_preedge, velocity_edge, velocity_postedge]),\
                         stitching = ([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi, postedge_stitch_lo, postedge_stitch_hi]),\
                         servocycle = 16000, padding_lo = padding_preedge ,padding_hi=padding_postedge, sine_duration = sine_duration, 
-                        dsine_preedge_duration = dsine_preedge_duration, dsine_postedge_duration = dsine_postedge_duration, trajectory_type = traj_type)
+                        dsine_preedge_duration = dsine_preedge_duration, dsine_postedge_duration = dsine_postedge_duration, trajectory_type = traj_type, vel_edge = vel_edge)
         self.traj_creator.interpolate()
 
         #Revert trajectory if checkbox checked
