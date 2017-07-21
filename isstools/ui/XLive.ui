@@ -897,6 +897,104 @@
         </layout>
        </widget>
       </widget>
+      <widget class="QWidget" name="tab_10">
+       <attribute name="title">
+        <string>Double Sine 2</string>
+       </attribute>
+       <widget class="QWidget" name="gridLayoutWidget_24">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>241</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_34">
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="edit_ds2_pree_duration">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_133">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_134">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Postedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="edit_ds2_poste_duration">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_135">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_92">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Preedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_136">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Edge Velocity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="edit_vel_edge">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_137">
+           <property name="text">
+            <string>eV/s</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_10">
       <property name="geometry">
@@ -3728,7 +3826,7 @@ to find the edge</string>
      <x>0</x>
      <y>0</y>
      <width>1638</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuXlive">
