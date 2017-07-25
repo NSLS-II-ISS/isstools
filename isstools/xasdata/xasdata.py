@@ -184,7 +184,6 @@ class XASdataGeneric(XASdata):
         #time = [np.mean(array) for array in np.array_split(self.arrays[key_base][:,0], len(timestamps))]
         
         for key in self.arrays.keys():
-            print(key)
             if len(self.arrays.get(key)[:, 0]) > 5 * len(timestamps):
                 time = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 0], len(timestamps))]
                 val = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 1], len(timestamps))]
