@@ -319,6 +319,9 @@ class trajectory_manager():
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}'.format(new_file_path))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}'.format(new_file_path))
 
+                s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/hhm.txt'.format(new_file_path))
+                s.sendline ('chmod 777 /var/ftp/usrflash/lut/{}/hhm.txt'.format(new_file_path))
+
             ftp_file_path = '/var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name)
 
         # Open file and transfer to the power pmac
