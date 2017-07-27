@@ -205,7 +205,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
             self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
             self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
-            self.push_run_xia_measurement.clicked.connect(self.xia.erase_start.put)
+            self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
             self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
 
             max_en = self.xia.mca_max_energy.value
@@ -1923,6 +1923,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_acq_time_rbv.setText('{:.2f}'.format(round(value, 2)))
         elif kwargs['obj'].name == 'xia1_mca_max_energy':
             self.edit_xia_energy_range.setText(str(value))
+
+    def start_xia_spectra(self):
+        if self.xia.collect_mode.value != 0:
+            self.xia.collect_mode.put(0)
+            ttime.sleep(2)
+        self.xia.erase_start.put(1)
 
     def update_xia_rois(self):
         energies = np.linspace(0, float(self.edit_xia_energy_range.text()), 2048)
