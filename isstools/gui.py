@@ -179,6 +179,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia_parser = xiaparser.xiaparser()
         self.push_gain_matching.clicked.connect(self.run_gain_matching)        
         self.xia_graphs_names = []
+        self.xia_graphs_labels = []
         self.xia_handles = []
 
         regex = re.compile('xia\d{1}')
@@ -193,6 +194,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
             for channel in self.xia_channels:
                 getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
                 getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
+            self.xia.real_time.subscribe(self.update_xia_params)
+            self.xia.real_time_rb.subscribe(self.update_xia_params)
+            self.xia.mca_max_energy.subscribe(self.update_xia_params)
+            self.edit_xia_acq_time.returnPressed.connect(self.update_xia_acqtime_pv)
+            self.edit_xia_energy_range.returnPressed.connect(self.update_xia_energyrange_pv)
+            self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
+            self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
+            self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
+            self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
+            self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
+            self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
+            self.push_run_xia_measurement.clicked.connect(self.xia.erase_start.put)
+            self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
+
+            max_en = self.xia.mca_max_energy.value
+            energies = np.linspace(0, max_en, 2048)
+            np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
+            self.edit_roi0_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)/1000))
+            self.edit_roi0_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)/1000))
+            self.edit_roi1_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)/1000))
+            self.edit_roi1_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)/1000))
+            self.edit_roi2_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)/1000))
+            self.edit_roi2_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)/1000))
+            
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
@@ -668,9 +693,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     print(exp)
 
 
-            #if (curr_range['pvs']['I0 Voltage']['value'] > 1400 and old_i0 < 1000) or \
-            #   (curr_range['pvs']['It Voltage']['value'] > 1400 and old_it < 1000) or \
-            #   (curr_range['pvs']['Ir Voltage']['value'] > 1400 and old_ir < 1000):
+            if close_shutter:
+                while fb_sts_pv.value != 1:
+                      QtCore.QCoreApplication.processEvents()
+                print('[Prepare BL] Opening shutter...')
+                if not debug:
+                    signal.alarm(6)
+                    for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 0]:
+                        try:
+                            shutter.open()
+                        except Exception as exc: 
+                            print('[Prepare BL] Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
+                            return
+
+                        tries = 3
+                        while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+                            QtWidgets.QApplication.processEvents()
+                            ttime.sleep(0.1)
+                            if tries:
+                                shutter.open()
+                                tries -= 1
+                    signal.alarm(0)
+                print('[Prepare BL] Shutter open')
+
+
             if curr_range['pvs']['I0 Voltage']['value'] - old_i0 > 2 or \
                curr_range['pvs']['It Voltage']['value'] - old_it > 2  or \
                curr_range['pvs']['Ir Voltage']['value'] - old_ir > 2 :
@@ -710,27 +756,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                       len([pv for pv in bpm_pvs if pv.value != 1]):
                     QtCore.QCoreApplication.processEvents()
             print('[Prepare BL] Everything seems to be in position')
-
-            if close_shutter:
-                print('[Prepare BL] Opening shutter...')
-                if not debug:
-                    signal.alarm(6)
-                    for shutter in [self.fe_shutters[index] for index, fe_shutter in enumerate(self.fe_shutters) if self.fe_shutters[index].state.read()['{}_state'.format(self.fe_shutters[index].name)]['value'] != 0]:
-                        try:
-                            shutter.open()
-                        except Exception as exc: 
-                            print('[Prepare BL] Timeout! Could not open the shutter. Aborting! (Try once again, maybe?)')
-                            return
-
-                        tries = 3
-                        while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
-                            QtWidgets.QApplication.processEvents()
-                            ttime.sleep(0.1)
-                            if tries:
-                                shutter.open()
-                                tries -= 1
-                    signal.alarm(0)
-                print('[Prepare BL] Shutter open')
 
             print('[Prepare BL] Beamline preparation done!')
 
@@ -1891,10 +1916,59 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         print('**** Check gains finished! ****')
         
+    def update_xia_params(self, value, **kwargs):
+        if kwargs['obj'].name == 'xia1_real_time':
+            self.edit_xia_acq_time.setText('{:.2f}'.format(round(value, 2)))
+        elif kwargs['obj'].name == 'xia1_real_time_rb':
+            self.label_acq_time_rbv.setText('{:.2f}'.format(round(value, 2)))
+        elif kwargs['obj'].name == 'xia1_mca_max_energy':
+            self.edit_xia_energy_range.setText(str(value))
+
+    def update_xia_rois(self):
+        energies = np.linspace(0, float(self.edit_xia_energy_range.text()), 2048)
+
+        indexes_array = np.where((energies >= float(self.edit_roi0_from.text())) & (energies <= float(self.edit_roi0_to.text())) == True)[0]
+        if len(indexes_array):
+            start0 = indexes_array.min()
+            end0 = indexes_array.max()
+
+        indexes_array = np.where((energies >= float(self.edit_roi1_from.text())) & (energies <= float(self.edit_roi1_to.text())) == True)[0]
+        if len(indexes_array):
+            start1 = indexes_array.min()
+            end1 = indexes_array.max()
+
+        indexes_array = np.where((energies >= float(self.edit_roi2_from.text())) & (energies <= float(self.edit_roi2_to.text())) == True)[0]
+        if len(indexes_array):
+            start2 = indexes_array.min()
+            end2 = indexes_array.max()
+
+        for channel in self.xia_channels:
+            getattr(self.xia, "mca{}".format(channel)).roi0.low.put(start0)
+            getattr(self.xia, "mca{}".format(channel)).roi0.high.put(end0)
+            getattr(self.xia, "mca{}".format(channel)).roi1.low.put(start1)
+            getattr(self.xia, "mca{}".format(channel)).roi1.high.put(end1)
+            getattr(self.xia, "mca{}".format(channel)).roi2.low.put(start2)
+            getattr(self.xia, "mca{}".format(channel)).roi2.high.put(end2)
+
+    def update_xia_acqtime_pv(self):
+        self.xia.real_time.put(float(self.edit_xia_acq_time.text()))
+
+    def update_xia_energyrange_pv(self):
+        self.xia.mca_max_energy.put(float(self.edit_xia_energy_range.text()))
 
     def update_xia_graph(self, value, **kwargs):
         curr_name = kwargs['obj'].name
         curr_index = -1
+        if len(self.figure_xia_all_graphs.ax.lines):
+            if float(self.edit_xia_energy_range.text()) != self.figure_xia_all_graphs.ax.lines[0].get_xdata()[-1]:
+                self.figure_xia_all_graphs.ax.clear()
+                self.toolbar_xia_all_graphs._views.clear()
+                self.toolbar_xia_all_graphs._positions.clear()
+                self.toolbar_xia_all_graphs._update_view()
+                self.canvas_xia_all_graphs.draw_idle()
+                self.xia_graphs_names.clear()
+                self.xia_graphs_labels.clear()
+
         if curr_name in self.xia_graphs_names:
             for index, name in enumerate(self.xia_graphs_names):
                 if curr_name == name:
@@ -1904,17 +1978,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     break
         else:
             self.xia_graphs_names.append(curr_name)
-            handles, = self.figure_xia_all_graphs.ax.plot(np.arange(0, 40 + 40/2047, 40/2047), value, label=curr_name)
-            #self.xia_handles.append(handles)
-            #self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_names)
+            label = 'Chan {}'.format(curr_name.split('_')[1].split('mca')[1])
+            self.xia_graphs_labels.append(label)
+            handles, = self.figure_xia_all_graphs.ax.plot(np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
+            self.xia_handles.append(handles)
+            self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
+
+        self.figure_xia_all_graphs.ax.relim()
+        self.figure_xia_all_graphs.ax.autoscale(True, True, True)
+        y_interval = self.figure_xia_all_graphs.ax.get_yaxis().get_data_interval()
+        if y_interval[0] != 0 or y_interval[1] != 0:
+            self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05, y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
         self.canvas_xia_all_graphs.draw_idle()
 
 
     def run_gain_matching(self):
         ax = self.figure_gain_matching.add_subplot(111)
-        gain_adjust = [0.001] * len(channels)#, 0.001, 0.001, 0.001]
-        diff = [0] * len(channels)#, 0, 0, 0]
-        diff_old = [0] * len(channels)#, 0, 0, 0]
+        gain_adjust = [0.001] * len(self.xia_channels)#, 0.001, 0.001, 0.001]
+        diff = [0] * len(self.xia_channels)#, 0, 0, 0]
+        diff_old = [0] * len(self.xia_channels)#, 0, 0, 0]
 
         # Run number of iterations defined in the text edit edit_gain_matching_iterations:
         for i in range(int(self.edit_gain_matching_iterations.text())):
@@ -1933,30 +2015,30 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.toolbar_gain_matching._update_view()
 
             # For each channel:
-            for j in self.xia_channels:
+            for chann in self.xia_channels:
                 # If checkbox of current channel is checked:
-                if getattr(self, "checkBox_gm_ch{}".format(j)).checkState() > 0:
+                if getattr(self, "checkBox_gm_ch{}".format(chann)).checkState() > 0:
         
                     # Get current channel pre-amp gain:
-                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(j))
+                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(chann))
 
                     coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(), 
-                                              self.edit_range_gain_matching.text(), channels[j - 1] + 1, ax)
+                                              self.edit_range_gain_matching.text(), chann, ax)
                     # coeff[0] = Intensity
                     # coeff[1] = Fitted mean
                     # coeff[2] = Sigma
 
-                    diff[j - 1] = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
+                    diff[chann - 1] = float(self.edit_gain_matching_target.text()) - float(coeff[1]*1000)
 
                     if i != 0:
-                        sign = (diff[j - 1] * diff_old[j - 1]) /  math.fabs(diff[j - 1] * diff_old[j - 1])
+                        sign = (diff[chann - 1] * diff_old[chann - 1]) /  math.fabs(diff[chann - 1] * diff_old[chann - 1])
                         if int(sign) == -1:
-                            gain_adjust[j - 1] /= 2
-                    print('Chan ' + str(j) + ': ' + str(diff[j - 1]) + '\n')
+                            gain_adjust[chann - 1] /= 2
+                    print('Chan ' + str(chann) + ': ' + str(diff[chann - 1]) + '\n')
 
                     # Update current channel pre-amp gain:
-                    curr_ch_gain.put(curr_ch_gain.value - diff[j - 1] * gain_adjust[j - 1])
-                    diff_old[j - 1] = diff[j - 1]
+                    curr_ch_gain.put(curr_ch_gain.value - diff[chann - 1] * gain_adjust[chann - 1])
+                    diff_old[chann - 1] = diff[chann - 1]
 
                     self.canvas_gain_matching.draw_idle()
 
