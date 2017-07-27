@@ -2809,7 +2809,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     
                                     if 'comment' in scans[scan]:
                                         old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{}|{}|{}|{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                        scans[scan]['comment'] = '{}({}){}_{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
                     
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -2873,7 +2873,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         self.run_prep_traj()
         
                                     old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{}|{}|{}|{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                    scans[scan]['comment'] = '{}({}){}_{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
         
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -3097,13 +3097,9 @@ class process_batch_thread(QThread):
                                                          xanes_spacing, 
                                                          exafs_spacing)
 
-                        index1 = self.gui.db[uid]['start']['comment'].find('|') + 1
-                        index2 = self.gui.db[uid]['start']['comment'].find('|', index1)
-                        sample_name = self.gui.db[uid]['start']['comment'][index1:index2]
+                        sample_name = self.gui.db[uid]['start']['comment'].split('(')[1].split(')')[0]
 
                         if sample_name in self.gui.batch_results:
-                           # print('#2+')
-                           # print(len(binned['i0']))
                             self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)
                             for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
                                 self.gui.batch_results[sample_name]['orig_all'][key] = np.append(self.gui.batch_results[sample_name]['orig_all'][key], self.gui.gen_parser.data_manager.binned_arrays[key])
@@ -3115,11 +3111,8 @@ class process_batch_thread(QThread):
                                                              xanes_spacing, 
                                                              exafs_spacing)
                             self.gui.batch_results[sample_name]['data_all'] = binned
-                            #print(len(binned['i0']))
                             
                         else:
-                           # print('#1')
-                           # print(len(self.gui.gen_parser.data_manager.binned_arrays['i0']))
                             self.gui.batch_results[sample_name] = {'data':[self.gui.gen_parser.data_manager.binned_arrays]}
                             self.gui.batch_results[sample_name]['orig_all'] = {}
                             for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
@@ -3132,7 +3125,6 @@ class process_batch_thread(QThread):
                                                              xanes_spacing, 
                                                              exafs_spacing)
                             self.gui.batch_results[sample_name]['data_all'] = binned
-                            #print(len(binned['i0']))
                         self.finished_processing.emit()
 
                     print('Finished processing scan {}'.format(self.gui.current_filepath))
