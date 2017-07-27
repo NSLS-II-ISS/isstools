@@ -2809,7 +2809,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     
                                     if 'comment' in scans[scan]:
                                         old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{}({}){}_{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                        scans[scan]['comment'] = '{} - {} - {} - {}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
                     
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -2873,7 +2873,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         self.run_prep_traj()
         
                                     old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{}({}){}_{}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                    scans[scan]['comment'] = '{} - {} - {} - {}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
         
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -3097,7 +3097,7 @@ class process_batch_thread(QThread):
                                                          xanes_spacing, 
                                                          exafs_spacing)
 
-                        sample_name = self.gui.db[uid]['start']['comment'].split('(')[1].split(')')[0]
+                        sample_name = self.gui.db[uid]['start']['comment'].split(' - ')[1]
 
                         if sample_name in self.gui.batch_results:
                             self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)
