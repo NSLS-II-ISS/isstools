@@ -815,7 +815,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def getX(self, event):
         if event.button == 3:
-            self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+            ret = self.questionMessage('Setting Edge', 'Would like to set the edge to {:.0f}?'.format(event.xdata))
+            if ret:
+                self.edit_E0_2.setText(str(int(np.round(event.xdata))))
 
     def getX_gen_scan(self, event):
         if event.button == 3:
@@ -951,10 +953,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 #self.checkBox_log.setChecked(False)
             warnings.filterwarnings('default')
             result = result_log
-
-        
-        if self.checkBox_der.checkState() > 0:
-            result = np.diff(result)
     
         self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], result, 'b')
         self.figure_old_scans_3.ax.set_ylabel(ylabel)
@@ -3212,9 +3210,6 @@ class process_bin_thread(QThread):
             result_orig = np.log(result_orig)
         ylabel = 'Binned {}'.format(ylabel)
 
-        if self.gui.checkBox_der.checkState() > 0:
-            result = np.diff(result)
-
         energy_string = self.gen_parser.get_energy_string()
 
         plot_info = [binned[energy_string][:len(result)], 
@@ -3336,9 +3331,6 @@ class process_bin_thread_equal(QThread):
                     #self.gui.checkBox_log.setChecked(False)
                 warnings.filterwarnings('default')
                 result = result_log
-
-            if self.gui.checkBox_der.checkState() > 0:
-                result = np.diff(result)
             
             plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], 
                          result, 
@@ -3360,9 +3352,6 @@ class process_bin_thread_equal(QThread):
                 ylabel = 'log({})'.format(ylabel)
                 result = np.log(result)
             ylabel = 'Binned Equally {}'.format(ylabel)
-
-            if self.gui.checkBox_der.checkState() > 0:
-                result = np.diff(result)
 
             plot_info = [bin_eq[energy_string][:len(result)], 
                          result, 
