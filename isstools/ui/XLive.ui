@@ -1714,6 +1714,9 @@ Offset</string>
        </item>
        <item row="7" column="0" colspan="5">
         <widget class="QPushButton" name="push_gain_matching">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Start</string>
          </property>
@@ -2122,6 +2125,9 @@ Offset</string>
       </layout>
      </widget>
      <widget class="QPushButton" name="push_run_xia_measurement">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>950</x>

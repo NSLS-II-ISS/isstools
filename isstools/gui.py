@@ -177,7 +177,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Initialize XIA tab
         self.xia_parser = xiaparser.xiaparser()
-        self.push_gain_matching.clicked.connect(self.run_gain_matching)        
+        self.push_gain_matching.clicked.connect(self.run_gain_matching)
         self.xia_graphs_names = []
         self.xia_graphs_labels = []
         self.xia_handles = []
@@ -191,32 +191,35 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.xia = self.xia_list[0]
             self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
-            for channel in self.xia_channels:
-                getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
-                getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
-            self.xia.real_time.subscribe(self.update_xia_params)
-            self.xia.real_time_rb.subscribe(self.update_xia_params)
-            self.xia.mca_max_energy.subscribe(self.update_xia_params)
-            self.edit_xia_acq_time.returnPressed.connect(self.update_xia_acqtime_pv)
-            self.edit_xia_energy_range.returnPressed.connect(self.update_xia_energyrange_pv)
-            self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
-            self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
-            self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
-            self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
-            self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
-            self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
-            self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
-            self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
+            if len(self.xia_channels):
+                self.push_gain_matching.setEnabled(True) 
+                self.push_run_xia_measurement.setEnabled(True)
+                for channel in self.xia_channels:
+                    getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
+                    getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
+                self.xia.real_time.subscribe(self.update_xia_params)
+                self.xia.real_time_rb.subscribe(self.update_xia_params)
+                self.xia.mca_max_energy.subscribe(self.update_xia_params)
+                self.edit_xia_acq_time.returnPressed.connect(self.update_xia_acqtime_pv)
+                self.edit_xia_energy_range.returnPressed.connect(self.update_xia_energyrange_pv)
+                self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
+                self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
+                self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
 
-            max_en = self.xia.mca_max_energy.value
-            energies = np.linspace(0, max_en, 2048)
-            np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
-            self.edit_roi0_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)/1000))
-            self.edit_roi0_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)/1000))
-            self.edit_roi1_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)/1000))
-            self.edit_roi1_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)/1000))
-            self.edit_roi2_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)/1000))
-            self.edit_roi2_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)/1000))
+                max_en = self.xia.mca_max_energy.value
+                energies = np.linspace(0, max_en, 2048)
+                np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
+                self.edit_roi0_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)/1000))
+                self.edit_roi0_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)/1000))
+                self.edit_roi1_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)/1000))
+                self.edit_roi1_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)/1000))
+                self.edit_roi2_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)/1000))
+                self.edit_roi2_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)/1000))
             
 
         # Looking for analog pizzaboxes:
@@ -811,10 +814,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(int(np.round(self.progressValue)))
 
     def getX(self, event):
-        self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+        if event.button == 3:
+            self.edit_E0_2.setText(str(int(np.round(event.xdata))))
 
     def getX_gen_scan(self, event):
-        if event.button == 2:
+        if event.button == 3:
             if self.canvas_gen_scan.motor != '':
                 dlg = MoveMotorDialog.MoveMotorDialog(new_position = event.xdata, motor = self.canvas_gen_scan.motor, parent = self.canvas_gen_scan)
                 if dlg.exec_():
@@ -947,8 +951,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 #self.checkBox_log.setChecked(False)
             warnings.filterwarnings('default')
             result = result_log
+
+        
+        if self.checkBox_der.checkState() > 0:
+            result = np.diff(result)
     
-        self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1], result, 'b')
+        self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], result, 'b')
         self.figure_old_scans_3.ax.set_ylabel(ylabel)
         self.figure_old_scans_3.ax.set_xlabel(energy_string)
 
@@ -1956,6 +1964,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             getattr(self.xia, "mca{}".format(channel)).roi2.low.put(start2)
             getattr(self.xia, "mca{}".format(channel)).roi2.high.put(end2)
 
+        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text()), color='red', alpha=0.4)
+        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text()), color='green', alpha=0.4)
+        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text()), color='blue', alpha=0.4)
+
     def update_xia_acqtime_pv(self):
         self.xia.real_time.put(float(self.edit_xia_acq_time.text()))
 
@@ -1974,6 +1986,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.canvas_xia_all_graphs.draw_idle()
                 self.xia_graphs_names.clear()
                 self.xia_graphs_labels.clear()
+                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text()), color='red', alpha=0.4)
+                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text()), color='green', alpha=0.4)
+                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text()), color='blue', alpha=0.4)
 
         if curr_name in self.xia_graphs_names:
             for index, name in enumerate(self.xia_graphs_names):
@@ -2571,8 +2586,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.figure_batch_waterfall.ax.text(data_set[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', clip_on=True, bbox=bbox_props)
                     self.figure_batch_average.ax.text(data_set_all[energy_string][-1], text_y, sample, size=11, horizontalalignment='right', clip_on=True, bbox=bbox_props)
 
-                self.figure_batch_waterfall.ax.plot(data_set[energy_string], (sample_index * largest_range * distance_multiplier) + result)
-                self.figure_batch_average.ax.plot(data_set_all[energy_string], (sample_index * largest_range * distance_multiplier) + result_all)
+                self.figure_batch_waterfall.ax.plot(data_set[energy_string][:len(result)], (sample_index * largest_range * distance_multiplier) + result)
+                self.figure_batch_average.ax.plot(data_set_all[energy_string][:len(result_all)], (sample_index * largest_range * distance_multiplier) + result_all)
         self.canvas_batch_waterfall.draw_idle()
         self.canvas_batch_average.draw_idle()
 
@@ -3197,9 +3212,12 @@ class process_bin_thread(QThread):
             result_orig = np.log(result_orig)
         ylabel = 'Binned {}'.format(ylabel)
 
+        if self.gui.checkBox_der.checkState() > 0:
+            result = np.diff(result)
+
         energy_string = self.gen_parser.get_energy_string()
 
-        plot_info = [binned[energy_string], 
+        plot_info = [binned[energy_string][:len(result)], 
                      result, 
                      'r', 
                      energy_string, 
@@ -3219,7 +3237,7 @@ class process_bin_thread(QThread):
                                                          k_power,
                                                          energy_string)
 
-        plot_info = [k_data[0], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
+        plot_info = [k_data[0][:len(k_data[1])], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power), self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
         self.gui.plotting_list.append(plot_info)
 
         self.gui.push_replot_exafs.setEnabled(True)
@@ -3318,8 +3336,11 @@ class process_bin_thread_equal(QThread):
                     #self.gui.checkBox_log.setChecked(False)
                 warnings.filterwarnings('default')
                 result = result_log
+
+            if self.gui.checkBox_der.checkState() > 0:
+                result = np.diff(result)
             
-            plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1], 
+            plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], 
                          result, 
                          'b', 
                          energy_string, 
@@ -3340,7 +3361,10 @@ class process_bin_thread_equal(QThread):
                 result = np.log(result)
             ylabel = 'Binned Equally {}'.format(ylabel)
 
-            plot_info = [bin_eq[energy_string], 
+            if self.gui.checkBox_der.checkState() > 0:
+                result = np.diff(result)
+
+            plot_info = [bin_eq[energy_string][:len(result)], 
                          result, 
                          'b', 
                          energy_string, 
@@ -3377,7 +3401,7 @@ class process_bin_thread_equal(QThread):
                 
 
             result_der = self.gen_parser.data_manager.get_derivative(result)
-            plot_info = [bin_eq[energy_string], 
+            plot_info = [bin_eq[energy_string][:len(result_der)], 
                          result_der, 
                          'r', energy_string, 
                          'Derivative', 
