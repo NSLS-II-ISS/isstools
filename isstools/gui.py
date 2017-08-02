@@ -224,6 +224,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
                     getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
                     getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
+                self.push_chackall_xia.clicked.connect(self.toggle_xia_all)
 
             
 
@@ -1934,7 +1935,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.xia_tog_channels.remove(self.sender().text())
         self.erase_xia_graph()
         for chan in self.xia_tog_channels:
-            self.update_xia_graph(getattr(self.xia, 'mca{}.array.value'.format(chan)))
+            self.update_xia_graph(getattr(self.xia, 'mca{}.array.value'.format(chan)), obj=getattr(self.xia, 'mca{}.array'.format(chan)))
+
+    def toggle_xia_all(self):
+        if len(self.xia_tog_channels) != len(self.xia.read_attrs):
+            for index, mca in enumerate(self.xia.read_attrs):
+                if getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).isEnabled():
+                    getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).setChecked(True)
+        else:            
+            for index, mca in enumerate(self.xia.read_attrs):
+                if getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).isEnabled():
+                    getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).setChecked(False)
         
     def update_xia_params(self, value, **kwargs):
         if kwargs['obj'].name == 'xia1_real_time':
@@ -1957,6 +1968,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_xia_all_graphs._update_view()
         self.xia_graphs_names.clear()
         self.xia_graphs_labels.clear()
+        self.xia_handles.clear()
         self.canvas_xia_all_graphs.draw_idle()
 
     def start_xia_spectra(self):
@@ -2052,6 +2064,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.xia_graphs_labels.append(label)
                 handles, = self.figure_xia_all_graphs.ax.plot(np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
                 self.xia_handles.append(handles)
+                #for ind, hand in enumerate(self.xia_handles):
+                #    print(ind, hand.get_color())
                 self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
 
             if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels):
