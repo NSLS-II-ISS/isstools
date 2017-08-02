@@ -1555,7 +1555,7 @@ Offset</string>
         <x>40</x>
         <y>300</y>
         <width>591</width>
-        <height>491</height>
+        <height>511</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_gain_matching"/>
@@ -1947,9 +1947,9 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>650</x>
-        <y>190</y>
+        <y>140</y>
         <width>881</width>
-        <height>601</height>
+        <height>671</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_xia_all_graphs"/>
@@ -1958,7 +1958,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>970</x>
-        <y>800</y>
+        <y>820</y>
         <width>201</width>
         <height>98</height>
        </rect>
@@ -2047,7 +2047,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>950</x>
-        <y>100</y>
+        <y>60</y>
         <width>211</width>
         <height>71</height>
        </rect>
@@ -2131,7 +2131,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>950</x>
-        <y>60</y>
+        <y>30</y>
         <width>211</width>
         <height>24</height>
        </rect>
@@ -3436,9 +3436,9 @@ to Curr. Position</string>
      <widget class="QWidget" name="verticalLayoutWidget_7">
       <property name="geometry">
        <rect>
-        <x>790</x>
+        <x>780</x>
         <y>110</y>
-        <width>731</width>
+        <width>741</width>
         <height>401</height>
        </rect>
       </property>
@@ -3498,9 +3498,9 @@ to Curr. Position</string>
      <widget class="QWidget" name="verticalLayoutWidget_8">
       <property name="geometry">
        <rect>
-        <x>790</x>
+        <x>780</x>
         <y>520</y>
-        <width>731</width>
+        <width>741</width>
         <height>401</height>
        </rect>
       </property>

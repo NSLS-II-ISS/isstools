@@ -7,6 +7,7 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.widgets import Cursor
+from matplotlib import gridspec
 import matplotlib.patches as mpatches
 from scipy.optimize import curve_fit
 
@@ -191,25 +192,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.xia = self.xia_list[0]
             self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
+            self.xia_tog_channels = []
             if len(self.xia_channels):
                 self.push_gain_matching.setEnabled(True) 
                 self.push_run_xia_measurement.setEnabled(True)
-                for channel in self.xia_channels:
-                    getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
-                    getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
+                self.xia.mca_max_energy.subscribe(self.update_xia_params)
                 self.xia.real_time.subscribe(self.update_xia_params)
                 self.xia.real_time_rb.subscribe(self.update_xia_params)
-                self.xia.mca_max_energy.subscribe(self.update_xia_params)
                 self.edit_xia_acq_time.returnPressed.connect(self.update_xia_acqtime_pv)
                 self.edit_xia_energy_range.returnPressed.connect(self.update_xia_energyrange_pv)
-                self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
-                self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
-                self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
 
                 max_en = self.xia.mca_max_energy.value
                 energies = np.linspace(0, max_en, 2048)
@@ -220,6 +211,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.edit_roi1_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)/1000))
                 self.edit_roi2_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)/1000))
                 self.edit_roi2_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)/1000))
+
+                self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
+                self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
+                self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
+                self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
+                for channel in self.xia_channels:
+                    getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
+                    getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
+                    getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
+
             
 
         # Looking for analog pizzaboxes:
@@ -1921,6 +1926,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.init(current_lut, ip = '10.8.2.86')
 
         print('**** Check gains finished! ****')
+
+    def toggle_xia_checkbox(self, value):
+        if value:
+            self.xia_tog_channels.append(self.sender().text())
+        elif self.sender().text() in self.xia_tog_channels:
+            self.xia_tog_channels.remove(self.sender().text())
+        self.erase_xia_graph()
+        for chan in self.xia_tog_channels:
+            self.update_xia_graph(getattr(self.xia, 'mca{}.array.value'.format(chan)))
         
     def update_xia_params(self, value, **kwargs):
         if kwargs['obj'].name == 'xia1_real_time':
@@ -1929,6 +1943,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_acq_time_rbv.setText('{:.2f}'.format(round(value, 2)))
         elif kwargs['obj'].name == 'xia1_mca_max_energy':
             self.edit_xia_energy_range.setText(str(value))
+
+    def erase_xia_graph(self):
+        self.figure_xia_all_graphs.ax.clear()
+
+        if hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
+            del self.figure_xia_all_graphs.ax.roi0l, self.figure_xia_all_graphs.ax.roi0h,\
+                self.figure_xia_all_graphs.ax.roi1l, self.figure_xia_all_graphs.ax.roi1h,\
+                self.figure_xia_all_graphs.ax.roi2l, self.figure_xia_all_graphs.ax.roi2h
+
+        self.toolbar_xia_all_graphs._views.clear()
+        self.toolbar_xia_all_graphs._positions.clear()
+        self.toolbar_xia_all_graphs._update_view()
+        self.xia_graphs_names.clear()
+        self.xia_graphs_labels.clear()
+        self.canvas_xia_all_graphs.draw_idle()
 
     def start_xia_spectra(self):
         if self.xia.collect_mode.value != 0:
@@ -1962,9 +1991,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
             getattr(self.xia, "mca{}".format(channel)).roi2.low.put(start2)
             getattr(self.xia, "mca{}".format(channel)).roi2.high.put(end2)
 
-        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text()), color='red', alpha=0.4)
-        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text()), color='green', alpha=0.4)
-        #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text()), color='blue', alpha=0.4)
+        roi0x = [float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text())]
+        roi1x = [float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text())]
+        roi2x = [float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text())]
+
+        if not hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
+            self.figure_xia_all_graphs.ax.roi0l = self.figure_xia_all_graphs.ax.axvline(x=roi0x[0], color='r')
+            self.figure_xia_all_graphs.ax.roi0h = self.figure_xia_all_graphs.ax.axvline(x=roi0x[1], color='r')
+            self.figure_xia_all_graphs.ax.roi1l = self.figure_xia_all_graphs.ax.axvline(x=roi1x[0], color='b')
+            self.figure_xia_all_graphs.ax.roi1h = self.figure_xia_all_graphs.ax.axvline(x=roi1x[1], color='b')
+            self.figure_xia_all_graphs.ax.roi2l = self.figure_xia_all_graphs.ax.axvline(x=roi2x[0], color='g')
+            self.figure_xia_all_graphs.ax.roi2h = self.figure_xia_all_graphs.ax.axvline(x=roi2x[1], color='g')
+        else:
+            self.figure_xia_all_graphs.ax.roi0l.set_xdata([roi0x[0], roi0x[0]])
+            self.figure_xia_all_graphs.ax.roi0h.set_xdata([roi0x[1], roi0x[1]])
+            self.figure_xia_all_graphs.ax.roi1l.set_xdata([roi1x[0], roi1x[0]])
+            self.figure_xia_all_graphs.ax.roi1h.set_xdata([roi1x[1], roi1x[1]])
+            self.figure_xia_all_graphs.ax.roi2l.set_xdata([roi2x[0], roi2x[0]])
+            self.figure_xia_all_graphs.ax.roi2h.set_xdata([roi2x[1], roi2x[1]])
+
+        self.canvas_xia_all_graphs.draw_idle()
 
     def update_xia_acqtime_pv(self):
         self.xia.real_time.put(float(self.edit_xia_acq_time.text()))
@@ -1978,15 +2024,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if len(self.figure_xia_all_graphs.ax.lines):
             if float(self.edit_xia_energy_range.text()) != self.figure_xia_all_graphs.ax.lines[0].get_xdata()[-1]:
                 self.figure_xia_all_graphs.ax.clear()
+                if hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
+                    del self.figure_xia_all_graphs.ax.roi0l, self.figure_xia_all_graphs.ax.roi0h,\
+                        self.figure_xia_all_graphs.ax.roi1l, self.figure_xia_all_graphs.ax.roi1h,\
+                        self.figure_xia_all_graphs.ax.roi2l, self.figure_xia_all_graphs.ax.roi2h
+
                 self.toolbar_xia_all_graphs._views.clear()
                 self.toolbar_xia_all_graphs._positions.clear()
                 self.toolbar_xia_all_graphs._update_view()
-                self.canvas_xia_all_graphs.draw_idle()
                 self.xia_graphs_names.clear()
                 self.xia_graphs_labels.clear()
-                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text()), color='red', alpha=0.4)
-                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text()), color='green', alpha=0.4)
-                #self.figure_xia_all_graphs.ax.axvspan(float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text()), color='blue', alpha=0.4)
+                self.canvas_xia_all_graphs.draw_idle()
 
         if curr_name in self.xia_graphs_names:
             for index, name in enumerate(self.xia_graphs_names):
@@ -1995,13 +2043,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     line = self.figure_xia_all_graphs.ax.lines[curr_index]
                     line.set_ydata(value)
                     break
+
         else:
-            self.xia_graphs_names.append(curr_name)
-            label = 'Chan {}'.format(curr_name.split('_')[1].split('mca')[1])
-            self.xia_graphs_labels.append(label)
-            handles, = self.figure_xia_all_graphs.ax.plot(np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
-            self.xia_handles.append(handles)
-            self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
+            ch_number = curr_name.split('_')[1].split('mca')[1]
+            if ch_number in self.xia_tog_channels:
+                self.xia_graphs_names.append(curr_name)
+                label = 'Chan {}'.format(ch_number)
+                self.xia_graphs_labels.append(label)
+                handles, = self.figure_xia_all_graphs.ax.plot(np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
+                self.xia_handles.append(handles)
+                self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
+
+            if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels):
+                roi0x = [float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text())]
+                roi1x = [float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text())]
+                roi2x = [float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text())]
+
+                self.figure_xia_all_graphs.ax.roi0l = self.figure_xia_all_graphs.ax.axvline(x=roi0x[0], color='r')
+                self.figure_xia_all_graphs.ax.roi0h = self.figure_xia_all_graphs.ax.axvline(x=roi0x[1], color='r')
+                self.figure_xia_all_graphs.ax.roi1l = self.figure_xia_all_graphs.ax.axvline(x=roi1x[0], color='b')
+                self.figure_xia_all_graphs.ax.roi1h = self.figure_xia_all_graphs.ax.axvline(x=roi1x[1], color='b')
+                self.figure_xia_all_graphs.ax.roi2l = self.figure_xia_all_graphs.ax.axvline(x=roi2x[0], color='g')
+                self.figure_xia_all_graphs.ax.roi2h = self.figure_xia_all_graphs.ax.axvline(x=roi2x[1], color='g')
 
         self.figure_xia_all_graphs.ax.relim()
         self.figure_xia_all_graphs.ax.autoscale(True, True, True)

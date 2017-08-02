@@ -23,29 +23,38 @@ class XASdata:
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'counter', 'adc']
-        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-        df['timestamps'] = df['times'] + 1e-9 * df['timens']
-        #del df['times']
-        #del df['timens']
-        df['adc'] = df['adc'].apply(lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x, 16) >> 8) * 7.62939453125e-05
-        return np.array(df.iloc[:, 4:1:-1])
+        if os.path.isfile('{}{}'.format(filepath, filename)):
+            df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            #del df['times']
+            #del df['timens']
+            df['adc'] = df['adc'].apply(lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x, 16) >> 8) * 7.62939453125e-05
+            return np.array(df.iloc[:, 4:1:-1])
+        else:
+            return -1
 
 
     def loadENCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
-        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-        df['timestamps'] = df['times'] + 1e-9 * df['timens']
-        df['encoder'] = df['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
-        return np.array(df.iloc[:, [5, 2]])
+        if os.path.isfile('{}{}'.format(filepath, filename)):
+            df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            df['encoder'] = df['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
+            return np.array(df.iloc[:, [5, 2]])
+        else:
+            return -1
 
 
     def loadTRIGtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
-        df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-        df['timestamps'] = df['times'] + 1e-9 * df['timens']
-        df = df.iloc[::2]
-        #df = df[df['counter'] % 2 == 0]
-        return np.array(df.iloc[:, [5, 3]])
+        if os.path.isfile('{}{}'.format(filepath, filename)):
+            df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
+            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            df = df.iloc[::2]
+            #df = df[df['counter'] % 2 == 0]
+            return np.array(df.iloc[:, [5, 3]])
+        else:
+            return -1
 
     def loadINTERPtrace(self, filename):
         array_timestamp=[]
@@ -118,11 +127,12 @@ class XASdataGeneric(XASdata):
                     data = self.loadTRIGtrace(i['data_keys'][i['name']]['filename'], '')
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
                     data = self.loadADCtrace(i['data_keys'][i['name']]['filename'], '')
-                    if i['name'] + ' offset' in self.db[uid]['start']:
+                    if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == np.ndarray:
                         data[:, 1] = data[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
                     data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
-                self.arrays[name] = data
+                if type(data) == np.ndarray:
+                    self.arrays[name] = data
         
         if has_encoder is not False:
             energy = np.copy(self.arrays.get(has_encoder))
