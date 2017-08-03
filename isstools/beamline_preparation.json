@@ -271,7 +271,7 @@
             "IC Gas He": {
                 "PV": "XF:08IDB-OP{IC}FLW:He-SP",
                 "RB PV": "XF:08IDB-OP{IC}FLW:He-RB",
-                "value": 5
+                "value": 2
             },
             "IC Gas N2": {
                 "PV": "XF:08IDB-OP{IC}FLW:N2-SP",
@@ -315,7 +315,7 @@
                    "IN RB PV": "XF:08IDA-BI{BPM:CM}Sw:InLim-Sts",
                    "OUT PV": "XF:08IDA-BI{BPM:CM}Cmd:Out-Cmd",
                    "OUT RB PV": "XF:08IDA-BI{BPM:CM}Sw:OutLim-Sts",
-                   "value": "IN"
+                   "value": "OUT"
                },
                {
                    "Name": "FM",
