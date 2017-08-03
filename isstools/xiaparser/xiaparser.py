@@ -119,6 +119,35 @@ class xiaparser:
                 return
             
             print('Saving done!')
+
+    def export_files_txt(self, dest_filepath, dest_filename = '', all_in_one = True):
+
+        if dest_filename == '':
+            tmpfilename = self.filename[0:len(self.filename)-3]
+        else:
+            tmpfilename = dest_filename
+
+        try_number = 2
+
+        while(os.path.isfile(dest_filepath + tmpfilename)):
+            tmpfilename = self.filename[0:len(self.filename)-3] + '-' + str(try_number)
+            try_number += 1
+
+        if all_in_one:
+            print("Creating file for all channels...")
+            output_data = np.array([array for array in self.exporting_arrays])
+            with open(dest_filepath + tmpfilename + '-allchans.txt', 'wb') as f:
+                i = 0
+                for row in output_data:
+                    print('XIA channel number: {}'.format(i))
+                    i += 1
+                    np.savetxt(f, np.array(row), fmt='%i',delimiter=' ', footer='============================================================')
+                
+
+        else:
+            for index, array in enumerate(exporting_arrays):
+                print('Creating file for channel {}...'.format(index))
+                np.savetxt('{}{}-chan{}.txt'.format(dest_filepath, tmpfilename, index), array, fmt='%i', delimiter=' ')
       
         
     def read_pixel_block(self, dataset, board_number, pixel, start_pos, plot_data, pixel_to_parse, silent):
