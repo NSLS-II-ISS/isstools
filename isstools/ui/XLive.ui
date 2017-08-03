@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1977,7 +1977,7 @@ Offset</string>
        <item row="1" column="2">
         <widget class="QLineEdit" name="edit_roi0_to">
          <property name="text">
-          <string>20</string>
+          <string>20000</string>
          </property>
         </widget>
        </item>
@@ -2005,28 +2005,28 @@ Offset</string>
        <item row="0" column="1">
         <widget class="QLabel" name="label_139">
          <property name="text">
-          <string>From (keV)</string>
+          <string>From (eV)</string>
          </property>
         </widget>
        </item>
        <item row="0" column="2">
         <widget class="QLabel" name="label_140">
          <property name="text">
-          <string>To (keV)</string>
+          <string>To (eV)</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
         <widget class="QLineEdit" name="edit_roi1_from">
          <property name="text">
-          <string>6.5</string>
+          <string>6500</string>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
         <widget class="QLineEdit" name="edit_roi1_to">
          <property name="text">
-          <string>7</string>
+          <string>7000</string>
          </property>
         </widget>
        </item>
@@ -2040,14 +2040,14 @@ Offset</string>
        <item row="3" column="1">
         <widget class="QLineEdit" name="edit_roi2_from">
          <property name="text">
-          <string>7</string>
+          <string>7000</string>
          </property>
         </widget>
        </item>
        <item row="3" column="2">
         <widget class="QLineEdit" name="edit_roi2_to">
          <property name="text">
-          <string>7.6</string>
+          <string>7600</string>
          </property>
         </widget>
        </item>
@@ -2128,7 +2128,7 @@ Offset</string>
           </size>
          </property>
          <property name="text">
-          <string>keV</string>
+          <string>eV</string>
          </property>
         </widget>
        </item>

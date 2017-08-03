@@ -204,13 +204,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 max_en = self.xia.mca_max_energy.value
                 energies = np.linspace(0, max_en, 2048)
-                np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
-                self.edit_roi0_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)/1000))
-                self.edit_roi0_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)/1000))
-                self.edit_roi1_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)/1000))
-                self.edit_roi1_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)/1000))
-                self.edit_roi2_from.setText('{:.3f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)/1000))
-                self.edit_roi2_to.setText('{:.3f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)/1000))
+                #np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
+                self.edit_roi0_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)))
+                self.edit_roi0_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)))
+                self.edit_roi1_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)))
+                self.edit_roi1_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)))
+                self.edit_roi2_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)))
+                self.edit_roi2_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)))
 
                 self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
                 self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
@@ -1953,7 +1953,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         elif kwargs['obj'].name == 'xia1_real_time_rb':
             self.label_acq_time_rbv.setText('{:.2f}'.format(round(value, 2)))
         elif kwargs['obj'].name == 'xia1_mca_max_energy':
-            self.edit_xia_energy_range.setText(str(value))
+            self.edit_xia_energy_range.setText('{:.0f}'.format(value * 1000))
 
     def erase_xia_graph(self):
         self.figure_xia_all_graphs.ax.clear()
@@ -1978,19 +1978,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia.erase_start.put(1)
 
     def update_xia_rois(self):
-        energies = np.linspace(0, float(self.edit_xia_energy_range.text()), 2048)
+        energies = np.linspace(0, float(self.edit_xia_energy_range.text()) / 1000, 2048)
 
-        indexes_array = np.where((energies >= float(self.edit_roi0_from.text())) & (energies <= float(self.edit_roi0_to.text())) == True)[0]
+        indexes_array = np.where((energies >= float(self.edit_roi0_from.text()) / 1000) & (energies <= float(self.edit_roi0_to.text()) / 1000) == True)[0]
         if len(indexes_array):
             start0 = indexes_array.min()
             end0 = indexes_array.max()
 
-        indexes_array = np.where((energies >= float(self.edit_roi1_from.text())) & (energies <= float(self.edit_roi1_to.text())) == True)[0]
+        indexes_array = np.where((energies >= float(self.edit_roi1_from.text()) / 1000) & (energies <= float(self.edit_roi1_to.text()) / 1000) == True)[0]
         if len(indexes_array):
             start1 = indexes_array.min()
             end1 = indexes_array.max()
 
-        indexes_array = np.where((energies >= float(self.edit_roi2_from.text())) & (energies <= float(self.edit_roi2_to.text())) == True)[0]
+        indexes_array = np.where((energies >= float(self.edit_roi2_from.text()) / 1000) & (energies <= float(self.edit_roi2_to.text()) / 1000) == True)[0]
         if len(indexes_array):
             start2 = indexes_array.min()
             end2 = indexes_array.max()
@@ -2028,7 +2028,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia.real_time.put(float(self.edit_xia_acq_time.text()))
 
     def update_xia_energyrange_pv(self):
-        self.xia.mca_max_energy.put(float(self.edit_xia_energy_range.text()))
+        self.xia.mca_max_energy.put(float(self.edit_xia_energy_range.text()) / 1000)
 
     def update_xia_graph(self, value, **kwargs):
         curr_name = kwargs['obj'].name
@@ -2064,11 +2064,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.xia_graphs_labels.append(label)
                 handles, = self.figure_xia_all_graphs.ax.plot(np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
                 self.xia_handles.append(handles)
-                #for ind, hand in enumerate(self.xia_handles):
-                #    print(ind, hand.get_color())
                 self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
 
-            if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels):
+            if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels) != 0:
                 roi0x = [float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text())]
                 roi1x = [float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text())]
                 roi2x = [float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text())]
@@ -2080,11 +2078,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.figure_xia_all_graphs.ax.roi2l = self.figure_xia_all_graphs.ax.axvline(x=roi2x[0], color='g')
                 self.figure_xia_all_graphs.ax.roi2h = self.figure_xia_all_graphs.ax.axvline(x=roi2x[1], color='g')
 
+                self.figure_xia_all_graphs.ax.grid(True)
+
         self.figure_xia_all_graphs.ax.relim()
         self.figure_xia_all_graphs.ax.autoscale(True, True, True)
         y_interval = self.figure_xia_all_graphs.ax.get_yaxis().get_data_interval()
-        if y_interval[0] != 0 or y_interval[1] != 0:
-            self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05, y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
+        if len(y_interval):
+            if y_interval[0] != 0 or y_interval[1] != 0:
+                self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05, y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
         self.canvas_xia_all_graphs.draw_idle()
 
 
