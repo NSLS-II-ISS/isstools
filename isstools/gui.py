@@ -88,7 +88,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             #self.RE.last_state = ''
             self.RE.is_aborted = False
             # Write metadata in the GUI
-            self.label_angle_offset.setText('{0:.4f}'.format(float(RE.md['angle_offset'])))
             self.label_6.setText('{}'.format(RE.md['year']))
             self.label_7.setText('{}'.format(RE.md['cycle']))
             self.label_8.setText('{}'.format(RE.md['PROPOSAL']))
@@ -119,6 +118,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Initialize 'trajectory' tab
         self.hhm = hhm
         if self.hhm is not None:
+            self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
+            self.hhm.angle_offset.subscribe(self.update_angle_offset)
             self.hhm.trajectory_progress.subscribe(self.update_progress)
             self.progress_sig.connect(self.update_progressbar) 
             self.progressBar.setValue(0)
@@ -812,6 +813,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def change_shutter_color(self):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
+    def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
+        self.label_angle_offset.setText('{0:.4f}'.format(value))
+
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
         self.progressValue = value
@@ -862,9 +866,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if not ret:
             print ('[E0 Calibration] Aborted!')
             return False
-        self.RE.md['angle_offset'] = str(float(self.RE.md['angle_offset']) - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000)
-        self.label_angle_offset.setText('{0:.4f}'.format(float(self.RE.md['angle_offset'])))
-        print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.RE.md['angle_offset']))
+        self.hhm.angle_offset.put(str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000))
+        self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
+        print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.hhm.angle_offset.value))
 
 
     def update_k_view(self):
@@ -1472,7 +1476,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('\nCreate the trajectory first...')
 
     def plot_traj_file(self):
-        self.traj_creator.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text())#self.comboBox.currentText())
+        self.traj_creator.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text(), float(self.label_angle_offset.text()))
 
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
@@ -1489,7 +1493,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj_creator.energy_grid_loaded)/16000, 1/16000), self.traj_creator.energy_grid_loaded, 'b')
         self.figure_full_trajectory.ax.set_xlabel('Time /s')
         self.figure_full_trajectory.ax.set_ylabel('Energy /eV')
-        self.figure_full_trajectory.ax.set_title(self.label_56.text())#self.comboBox.currentText())
+        self.figure_full_trajectory.ax.set_title(self.label_56.text())
         self.canvas_full_trajectory.draw_idle()
         print('Trajectory Load: Done')
 
@@ -3169,12 +3173,9 @@ class process_batch_thread(QThread):
                                 xia_sum.extend([xia_sum[-1]] * (len(self.gui.gen_parser.interp_arrays['energy']) - length))
                             self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
 
-                            #[sum(i) for i in zip(*roi)]
-                            #self.gui.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gui.gen_parser.interp_arrays['energy'][:, 0], [sum(i) for i in zip(*roi)]]).transpose()
-
-
 
                     self.gui.gen_parser.export_trace(self.gui.current_filepath[:-4], '')
+
                     traj_name = self.gui.db[uid]['start']['trajectory_name']
                     if represents_int(traj_name[traj_name.rfind('-') + 1 : traj_name.rfind('.')]):
                         #bin data

@@ -228,19 +228,22 @@ class trajectory():
     def e2encoder(self, offset):
         self.encoder_grid = -xray.energy2encoder(self.energy_grid, offset) 
 
+    def e2energy(self, offset):
+        self.energy_grid = -xray.encoder2energy(self.encoder_grid, offset)
+
 
     def plot(self):
         plt.plot(self.time, self.energy, 'r+')
         plt.plot(self.energy_grid,'b')
         plt.show()
 
-    def load_trajectory_file(self, filename):
+    def load_trajectory_file(self, filename, offset):
         array_out=[]
         with open(str(filename)) as f:
             for line in f:
                 array_out.append(int(line))
         array_out = np.array(array_out)
-        self.energy_grid_loaded = -xray.encoder2energy(array_out, 0)
+        self.energy_grid_loaded = -xray.encoder2energy(array_out, offset)
         
 
 
