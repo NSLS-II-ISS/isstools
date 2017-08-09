@@ -39,17 +39,77 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
+    <widget class="QWidget" name="tab_11">
+     <attribute name="title">
+      <string>Beamline Status</string>
+     </attribute>
+     <widget class="QPushButton" name="push_prepare_bl">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>50</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prepare
+Beamline</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_piezo_fb">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>110</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Piezo Feedback</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="update_piezo">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>140</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update Piezo
+Parameters</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="push_update_piezo_center">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>140</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set Center
+to Curr. Position</string>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Trajectory</string>
+      <string>Trajectories</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>250</y>
+        <y>280</y>
         <width>551</width>
         <height>481</height>
        </rect>
@@ -60,7 +120,7 @@
       <property name="geometry">
        <rect>
         <x>590</x>
-        <y>250</y>
+        <y>280</y>
         <width>791</width>
         <height>481</height>
        </rect>
@@ -150,7 +210,7 @@
        <item row="4" column="0">
         <widget class="QLabel" name="label_57">
          <property name="text">
-          <string>Lut</string>
+          <string>Slot</string>
          </property>
         </widget>
        </item>
@@ -181,7 +241,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_55">
          <property name="text">
-          <string>Lut</string>
+          <string>Slot </string>
          </property>
         </widget>
        </item>
@@ -394,7 +454,7 @@
      <widget class="QPushButton" name="push_prepare_trajectory">
       <property name="geometry">
        <rect>
-        <x>1130</x>
+        <x>1270</x>
         <y>190</y>
         <width>131</width>
         <height>24</height>
@@ -408,7 +468,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>0</y>
+        <y>10</y>
         <width>551</width>
         <height>241</height>
        </rect>
@@ -416,6 +476,175 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <widget class="QWidget" name="tab_8">
+       <attribute name="title">
+        <string>Double Sine</string>
+       </attribute>
+       <widget class="QWidget" name="gridLayoutWidget_16">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>241</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_17">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_88">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Preedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="edit_ds_pree_duration">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_89">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_90">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Postedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="edit_ds_poste_duration">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_91">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab_10">
+       <attribute name="title">
+        <string>Double Sine/Constant Edge</string>
+       </attribute>
+       <widget class="QWidget" name="gridLayoutWidget_24">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>241</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_34">
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="edit_ds2_pree_duration">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_133">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_134">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Postedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="edit_ds2_poste_duration">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_135">
+           <property name="text">
+            <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_92">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Preedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_136">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Edge Velocity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="edit_vel_edge">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_137">
+           <property name="text">
+            <string>eV/s</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
       <widget class="QWidget" name="tab_6">
        <attribute name="title">
         <string>Step</string>
@@ -826,175 +1055,6 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_8">
-       <attribute name="title">
-        <string>Double Sine</string>
-       </attribute>
-       <widget class="QWidget" name="gridLayoutWidget_16">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>241</width>
-          <height>71</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_17">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_88">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Preedge Duration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="edit_ds_pree_duration">
-           <property name="text">
-            <string>10</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_89">
-           <property name="text">
-            <string>s</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_90">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Postedge Duration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="edit_ds_poste_duration">
-           <property name="text">
-            <string>20</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_91">
-           <property name="text">
-            <string>s</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="tab_10">
-       <attribute name="title">
-        <string>Double Sine 2</string>
-       </attribute>
-       <widget class="QWidget" name="gridLayoutWidget_24">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>241</width>
-          <height>91</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_34">
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="edit_ds2_pree_duration">
-           <property name="text">
-            <string>10</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_133">
-           <property name="text">
-            <string>s</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_134">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Postedge Duration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="edit_ds2_poste_duration">
-           <property name="text">
-            <string>20</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_135">
-           <property name="text">
-            <string>s</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_92">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Preedge Duration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_136">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Edge Velocity</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="edit_vel_edge">
-           <property name="text">
-            <string>10</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_137">
-           <property name="text">
-            <string>eV/s</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_10">
       <property name="geometry">
@@ -1086,7 +1146,7 @@
       <property name="geometry">
        <rect>
         <x>570</x>
-        <y>190</y>
+        <y>200</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -1099,7 +1159,7 @@
       <property name="geometry">
        <rect>
         <x>780</x>
-        <y>190</y>
+        <y>200</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -2403,33 +2463,6 @@ file and switch to
        </item>
       </layout>
      </widget>
-     <widget class="QCheckBox" name="checkBox_piezo_fb">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>690</y>
-        <width>131</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Piezo Feedback</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="update_piezo">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>720</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Update Piezo
-Parameters</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="run_check_gains_scan">
       <property name="geometry">
        <rect>
@@ -2443,38 +2476,10 @@ Parameters</string>
        <string>Check Gains Scan</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="push_prepare_bl">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>770</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Prepare
-Beamline</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="push_update_piezo_center">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>720</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Set Center
-to Curr. Position</string>
-      </property>
-     </widget>
     </widget>
     <widget class="QWidget" name="tab_9">
      <attribute name="title">
-      <string>Batch Mode</string>
+      <string>Run Batch</string>
      </attribute>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
@@ -3812,7 +3817,7 @@ to Curr. Position</string>
       </property>
       <property name="text">
        <string>Select multiple files,
-bin and save them</string>
+bin and save</string>
       </property>
       <property name="checked">
        <bool>false</bool>
@@ -3895,8 +3900,8 @@ bin and save them</string>
        </rect>
       </property>
       <property name="text">
-       <string>Automatically try
-to find the edge</string>
+       <string>Automatically find
+the edge</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -4243,14 +4248,6 @@ to find the edge</string>
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuXlive">
-    <property name="title">
-     <string>Xlive</string>
-    </property>
-    <addaction name="actionSelct_new_trajectory"/>
-    <addaction name="separator"/>
-   </widget>
-   <addaction name="menuXlive"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSelct_new_trajectory">

@@ -103,7 +103,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_re_abort.setEnabled(False)
             self.run_start.setEnabled(False)
             self.run_check_gains.setEnabled(False)
-            self.tabWidget.setTabEnabled(1, False)
+            self.tabWidget.setTabEnabled(2, False)
 
         self.db = db
         if self.db is None:
@@ -139,8 +139,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
         else:
-            self.tabWidget.setTabEnabled(0, False)
-            self.tabWidget.setTabEnabled(4, False)
+            self.tabWidget.setTabEnabled(1, False)
+            self.tabWidget.setTabEnabled(5, False)
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
@@ -188,7 +188,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if self.xia_list == []:
-            self.tabWidget.setTabEnabled(2, False)
+            self.tabWidget.setTabEnabled(3, False)
             self.xia = None
         else:
             self.xia = self.xia_list[0]
@@ -268,11 +268,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
-                self.tabWidget.setTabEnabled(3, False)
+                self.tabWidget.setTabEnabled(4, False)
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
         if not self.push_gen_scan.isEnabled() and not self.push_tune.isEnabled():
-            self.tabWidget.setTabEnabled(1, False)
+            self.tabWidget.setTabEnabled(2, False)
 
         # Initialize persistent values
         self.settings = QSettings('ISS Beamline', 'XLive')
@@ -1140,7 +1140,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             params[2].append(param3)
 
     def get_traj_names(self):
-        self.label_56.setText(QtWidgets.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt', parent = self)[0].rsplit('/',1)[1])
+        filepath = QtWidgets.QFileDialog.getOpenFileName(directory = self.trajectory_path, filter = '*.txt', parent = self)[0]
+        self.label_56.setText(filepath.rsplit('/',1)[1])        
+        self.trajectory_path = filepath[:filepath.rfind('/')] + '/'
         self.push_plot_traj.setEnabled(True)
 
     def addCanvas(self):
@@ -1466,9 +1468,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     return
             print('Filename = {}'.format(filename))
             np.savetxt(filename, 
-	               self.traj_creator.encoder_grid, fmt='%d')
+	               self.traj_creator.energy_grid, fmt='%.6f')
             call(['chmod', '666', filename])
-            #self.get_traj_names()
+
+            self.trajectory_path = filename[:filename.rfind('/')] + '/'
             self.label_56.setText(filename.rsplit('/',1)[1])
             self.push_plot_traj.setEnabled(True)
             print('Trajectory saved! [{}]'.format(filename))
@@ -1476,7 +1479,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('\nCreate the trajectory first...')
 
     def plot_traj_file(self):
-        self.traj_creator.load_trajectory_file('/GPFS/xf08id/trajectory/' + self.label_56.text(), float(self.label_angle_offset.text()))
+        self.traj_creator.load_trajectory_file(self.trajectory_path + self.label_56.text(), float(self.label_angle_offset.text()), is_energy = True)
 
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
@@ -1500,7 +1503,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_save_trajectory.setDisabled(True)
 
     def load_trajectory(self):
-        self.traj_manager.load(orig_file_name = self.label_56.text(), new_file_path = self.comboBox_2.currentText())
+        self.traj_manager.load(orig_file_name = self.label_56.text(), new_file_path = self.comboBox_2.currentText(), is_energy = True, offset = float(self.label_angle_offset.text()), orig_file_path = self.trajectory_path, ip = '10.8.2.86')
         self.update_batch_traj()
 
     def init_trajectory(self):
@@ -1863,12 +1866,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
         filename = '/GPFS/xf08id/trajectory/gain_aux.txt'
-        np.savetxt(filename,
-                   self.traj_creator.encoder_grid, fmt='%d')
+        np.savetxt(filename, 
+                   self.traj_creator.energy_grid, fmt='%.6f')
         call(['chmod', '666', filename])
-        #print('Trajectory saved! [{}]'.format(filename))
 
-        self.traj_manager.load(orig_file_name = filename[filename.rfind('/') + 1:], orig_file_path = filename[:filename.rfind('/') + 1], new_file_path = '9', ip = '10.8.2.86')
+        self.traj_manager.load(orig_file_name = filename[filename.rfind('/') + 1:], orig_file_path = filename[:filename.rfind('/') + 1], new_file_path = '9', is_energy = True, offset = float(self.label_angle_offset.text()), ip = '10.8.2.86')
 
         ttime.sleep(1)
 

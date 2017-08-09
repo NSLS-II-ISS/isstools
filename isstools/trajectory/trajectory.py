@@ -105,7 +105,7 @@ class trajectory():
             self.energy = energy
             self.time = time
 
-        elif trajectory_type == 'Double Sine 2':
+        elif trajectory_type == 'Double Sine/Constant Edge':
             edge_duration = (offsets[2] - offsets[1]) / vel_edge
             total_time = float(dsine_preedge_duration) + float(edge_duration) + float(dsine_postedge_duration)
             preedge_dur = float(dsine_preedge_duration) / total_time
@@ -237,13 +237,17 @@ class trajectory():
         plt.plot(self.energy_grid,'b')
         plt.show()
 
-    def load_trajectory_file(self, filename, offset):
+    def load_trajectory_file(self, filename, offset, is_energy):
         array_out=[]
         with open(str(filename)) as f:
             for line in f:
-                array_out.append(int(line))
+                array_out.append(float(line))
         array_out = np.array(array_out)
-        self.energy_grid_loaded = -xray.encoder2energy(array_out, offset)
+        if is_energy:
+            self.energy_grid_loaded = array_out
+        else:
+            self.energy_grid_loaded = -xray.encoder2energy(array_out, offset)
+            
         
 
 
@@ -266,7 +270,7 @@ class trajectory_manager():
     # arg3 (optional) = new_file_name     -> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
     # arg4 (optional) = orig_file_path     -> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
     # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
-    def load(self, orig_file_name, new_file_path, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
+    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
 
         print('[Load Trajectory] Starting...')
 
@@ -282,9 +286,19 @@ class trajectory_manager():
         # Get min and max of trajectory in eV
         if orig_file_path[-1] != '/':
             fp += '/'
-        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name))
-        min_energy = int(xray.encoder2energy((-traj).min()))
-        max_energy = int(xray.encoder2energy((-traj).max()))
+
+        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name), header=None)
+        name = orig_file_name
+        if is_energy:
+            min_energy = int(np.round(traj).min())
+            max_energy = int(np.round(traj).max())
+            enc = np.int64(np.round(xray.energy2encoder(-traj, -offset)))
+            orig_file_name = '.energy_traj_aux.txt'
+            np.savetxt('{}{}'.format(orig_file_path, orig_file_name), enc, fmt='%d')
+        else:
+            min_energy = int(xray.encoder2energy((-traj).min()))
+            max_energy = int(xray.encoder2energy((-traj).max()))
+
         print('[Load Trajectory] Min energy: {}'.format(min_energy))
         print('[Load Trajectory] Max energy: {}'.format(max_energy))
 
@@ -335,7 +349,7 @@ class trajectory_manager():
                     print('[Load Trajectory] File sent OK')
                     s.sendline ('chown ftp:root /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
                     s.sendline ('chmod a+wrx /var/ftp/usrflash/lut/{}/{}'.format(new_file_path, new_file_name))
-                    s.sendline ('echo "{}\n{}\n{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, orig_file_name, min_energy, max_energy, new_file_path))
+                    s.sendline ('echo "{}\n{}\n{}\n{}" > /var/ftp/usrflash/lut/{}/hhm-size.txt'.format(file_size, name, min_energy, max_energy, new_file_path))
                     ttime.sleep(0.01)
                     ftp.close()
                     print('[Load Trajectory] Permissions OK')
