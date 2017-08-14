@@ -211,7 +211,7 @@ class trajectory():
         cs = interpolate.CubicSpline(self.time, self.energy, bc_type='clamped')
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
         self.energy_grid=cs(self.time_grid)
-        self.energy_grid_der=np.diff(self.energy_grid)
+        self.energy_grid_der=np.diff(self.energy_grid)/(self.time_grid[1] - self.time_grid[0])
 
     def revert(self):
         self.energy = self.energy[::-1]

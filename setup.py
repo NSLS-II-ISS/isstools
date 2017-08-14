@@ -11,7 +11,7 @@ setuptools.setup(
     url="https://github.com/NSLS-II-ISS/isstools",
     packages=setuptools.find_packages(),
     package_data={'isstools': ['ui/*.ui']},
-    install_requires=['netcdf4','pyparsing', 'pysmbc', 'pytable'], #needs zbarlight
+    #install_requires=['netcdf4','pyparsing', 'pysmbc', 'pytable'], #needs zbarlight
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3.4",
