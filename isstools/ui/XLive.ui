@@ -2291,7 +2291,7 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>460</y>
+        <y>500</y>
         <width>161</width>
         <height>51</height>
        </rect>
@@ -2347,7 +2347,7 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>520</y>
+        <y>560</y>
         <width>111</width>
         <height>41</height>
        </rect>
@@ -2360,7 +2360,7 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>580</y>
+        <y>610</y>
         <width>350</width>
         <height>91</height>
        </rect>
@@ -2467,13 +2467,33 @@ file and switch to
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>520</y>
+        <y>560</y>
         <width>141</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
        <string>Check Gains Scan</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_parse_after_scan">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>460</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Parse immediately after
+scan is done</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>

@@ -1576,21 +1576,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.toolbar._update_view()
             self.canvas.draw_idle()
 
-            # Run the scan using the dict created before
-            self.current_uid_list = self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax)
-
-            if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets':
-                return
-
-            if type(self.current_uid_list) != list:
-                self.current_uid_list = [self.current_uid_list]
 
             self.filepaths = []
-            for uid in self.current_uid_list:
-                self.parse_scans(uid)
-                self.create_log_scan()
+            self.current_uid_list = []
+            process_after_scan = self.checkBox_parse_after_scan.checkState()
 
-            if len(self.current_uid_list) and self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0: # Change to a control
+            # Run the scan using the dict created before
+            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
+
+                if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets':
+                    return
+
+                self.current_uid_list.append(uid)
+                if process_after_scan:
+                    self.parse_scans(uid)
+                    self.create_log_scan()
+            
+            if not process_after_scan:
+                for uid in self.current_uid_list:
+                    self.parse_scans(uid)
+                    self.create_log_scan()
+
+            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
                 self.tabWidget.setCurrentIndex(6)
                 self.selected_filename_bin = self.filepaths
                 self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in self.filepaths))
