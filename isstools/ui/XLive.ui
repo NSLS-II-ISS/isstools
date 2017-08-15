@@ -1342,8 +1342,8 @@ Offset</string>
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>200</y>
+        <x>30</x>
+        <y>220</y>
         <width>591</width>
         <height>491</height>
        </rect>
@@ -1369,7 +1369,7 @@ Offset</string>
           </font>
          </property>
          <property name="text">
-          <string>Scan range</string>
+          <string>Scan Range</string>
          </property>
         </widget>
        </item>
@@ -1468,8 +1468,8 @@ Offset</string>
      <widget class="QWidget" name="verticalLayoutWidget_10">
       <property name="geometry">
        <rect>
-        <x>650</x>
-        <y>200</y>
+        <x>660</x>
+        <y>220</y>
         <width>591</width>
         <height>491</height>
        </rect>
@@ -1480,13 +1480,26 @@ Offset</string>
       <property name="geometry">
        <rect>
         <x>660</x>
-        <y>30</y>
-        <width>431</width>
-        <height>162</height>
+        <y>10</y>
+        <width>491</width>
+        <height>204</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_8">
-       <item row="5" column="0" colspan="2">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_145">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Max Retries</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="2">
         <widget class="QPushButton" name="push_gen_scan">
          <property name="text">
           <string>Start</string>
@@ -1548,7 +1561,7 @@ Offset</string>
           </font>
          </property>
          <property name="text">
-          <string>Scan range</string>
+          <string>Scan Range</string>
          </property>
         </widget>
        </item>
@@ -1599,6 +1612,36 @@ Offset</string>
          </property>
          <property name="text">
           <string>General Scan</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_146">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Find Min/Max</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="spinBox_gen_scan_retries">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QCheckBox" name="checkBox_find_min_max">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

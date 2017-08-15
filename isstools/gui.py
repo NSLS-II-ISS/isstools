@@ -240,7 +240,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.enc_list = [x for x in self.det_dict if x.name in matches]
 
 
-        # Initialize 'tune' tab
+        # Initialize 'Scan / Tune' tab
         self.push_tune.clicked.connect(self.run_tune)
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.tune_funcs = tune_funcs
@@ -254,6 +254,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.mot_list = [motor.name for motor in self.motors_list]
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
+        self.checkBox_find_min_max.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
         self.comboBox_gen_det.addItems(self.det_sorted_list)
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
@@ -1345,7 +1346,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_gen_scan._update_view()
         self.canvas_gen_scan.draw_idle()
         self.canvas_gen_scan.motor = curr_mot
-        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, ax = self.figure_gen_scan.ax)
+        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, self.checkBox_find_min_max.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
     def process_detsig(self):
