@@ -206,19 +206,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 max_en = self.xia.mca_max_energy.value
                 energies = np.linspace(0, max_en, 2048)
                 #np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
-                self.edit_roi0_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi0.low.value] * 1000)))
-                self.edit_roi0_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(1)).roi0.high.value] * 1000)))
-                self.edit_roi1_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(2)).roi1.low.value] * 1000)))
-                self.edit_roi1_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(2)).roi1.high.value] * 1000)))
-                self.edit_roi2_from.setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca{}".format(3)).roi2.low.value] * 1000)))
-                self.edit_roi2_to.setText('{:.0f}'.format(np.ceil(energies[getattr(self.xia, "mca{}".format(3)).roi2.high.value] * 1000)))
 
-                self.edit_roi0_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi0_to.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi1_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi1_to.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi2_from.returnPressed.connect(self.update_xia_rois)
-                self.edit_roi2_to.returnPressed.connect(self.update_xia_rois)
+                self.roi_colors = []
+                for mult in range(4):
+                    self.roi_colors.append((.4 + (.2 * mult), 0, 0))
+                    self.roi_colors.append((0, .4 + (.2 * mult), 0))
+                    self.roi_colors.append((0, 0, .4 + (.2 * mult)))
+                    
+                for roi in range(12):
+                    low = getattr(self.xia, "mca1.roi{}".format(roi)).low.value
+                    high = getattr(self.xia, "mca1.roi{}".format(roi)).high.value
+                    if low > 0:
+                        getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).low.value] * 1000)))
+                    else:
+                        getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(low))
+                    if high > 0:
+                        getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).high.value] * 1000)))
+                    else:
+                        getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(high))
+
+                    label = getattr(self.xia, "mca1.roi{}".format(roi)).label.value
+                    getattr(self, 'edit_roi_name_{}'.format(roi)).setText(label)
+
+                    getattr(self, 'edit_roi_from_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+                    getattr(self, 'edit_roi_to_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+                    getattr(self, 'edit_roi_name_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+
                 self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
                 self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
                 for channel in self.xia_channels:
@@ -1696,19 +1709,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         xia_max_energy = self.db[self.current_uid]['start']['xia_max_energy']
                     else:
                         xia_max_energy = 20
-                    
+
                     self.figure.ax.clear()
                     self.toolbar._views.clear()
                     self.toolbar._positions.clear()
                     self.toolbar._update_view()
                     for mca_number in range(1, xia_parser.channelsCount() + 1):
-                        if 'xia1_mca{}_roi0_high'.format(mca_number) in xia_rois:
-                            aux = 'xia1_mca{}_roi'.format(mca_number)#\d{1}.*'
+                        if '{}_mca{}_roi0_high'.format(self.xia.name, mca_number) in xia_rois:
+                            aux = '{}_mca{}_roi'.format(self.xia.name, mca_number)#\d{1}.*'
                             regex = re.compile(aux + '\d{1}.*')
                             matches = [string for string in xia_rois if re.match(regex, string)]
                             rois_array = []
-                            for roi_number in range(int(len(matches)/2)):
-                                rois_array.append([xia_rois['xia1_mca{}_roi{}_high'.format(mca_number, roi_number)], xia_rois['xia1_mca{}_roi{}_low'.format(mca_number, roi_number)]])
+                            roi_numbers = [roi_number for roi_number in [roi.split('mca{}_roi'.format(mca_number))[1].split('_high')[0] for roi in xia_rois if len(roi.split('mca{}_roi'.format(mca_number))) > 1] if len(roi_number) <= 3]
+                            for roi_number in roi_numbers:
+                                rois_array.append([xia_rois['{}_mca{}_roi{}_high'.format(self.xia.name, mca_number, roi_number)], xia_rois['{}_mca{}_roi{}_low'.format(self.xia.name, mca_number, roi_number)]])
 
                             mcas.append(xia_parser.parse_roi(range(0, length), mca_number, rois_array, xia_max_energy))
                         else:
@@ -1718,12 +1732,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     for mca_number in range(1, xia_parser.channelsCount() + 1):
                         mcas.append(xia_parser.parse_roi(range(0, length), mca_number, [[6.7, 6.9]]))
 
-                for index_roi, roi in enumerate([[i for i in zip(*mcas)][k] for k in range(int(len(matches)/2))]):
+                for index_roi, roi in enumerate([[i for i in zip(*mcas)][ind] for ind, k in enumerate(roi_numbers)]):
                     xia_sum = [sum(i) for i in zip(*roi)]
                     if len(self.gen_parser.interp_arrays['energy']) > length:
                         xia_sum.extend([xia_sum[-1]] * (len(self.gen_parser.interp_arrays['energy']) - length))
-                    self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
-                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays['XIA_SUM_ROI{}'.format(index_roi)][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
+
+                    roi_label = getattr(self, 'edit_roi_name_{}'.format(roi_numbers[index_roi])).text()
+                    if not len(roi_label):
+                        roi_label = 'XIA_ROI{}'.format(roi_numbers[index_roi])
+                        
+                    self.gen_parser.interp_arrays[roi_label] = np.array([self.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
+                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(self.gen_parser.interp_arrays[roi_label][:, 1]/self.gen_parser.interp_arrays['i0'][:, 1]))
 
                 self.figure.ax.set_xlabel('Energy (eV)')
                 self.figure.ax.set_ylabel('XIA ROIs')
@@ -1974,10 +1993,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def erase_xia_graph(self):
         self.figure_xia_all_graphs.ax.clear()
 
-        if hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
-            del self.figure_xia_all_graphs.ax.roi0l, self.figure_xia_all_graphs.ax.roi0h,\
-                self.figure_xia_all_graphs.ax.roi1l, self.figure_xia_all_graphs.ax.roi1h,\
-                self.figure_xia_all_graphs.ax.roi2l, self.figure_xia_all_graphs.ax.roi2h
+
+        for roi in range(12):
+            if hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
+                exec('del self.figure_xia_all_graphs.ax.roi{}l,\
+                    self.figure_xia_all_graphs.ax.roi{}h'.format(roi, roi))
 
         self.toolbar_xia_all_graphs._views.clear()
         self.toolbar_xia_all_graphs._positions.clear()
@@ -1996,48 +2016,37 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def update_xia_rois(self):
         energies = np.linspace(0, float(self.edit_xia_energy_range.text()) / 1000, 2048)
 
-        indexes_array = np.where((energies >= float(self.edit_roi0_from.text()) / 1000) & (energies <= float(self.edit_roi0_to.text()) / 1000) == True)[0]
-        if len(indexes_array):
-            start0 = indexes_array.min()
-            end0 = indexes_array.max()
-
-        indexes_array = np.where((energies >= float(self.edit_roi1_from.text()) / 1000) & (energies <= float(self.edit_roi1_to.text()) / 1000) == True)[0]
-        if len(indexes_array):
-            start1 = indexes_array.min()
-            end1 = indexes_array.max()
-
-        indexes_array = np.where((energies >= float(self.edit_roi2_from.text()) / 1000) & (energies <= float(self.edit_roi2_to.text()) / 1000) == True)[0]
-        if len(indexes_array):
-            start2 = indexes_array.min()
-            end2 = indexes_array.max()
+        for roi in range(12):
+            if float(getattr(self, 'edit_roi_from_{}'.format(roi)).text()) < 0 or float(getattr(self, 'edit_roi_to_{}'.format(roi)).text()) < 0:
+                exec('start{} = -1'.format(roi))
+                exec('end{} = -1'.format(roi))
+            else:
+                indexes_array = np.where((energies >= float(getattr(self, 'edit_roi_from_{}'.format(roi)).text()) / 1000) & (energies <= float(getattr(self, 'edit_roi_to_{}'.format(roi)).text()) / 1000) == True)[0]
+                if len(indexes_array):
+                    exec('start{} = indexes_array.min()'.format(roi))
+                    exec('end{} = indexes_array.max()'.format(roi))
+                else:
+                    exec('start{} = -1'.format(roi))
+                    exec('end{} = -1'.format(roi))
+            exec('roi{}x = [float(self.edit_roi_from_{}.text()), float(self.edit_roi_to_{}.text())]'.format(roi, roi, roi))
+            exec('label{} = self.edit_roi_name_{}.text()'.format(roi, roi))
 
         for channel in self.xia_channels:
-            getattr(self.xia, "mca{}".format(channel)).roi0.low.put(start0)
-            getattr(self.xia, "mca{}".format(channel)).roi0.high.put(end0)
-            getattr(self.xia, "mca{}".format(channel)).roi1.low.put(start1)
-            getattr(self.xia, "mca{}".format(channel)).roi1.high.put(end1)
-            getattr(self.xia, "mca{}".format(channel)).roi2.low.put(start2)
-            getattr(self.xia, "mca{}".format(channel)).roi2.high.put(end2)
+            for roi in range(12):
+                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).low.put(eval('start{}'.format(roi)))
+                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).high.put(eval('end{}'.format(roi)))
+                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).label.put(eval('label{}'.format(roi)))
 
-        roi0x = [float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text())]
-        roi1x = [float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text())]
-        roi2x = [float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text())]
+        for roi in range(12):
+            if not hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
+                exec('self.figure_xia_all_graphs.ax.roi{}l = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[0], color=self.roi_colors[roi])'.format(roi, roi))
+                exec('self.figure_xia_all_graphs.ax.roi{}h = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[1], color=self.roi_colors[roi])'.format(roi, roi))
 
-        if not hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
-            self.figure_xia_all_graphs.ax.roi0l = self.figure_xia_all_graphs.ax.axvline(x=roi0x[0], color='r')
-            self.figure_xia_all_graphs.ax.roi0h = self.figure_xia_all_graphs.ax.axvline(x=roi0x[1], color='r')
-            self.figure_xia_all_graphs.ax.roi1l = self.figure_xia_all_graphs.ax.axvline(x=roi1x[0], color='b')
-            self.figure_xia_all_graphs.ax.roi1h = self.figure_xia_all_graphs.ax.axvline(x=roi1x[1], color='b')
-            self.figure_xia_all_graphs.ax.roi2l = self.figure_xia_all_graphs.ax.axvline(x=roi2x[0], color='g')
-            self.figure_xia_all_graphs.ax.roi2h = self.figure_xia_all_graphs.ax.axvline(x=roi2x[1], color='g')
-        else:
-            self.figure_xia_all_graphs.ax.roi0l.set_xdata([roi0x[0], roi0x[0]])
-            self.figure_xia_all_graphs.ax.roi0h.set_xdata([roi0x[1], roi0x[1]])
-            self.figure_xia_all_graphs.ax.roi1l.set_xdata([roi1x[0], roi1x[0]])
-            self.figure_xia_all_graphs.ax.roi1h.set_xdata([roi1x[1], roi1x[1]])
-            self.figure_xia_all_graphs.ax.roi2l.set_xdata([roi2x[0], roi2x[0]])
-            self.figure_xia_all_graphs.ax.roi2h.set_xdata([roi2x[1], roi2x[1]])
+            else:
+                exec('self.figure_xia_all_graphs.ax.roi{}l.set_xdata([roi{}x[0], roi{}x[0]])'.format(roi, roi, roi))
+                exec('self.figure_xia_all_graphs.ax.roi{}h.set_xdata([roi{}x[1], roi{}x[1]])'.format(roi, roi, roi))
 
+        self.figure_xia_all_graphs.ax.grid(True)
         self.canvas_xia_all_graphs.draw_idle()
 
     def update_xia_acqtime_pv(self):
@@ -2052,10 +2061,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if len(self.figure_xia_all_graphs.ax.lines):
             if float(self.edit_xia_energy_range.text()) != self.figure_xia_all_graphs.ax.lines[0].get_xdata()[-1]:
                 self.figure_xia_all_graphs.ax.clear()
-                if hasattr(self.figure_xia_all_graphs.ax, 'roi0l'):
-                    del self.figure_xia_all_graphs.ax.roi0l, self.figure_xia_all_graphs.ax.roi0h,\
-                        self.figure_xia_all_graphs.ax.roi1l, self.figure_xia_all_graphs.ax.roi1h,\
-                        self.figure_xia_all_graphs.ax.roi2l, self.figure_xia_all_graphs.ax.roi2h
+                for roi in range(12):
+                    if hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
+                        exec('del self.figure_xia_all_graphs.ax.roi{}l,\
+                            self.figure_xia_all_graphs.ax.roi{}h'.format(roi, roi))
 
                 self.toolbar_xia_all_graphs._views.clear()
                 self.toolbar_xia_all_graphs._positions.clear()
@@ -2083,16 +2092,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
 
             if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels) != 0:
-                roi0x = [float(self.edit_roi0_from.text()), float(self.edit_roi0_to.text())]
-                roi1x = [float(self.edit_roi1_from.text()), float(self.edit_roi1_to.text())]
-                roi2x = [float(self.edit_roi2_from.text()), float(self.edit_roi2_to.text())]
+                for roi in range(12):
+                    exec('roi{}x = [float(self.edit_roi_from_{}.text()), float(self.edit_roi_to_{}.text())]'.format(roi, roi, roi))
 
-                self.figure_xia_all_graphs.ax.roi0l = self.figure_xia_all_graphs.ax.axvline(x=roi0x[0], color='r')
-                self.figure_xia_all_graphs.ax.roi0h = self.figure_xia_all_graphs.ax.axvline(x=roi0x[1], color='r')
-                self.figure_xia_all_graphs.ax.roi1l = self.figure_xia_all_graphs.ax.axvline(x=roi1x[0], color='b')
-                self.figure_xia_all_graphs.ax.roi1h = self.figure_xia_all_graphs.ax.axvline(x=roi1x[1], color='b')
-                self.figure_xia_all_graphs.ax.roi2l = self.figure_xia_all_graphs.ax.axvline(x=roi2x[0], color='g')
-                self.figure_xia_all_graphs.ax.roi2h = self.figure_xia_all_graphs.ax.axvline(x=roi2x[1], color='g')
+                for roi in range(12):
+                    if not hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
+                        exec('self.figure_xia_all_graphs.ax.roi{}l = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[0], color=self.roi_colors[roi])'.format(roi, roi))
+                        exec('self.figure_xia_all_graphs.ax.roi{}h = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[1], color=self.roi_colors[roi])'.format(roi, roi))
 
                 self.figure_xia_all_graphs.ax.grid(True)
 
@@ -2917,7 +2923,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     
                                     if 'comment' in scans[scan]:
                                         old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{} - {} - {} - {}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                        scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample, scans[scan]['comment'], traj_name[:traj_name.find('.txt')], rep + 1)
                     
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -2981,7 +2987,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         self.run_prep_traj()
         
                                     old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{} - {} - {} - {}'.format(scans[scan]['comment'], sample, traj_name[:traj_name.find('.txt')], rep + 1)
+                                    scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample, scans[scan]['comment'], traj_name[:traj_name.find('.txt')], rep + 1)
         
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -3112,7 +3118,7 @@ class process_batch_thread(QThread):
                                                          xanes_spacing, 
                                                          exafs_spacing)
 
-                        sample_name = self.gui.db[uid]['start']['comment'].split(' - ')[1]
+                        sample_name = self.gui.db[uid]['start']['comment'].split(' - ')[0]
 
                         if sample_name in self.gui.batch_results:
                             self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)
