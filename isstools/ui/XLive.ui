@@ -1658,7 +1658,7 @@ Offset</string>
         <x>40</x>
         <y>300</y>
         <width>591</width>
-        <height>511</height>
+        <height>491</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_gain_matching"/>
@@ -2062,7 +2062,7 @@ Offset</string>
         <x>650</x>
         <y>140</y>
         <width>881</width>
-        <height>671</height>
+        <height>651</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_xia_all_graphs"/>
@@ -2070,15 +2070,27 @@ Offset</string>
      <widget class="QWidget" name="gridLayoutWidget_25">
       <property name="geometry">
        <rect>
-        <x>970</x>
-        <y>820</y>
-        <width>201</width>
-        <height>98</height>
+        <x>650</x>
+        <y>800</y>
+        <width>281</width>
+        <height>125</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_35">
        <item row="1" column="2">
-        <widget class="QLineEdit" name="edit_roi0_to">
+        <widget class="QLineEdit" name="edit_roi_to_0">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>20000</string>
          </property>
@@ -2099,7 +2111,19 @@ Offset</string>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="edit_roi0_from">
+        <widget class="QLineEdit" name="edit_roi_from_0">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>0</string>
          </property>
@@ -2120,14 +2144,38 @@ Offset</string>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="edit_roi1_from">
+        <widget class="QLineEdit" name="edit_roi_from_1">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>6500</string>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QLineEdit" name="edit_roi1_to">
+        <widget class="QLineEdit" name="edit_roi_to_1">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>7000</string>
          </property>
@@ -2141,16 +2189,120 @@ Offset</string>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_roi2_from">
+        <widget class="QLineEdit" name="edit_roi_from_2">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>7000</string>
          </property>
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QLineEdit" name="edit_roi2_to">
+        <widget class="QLineEdit" name="edit_roi_to_2">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>7600</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_3">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_3">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7200</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_152">
+         <property name="text">
+          <string>ROI 3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_0">
+         <property name="text">
+          <string>XIA_ROI0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_1">
+         <property name="text">
+          <string>XIA_ROI1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_2">
+         <property name="text">
+          <string>XIA_ROI2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_3">
+         <property name="text">
+          <string>XIA_ROI3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_154">
+         <property name="text">
+          <string>ROI Name</string>
          </property>
         </widget>
        </item>
@@ -2252,6 +2404,488 @@ Offset</string>
       <property name="text">
        <string>Run</string>
       </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_27">
+      <property name="geometry">
+       <rect>
+        <x>950</x>
+        <y>800</y>
+        <width>281</width>
+        <height>125</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_38">
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_4">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>20000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_155">
+         <property name="text">
+          <string>ROI 4</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_156">
+         <property name="text">
+          <string>ROI 5</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_4">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_157">
+         <property name="text">
+          <string>From (eV)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_158">
+         <property name="text">
+          <string>To (eV)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_5">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>6500</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_5">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_159">
+         <property name="text">
+          <string>ROI 6</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_6">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_6">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7600</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_7">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_7">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7200</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_160">
+         <property name="text">
+          <string>ROI 7</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_4">
+         <property name="text">
+          <string>XIA_ROI4</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_5">
+         <property name="text">
+          <string>XIA_ROI5</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_6">
+         <property name="text">
+          <string>XIA_ROI6</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_7">
+         <property name="text">
+          <string>XIA_ROI7</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_161">
+         <property name="text">
+          <string>ROI Name</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_28">
+      <property name="geometry">
+       <rect>
+        <x>1250</x>
+        <y>800</y>
+        <width>281</width>
+        <height>125</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_39">
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_8">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>20000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_162">
+         <property name="text">
+          <string>ROI 8</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_163">
+         <property name="text">
+          <string>ROI 9</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_8">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_164">
+         <property name="text">
+          <string>From (eV)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_165">
+         <property name="text">
+          <string>To (eV)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_9">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>6500</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_9">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_166">
+         <property name="text">
+          <string>ROI 10</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_10">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_10">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7600</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_roi_from_11">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7000</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="edit_roi_to_11">
+         <property name="minimumSize">
+          <size>
+           <width>63</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>63</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>7200</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_167">
+         <property name="text">
+          <string>ROI 11</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_8">
+         <property name="text">
+          <string>XIA_ROI8</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_9">
+         <property name="text">
+          <string>XIA_ROI9</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_10">
+         <property name="text">
+          <string>XIA_ROI10</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="edit_roi_name_11">
+         <property name="text">
+          <string>XIA_ROI11</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_168">
+         <property name="text">
+          <string>ROI Name</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
