@@ -10,6 +10,7 @@ from matplotlib.widgets import Cursor
 from matplotlib import gridspec
 import matplotlib.patches as mpatches
 from scipy.optimize import curve_fit
+from datetime import datetime
 
 import pkg_resources
 import time as ttime
@@ -18,16 +19,12 @@ from subprocess import call
 
 from ophyd import (Component as Cpt, EpicsSignal, EpicsSignalRO, EpicsMotor)
 
-from isstools.trajectory.trajectory  import trajectory
-from isstools.trajectory.trajectory import trajectory_manager
+from isstools.trajectory.trajectory  import trajectory, trajectory_manager
 from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 from isstools.elements import elements
-from isstools.dialogs import UpdateUserDialog
-from isstools.dialogs import UpdatePiezoDialog
-from isstools.dialogs import UpdateAngleOffset
-from isstools.dialogs import MoveMotorDialog
-from isstools.dialogs import Prepare_BL_Dialog
+from isstools.dialogs import (UpdateUserDialog, UpdatePiezoDialog, 
+    UpdateAngleOffset, MoveMotorDialog, Prepare_BL_Dialog)
 from isstools.conversions import xray
 from isstools.pid import PID
 from isstools.batch.batch import BatchManager
@@ -65,7 +62,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], tune_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {}, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {}, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -103,7 +100,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_re_abort.setEnabled(False)
             self.run_start.setEnabled(False)
             self.run_check_gains.setEnabled(False)
-            self.tabWidget.setTabEnabled(2, False)
+            #self.tabWidget.setTabEnabled(2, False)
 
         self.db = db
         if self.db is None:
@@ -140,7 +137,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.hhm.fb_status.subscribe(self.update_fb_status)
         else:
             self.tabWidget.setTabEnabled(1, False)
-            self.tabWidget.setTabEnabled(5, False)
+            self.tabWidget.setTabEnabled(4, False)
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
@@ -188,7 +185,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if self.xia_list == []:
-            self.tabWidget.setTabEnabled(3, False)
+            self.tabWidget.setTabEnabled(2, False)
             self.xia = None
         else:
             self.xia = self.xia_list[0]
@@ -254,24 +251,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Initialize 'Scan / Tune' tab
-        self.push_tune.clicked.connect(self.run_tune)
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.tune_funcs = tune_funcs
-        self.tune_funcs_names = [tune.__name__ for tune in tune_funcs]
-        self.comboBox_4.addItems(self.tune_funcs_names)
-        if len(self.tune_funcs_names) == 0:
-            self.push_tune.setEnabled(0) # Disable tune if no functions are passed
+        self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
+        self.last_gen_scan_uid = ''
         self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
         self.mot_list = [motor.name for motor in self.motors_list]
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
-        self.checkBox_find_min_max.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
+        self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
         self.comboBox_gen_det.addItems(self.det_sorted_list)
+        self.comboBox_gen_det_den.addItem('1')
+        self.comboBox_gen_det_den.addItems(self.det_sorted_list)
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
+        self.comboBox_gen_det_den.currentIndexChanged.connect(self.process_detsig_den)
         self.process_detsig()
+        self.process_detsig_den()
         found_bpm = 0
         for i in range(self.comboBox_gen_det.count()):
             if 'bpm_es' == list(self.det_dict.keys())[i].name:
@@ -282,11 +279,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.checkBox_piezo_fb.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
-                self.tabWidget.setTabEnabled(4, False)
+                self.tabWidget.setTabEnabled(3, False)
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
-        if not self.push_gen_scan.isEnabled() and not self.push_tune.isEnabled():
-            self.tabWidget.setTabEnabled(2, False)
+        #if not self.push_gen_scan.isEnabled() and not self.push_tune.isEnabled():
+        #    self.tabWidget.setTabEnabled(2, False)
 
         # Initialize persistent values
         self.settings = QSettings('ISS Beamline', 'XLive')
@@ -1192,16 +1189,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
         self.canvas_full_trajectory.draw_idle()
 
-        self.figure_tune = Figure()
-        self.figure_tune.set_facecolor(color='#FcF9F6')
-        self.canvas_tune = FigureCanvas(self.figure_tune)
-        self.figure_tune.ax = self.figure_tune.add_subplot(111)
-        self.toolbar_tune = NavigationToolbar(self.canvas_tune, self.tab_2, coordinates=True)
-        self.plot_tune.addWidget(self.toolbar_tune)
-        self.plot_tune.addWidget(self.canvas_tune)
-        self.canvas_tune.draw_idle()
-        self.cursor_tune = Cursor(self.figure_tune.ax, useblit=True, color='green', linewidth=0.75 )
-
         self.figure_gen_scan = Figure()
         self.figure_gen_scan.set_facecolor(color='#FcF9F6')
         self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
@@ -1312,8 +1299,104 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_tune._positions.clear()
         self.toolbar_tune._update_view()
         self.canvas_tune.draw_idle()
-        self.tune_funcs[self.comboBox_4.currentIndex()](float(self.edit_tune_range.text()), float(self.edit_tune_step.text()), self.spinBox_tune_retries.value(), ax = self.figure_tune.ax)
 
+    def save_gen_scan(self):
+        run = self.db[self.last_gen_scan_uid]
+        self.user_directory = '/GPFS/xf08id/User Data/{}.{}.{}/'\
+                                .format(run['start']['year'],
+                                        run['start']['cycle'],
+                                        run['start']['PROPOSAL'])
+
+        #last_table = self.db.get_table(run)
+
+        detectors_names = []
+        for detector in run['start']['plan_args']['detectors']:
+            text = detector.split('name=')[1]
+            detectors_names.append(text[1: text.find('\'', 1)])
+
+        numerator_name = detectors_names[0]
+        denominator_name = ''
+        if len(detectors_names) > 1:
+            denominator_name = detectors_names[1]
+
+        text = run['start']['plan_args']['motor'].split('name=')[1]
+        motor_name = text[1: text.find('\'', 1)]
+
+        numerator_devname = ''
+        denominator_devname = ''
+        for descriptor in run['descriptors']:
+            if 'data_keys' in descriptor:
+                if numerator_name in descriptor['data_keys']:
+                    numerator_devname = descriptor['data_keys'][numerator_name]['devname']
+                if denominator_name in descriptor['data_keys']:
+                    denominator_devname = descriptor['data_keys'][denominator_name]['devname']
+
+        ydata = []
+        xdata = []
+        for line in self.figure_gen_scan.ax.lines:
+            ydata.extend(line.get_ydata())
+            xdata.extend(line.get_xdata())
+
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save scan...', self.user_directory, '*.txt')[0]
+        if filename[-4:] != '.txt':
+            filename += '.txt'
+
+        start = run['start']
+
+        year = start['year']
+        cycle = start['cycle']
+        saf = start['SAF']
+        pi = start['PI']
+        proposal = start['PROPOSAL']
+        scan_id = start['scan_id']
+        real_uid = start['uid']
+        start_time = start['time']
+        stop_time = run['stop']['time']
+
+        human_start_time = str(datetime.fromtimestamp(start_time).strftime('%m/%d/%Y  %H:%M:%S'))
+        human_stop_time = str(datetime.fromtimestamp(stop_time).strftime('%m/%d/%Y  %H:%M:%S'))
+        human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
+
+        if len(numerator_devname):
+            numerator_name = numerator_devname
+        result_name = numerator_name
+        if len(denominator_name):
+            if len(denominator_devname):
+                denominator_name = denominator_devname
+            result_name += '/{}'.format(denominator_name)
+
+        header = '{}  {}'.format(motor_name, result_name)
+        comments = '# Year: {}\n'\
+                 '# Cycle: {}\n'\
+                 '# SAF: {}\n'\
+                 '# PI: {}\n'\
+                 '# PROPOSAL: {}\n'\
+                 '# Scan ID: {}\n'\
+                 '# UID: {}\n'\
+                 '# Start time: {}\n'\
+                 '# Stop time: {}\n'\
+                 '# Total time: {}\n#\n# '.format(year,
+                                                  cycle,
+                                                  saf,
+                                                  pi,
+                                                  proposal,
+                                                  scan_id,
+                                                  real_uid,
+                                                  human_start_time,
+                                                  human_stop_time,
+                                                  human_duration)
+
+        matrix = np.array([xdata, ydata]).transpose()
+        matrix = self.gen_parser.data_manager.sort_data(matrix, 0)
+
+        fmt = ' '.join(['%d' if array.dtype == np.dtype('int64') else '%.6f' for array in [np.array(xdata), np.array(ydata)]])
+
+        np.savetxt(filename, 
+                   np.array([xdata, ydata]).transpose(), 
+                   delimiter=" ", 
+                   header = header,
+                   fmt = fmt,
+                   comments = comments)
 
     def run_gen_scan(self):
         for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
@@ -1326,6 +1409,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         curr_det = ''
         curr_mot = ''
+        detectors = []
         
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
@@ -1333,9 +1417,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
                 if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].dev_name.value:
                     curr_det = list(self.det_dict.keys())[i]
+                    detectors.append(curr_det)
+                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].dev_name.value:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detectors.append(curr_det)
             else:
                 if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
                     curr_det = list(self.det_dict.keys())[i]
+                    detectors.append(curr_det)
+                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].name:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detectors.append(curr_det)
 
         for i in range(self.comboBox_gen_mot.count()):
             if self.comboBox_gen_mot.currentText() == self.mot_list[i]:
@@ -1359,8 +1451,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar_gen_scan._update_view()
         self.canvas_gen_scan.draw_idle()
         self.canvas_gen_scan.motor = curr_mot
-        self.gen_scan_func(curr_det, self.comboBox_gen_detsig.currentText(), curr_mot, rel_start, rel_stop, num_steps, self.checkBox_find_min_max.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax)
+
+        result_name = self.comboBox_gen_det.currentText()
+        if self.comboBox_gen_det_den.currentText() != '1':
+            result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
+
+        self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+
+        self.last_gen_scan_uid = self.db[-1]['start']['uid']
+        self.push_gen_scan_save.setEnabled(True)
 
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
@@ -1375,6 +1475,27 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     curr_det = list(self.det_dict.keys())[i]
                     detsig = self.det_dict[curr_det]
                     self.comboBox_gen_detsig.addItems(detsig)
+
+    def process_detsig_den(self):
+        self.comboBox_gen_detsig_den.clear()
+        for i in range(self.comboBox_gen_det_den.count() - 1):
+            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].dev_name.value:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detsig = self.det_dict[curr_det]
+                    self.comboBox_gen_detsig_den.addItems(detsig)
+            else:
+                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].name:
+                    curr_det = list(self.det_dict.keys())[i]
+                    detsig = self.det_dict[curr_det]
+                    self.comboBox_gen_detsig_den.addItems(detsig)
+        if self.comboBox_gen_det_den.currentText() == '1':
+            self.comboBox_gen_detsig_den.addItem('1')
+            self.checkBox_tune.setEnabled(True)
+        else:
+            self.checkBox_tune.setChecked(False)
+            self.checkBox_tune.setEnabled(False)
+            
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
