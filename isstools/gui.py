@@ -262,6 +262,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.mot_sorted_list.sort()
         self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
         self.comboBox_gen_det.addItems(self.det_sorted_list)
+        self.comboBox_gen_det_den.addItem('1')
         self.comboBox_gen_det_den.addItems(self.det_sorted_list)
         self.comboBox_gen_mot.addItems(self.mot_sorted_list)
         self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
@@ -1477,7 +1478,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def process_detsig_den(self):
         self.comboBox_gen_detsig_den.clear()
-        for i in range(self.comboBox_gen_det_den.count()):
+        for i in range(self.comboBox_gen_det_den.count() - 1):
             if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
                 if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].dev_name.value:
                     curr_det = list(self.det_dict.keys())[i]
@@ -1488,6 +1489,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     curr_det = list(self.det_dict.keys())[i]
                     detsig = self.det_dict[curr_det]
                     self.comboBox_gen_detsig_den.addItems(detsig)
+        if self.comboBox_gen_det_den.currentText() == '1':
+            self.comboBox_gen_detsig_den.addItem('1')
+            self.checkBox_tune.setEnabled(True)
+        else:
+            self.checkBox_tune.setChecked(False)
+            self.checkBox_tune.setEnabled(False)
+            
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
