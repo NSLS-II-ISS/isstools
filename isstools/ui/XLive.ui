@@ -39,7 +39,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_11">
      <attribute name="title">
@@ -99,6 +99,243 @@ Parameters</string>
        <string>Set Center
 to Curr. Position</string>
       </property>
+     </widget>
+     <widget class="QPushButton" name="push_gen_scan">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>410</y>
+        <width>294</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_10">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>440</y>
+        <width>591</width>
+        <height>461</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="plot_gen_scan"/>
+     </widget>
+     <widget class="QPushButton" name="push_gen_scan_save">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>410</y>
+        <width>191</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save Scan</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>200</y>
+        <width>491</width>
+        <height>201</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_108">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Numerator</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="edit_gen_step">
+         <property name="text">
+          <string>0.05</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QComboBox" name="comboBox_gen_detsig">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_109">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Motor</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_145">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Max Retries</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="comboBox_gen_mot">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_110">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Scan Range</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="comboBox_gen_det">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_gen_range">
+         <property name="text">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_111">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Step Size</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QSpinBox" name="spinBox_gen_scan_retries">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QCheckBox" name="checkBox_tune">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="3">
+        <widget class="QLabel" name="label_107">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>General Scan</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_146">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Tune</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="comboBox_gen_det_den">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QComboBox" name="comboBox_gen_detsig_den">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_112">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Denominator</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
@@ -474,7 +711,7 @@ to Curr. Position</string>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_8">
        <attribute name="title">
@@ -1329,319 +1566,6 @@ Offset</string>
         <widget class="QLabel" name="label_113">
          <property name="text">
           <string>Edge</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_5">
-     <attribute name="title">
-      <string>Scan / Tune</string>
-     </attribute>
-     <widget class="QWidget" name="verticalLayoutWidget_5">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>220</y>
-        <width>591</width>
-        <height>491</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="plot_tune"/>
-     </widget>
-     <widget class="QWidget" name="formLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>30</y>
-        <width>291</width>
-        <height>162</height>
-       </rect>
-      </property>
-      <layout class="QFormLayout" name="formLayout">
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_59">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Scan Range</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_60">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Step Size</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="edit_tune_range">
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_tune_step">
-         <property name="text">
-          <string>0.05</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QPushButton" name="push_tune">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_38">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Tuning Type</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_4">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_61">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Max Retries</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="spinBox_tune_retries">
-         <property name="value">
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QLabel" name="label_112">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Tuning Scan</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="verticalLayoutWidget_10">
-      <property name="geometry">
-       <rect>
-        <x>660</x>
-        <y>220</y>
-        <width>591</width>
-        <height>491</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="plot_gen_scan"/>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>660</x>
-        <y>10</y>
-        <width>491</width>
-        <height>204</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_8">
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_145">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Max Retries</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="2">
-        <widget class="QPushButton" name="push_gen_scan">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_108">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Detector</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_gen_det">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_109">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Motor</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="comboBox_gen_mot">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_110">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Scan Range</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_gen_range">
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_111">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Step Size</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="edit_gen_step">
-         <property name="text">
-          <string>0.05</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QComboBox" name="comboBox_gen_detsig">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="3">
-        <widget class="QLabel" name="label_107">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>General Scan</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_146">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Find Min/Max</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QSpinBox" name="spinBox_gen_scan_retries">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="value">
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QCheckBox" name="checkBox_find_min_max">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>
@@ -4956,52 +4880,41 @@ the edge</string>
  <tabstops>
   <tabstop>push_update_user</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>push_prepare_bl</tabstop>
+  <tabstop>checkBox_piezo_fb</tabstop>
+  <tabstop>update_piezo</tabstop>
+  <tabstop>push_update_piezo_center</tabstop>
+  <tabstop>comboBox_gen_det</tabstop>
+  <tabstop>comboBox_gen_detsig</tabstop>
+  <tabstop>comboBox_gen_det_den</tabstop>
+  <tabstop>comboBox_gen_detsig_den</tabstop>
+  <tabstop>comboBox_gen_mot</tabstop>
+  <tabstop>edit_gen_range</tabstop>
+  <tabstop>edit_gen_step</tabstop>
+  <tabstop>spinBox_gen_scan_retries</tabstop>
+  <tabstop>checkBox_tune</tabstop>
+  <tabstop>push_gen_scan</tabstop>
+  <tabstop>push_gen_scan_save</tabstop>
   <tabstop>tabWidget_2</tabstop>
+  <tabstop>edit_ds_pree_duration</tabstop>
+  <tabstop>edit_ds_poste_duration</tabstop>
+  <tabstop>edit_ds2_pree_duration</tabstop>
+  <tabstop>edit_ds2_poste_duration</tabstop>
+  <tabstop>edit_vel_edge</tabstop>
   <tabstop>edit_preedge_hi</tabstop>
   <tabstop>edit_edge_hi</tabstop>
   <tabstop>edit_preedge_stitch_lo</tabstop>
   <tabstop>edit_preedge_stitch_hi</tabstop>
   <tabstop>edit_edge_stitch_lo</tabstop>
   <tabstop>edit_edge_stitch_hi</tabstop>
-  <tabstop>edit_postedge_stitch_lo</tabstop>
-  <tabstop>edit_postedge_stitch_hi</tabstop>
-  <tabstop>edit_velocity_preedge</tabstop>
-  <tabstop>edit_velocity_edge</tabstop>
-  <tabstop>edit_velocity_postedge</tabstop>
-  <tabstop>edit_padding_postedge</tabstop>
-  <tabstop>edit_padding_preedge</tabstop>
-  <tabstop>comboBoxElement</tabstop>
-  <tabstop>comboBoxEdge</tabstop>
-  <tabstop>spinBox_tiling_repetitions</tabstop>
-  <tabstop>edit_E0</tabstop>
-  <tabstop>edit_preedge_lo</tabstop>
-  <tabstop>edit_postedge_hi</tabstop>
-  <tabstop>push_update_offset</tabstop>
-  <tabstop>push_build_trajectory</tabstop>
-  <tabstop>push_save_trajectory</tabstop>
-  <tabstop>label_56</tabstop>
-  <tabstop>push_select_traj_file</tabstop>
-  <tabstop>push_plot_traj</tabstop>
-  <tabstop>comboBox_2</tabstop>
-  <tabstop>push_load_trajectory</tabstop>
-  <tabstop>comboBox_3</tabstop>
   <tabstop>push_init_trajectory</tabstop>
+  <tabstop>edit_postedge_stitch_lo</tabstop>
+  <tabstop>comboBox_3</tabstop>
   <tabstop>push_read_traj_info</tabstop>
   <tabstop>push_prepare_trajectory</tabstop>
   <tabstop>edit_sine_total_duration</tabstop>
-  <tabstop>edit_ds_pree_duration</tabstop>
-  <tabstop>edit_ds_poste_duration</tabstop>
-  <tabstop>comboBox_4</tabstop>
-  <tabstop>edit_tune_range</tabstop>
-  <tabstop>edit_tune_step</tabstop>
-  <tabstop>spinBox_tune_retries</tabstop>
-  <tabstop>push_tune</tabstop>
-  <tabstop>comboBox_gen_det</tabstop>
-  <tabstop>comboBox_gen_detsig</tabstop>
-  <tabstop>comboBox_gen_mot</tabstop>
-  <tabstop>edit_gen_range</tabstop>
-  <tabstop>edit_gen_step</tabstop>
-  <tabstop>push_gen_scan</tabstop>
+  <tabstop>spinBox_tiling_repetitions</tabstop>
+  <tabstop>edit_E0</tabstop>
   <tabstop>edit_center_gain_matching</tabstop>
   <tabstop>edit_gain_matching_target</tabstop>
   <tabstop>edit_range_gain_matching</tabstop>
@@ -5016,8 +4929,8 @@ the edge</string>
   <tabstop>comboBox_samp_time</tabstop>
   <tabstop>lineEdit_samp_time</tabstop>
   <tabstop>lineEdit_xia_samp</tabstop>
-  <tabstop>checkBox_piezo_fb</tabstop>
-  <tabstop>update_piezo</tabstop>
+  <tabstop>push_build_trajectory</tabstop>
+  <tabstop>push_save_trajectory</tabstop>
   <tabstop>lineEdit_sample_name</tabstop>
   <tabstop>doubleSpinBox_sample_x</tabstop>
   <tabstop>doubleSpinBox_sample_y</tabstop>
@@ -5043,6 +4956,114 @@ the edge</string>
   <tabstop>push_replot_exafs</tabstop>
   <tabstop>push_re_abort</tabstop>
   <tabstop>textEdit_terminal</tabstop>
+  <tabstop>edit_preedge_lo</tabstop>
+  <tabstop>edit_postedge_hi</tabstop>
+  <tabstop>push_update_offset</tabstop>
+  <tabstop>checkBox_traj_single_dir</tabstop>
+  <tabstop>checkBox_traj_revert</tabstop>
+  <tabstop>checkBox_gm_ch4</tabstop>
+  <tabstop>checkBox_gm_ch5</tabstop>
+  <tabstop>checkBox_gm_ch2</tabstop>
+  <tabstop>checkBox_gm_ch9</tabstop>
+  <tabstop>checkBox_gm_ch3</tabstop>
+  <tabstop>checkBox_gm_ch6</tabstop>
+  <tabstop>checkBox_gm_ch7</tabstop>
+  <tabstop>checkBox_gm_ch8</tabstop>
+  <tabstop>checkBox_gm_ch10</tabstop>
+  <tabstop>checkBox_gm_ch11</tabstop>
+  <tabstop>checkBox_gm_ch12</tabstop>
+  <tabstop>checkBox_gm_ch13</tabstop>
+  <tabstop>checkBox_gm_ch14</tabstop>
+  <tabstop>checkBox_gm_ch15</tabstop>
+  <tabstop>checkBox_gm_ch16</tabstop>
+  <tabstop>push_chackall_xia</tabstop>
+  <tabstop>edit_roi_to_0</tabstop>
+  <tabstop>edit_roi_from_0</tabstop>
+  <tabstop>edit_roi_from_1</tabstop>
+  <tabstop>edit_roi_to_1</tabstop>
+  <tabstop>edit_roi_from_2</tabstop>
+  <tabstop>edit_roi_to_2</tabstop>
+  <tabstop>edit_roi_from_3</tabstop>
+  <tabstop>edit_roi_to_3</tabstop>
+  <tabstop>edit_roi_name_0</tabstop>
+  <tabstop>edit_roi_name_1</tabstop>
+  <tabstop>edit_roi_name_2</tabstop>
+  <tabstop>edit_roi_name_3</tabstop>
+  <tabstop>edit_xia_energy_range</tabstop>
+  <tabstop>edit_xia_acq_time</tabstop>
+  <tabstop>push_run_xia_measurement</tabstop>
+  <tabstop>edit_roi_to_4</tabstop>
+  <tabstop>edit_roi_from_4</tabstop>
+  <tabstop>edit_roi_from_5</tabstop>
+  <tabstop>edit_roi_to_5</tabstop>
+  <tabstop>edit_roi_from_6</tabstop>
+  <tabstop>edit_roi_to_6</tabstop>
+  <tabstop>edit_roi_from_7</tabstop>
+  <tabstop>edit_roi_to_7</tabstop>
+  <tabstop>edit_roi_name_4</tabstop>
+  <tabstop>edit_roi_name_5</tabstop>
+  <tabstop>edit_roi_name_6</tabstop>
+  <tabstop>edit_roi_name_7</tabstop>
+  <tabstop>edit_roi_to_8</tabstop>
+  <tabstop>edit_roi_from_8</tabstop>
+  <tabstop>edit_roi_from_9</tabstop>
+  <tabstop>edit_roi_to_9</tabstop>
+  <tabstop>edit_roi_from_10</tabstop>
+  <tabstop>edit_roi_to_10</tabstop>
+  <tabstop>edit_roi_from_11</tabstop>
+  <tabstop>edit_roi_to_11</tabstop>
+  <tabstop>edit_roi_name_8</tabstop>
+  <tabstop>edit_roi_name_9</tabstop>
+  <tabstop>edit_roi_name_10</tabstop>
+  <tabstop>edit_roi_name_11</tabstop>
+  <tabstop>push_get_sample</tabstop>
+  <tabstop>push_add_sample</tabstop>
+  <tabstop>push_delete_sample</tabstop>
+  <tabstop>push_delete_sample_loop</tabstop>
+  <tabstop>push_delete_sample_loop_scan</tabstop>
+  <tabstop>spinBox_sample_loop_rep</tabstop>
+  <tabstop>push_add_sample_loop</tabstop>
+  <tabstop>radioButton_sample_loop</tabstop>
+  <tabstop>radioButton_sample_loop_scans</tabstop>
+  <tabstop>radioButton_sample_rel</tabstop>
+  <tabstop>radioButton_sample_abs</tabstop>
+  <tabstop>comboBox_sample_loop_motor</tabstop>
+  <tabstop>doubleSpinBox_motor_range_start</tabstop>
+  <tabstop>doubleSpinBox_motor_range_stop</tabstop>
+  <tabstop>doubleSpinBox_motor_range_step</tabstop>
+  <tabstop>push_create_scan</tabstop>
+  <tabstop>comboBox_lut</tabstop>
+  <tabstop>comboBox_scans</tabstop>
+  <tabstop>push_create_scan_update</tabstop>
+  <tabstop>push_add_scan</tabstop>
+  <tabstop>push_delete_scan</tabstop>
+  <tabstop>push_load_csv</tabstop>
+  <tabstop>push_save_csv</tabstop>
+  <tabstop>push_batch_delete_all</tabstop>
+  <tabstop>listWidget_numerator_batch</tabstop>
+  <tabstop>listWidget_denominator_batch</tabstop>
+  <tabstop>checkBox_log_batch</tabstop>
+  <tabstop>push_replot_batch</tabstop>
+  <tabstop>push_batch_print_steps</tabstop>
+  <tabstop>push_batch_delete</tabstop>
+  <tabstop>push_batch_run</tabstop>
+  <tabstop>push_batch_pause</tabstop>
+  <tabstop>push_batch_abort</tabstop>
+  <tabstop>run_check_gains_scan</tabstop>
+  <tabstop>checkBox_parse_after_scan</tabstop>
+  <tabstop>comboBoxEdge</tabstop>
+  <tabstop>label_56</tabstop>
+  <tabstop>edit_padding_preedge</tabstop>
+  <tabstop>comboBoxElement</tabstop>
+  <tabstop>push_select_traj_file</tabstop>
+  <tabstop>edit_postedge_stitch_hi</tabstop>
+  <tabstop>edit_velocity_preedge</tabstop>
+  <tabstop>edit_velocity_edge</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>edit_velocity_postedge</tabstop>
+  <tabstop>edit_padding_postedge</tabstop>
+  <tabstop>push_plot_traj</tabstop>
+  <tabstop>push_load_trajectory</tabstop>
  </tabstops>
  <resources/>
  <connections/>
