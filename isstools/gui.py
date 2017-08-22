@@ -70,6 +70,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.html_log_func = None
 
+        if 'auto_tune_elements' in kwargs:
+            self.auto_tune_elements = kwargs['auto_tune_elements']
+            del kwargs['auto_tune_elements']
+        else:
+            self.auto_tune_elements = None
+            self.push_prepare_autotune.setEnabled(False)
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         print(QtWidgets.QApplication.instance())
@@ -250,9 +257,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.enc_list = [x for x in self.det_dict if x.name in matches]
 
 
-        # Initialize 'Scan / Tune' tab
+        # Initialize 'Beamline Status' tab
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
+        self.push_prepare_autotune.clicked.connect(self.autotune_function)
+
+        self.tune_dialog = None
         self.last_gen_scan_uid = ''
         self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
@@ -282,8 +292,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.tabWidget.setTabEnabled(3, False)
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
-        #if not self.push_gen_scan.isEnabled() and not self.push_tune.isEnabled():
-        #    self.tabWidget.setTabEnabled(2, False)
+
+        if self.auto_tune_elements is not None:
+            tune_elements = ' | '.join([element['name'] for element in self.auto_tune_elements])
+            self.push_prepare_autotune.setToolTip('Elements: ({})\nIf the parameters are not defined, it will use parameters from General Scans boxes (Scan Range, Step Size and Max Retries)'.format(tune_elements))
 
         # Initialize persistent values
         self.settings = QSettings('ISS Beamline', 'XLive')
@@ -1398,14 +1410,40 @@ class ScanGui(*uic.loadUiType(ui_path)):
                    fmt = fmt,
                    comments = comments)
 
-    def run_gen_scan(self):
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
-            if shutter.state.value:
-                ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
-                if not ret:
-                    print ('Aborted!')
-                    return False
-                break
+    def run_gen_scan(self, **kwargs):
+        if 'ignore_shutter' in kwargs:
+            ignore_shutter = kwargs['ignore_shutter']
+        else:
+            ignore_shutter = False
+
+        if 'curr_element' in kwargs:
+            curr_element = kwargs['curr_element']
+        else:
+            curr_element = None
+
+        if 'repeat' in kwargs:
+            repeat = kwargs['repeat']
+        else:
+            repeat = False
+
+        if not ignore_shutter:
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
+                if shutter.state.value:
+                    ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                    if not ret:
+                        print ('Aborted!')
+                        return False
+                    break
+
+        if curr_element is not None:
+            self.comboBox_gen_det.setCurrentText(curr_element['det_name'])
+            self.comboBox_gen_detsig.setCurrentText(curr_element['det_sig'])
+            self.comboBox_gen_det_den.setCurrentText('1')
+            self.comboBox_gen_mot.setCurrentText(curr_element['motor_name'])
+            self.edit_gen_range.setText(str(curr_element['scan_range']))
+            self.edit_gen_step.setText(str(curr_element['step_size']))
+            self.checkBox_tune.setChecked(curr_element['autotune'])
+            self.spinBox_gen_scan_retries.setValue(curr_element['retries'])
 
         curr_det = ''
         curr_mot = ''
@@ -1445,20 +1483,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        self.figure_gen_scan.ax.clear()
-        self.toolbar_gen_scan._views.clear()
-        self.toolbar_gen_scan._positions.clear()
-        self.toolbar_gen_scan._update_view()
-        self.canvas_gen_scan.draw_idle()
-        self.canvas_gen_scan.motor = curr_mot
+        if not repeat:
+            self.figure_gen_scan.ax.clear()
+            self.toolbar_gen_scan._views.clear()
+            self.toolbar_gen_scan._positions.clear()
+            self.toolbar_gen_scan._update_view()
+            self.canvas_gen_scan.draw_idle()
+            self.canvas_gen_scan.motor = curr_mot
 
         result_name = self.comboBox_gen_det.currentText()
         if self.comboBox_gen_det_den.currentText() != '1':
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
 
+        self.push_gen_scan.setEnabled(False)
         self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
+        self.push_gen_scan.setEnabled(True)
         self.last_gen_scan_uid = self.db[-1]['start']['uid']
         self.push_gen_scan_save.setEnabled(True)
 
@@ -1495,6 +1536,50 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.checkBox_tune.setChecked(False)
             self.checkBox_tune.setEnabled(False)
+
+    def autotune_function(self):
+        first_run = True
+        for element in self.auto_tune_elements:
+            if element['max_retries'] != -1 and element['scan_range'] != -1 and element['step_size'] != -1:
+                retries = element['max_retries']
+                scan_range = element['scan_range']
+                step_size = element['step_size']
+            else:
+                retries = self.spinBox_gen_scan_retries.value()
+                scan_range = float(self.edit_gen_range.text())
+                step_size = float(self.edit_gen_step.text())
+            curr_element = {'retries' : retries, 'scan_range' : scan_range, 'step_size' : step_size,
+                            'det_name' : element['detector_name'], 'det_sig' : element['detector_signame'],
+                            'motor_name' : element['name']}
+            curr_element['autotune'] = not self.checkBox_autotune_manual.isChecked()
+
+            button = None
+            repeat = True
+            first_try = True
+            while repeat:
+                repeat = False
+                self.run_gen_scan(curr_element = curr_element, ignore_shutter = not first_run, repeat = not first_try)
+                if first_run:
+                    first_run = False
+
+                if self.checkBox_autotune_manual.isChecked():
+                    self.tune_dialog = QtWidgets.QMessageBox(text='Please, select {} position and click OK or Retry'.format(curr_element['motor_name']), standardButtons = QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Retry | QtWidgets.QMessageBox.Cancel, parent=self)  
+                    self.tune_dialog.setModal(False)   
+                    self.tune_dialog.show()
+                    while self.tune_dialog.isVisible():
+                        QtWidgets.QApplication.processEvents()
+                    button = self.tune_dialog.clickedButton()
+                    if button.text() == '&Cancel':
+                        break
+                    elif button.text() == '&OK':
+                        continue
+                    elif button.text() == 'Retry':
+                        repeat = True
+                        first_try = False
+            if button is not None:
+                if button.text() == '&Cancel':
+                    break
+
             
 
     def run_prep_traj(self):
