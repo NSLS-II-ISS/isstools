@@ -63,7 +63,7 @@ Beamline</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>110</y>
+        <y>190</y>
         <width>131</width>
         <height>20</height>
        </rect>
@@ -76,7 +76,7 @@ Beamline</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>140</y>
+        <y>220</y>
         <width>121</width>
         <height>41</height>
        </rect>
@@ -90,7 +90,7 @@ Parameters</string>
       <property name="geometry">
        <rect>
         <x>160</x>
-        <y>140</y>
+        <y>220</y>
         <width>121</width>
         <height>41</height>
        </rect>
@@ -100,242 +100,279 @@ Parameters</string>
 to Curr. Position</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="push_gen_scan">
+     <widget class="QGroupBox" name="groupBox_7">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>410</y>
-        <width>294</width>
-        <height>25</height>
+        <x>350</x>
+        <y>50</y>
+        <width>611</width>
+        <height>731</height>
        </rect>
+      </property>
+      <property name="title">
+       <string>General Scans</string>
+      </property>
+      <widget class="QWidget" name="gridLayoutWidget_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>491</width>
+         <height>201</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_108">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Numerator</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="edit_gen_step">
+          <property name="text">
+           <string>0.05</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QComboBox" name="comboBox_gen_detsig">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_109">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Motor</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_145">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Max Retries</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="comboBox_gen_mot">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_110">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Scan Range</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_gen_det">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="edit_gen_range">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_111">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Step Size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QSpinBox" name="spinBox_gen_scan_retries">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QCheckBox" name="checkBox_tune">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_146">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Tune</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="comboBox_gen_det_den">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QComboBox" name="comboBox_gen_detsig_den">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_112">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Denominator</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="push_gen_scan">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>230</y>
+         <width>294</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="push_gen_scan_save">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>310</x>
+         <y>230</y>
+         <width>191</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Save Scan</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="verticalLayoutWidget_10">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>260</y>
+         <width>591</width>
+         <height>461</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="plot_gen_scan"/>
+      </widget>
+      <zorder>gridLayoutWidget_3</zorder>
+      <zorder>gridLayoutWidget_3</zorder>
+      <zorder>push_gen_scan</zorder>
+      <zorder>push_gen_scan_save</zorder>
+      <zorder>verticalLayoutWidget_10</zorder>
+     </widget>
+     <widget class="QPushButton" name="push_prepare_autotune">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>100</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Will use parameters set in the General Scans boxes (Scan Range, Step Size and Max Retries)</string>
       </property>
       <property name="text">
-       <string>Start</string>
+       <string>Auto Tune</string>
       </property>
      </widget>
-     <widget class="QWidget" name="verticalLayoutWidget_10">
+     <widget class="QCheckBox" name="checkBox_autotune_manual">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>440</y>
-        <width>591</width>
-        <height>461</height>
+        <x>30</x>
+        <y>150</y>
+        <width>131</width>
+        <height>20</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="plot_gen_scan"/>
-     </widget>
-     <widget class="QPushButton" name="push_gen_scan_save">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>320</x>
-        <y>410</y>
-        <width>191</width>
-        <height>25</height>
-       </rect>
+      <property name="toolTip">
+       <string>If checked, after each scan, it will ask the user to select optimal position before going to the next step</string>
       </property>
       <property name="text">
-       <string>Save Scan</string>
+       <string>Manual Steps</string>
       </property>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>200</y>
-        <width>491</width>
-        <height>201</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_8">
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_108">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Numerator</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="edit_gen_step">
-         <property name="text">
-          <string>0.05</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QComboBox" name="comboBox_gen_detsig">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_109">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Motor</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_145">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Max Retries</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="comboBox_gen_mot">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_110">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Scan Range</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_gen_det">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="edit_gen_range">
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_111">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Step Size</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QSpinBox" name="spinBox_gen_scan_retries">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="value">
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QCheckBox" name="checkBox_tune">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="3">
-        <widget class="QLabel" name="label_107">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>General Scan</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_146">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Tune</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="comboBox_gen_det_den">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QComboBox" name="comboBox_gen_detsig_den">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_112">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Denominator</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
