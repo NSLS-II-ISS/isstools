@@ -261,7 +261,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_prepare_autotune.clicked.connect(self.autotune_function)
+        if self.hhm is not None:
+            self.hhm.energy.subscribe(self.update_hhm_params)
 
+        self.last_text = '0'
         self.tune_dialog = None
         self.last_gen_scan_uid = ''
         self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
@@ -793,7 +796,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print('[Prepare BL] Beamline preparation done!')
 
     def prepare_bl_dialog(self):
-        curr_energy = self.hhm.energy.read()['hhm_energy']['value']
+        curr_energy = float(self.edit_pb_energy.text())
 
         curr_range = [ran for ran in self.beamline_prep if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
         if not len(curr_range):
@@ -2005,6 +2008,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.label_11.setText(self.RE.state)
         #if self.RE.state != self.RE.last_state:
         #    self.RE.last_state = self.RE.state
+
+    def update_hhm_params(self, value, **kwargs):
+        if kwargs['obj'].name == 'hhm_energy':
+            text = '{:.2f}'.format(round(value, 2))
+            if text != self.last_text:
+                self.edit_pb_energy.setText('{:.2f}'.format(round(value, 2)))
+                self.last_text = text
+
 
     def run_gains_test(self):
 
