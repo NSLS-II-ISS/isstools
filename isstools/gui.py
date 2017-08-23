@@ -1499,7 +1499,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
 
         self.push_gen_scan.setEnabled(False)
-        self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax)
+        uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax))
+        self.figure_gen_scan.tight_layout()
+        self.canvas_gen_scan.draw_idle()
+        print(curr_element is None)
+        if len(uid_list) and curr_element is None:
+            print('Creating Log')
+            self.create_log_scan(uid_list[0], self.figure_gen_scan)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         self.push_gen_scan.setEnabled(True)
@@ -1575,6 +1581,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if button.text() == '&Cancel':
                         break
                     elif button.text() == '&OK':
+                        self.create_log_scan(self.last_gen_scan_uid, self.figure_gen_scan)
                         continue
                     elif button.text() == 'Retry':
                         repeat = True
@@ -1813,12 +1820,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.current_uid_list.append(uid)
                 if process_after_scan:
                     self.parse_scans(uid)
-                    self.create_log_scan()
+                    self.create_log_scan(self.current_uid, self.figure)
             
             if not process_after_scan:
                 for uid in self.current_uid_list:
                     self.parse_scans(uid)
-                    self.create_log_scan()
+                    self.create_log_scan(self.current_uid, self.figure)
 
             if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
                 self.tabWidget.setCurrentIndex(6)
@@ -1982,10 +1989,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         except Exception as exc:
             print('Could not finish parsing this scan:\n{}'.format(exc))
 
-    def create_log_scan(self):
+    def create_log_scan(self, uid, figure):
         self.canvas.draw_idle()
         if self.html_log_func is not None:
-            self.html_log_func(self.current_uid, self.figure)
+            self.html_log_func(uid, figure)
         
 
     def re_abort(self):
@@ -3295,7 +3302,7 @@ def represents_int(s):
 
 class process_batch_thread(QThread):
     finished_processing = QtCore.pyqtSignal()
-    generate_log = QtCore.pyqtSignal()
+    generate_log = QtCore.pyqtSignal(str, object)
 
     def __init__(self, gui):
         QThread.__init__(self)
@@ -3316,7 +3323,7 @@ class process_batch_thread(QThread):
                         continue
 
                     self.gui.parse_scans(uid)
-                    self.generate_log.emit()
+                    self.generate_log.emit(self.gui.current_uid, self.gui.figure)
 
                     traj_name = self.gui.db[uid]['start']['trajectory_name']
                     if represents_int(traj_name[traj_name.rfind('-') + 1 : traj_name.rfind('.')]):
@@ -3424,6 +3431,7 @@ class process_bin_thread(QThread):
             #self.gui.checkBox_log.setChecked(False)
         warnings.filterwarnings('default')
 
+        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
         result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
         #result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
         #result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
