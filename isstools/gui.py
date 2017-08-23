@@ -821,8 +821,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
         if dlg.exec_():
-            self.RE.md['angle_offset'] = dlg.getValues()
-            self.label_angle_offset.setText('{}'.format(self.RE.md['angle_offset']))
+            self.hhm.angle_offset.put(dlg.getValues())
+            self.label_angle_offset.setText('{}'.format(self.hhm.angle_offset.value))
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if 'obj' in kwargs.keys():
