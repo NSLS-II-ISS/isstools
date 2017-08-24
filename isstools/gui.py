@@ -956,6 +956,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
+        self.figure_old_scans_3.ax2.clear()
         self.canvas_old_scans_3.draw_idle()
         self.toolbar_old_scans_3._views.clear()
         self.toolbar_old_scans_3._positions.clear()
@@ -989,10 +990,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 #self.checkBox_log.setChecked(False)
             warnings.filterwarnings('default')
             result = result_log
+
+        if self.checkBox_neg.checkState() > 0:
+            result = -result
     
         self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], result, 'b')
         self.figure_old_scans_3.ax.set_ylabel(ylabel)
         self.figure_old_scans_3.ax.set_xlabel(energy_string)
+        self.figure_old_scans_3.tight_layout()
 
 
         self.figure_old_scans_2.ax.clear()
@@ -1012,10 +1017,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
             ylabel = 'log({})'.format(ylabel)
             result = np.log(result)
         ylabel = 'Binned Equally {}'.format(ylabel)
+
+        if self.checkBox_neg.checkState() > 0:
+            result = -result
         
         self.figure_old_scans_2.ax.plot(bin_eq[energy_string], result, 'b')
         self.figure_old_scans_2.ax.set_ylabel(ylabel)
         self.figure_old_scans_2.ax.set_xlabel(energy_string)
+        self.figure_old_scans_2.tight_layout()
 
         if self.checkBox_find_edge.checkState() > 0:
             self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
@@ -1067,6 +1076,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
+        self.figure_old_scans_3.ax2.clear()
         self.toolbar_old_scans_3._views.clear()
         self.toolbar_old_scans_3._positions.clear()
         self.toolbar_old_scans_3._update_view()
@@ -1258,6 +1268,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
         self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
+        self.figure_old_scans_3.ax2 = self.figure_old_scans_3.ax.twinx()
         self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
         self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
@@ -2398,22 +2409,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.listWidget_denominator.setCurrentRow(0)
 
-        #if(type(value_num[0]) == int):
-        #    if value_num[0] < self.listWidget_numerator.count():
-        #        self.listWidget_numerator.setCurrentRow(value_num[0])
-        #    else:
-        #        self.listWidget_numerator.setCurrentRow(0)
-        #else:
-        #    self.listWidget_numerator.setCurrentItem(value_num[0])
-
-        #if(type(value_den[0]) == int):
-        #    if value_den[0] < self.listWidget_denominator.count():
-        #        self.listWidget_denominator.setCurrentRow(value_den[0])
-        #    else:
-        #        self.listWidget_denominator.setCurrentRow(0)
-        #else:
-        #    self.listWidget_denominator.setCurrentItem(value_den[0])
-
         
     def create_lists(self, list_num, list_den):
         self.listWidget_numerator.clear()
@@ -2451,6 +2446,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             plot_info[5].plot(plot_info[0], plot_info[1], plot_info[2])
             plot_info[5].set_xlabel(plot_info[3])
             plot_info[5].set_ylabel(plot_info[4])
+            plot_info[5].figure.tight_layout()
             if(plot_info[2] == 'ys'):
                 edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
                 self.figure_old_scans_2.ax.legend(handles = [edge_path])
@@ -3441,6 +3437,10 @@ class process_bin_thread(QThread):
             result_orig = np.log(result_orig)
         ylabel = 'Binned {}'.format(ylabel)
 
+        if self.gui.checkBox_neg.checkState() > 0:
+            result = -result
+            result_orig = -result_orig
+
         energy_string = self.gen_parser.get_energy_string()
 
         plot_info = [binned[energy_string][:len(result)], 
@@ -3451,6 +3451,17 @@ class process_bin_thread(QThread):
                      self.gui.figure_old_scans_3.ax, 
                      self.gui.canvas_old_scans_3]
         self.gui.plotting_list.append(plot_info)
+
+        if self.gui.checkBox_der.checkState() > 0:
+            result_der = self.gen_parser.data_manager.get_derivative(result)
+            plot_info = [binned[energy_string][:len(result_der)], 
+                         result_der, 
+                         'g', 
+                         energy_string, 
+                         ylabel, 
+                         self.gui.figure_old_scans_3.ax2, 
+                         self.gui.canvas_old_scans_3]
+            self.gui.plotting_list.append(plot_info)
         
 
         k_data = self.gen_parser.data_manager.get_k_data(e0,
@@ -3557,6 +3568,9 @@ class process_bin_thread_equal(QThread):
                     #self.gui.checkBox_log.setChecked(False)
                 warnings.filterwarnings('default')
                 result = result_log
+
+            if self.gui.checkBox_neg.checkState() > 0:
+                result = -result
             
             plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], 
                          result, 
@@ -3570,7 +3584,6 @@ class process_bin_thread_equal(QThread):
 
             bin_eq = self.gen_parser.bin_equal()
 
-            #result = bin_eq[self.gui.listWidget_numerator.currentItem().text()] / bin_eq[self.gui.listWidget_denominator.currentItem().text()]
             result = bin_eq[self.gui.last_num_text] / bin_eq[self.gui.last_den_text]
             ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
@@ -3578,6 +3591,9 @@ class process_bin_thread_equal(QThread):
                 ylabel = 'log({})'.format(ylabel)
                 result = np.log(result)
             ylabel = 'Binned Equally {}'.format(ylabel)
+
+            if self.gui.checkBox_neg.checkState() > 0:
+                result = -result
 
             plot_info = [bin_eq[energy_string][:len(result)], 
                          result, 
@@ -3616,6 +3632,10 @@ class process_bin_thread_equal(QThread):
                 
 
             result_der = self.gen_parser.data_manager.get_derivative(result)
+
+            if self.gui.checkBox_neg.checkState() > 0:
+                result_der = -result_der
+
             plot_info = [bin_eq[energy_string][:len(result_der)], 
                          result_der, 
                          'r', energy_string, 
