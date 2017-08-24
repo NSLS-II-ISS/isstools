@@ -569,7 +569,7 @@ class XASDataManager:
 
     def get_derivative(self, array):
         derivative = np.diff(array)
-        derivative = np.append(array[0], derivative)
+        derivative = np.append(derivative[0], derivative)
         return derivative
 
 
