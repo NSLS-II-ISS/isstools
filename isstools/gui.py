@@ -1004,7 +1004,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         bin_eq = self.gen_parser.data_manager.binned_eq_arrays
-
+        
         result = bin_eq[self.listWidget_numerator.currentItem().text()] / bin_eq[self.listWidget_denominator.currentItem().text()]
         ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(), self.listWidget_denominator.currentItem().text())
 
@@ -1020,16 +1020,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if self.checkBox_find_edge.checkState() > 0:
             self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
             if self.edge_index > 0:
-                        
-                x_edge = self.gen_parser.data_manager.en_grid[self.edge_index]
+
+                x_edge = self.gen_parser.data_manager.en_grid_eq[self.edge_index]
                 y_edge = result[self.edge_index]
 
                 self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
                 edge_path = mpatches.Patch(facecolor='y', edgecolor = 'black', label='Edge')
                 self.figure_old_scans_2.ax.legend(handles = [edge_path])
                 self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge), textcoords='data')
-                print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
-                self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.edge_index]))))
+                print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.edge_index]))))
+                self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.edge_index]))))
         else:
             self.edge_index = -1
         
@@ -3433,8 +3433,6 @@ class process_bin_thread(QThread):
 
         result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
         result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
-        #result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
-        #result_orig = self.gen_parser.data_manager.data_arrays[self.gui.listWidget_numerator.currentItem().text()] / self.gen_parser.data_manager.data_arrays[self.gui.listWidget_denominator.currentItem().text()]
         ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
         if self.gui.checkBox_log.checkState() > 0:
@@ -3535,11 +3533,6 @@ class process_bin_thread_equal(QThread):
 
             self.update_listWidgets.emit()
             ttime.sleep(0.2)
-            #while(self.gui.listWidget_denominator.currentRow() == -1 or self.gui.listWidget_numerator.currentRow() == -1):
-                #self.gui.app.processEvents()
-                #QtCore.QCoreApplication.processEvents()
-                #QtWidgets.QApplication.instance().processEvents()
-                #ttime.sleep(0.001)
 
             energy_string = self.gen_parser.get_energy_string()
 
@@ -3602,8 +3595,8 @@ class process_bin_thread_equal(QThread):
                 self.gui.edge_index = self.gen_parser.data_manager.get_edge_index(result)
                 self.gui.edge_found = -1
                 if self.gui.edge_index > 0:
-                    
-                    x_edge = self.gen_parser.data_manager.en_grid[self.gui.edge_index]
+
+                    x_edge = self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index]
                     y_edge = result[self.gui.edge_index]
 
                     self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
@@ -3616,8 +3609,8 @@ class process_bin_thread_equal(QThread):
                                  self.gui.canvas_old_scans_2]
                     self.gui.plotting_list.append(plot_info)
 
-                    print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
-                    self.gui.edge_found = str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index])))#self.gui.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid[self.gui.edge_index]))))
+                    print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index]))))
+                    self.gui.edge_found = str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index])))
             else:
                 self.gui.edge_index = -1
                 

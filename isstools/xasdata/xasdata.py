@@ -670,33 +670,7 @@ class XASDataManager:
         return filename
 
 
-
-
-        call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
-        call(['chmod', '770', filename]) 
-
-
     def process(self, interp_dict, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
-
-        # self.matrix = interp_dict[energy_string][:, 1]
-
-        # self.matrix = np.vstack((self.matrix, np.array([interp_dict[array][:, 1] for array in list(interp_dict.keys()) if array != energy_string]))).transpose()
-        # self.sorted_matrix = self.sort_data(self.matrix, 0)
-        
-
-        # self.data_matrix = self.average_points(self.sorted_matrix, 0)
-        # self.data_arrays = {energy_string: self.data_matrix[:, 0]}
-
-        # keys = [array for array in list(interp_dict.keys()) if array != energy_string]
-        # for i in range(len(keys)):
-        #     self.data_arrays[keys[i]] = self.data_matrix[:, i + 1]
-
-        # self.binned_arrays = {energy_string: self.en_grid}
-        # for i in range(len(keys) + 1):
-        #     if list(self.data_arrays.keys())[i] != energy_string:
-        #         self.binned_arrays[list(self.data_arrays.keys())[i]] = self.bin(self.en_grid, self.data_arrays[energy_string], self.data_arrays[list(self.data_arrays.keys())[i]])
-
-        # return self.binned_arrays
         if len(interp_dict[list(interp_dict.keys())[0]].shape) > 1:
             df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
         else:
@@ -714,11 +688,11 @@ class XASDataManager:
     def process_equal(self, interp_dict, energy_string = 'energy', delta_en = 2):
         df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
         self.data_arrays = df
-        en_grid = self.energy_grid_equal(df[energy_string], delta_en)
-        self.en_grid = en_grid
-        convo_mat = _gen_convolution_bin_matrix(en_grid, df[energy_string].values)
+        en_grid_eq = self.energy_grid_equal(df[energy_string], delta_en)
+        self.en_grid_eq = en_grid_eq
+        convo_mat = _gen_convolution_bin_matrix(en_grid_eq, df[energy_string].values)
         ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
-        ret[energy_string] = en_grid
+        ret[energy_string] = en_grid_eq
         self.binned_eq_arrays = ret
         return ret
 
@@ -783,3 +757,7 @@ class XASDataManager:
                 abs_der2[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
 
         return -1
+
+
+
+
