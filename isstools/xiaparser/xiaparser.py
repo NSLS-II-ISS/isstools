@@ -4,11 +4,14 @@ import matplotlib.pyplot as plt
 import sys
 import ctypes
 import numpy as np
+import pandas as pd
+import h5py
 import os
 import os.path
 from scipy.optimize import curve_fit
 import smbc
 import time as ttime
+import warnings
 
 
 '''
@@ -26,10 +29,11 @@ class xiaparser:
     def __init__(self, **kwargs):
         self.filename = ''
         self.filepath = ''
-        self.exporting_array1 = []
-        self.exporting_array2 = []
-        self.exporting_array3 = []
-        self.exporting_array4 = []
+        self.exporting_arrays = []
+        self.chan0 = []
+        self.chan1 = []
+        self.chan2 = []
+        self.chan3 = []
         self.next_pos = 0
 
 
@@ -37,10 +41,7 @@ class xiaparser:
 
         self.filename = ''
         self.filepath = ''
-        self.exporting_array1 = []
-        self.exporting_array2 = []
-        self.exporting_array3 = []
-        self.exporting_array4 = []
+        self.exporting_arrays = []
         self.next_pos = 0
 
         if(filename != self.filename or filepath != self.filepath or pixelnumber != None):
@@ -58,18 +59,32 @@ class xiaparser:
                     print("Printing pixel:", pixelnumber)
                 print("-"*80)
 
-            for ds0 in self.data:
-                ds0 = ds0[0]
-                if(printheaders and not silent):
-                    print("-"*80)
-                    print("Dataset Shape: ", ds0.shape)
-                    print("-"*80)
-                    print("Header")
-                    print("-"*80)
-                self.next_pos = 256
-                number_pixels = self.read_header(ds0, printheaders, silent)
-                for i in range(number_pixels):
-                    self.next_pos = self.read_pixel_block(ds0, i, self.next_pos, plotdata, pixelnumber, silent)
+            for ds_index, ds in enumerate(self.data):
+                for board_number, curr_ds in enumerate(ds):
+                    if(ds_index == 0):
+                        self.exporting_arrays.append([])
+                        self.exporting_arrays.append([])
+                        self.exporting_arrays.append([])
+                        self.exporting_arrays.append([])
+                    self.chans = [[] for _ in range(4)]
+                    if(printheaders and not silent):
+                        print("-"*80)
+                        print("Dataset Shape: ", curr_ds.shape)
+                        print("-"*80)
+                        print("Header")
+                        print("-"*80)
+                    self.next_pos = 256
+                    number_pixels = self.read_header(curr_ds, printheaders, silent)
+                    for i in range(number_pixels):
+                        self.next_pos = self.read_pixel_block(curr_ds, board_number, i, self.next_pos, plotdata, pixelnumber, silent)
+                    for index, channel in enumerate([channel_num + board_number * 4 for channel_num in range(4)]):
+                        self.exporting_arrays[channel] = self.exporting_arrays[channel] + self.chans[index]
+
+            #workaround (FIX LATER): arrays of different cards have different lengths (WHY?)
+            min_val = min([len(array) for array in self.exporting_arrays])
+            for array in self.exporting_arrays:
+                del array[min_val:]
+            self.df = pd.DataFrame(self.exporting_arrays)
 
     def export_files(self, dest_filepath, dest_filename = '', all_in_one = True):
 
@@ -84,30 +99,58 @@ class xiaparser:
             tmpfilename = self.filename[0:len(self.filename)-3] + '-' + str(try_number)
             try_number += 1
 
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            try:
+                if all_in_one:
+                    print('Saving XIA file...')
+
+                    f = h5py.File(dest_filepath + tmpfilename + '-allchans.hdf5', mode='w')
+                    f.create_dataset('AllChans', data=self.exporting_arrays, compression='gzip')
+
+                else:
+                    for index, array in enumerate(self.exporting_arrays):
+                        print('Creating file for channel {}...'.format(index))
+                        f = h5py.File('{}{}-chan{}.hdf5'.format(dest_filepath, tmpfilename, index), mode='a')
+                        f.create_dataset('Chan{}'.format(index), data=array, compression='gzip')
+            except Exception as exc:
+                print(exc)
+                return
+            
+            print('Saving done!')
+
+    def export_files_txt(self, dest_filepath, dest_filename = '', all_in_one = True):
+
+        if dest_filename == '':
+            tmpfilename = self.filename[0:len(self.filename)-3]
+        else:
+            tmpfilename = dest_filename
+
+        try_number = 2
+
+        while(os.path.isfile(dest_filepath + tmpfilename)):
+            tmpfilename = self.filename[0:len(self.filename)-3] + '-' + str(try_number)
+            try_number += 1
+
         if all_in_one:
             print("Creating file for all channels...")
-            output_data = np.array([self.exporting_array1, self.exporting_array2,
-                                self.exporting_array3, self.exporting_array4])
+            output_data = np.array([array for array in self.exporting_arrays])
             with open(dest_filepath + tmpfilename + '-allchans.txt', 'wb') as f:
                 i = 0
                 for row in output_data:
-                    print('Row number: {}'.format(i))
+                    print('XIA channel number: {}'.format(i))
                     i += 1
                     np.savetxt(f, np.array(row), fmt='%i',delimiter=' ', footer='============================================================')
                 
 
         else:
-            print("Creating file for channel 1...")
-            np.savetxt(dest_filepath + tmpfilename + '-chan1.txt', self.exporting_array1, fmt='%i',delimiter=' ')
-            print("Creating file for channel 2...")
-            np.savetxt(dest_filepath + tmpfilename + '-chan2.txt', self.exporting_array2, fmt='%i',delimiter=' ')
-            print("Creating file for channel 3...")
-            np.savetxt(dest_filepath + tmpfilename + '-chan3.txt', self.exporting_array3, fmt='%i',delimiter=' ')
-            print("Creating file for channel 4...")
-            np.savetxt(dest_filepath + tmpfilename + '-chan4.txt', self.exporting_array4, fmt='%i',delimiter=' ')
+            for index, array in enumerate(exporting_arrays):
+                print('Creating file for channel {}...'.format(index))
+                np.savetxt('{}{}-chan{}.txt'.format(dest_filepath, tmpfilename, index), array, fmt='%i', delimiter=' ')
       
         
-    def read_pixel_block(self, dataset, pixel, start_pos, plot_data, pixel_to_parse, silent):
+    def read_pixel_block(self, dataset, board_number, pixel, start_pos, plot_data, pixel_to_parse, silent):
         def read_statistics(ds, start):
             pos = start
             #print("Realtime Low:", ds[pos])
@@ -148,15 +191,17 @@ class xiaparser:
         channel_0_spectrum = dataset[pos+256:pos+256+K-1+1] # Python gets range - 1
         channel_1_spectrum = dataset[pos+256+K:pos+256+K+L-1+1]
         channel_2_spectrum = dataset[pos+256+K+L:pos+256+K+L+M-1+1]
-        channel_3_spectrum = dataset[pos+256+K+L+M:pos+256+K+L+M+N-1+1]
+        channel_3_spectrum = dataset[pos+256+K+L+M:pos+256+K+L+M+N-1+1]    
+
+        self.chans[0].append(channel_0_spectrum)
+        self.chans[1].append(channel_1_spectrum)
+        self.chans[2].append(channel_2_spectrum)
+        self.chans[3].append(channel_3_spectrum)
     
-        self.exporting_array1.append(channel_0_spectrum)
-        self.exporting_array2.append(channel_1_spectrum)
-        self.exporting_array3.append(channel_2_spectrum)
-        self.exporting_array4.append(channel_3_spectrum)
-    
-        #print(pixel_number, pixel_to_parse, type(pixel_number), type(pixel_to_parse))
-        if ((pixel_number == np.uint64(pixel_to_parse or -1) or pixel_to_parse == None) and (not silent)):
+        number = 0
+        if pixel_to_parse is not None:
+            number = np.uint64((pixel_to_parse + 1) or -1) - 1
+        if ((pixel_number == number or pixel_to_parse == None) and (not silent)):
             print("-"*40)
             print("Pixel Number:", pixel_number, "\n")
             print("Tag Word 0:", format(tag_word_0 & 0xffff, '#06x'))
@@ -166,42 +211,43 @@ class xiaparser:
             #print("Pixel Number:", pixel_number)
             print("Total Pixel Block Size:", total_pixel_block_size, "\n")
         
-            print("Channel 0 Size:", channel_0_size)
-            print("Channel 0 Realtime:", channel_0_stats_realtime, "ms")
-            print("Channel 0 Livetime:", channel_0_stats_livetime, "ms")
-            print("Channel 0 Triggers:", channel_0_stats_triggers & 0xffff)
-            print("Channel 0 Output Events:", channel_0_stats_output_evs & 0xffff)
-            print("Channel 0 Spectrum: ", channel_0_spectrum, "\n")
+            print("Channel {} Size: {}".format((4 * board_number) + 0, channel_0_size))
+            print("Channel {} Realtime: {} ms".format((4 * board_number) + 0, channel_0_stats_realtime))
+            print("Channel {} Livetime: {} ms".format((4 * board_number) + 0, channel_0_stats_livetime))
+            print("Channel {} Triggers: {}".format((4 * board_number) + 0, channel_0_stats_triggers & 0xffff))
+            print("Channel {} Output Events: {}".format((4 * board_number) + 0, channel_0_stats_output_evs & 0xffff))
+            print("Channel {} Spectrum: {}\n".format((4 * board_number) + 0, channel_0_spectrum))
         
-            print("Channel 1 Size:", channel_1_size)
-            print("Channel 1 Realtime:", channel_1_stats_realtime, "ms")
-            print("Channel 1 Livetime:", channel_1_stats_livetime, "ms")
-            print("Channel 1 Triggers:", channel_1_stats_triggers & 0xffff)
-            print("Channel 1 Output Events:", channel_1_stats_output_evs & 0xffff)
-            print("Channel 1 Spectrum: ", channel_1_spectrum, "\n")
+            print("Channel {} Size: {}".format((4 * board_number) + 1, channel_1_size))
+            print("Channel {} Realtime: {} ms".format((4 * board_number) + 1, channel_1_stats_realtime))
+            print("Channel {} Livetime: {} ms".format((4 * board_number) + 1, channel_1_stats_livetime))
+            print("Channel {} Triggers: {}".format((4 * board_number) + 1, channel_1_stats_triggers & 0xffff))
+            print("Channel {} Output Events: {}".format((4 * board_number) + 1, channel_1_stats_output_evs & 0xffff))
+            print("Channel {} Spectrum: {}\n".format((4 * board_number) + 1, channel_1_spectrum))
         
-            print("Channel 2 Size:", channel_2_size)
-            print("Channel 2 Realtime:", channel_2_stats_realtime, "ms")
-            print("Channel 2 Livetime:", channel_2_stats_livetime, "ms")
-            print("Channel 2 Triggers:", channel_2_stats_triggers & 0xffff)
-            print("Channel 2 Output Events:", channel_2_stats_output_evs & 0xffff)
-            print("Channel 2 Spectrum: ", channel_2_spectrum, "\n")
+            print("Channel {} Size: {}".format((4 * board_number) + 2, channel_2_size))
+            print("Channel {} Realtime: {} ms".format((4 * board_number) + 2, channel_2_stats_realtime))
+            print("Channel {} Livetime: {} ms".format((4 * board_number) + 2, channel_2_stats_livetime))
+            print("Channel {} Triggers: {}".format((4 * board_number) + 2, channel_2_stats_triggers & 0xffff))
+            print("Channel {} Output Events: {}".format((4 * board_number) + 2, channel_2_stats_output_evs & 0xffff))
+            print("Channel {} Spectrum: {}\n".format((4 * board_number) + 2, channel_2_spectrum))
         
-            print("Channel 3 Size:", channel_3_size)
-            print("Channel 3 Realtime:", channel_3_stats_realtime, "ms")
-            print("Channel 3 Livetime:", channel_3_stats_livetime, "ms")
-            print("Channel 3 Triggers:", channel_3_stats_triggers & 0xffff)
-            print("Channel 3 Output Events:", channel_3_stats_output_evs & 0xffff)
-            print("Channel 3 Spectrum: ", channel_3_spectrum)
+            print("Channel {} Size: {}".format((4 * board_number) + 3, channel_3_size))
+            print("Channel {} Realtime: {} ms".format((4 * board_number) + 3, channel_3_stats_realtime))
+            print("Channel {} Livetime: {} ms".format((4 * board_number) + 3, channel_3_stats_livetime))
+            print("Channel {} Triggers: {}".format((4 * board_number) + 3, channel_3_stats_triggers & 0xffff))
+            print("Channel {} Output Events: {}".format((4 * board_number) + 3, channel_3_stats_output_evs & 0xffff))
+            print("Channel {} Spectrum: {}".format((4 * board_number) + 3, channel_3_spectrum))
         
             if plot_data:# and len(channel_0_spectrum):
+                print('plotting?')
                 fig = plt.figure()
                 fig.suptitle("Pixel #"+str(pixel_number))
                 ax = fig.gca()
-                ax.plot(channel_0_spectrum, label="Channel 0 / RT: "+str(channel_0_stats_realtime)+" / LT: "+str(channel_0_stats_livetime))
-                ax.plot(channel_1_spectrum, label="Channel 1 / RT: "+str(channel_1_stats_realtime)+" / LT: "+str(channel_1_stats_livetime))
-                ax.plot(channel_2_spectrum, label="Channel 2 / RT: "+str(channel_2_stats_realtime)+" / LT: "+str(channel_2_stats_livetime))
-                ax.plot(channel_3_spectrum, label="Channel 3 / RT: "+str(channel_3_stats_realtime)+" / LT: "+str(channel_3_stats_livetime))
+                ax.plot(channel_0_spectrum, label="Channel {} / RT: {} / LT: {}".format((4 * board_number) + 0, channel_0_stats_realtime, channel_0_stats_livetime))
+                ax.plot(channel_1_spectrum, label="Channel {} / RT: {} / LT: {}".format((4 * board_number) + 1, channel_1_stats_realtime, channel_1_stats_livetime))
+                ax.plot(channel_2_spectrum, label="Channel {} / RT: {} / LT: {}".format((4 * board_number) + 2, channel_2_stats_realtime, channel_2_stats_livetime))
+                ax.plot(channel_3_spectrum, label="Channel {} / RT: {} / LT: {}".format((4 * board_number) + 3, channel_3_stats_realtime, channel_3_stats_livetime))
                 plt.legend(loc="best")
                 plt.show()
         
@@ -274,21 +320,25 @@ class xiaparser:
         return number_of_pixels_in_buffer
 
 
+    def channelsCount(self):
+        return len(self.exporting_arrays)
 
+    def pixelsCount(self, channel):
+        if channel < self.channelsCount():
+            return len(self.exporting_arrays[channel])
+        raise Exception("There is no channel {}".format(channel))
 
-    def parse_roi(self, pixels, channel_number, min_energy = 0, max_energy = 20):
-        energies = []
-        integs = []
-        for i in frange(0, 20, 20/2047):
-            energies.append(i)
-        curr_pixel = getattr(self, "exporting_array" + "{}".format(channel_number))
-        for i in pixels:
-            condition = (np.array(energies) <= max_energy) == (np.array(energies) >= min_energy)
-            interval = np.extract(condition, curr_pixel[i][:])
-            integ = sum(interval)
-            integs.append(integ)
-            #print(integ)
-        return np.array(integs)
+    def parse_roi(self, pixels, channel_number, rois = [[0, 20]], energy_range = 20): #min_energy = 0, max_energy = 20):
+        roi_integrations = []
+        energies = np.linspace(0, float(energy_range), 2048)
+        curr_pixel = self.exporting_arrays[channel_number - 1]
+        pix_max = max(pixels) + 1
+        for roi in rois:
+            current_integration = []
+            condition = (np.array(energies) <= roi[1]) == (np.array(energies) >= roi[0])
+            roi_integrations.append(list([v.values[channel_number - 1] @ condition.astype(int) for k, v in self.df.items()])[:pix_max])
+
+        return np.array(roi_integrations)
 
 
 
