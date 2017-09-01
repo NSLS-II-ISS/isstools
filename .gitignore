@@ -5,7 +5,6 @@ __pycache__/
 
 # C extensions
 *.so
-.idea
 
 # Distribution / packaging
 .Python
@@ -89,3 +88,4 @@ ENV/
 # Rope project settings
 .ropeproject
 .DS_Store
+.idea/
