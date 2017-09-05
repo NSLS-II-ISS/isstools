@@ -25,7 +25,7 @@ class PrepareBLDialog(*uic.loadUiType(ui_path)):
         self.label_hhrm_hor_trans.setText('{}'.format(curr_range['pvs']['HHRM Hor Trans']['value']))
 
         for index, bpm in enumerate(curr_range['pvs']['BPMs']):
-            label = QtWidgets.QLabel(bpm['Name'])
+            label = QtWidgets.QLabel(bpm['name'])
             pol = label.sizePolicy()
             pol.setHorizontalPolicy(QtWidgets.QSizePolicy.Maximum)
             self.gridLayout_2.addWidget(label, index + 1, 0)
