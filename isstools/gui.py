@@ -57,7 +57,7 @@ def auto_redraw_factory(fnc):
 
     return stale_callback
 
-#class ScanGui(QtWidgets.QMainWindow):
+
 class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
@@ -69,6 +69,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             del kwargs['write_html_log']
         else:
             self.html_log_func = None
+
+        if 'ic_amplifiers' in kwargs:
+            self.ic_amplifiers = kwargs['ic_amplifiers']
+            del kwargs['ic_amplifiers']
+        else:
+            self.ic_amplifiers = None
 
         if 'auto_tune_elements' in kwargs:
             self.auto_tune_elements = kwargs['auto_tune_elements']
@@ -312,11 +318,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
         self.run_check_gains.clicked.connect(self.run_gains_test)
-        self.run_check_gains_scan.clicked.connect(self.run_gains_test_scan)
+        self.run_check_gains_scan.clicked.connect(self.adjust_ic_gains)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
         self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
-        self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)#toggle_piezo_fb)
+        self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)
+
+        if self.ic_amplifiers is None:
+            self.run_check_gains_scan.setEnabled(False)
 
         if self.hhm is not None:
             self.piezo_thread = piezo_fb_thread(self)
@@ -506,6 +515,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.plan_funcs.append(self.prepare_bl)
         self.plan_funcs_names.append(self.prepare_bl.__name__)
+        self.plan_funcs.append(self.adjust_ic_gains)
+        self.plan_funcs_names.append(self.adjust_ic_gains.__name__)
+
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
         self.push_create_scan_update.clicked.connect(self.update_batch_traj)
@@ -602,7 +614,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             nmeasures = 1
         self.piezo_thread.adjust_center_point(line = self.piezo_line, center_point = self.piezo_center, n_lines = self.piezo_nlines, n_measures = nmeasures)
 
-    def prepare_bl(self, energy:int = -1, debug = False):
+    def prepare_bl(self, energy:int = -1, debug:bool = False):
             if debug:
                 print('[Prepare BL] Running Prepare Beamline in Debug Mode! (Not moving anything)')
 
@@ -2039,7 +2051,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         def handler(signum, frame):
             print("Could not open shutters")
-            raise Exception("end of time")
+            raise Exception("Timeout! Aborted!")
 
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
@@ -2068,25 +2080,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
             shutter.close()
-
         print('Done!')            
 
-
-    def run_gains_test_scan(self):
+    def adjust_ic_gains(self):
 
         def handler(signum, frame):
             print("Could not open shutters")
-            raise Exception("end of time")
+            raise Exception("Timeout! Aborted!")
 
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
-            try:
-                shutter.open()
-            except Exception as exc: 
-                print('Timeout! Aborting!')
-                return
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if
+                        self.shutters[shutter].shutter_type != 'SP' and
+                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
+
+            shutter.open()
 
             while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
                 QtWidgets.QApplication.processEvents()
@@ -2101,7 +2110,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         current_lut = int(self.hhm.lut_number_rbv.value)
 
         if 'max' not in info[str(current_lut)] or 'min' not in info[str(current_lut)]:
-            raise Exception('Could not find max or min information in the trajectory. Try sending it again to the controller.')
+            raise Exception(
+                'Could not find max or min information in the trajectory. Try sending it again to the controller.')
 
         min_en = int(info[str(current_lut)]['min'])
         max_en = int(info[str(current_lut)]['max'])
@@ -2140,63 +2150,81 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.traj_manager.init(9, ip = '10.8.2.86')
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
-            shutter.open()
+        not_done = 1
+        max_tries = 3
+        while not_done and max_tries:
+            not_done = 0
+            max_tries -= 1
 
-        for func in self.plan_funcs:
-            if func.__name__ == 'tscan':
-                tscan_func = func
-                break
-        self.current_uid_list = tscan_func('Check gains')
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
+                shutter.open()
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
-            shutter.close()
+            for func in self.plan_funcs:
+                if func.__name__ == 'tscan':
+                    tscan_func = func
+                    break
+            self.current_uid_list = tscan_func('Check gains')
 
-        # Send sampling time to the pizzaboxes:
-        self.comboBox_samp_time.setCurrentIndex(current_adc_index)
-        self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
-        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
-        for adc in self.adc_list:
-            adc.averaging_points.put(str(value))
-        for enc in self.enc_list:
-            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
+                shutter.close()
 
-        run = self.db[-1]
-        keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
-        regex = re.compile('pba\d{1}.*')
-        matches = [string for string in keys if re.match(regex, string)]
-        devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
-        
-        print_message = ''
-        for index, adc in enumerate(matches):
-            data = []
-            dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
-            for chunk in dd:
-                data.extend(chunk[adc])
-            data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
-            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+            # Send sampling time to the pizzaboxes:
+            self.comboBox_samp_time.setCurrentIndex(current_adc_index)
+            self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
+            value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+            for adc in self.adc_list:
+                adc.averaging_points.put(str(value))
+            for enc in self.enc_list:
+                enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
-            if data.max() > 0 and data.min() > 0:
-                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
-            elif data.min() > -0.039:
-                print_message += 'Increase {} gain by 10^2\n'.format(devnames[index])
-            elif data.max() <= -0.039 and data.min() > -0.39:
-                print_message += 'Increase {} gain by 10^1\n'.format(devnames[index])
-            elif data.max() < 0 and data.min() > -3.9:
-                print_message += '{} seems to be configured properly.\n'.format(devnames[index])
-            elif data.min() <= -3.9:
-                print_message += 'Decrease {} gain by 10^1\n'.format(devnames[index])
-            else:
-                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+            run = self.db[-1]
+            keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
+            regex = re.compile('pba\d{1}.*')
+            matches = [string for string in keys if re.match(regex, string)]
+            devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
 
-        print('-' * 30)
-        if print_message:
-            print(print_message[:-1])
-        print('-' * 30)
+            print_message = ''
+            for index, adc in enumerate(matches):
+                data = []
+                dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
+                for chunk in dd:
+                    data.extend(chunk[adc])
+                data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+                print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+
+                if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
+                    curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
+                    exp = int(curr_gain[0][-1])
+                    curr_hs = curr_gain[1]
+                    if data.max() > 0 and data.min() > 0:
+                        print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
+                    elif data.min() > -0.039:
+                        print_message += 'Increasing {} gain by 10^2\n'.format(devnames[index])
+                        exp += 2
+                    elif data.min() > -0.39:
+                        print_message += 'Increasing {} gain by 10^1\n'.format(devnames[index])
+                        exp += 1
+                    elif data.max() < 0 and data.min() > -3.9:
+                        print_message += '{} seems to be configured properly.\n'.format(devnames[index])
+                    elif data.min() <= -3.9:
+                        print_message += 'Decreasing {} gain by 10^1\n'.format(devnames[index])
+                        exp -= 1
+                    else:
+                        print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+
+                    if (data.min() > -0.39 or data.min() < -3.9) and not (data.max() > 0 and data.min() > 0):
+                        not_done = 1
+                        new_gain = '10^{}'.format(exp)
+                        self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(new_gain, high_speed = curr_hs)
+
+            print('-' * 30)
+            if print_message:
+                print(print_message[:-1])
+            print('-' * 30)
 
         self.traj_manager.init(current_lut, ip = '10.8.2.86')
 
-        print('**** Check gains finished! ****')
+        print('**** Check gains finished! ****\n')
 
     def toggle_xia_checkbox(self, value):
         if value:
