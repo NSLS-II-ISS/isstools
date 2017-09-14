@@ -1851,7 +1851,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.create_log_scan(self.current_uid, self.figure)
 
             if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
-                self.tabWidget.setCurrentIndex(6)
+                self.tabWidget.setCurrentIndex(5)
                 self.selected_filename_bin = self.filepaths
                 self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in self.filepaths))
                 self.process_bin_equal()
@@ -1874,7 +1874,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if 'xia_filename' in self.db[self.current_uid]['start']:
                     # Parse xia
                     xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                    xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                    xia_filepath = 'smb://xf08id-nas1/xia_data/{}'.format(xia_filename)
                     xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
                     smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
                     try:
