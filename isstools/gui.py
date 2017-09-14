@@ -3611,7 +3611,7 @@ class process_bin_thread_equal(QThread):
             self.gui.plotting_list.append(plot_info)
 
 
-            bin_eq = self.gen_parser.bin_equal()
+            bin_eq = self.gen_parser.bin_equal(en_spacing=0.5)
 
             result = bin_eq[self.gui.last_num_text] / bin_eq[self.gui.last_den_text]
             ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
@@ -3672,7 +3672,6 @@ class process_bin_thread_equal(QThread):
                          self.gui.figure_old_scans_2.ax2, 
                          self.gui.canvas_old_scans_2]
             self.gui.plotting_list.append(plot_info)
-
 
         print('[Binning Equal Thread {}] Finished'.format(self.index))
 
