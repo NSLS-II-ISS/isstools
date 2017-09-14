@@ -542,7 +542,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_load_csv.clicked.connect(self.load_csv)
         self.push_save_csv.clicked.connect(self.save_csv)
 
-
+        #checking which xystage to use:
+        if self.motors_list[self.mot_list.index('samplexy_x')].connected and\
+               self.motors_list[self.mot_list.index('samplexy_y')].connected:
+            self.stage_x = 'samplexy_x'
+            self.stage_y = 'samplexy_y'
+        elif self.motors_list[self.mot_list.index('huber_stage_z')].connected and\
+                self.motors_list[self.mot_list.index('huber_stage_y')].connected:
+            self.stage_x = 'huber_stage_z'
+            self.stage_y = 'huber_stage_y'
+        else:
+            print('No stage set! Batch mode will not work!')
+        
 
         # Redirect terminal output to GUI
         #sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -2151,7 +2162,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.init(9, ip = '10.8.2.86')
 
         not_done = 1
-        max_tries = 3
+        max_tries = 1
         while not_done and max_tries:
             not_done = 0
             max_tries -= 1
@@ -2163,7 +2174,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 if func.__name__ == 'tscan':
                     tscan_func = func
                     break
-            self.current_uid_list = tscan_func('Check gains')
+            self.current_uid_list = list(tscan_func('Check gains'))
 
             for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
                 shutter.close()
@@ -2530,16 +2541,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.treeView_samples.expand(self.model_samples.indexFromItem(item))
 
     def get_sample_pos(self):
-        if 'samplexy_x' not in self.mot_list:
-            raise Exception('samplexy_x was not passed to the GUI')
-        if 'samplexy_y' not in self.mot_list:
-            raise Exception('samplexy_y was not passed to the GUI')
+        if self.stage_x not in self.mot_list:
+            raise Exception('Stage X was not passed to the GUI')
+        if self.stage_y not in self.mot_list:
+            raise Exception('Stage Y was not passed to the GUI')
 
-        if not self.motors_list[self.mot_list.index('samplexy_x')].connected or not self.motors_list[self.mot_list.index('samplexy_y')].connected:
-            raise Exception('SampleXY stage IOC not connected')
+        if not self.motors_list[self.mot_list.index(self.stage_x)].connected or not self.motors_list[self.mot_list.index(self.stage_y)].connected:
+            raise Exception('Stage IOC not connected')
 
-        x_value = self.motors_list[self.mot_list.index('samplexy_x')].read()['samplexy_x']['value']
-        y_value = self.motors_list[self.mot_list.index('samplexy_y')].read()['samplexy_y']['value']
+        x_value = self.motors_list[self.mot_list.index(self.stage_x)].read()[self.stage_x]['value']
+        y_value = self.motors_list[self.mot_list.index(self.stage_y)].read()[self.stage_y]['value']
         self.doubleSpinBox_sample_x.setValue(x_value)
         self.doubleSpinBox_sample_y.setValue(y_value)
 
@@ -2990,11 +3001,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if print_only == False:
                         self.label_batch_step.setText('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
                         self.check_pause_abort_batch()
-                        self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait = False)
-                        self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait = False)
+                        self.motors_list[self.mot_list.index(self.stage_x)].move(item_x, wait = False)
+                        self.motors_list[self.mot_list.index(self.stage_y)].move(item_y, wait = False)
                         ttime.sleep(0.2)
-                        while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                              self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                        while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
+                              self.motors_list[self.mot_list.index(self.stage_y)].moving):
                             QtCore.QCoreApplication.processEvents()
                     ### Uncomment
 
@@ -3143,11 +3154,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 if print_only == False:
                                     self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1, len(repetitions)))
                                     self.check_pause_abort_batch()
-                                    self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
-                                    self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                                    self.motors_list[self.mot_list.index(self.stage_x)].move(samples[sample]['X'], wait = False)
+                                    self.motors_list[self.mot_list.index(self.stage_y)].move(samples[sample]['Y'], wait = False)
                                     ttime.sleep(0.2)
-                                    while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                          self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                    while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
+                                          self.motors_list[self.mot_list.index(self.stage_y)].moving):
                                         QtCore.QCoreApplication.processEvents()
                                 ### Uncomment
 
@@ -3211,11 +3222,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     if print_only == False:
                                         self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1, len(repetitions)))
                                         self.check_pause_abort_batch()
-                                        self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'], wait = False)
-                                        self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'], wait = False)
+                                        self.motors_list[self.mot_list.index(self.stage_x)].move(samples[sample]['X'], wait = False)
+                                        self.motors_list[self.mot_list.index(self.stage_y)].move(samples[sample]['Y'], wait = False)
                                         ttime.sleep(0.2)
-                                        while(self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                              self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                        while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
+                                              self.motors_list[self.mot_list.index(self.stage_y)].moving):
                                             QtCore.QCoreApplication.processEvents()
                                     ### Uncomment
         
