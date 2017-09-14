@@ -3455,7 +3455,8 @@ class process_bin_thread(QThread):
             #self.gui.checkBox_log.setChecked(False)
         warnings.filterwarnings('default')
 
-        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[self.gui.listWidget_denominator.currentItem().text()]
+        print('last_num_text: {}\nlast_den_text: {}'.format(self.gui.last_num_text, self.gui.last_den_text))
+        result = binned[self.gui.last_num_text] / binned[self.gui.last_den_text]
         result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
         ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
