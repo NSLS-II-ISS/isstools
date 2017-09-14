@@ -1851,7 +1851,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.create_log_scan(self.current_uid, self.figure)
 
             if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
-                self.tabWidget.setCurrentIndex(6)
+                self.tabWidget.setCurrentIndex(5)
                 self.selected_filename_bin = self.filepaths
                 self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in self.filepaths))
                 self.process_bin_equal()
