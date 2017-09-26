@@ -1872,7 +1872,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.process_bin_equal()
 
         else:
-            print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
+            print('\nPlease, type the name of the scan in the field "name"\nTry again')
 
     def parse_scans(self, uid):
         # Erase last graph
@@ -1932,7 +1932,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     '{}.txt'.format(self.db[self.current_uid]['start']['year'],
                                                     self.db[self.current_uid]['start']['cycle'],
                                                     self.db[self.current_uid]['start']['PROPOSAL'],
-                                                    self.db[self.current_uid]['start']['comment'])
+                                                    self.db[self.current_uid]['start']['name'])
             if os.path.isfile(self.current_filepath):
                 iterator = 2
                 while True:
@@ -1940,7 +1940,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                             '{}-{}.txt'.format(self.db[self.current_uid]['start']['year'],
                                                                self.db[self.current_uid]['start']['cycle'],
                                                                self.db[self.current_uid]['start']['PROPOSAL'],
-                                                               self.db[self.current_uid]['start']['comment'],
+                                                               self.db[self.current_uid]['start']['name'],
                                                                iterator)
                     if not os.path.isfile(self.current_filepath):
                         break
@@ -3075,9 +3075,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 self.check_pause_abort_batch()
                                 self.run_prep_traj()
         
-                        if 'comment' in scans[scan]:
-                            old_comment = scans[scan]['comment']
-                            scans[scan]['comment'] = '{}-{}'.format(scans[scan]['comment'], traj_name[:traj_name.find('.txt')])
+                        if 'name' in scans[scan]:
+                            old_name = scans[scan]['name']
+                            scans[scan]['name'] = '{}-{}'.format(scans[scan]['name'], traj_name[:traj_name.find('.txt')])
         
                         if scan.find('-') != -1:
                             scan_name = scan[:scan.find('-')]
@@ -3086,8 +3086,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                         ### Uncomment
                         if print_only == False:
-                            if 'comment' in scans[scan]:
-                                self.label_batch_step.setText('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                            if 'name' in scans[scan]:
+                                self.label_batch_step.setText('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
                                 self.check_pause_abort_batch()
                             else:
                                 self.label_batch_step.setText('Execute {}'.format(scan_name))
@@ -3097,9 +3097,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 self.uids_to_process.extend(uid)
                         ### Uncomment (previous line)
 
-                        if 'comment' in scans[scan]:
-                            print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
-                            scans[scan]['comment'] = old_comment
+                        if 'name' in scans[scan]:
+                            print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
+                            scans[scan]['name'] = old_name
                         else:
                             print('Execute {}'.format(scan_name))
 
@@ -3209,9 +3209,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                             self.check_pause_abort_batch()
                                             self.run_prep_traj()
                     
-                                    if 'comment' in scans[scan]:
-                                        old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample, scans[scan]['comment'], traj_name[:traj_name.find('.txt')], rep + 1)
+                                    if 'name' in scans[scan]:
+                                        old_name = scans[scan]['name']
+                                        scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'], traj_name[:traj_name.find('.txt')], rep + 1)
                     
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
@@ -3220,8 +3220,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 
                                     ### Uncomment
                                     if print_only == False:
-                                        if 'comment' in scans[scan]:
-                                            self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['comment'], step_number + 1, len(repetitions)))
+                                        if 'name' in scans[scan]:
+                                            self.label_batch_step.setText('Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['name'], step_number + 1, len(repetitions)))
                                             self.check_pause_abort_batch()
                                         else:
                                             self.label_batch_step.setText('Execute {} | Loop step number: {}'.format(scan_name, step_number + 1))
@@ -3231,9 +3231,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                             self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
                                     
-                                    if 'comment' in scans[scan]:    
-                                        print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
-                                        scans[scan]['comment'] = old_comment
+                                    if 'name' in scans[scan]:    
+                                        print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
+                                        scans[scan]['name'] = old_name
                                     else:
                                         print('Execute {}'.format(scan_name))
 
@@ -3274,24 +3274,24 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         self.check_pause_abort_batch()
                                         self.run_prep_traj()
         
-                                    old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample, scans[scan]['comment'], traj_name[:traj_name.find('.txt')], rep + 1)
+                                    old_name = scans[scan]['name']
+                                    scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'], traj_name[:traj_name.find('.txt')], rep + 1)
         
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
                                     else:
                                         scan_name = scan
         
-                                    print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                                    print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
                                     ### Uncomment
                                     if print_only == False:
-                                        self.label_batch_step.setText('Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['comment'], step_number + 1, len(repetitions)))
+                                        self.label_batch_step.setText('Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['name'], step_number + 1, len(repetitions)))
                                         self.check_pause_abort_batch()
                                         uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
                                         if uid:
                                             self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
-                                    scans[scan]['comment'] = old_comment
+                                    scans[scan]['name'] = old_name
         
                         print('-' * 40)
 
@@ -3406,7 +3406,7 @@ class process_batch_thread(QThread):
                                                          xanes_spacing, 
                                                          exafs_spacing)
 
-                        sample_name = self.gui.db[uid]['start']['comment'].split(' - ')[0]
+                        sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
 
                         if sample_name in self.gui.batch_results:
                             self.gui.batch_results[sample_name]['data'].append(self.gui.gen_parser.data_manager.binned_arrays)

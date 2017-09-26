@@ -224,6 +224,7 @@ class XASdataGeneric(XASdata):
         pi = self.db[self.uid]['start']['PI']
         proposal = self.db[self.uid]['start']['PROPOSAL']
         saf = self.db[self.uid]['start']['SAF']
+        name = self.db[self.uid]['start']['name']
         comment = self.db[self.uid]['start']['comment']
         year = self.db[self.uid]['start']['year']
         cycle = self.db[self.uid]['start']['cycle']
@@ -331,6 +332,7 @@ class XASdataGeneric(XASdata):
                               '# PROPOSAL: {}\n'\
                               '# Scan ID: {}\n'\
                               '# UID: {}\n'\
+                              '# Comment: {}\n'\
                               '# Trajectory name: {}\n'\
                               '# Start time: {}\n'\
                               '# Stop time: {}\n'\
@@ -341,6 +343,7 @@ class XASdataGeneric(XASdata):
                                                                proposal, 
                                                                scan_id, 
                                                                real_uid, 
+                                                               comment,
                                                                trajectory_name, 
                                                                human_start_time, 
                                                                human_stop_time, 
