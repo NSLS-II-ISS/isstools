@@ -310,6 +310,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.settings = QSettings('ISS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue = '11470', type = str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
+        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/User Data/', type = str)
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
@@ -890,18 +891,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
-            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = '/GPFS/xf08id/User Data/', filter = '*.txt', parent = self)[0]
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*.txt', parent = self)[0]
         else:
-            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = '/GPFS/xf08id/User Data/', filter = '*.txt', parent = self)[0]]
+            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
         if len(self.selected_filename_bin[0]):
             if len(self.selected_filename_bin) > 1:
                 filenames = []
+                self.user_dir = self.selected_filename_bin[0].rsplit('/', 1)[0]
                 for name in self.selected_filename_bin:
                     filenames.append(name.rsplit('/', 1)[1])
                 filenames = ', '.join(filenames)
             elif len(self.selected_filename_bin) == 1:
                 filenames = self.selected_filename_bin[0]
+                self.user_dir = filenames.rsplit('/', 1)[0]
 
+            self.settings.setValue('user_dir', self.user_dir)          
             self.label_24.setText(filenames)
             self.process_bin_equal()
 
@@ -1876,6 +1880,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar._views.clear()
         self.toolbar._positions.clear()
         self.toolbar._update_view()
+
+        year = self.db[uid]['start']['year']
+        cycle = self.db[uid]['start']['cycle']
+        proposal = self.db[uid]['start']['PROPOSAL']
+        # Create dirs if they are not there
+        log_path = '/GPFS/xf08id/User Data/'
+        if log_path[-1] != '/':
+            log_path += '/'
+        log_path = '{}{}.{}.{}/'.format(log_path, year, cycle, proposal)
+        if(not os.path.exists(log_path)):
+            os.makedirs(log_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
+            call(['chmod', '770', log_path])
+    
+        log_path = log_path + 'log/'
+        if(not os.path.exists(log_path)):
+            os.makedirs(log_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
+            call(['chmod', '770', log_path])
+    
+        snapshots_path = log_path + 'snapshots/'
+        if(not os.path.exists(snapshots_path)):
+            os.makedirs(snapshots_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', snapshots_path])
+            call(['chmod', '770', snapshots_path])
 
         try:
             self.current_uid = uid
