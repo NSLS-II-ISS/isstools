@@ -62,7 +62,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {}, det_dict = {}, motors_list = [], general_scan_func = None, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {},
+                 det_dict = {}, motors_dict = {}, general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -122,7 +123,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_update_user.clicked.connect(self.update_user)
         self.det_dict = det_dict
 
-        self.motors_list = motors_list
+        self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
         # Initialize 'trajectory' tab
@@ -276,7 +277,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
-        self.mot_list = [motor.name for motor in self.motors_list]
+        self.mot_list = self.motors_dict.keys()
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
         self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
@@ -544,12 +545,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_save_csv.clicked.connect(self.save_csv)
 
         #checking which xystage to use:
-        if self.motors_list[self.mot_list.index('samplexy_x')].connected and\
-               self.motors_list[self.mot_list.index('samplexy_y')].connected:
+        if self.motors_dict['samplexy_x']['object'].connected and\
+               self.motors_dict['samplexy_y']['object'].connected:
             self.stage_x = 'samplexy_x'
             self.stage_y = 'samplexy_y'
-        elif self.motors_list[self.mot_list.index('huber_stage_z')].connected and\
-                self.motors_list[self.mot_list.index('huber_stage_y')].connected:
+        elif self.motors_dict['huber_stage_z']['object'].connected and\
+                self.motors_dict['huber_stage_y']['object'].connected:
             self.stage_x = 'huber_stage_z'
             self.stage_y = 'huber_stage_y'
         else:
@@ -1508,15 +1509,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     curr_det = list(self.det_dict.keys())[i]
                     detectors.append(curr_det)
 
-        for i in range(self.comboBox_gen_mot.count()):
-            if self.comboBox_gen_mot.currentText() == self.mot_list[i]:
-                curr_mot = self.motors_list[i]
+        curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
 
-        if(curr_det == ''):
+        if curr_det == '':
             print('Detector not found. Aborting...')
             raise
 
-        if(curr_mot == ''):
+        if curr_mot == '':
             print('Motor not found. Aborting...')
             raise
 
@@ -2575,11 +2574,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if self.stage_y not in self.mot_list:
             raise Exception('Stage Y was not passed to the GUI')
 
-        if not self.motors_list[self.mot_list.index(self.stage_x)].connected or not self.motors_list[self.mot_list.index(self.stage_y)].connected:
+
+        if not self.motors_dict[self.stage_x]['object'].connected or \
+                not self.motors_dict[self.stage_y]['object'].connected:
             raise Exception('Stage IOC not connected')
 
-        x_value = self.motors_list[self.mot_list.index(self.stage_x)].read()[self.stage_x]['value']
-        y_value = self.motors_list[self.mot_list.index(self.stage_y)].read()[self.stage_y]['value']
+        x_value = self.motors_dict[self.stage_x]['object'].position
+        y_value = self.motors_dict[self.stage_y]['object'].position
         self.doubleSpinBox_sample_x.setValue(x_value)
         self.doubleSpinBox_sample_y.setValue(y_value)
 
@@ -2662,9 +2663,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         parent.appendRow(new_item)
 
     def update_loop_values(self, text):
-        for i in range(self.comboBox_sample_loop_motor.count()):
-            if text == self.mot_list[i]:
-                curr_mot = self.motors_list[i]
+        curr_mot = self.motors_dict[self.comboBox_sample_loop_motor.currentText()]['object']
         if self.radioButton_sample_rel.isChecked():
             if curr_mot.connected == True:
                 self.push_add_sample_loop.setEnabled(True)
@@ -3030,11 +3029,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if print_only == False:
                         self.label_batch_step.setText('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
                         self.check_pause_abort_batch()
-                        self.motors_list[self.mot_list.index(self.stage_x)].move(item_x, wait = False)
-                        self.motors_list[self.mot_list.index(self.stage_y)].move(item_y, wait = False)
+
+                        self.motors_dict[self.stage_x]['object'].move(item_x, wait = False)
+                        self.motors_dict[self.stage_y]['object'].move(item_y, wait = False)
                         ttime.sleep(0.2)
-                        while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
-                              self.motors_list[self.mot_list.index(self.stage_y)].moving):
+                        while(self.motors_dict[self.stage_x]['object'].moving or \
+                              self.motors_dict[self.stage_y]['object'].moving):
                             QtCore.QCoreApplication.processEvents()
                     ### Uncomment
 
@@ -3117,9 +3117,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         repetitions = np.arange(int(repetitions[repetitions.find(':') + 1:]))
                     elif rep_type == 'Motor':
                         repetitions = repetitions.split(' ')
-                        #rep_motor = self.motors_list[self.motors_list.index(repetitions[0][repetitions[0].find(':') + 1:])]
                         rep_motor = repetitions[0][repetitions[0].find(':') + 1:]
-                        rep_motor = [motor for motor in self.motors_list if motor.name == rep_motor][0]
+                        rep_motor = self.motors_dict[rep_motor]['object']
                         rep_start = float(repetitions[1][repetitions[1].find(':') + 1:])
                         rep_stop = float(repetitions[2][repetitions[2].find(':') + 1:])
                         rep_step = float(repetitions[3][repetitions[3].find(':') + 1:])
@@ -3183,11 +3182,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 if print_only == False:
                                     self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1, len(repetitions)))
                                     self.check_pause_abort_batch()
-                                    self.motors_list[self.mot_list.index(self.stage_x)].move(samples[sample]['X'], wait = False)
-                                    self.motors_list[self.mot_list.index(self.stage_y)].move(samples[sample]['Y'], wait = False)
+                                    self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait = False)
+                                    self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait = False)
                                     ttime.sleep(0.2)
-                                    while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
-                                          self.motors_list[self.mot_list.index(self.stage_y)].moving):
+                                    while(self.motors_dict[self.stage_x]['object'].moving or \
+                                          self.motors_dict[self.stage_y]['object'].moving):
                                         QtCore.QCoreApplication.processEvents()
                                 ### Uncomment
 
@@ -3251,11 +3250,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     if print_only == False:
                                         self.label_batch_step.setText('Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample, samples[sample]['X'], samples[sample]['Y'], step_number + 1, len(repetitions)))
                                         self.check_pause_abort_batch()
-                                        self.motors_list[self.mot_list.index(self.stage_x)].move(samples[sample]['X'], wait = False)
-                                        self.motors_list[self.mot_list.index(self.stage_y)].move(samples[sample]['Y'], wait = False)
+                                        self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait = False)
+                                        self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait = False)
                                         ttime.sleep(0.2)
-                                        while(self.motors_list[self.mot_list.index(self.stage_x)].moving or \
-                                              self.motors_list[self.mot_list.index(self.stage_y)].moving):
+                                        while(self.motors_dict[self.stage_x]['object'].moving or \
+                                              self.motors_dict[self.stage_y]['object'].moving):
                                             QtCore.QCoreApplication.processEvents()
                                     ### Uncomment
         
