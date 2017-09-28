@@ -560,6 +560,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Redirect terminal output to GUI
         #sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         #sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+        sys.stdout = EmittingStream()
+        sys.stderr = EmittingStream()
+        sys.stdout.textWritten.connect(self.normalOutputWritten)
+        sys.stderr.textWritten.connect(self.normalOutputWritten)
 
     def update_combo_edge(self, index):
         self.comboBoxEdge.clear()
@@ -1132,7 +1136,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def normalOutputWritten(self, text):
         """Append text to the QtextEdit_terminal."""
         cursor = self.textEdit_terminal.textCursor()
-        cursor.movePosition(QtWidgets.QTextCursor.End)
+        cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
         self.textEdit_terminal.setTextCursor(cursor)
         self.textEdit_terminal.ensureCursorVisible()
