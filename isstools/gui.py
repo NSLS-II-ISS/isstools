@@ -830,7 +830,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.json_blprep, parent = self)
         if dlg.exec_():
-            self.prepare_bl()
+            self.prepare_bl(curr_energy)
             
 
     def update_user(self):
