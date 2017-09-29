@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1638</width>
-    <height>1321</height>
+    <width>2220</width>
+    <height>1182</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -4686,10 +4686,10 @@ the edge</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>1150</y>
-      <width>1621</width>
-      <height>131</height>
+      <x>1650</x>
+      <y>40</y>
+      <width>551</width>
+      <height>1101</height>
      </rect>
     </property>
     <property name="font">
@@ -4930,14 +4930,27 @@ the edge</string>
      </item>
     </layout>
    </widget>
+   <widget class="QLabel" name="label_59">
+    <property name="geometry">
+     <rect>
+      <x>1650</x>
+      <y>15</y>
+      <width>121</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Terminal window</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1638</width>
-     <height>19</height>
+     <width>2220</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>
