@@ -2194,7 +2194,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.traj_manager.init(9, ip = '10.8.2.86')
 
         not_done = 1
-        max_tries = 1
+        max_tries = 3
         while not_done and max_tries:
             not_done = 0
             max_tries -= 1
@@ -2206,7 +2206,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 if func.__name__ == 'tscan':
                     tscan_func = func
                     break
-            self.current_uid_list = list(tscan_func('Check gains'))
+            self.current_uid_list = list(tscan_func('Check gains', ''))
 
             for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
                 shutter.close()
