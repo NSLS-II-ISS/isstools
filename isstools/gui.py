@@ -129,7 +129,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Initialize 'trajectory' tab
         self.hhm = hhm
         if self.hhm is not None:
-            self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
+            self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
             self.hhm.angle_offset.subscribe(self.update_angle_offset)
             self.hhm.trajectory_progress.subscribe(self.update_progress)
             self.progress_sig.connect(self.update_progressbar) 
@@ -869,7 +869,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
-        self.label_angle_offset.setText('{0:.4f}'.format(value))
+        self.label_angle_offset.setText('{0:.8f}'.format(value))
 
     def update_progress(self, pvname = None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
@@ -925,7 +925,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print ('[E0 Calibration] Aborted!')
             return False
         self.hhm.angle_offset.put(str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000))
-        self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
+        self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.hhm.angle_offset.value))
 
 
