@@ -452,7 +452,7 @@ class smbclient:
         dest_file.close()
 
     def auth_fn(self, server, share, workgroup, username, password):
-        return ('elistavitski-ni', 'Eli Stavitski', 'issuser')
+        return ('xf08id-nas1', '08id-user', 'issuser08*')
 
 
 
