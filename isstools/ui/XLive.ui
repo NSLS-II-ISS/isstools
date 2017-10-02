@@ -3609,7 +3609,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label_122">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -3622,7 +3622,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="4" column="0">
            <widget class="QPushButton" name="push_create_scan">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -3641,7 +3641,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1" colspan="2">
+          <item row="3" column="1" colspan="2">
            <widget class="QComboBox" name="comboBox_lut"/>
           </item>
           <item row="0" column="1" colspan="2">
@@ -3663,12 +3663,25 @@ scan is done</string>
           <item row="1" column="0" colspan="3">
            <layout class="QGridLayout" name="gridLayout_31"/>
           </item>
-          <item row="3" column="1" colspan="2">
+          <item row="4" column="1" colspan="2">
            <widget class="QPushButton" name="push_create_scan_update">
             <property name="text">
              <string>Update List</string>
             </property>
            </widget>
+          </item>
+          <item row="2" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
