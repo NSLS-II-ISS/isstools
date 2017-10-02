@@ -62,8 +62,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {},
-                 det_dict = {}, motors_dict = {}, general_scan_func = None, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, 
+                 hhm = None, shutters = {}, det_dict = {}, motors_dict = {}, 
+                 general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -83,6 +84,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.auto_tune_elements = None
             self.push_prepare_autotune.setEnabled(False)
+
+        if 'set_gains_offsets' in kwargs:
+            self.set_gains_offsets_scan = kwargs['set_gains_offsets']
+            del kwargs['set_gains_offsets']
+        else:
+            self.set_gains_offsets_scan = None
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -519,6 +526,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs_names.append(self.prepare_bl.__name__)
         self.plan_funcs.append(self.adjust_ic_gains)
         self.plan_funcs_names.append(self.adjust_ic_gains.__name__)
+        if self.set_gains_offsets_scan is not None:
+            self.plan_funcs.append(self.set_gains_offsets_scan)
+            self.plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
