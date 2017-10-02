@@ -133,7 +133,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
-        # Initialize 'trajectory' tab
+        # Initialize 'Beamline status' tab
+        self.dets_with_amp = [det.name for det in self.det_dict 
+                             if det.name[:3] == 'pba' and hasattr(det, 'amp')]
+        if self.dets_with_amp == []:
+            self.push_read_amp_gains.setEnabled(False)
+        else:
+            self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+        # Initialize 'trajectories' tab
         self.hhm = hhm
         if self.hhm is not None:
             self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
@@ -856,6 +864,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
+
+    def read_amp_gains(self):
+        for detec in self.dets_with_amp:
+            amp = [det.amp for det in self.det_dict if det.name == detec]
+            if len(amp):
+                amp = amp[0]
+                gain = amp.get_gain()
+                if gain[1]:
+                    gain[1] = 'High Speed'
+                else:
+                    gain[1] = 'Low Noise'
+
+                print('{} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
 
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())

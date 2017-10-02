@@ -122,46 +122,10 @@ to Curr. Position</string>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_108">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Numerator</string>
-          </property>
-         </widget>
-        </item>
         <item row="4" column="1">
          <widget class="QLineEdit" name="edit_gen_step">
           <property name="text">
            <string>0.05</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QComboBox" name="comboBox_gen_detsig">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_109">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Motor</string>
           </property>
          </widget>
         </item>
@@ -178,16 +142,6 @@ to Curr. Position</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QComboBox" name="comboBox_gen_mot">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="0">
          <widget class="QLabel" name="label_110">
           <property name="font">
@@ -198,16 +152,6 @@ to Curr. Position</string>
           </property>
           <property name="text">
            <string>Scan Range</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox_gen_det">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
           </property>
          </widget>
         </item>
@@ -261,7 +205,20 @@ to Curr. Position</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_112">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Detector/Denominator</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
          <widget class="QComboBox" name="comboBox_gen_det_den">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -271,7 +228,7 @@ to Curr. Position</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
+        <item row="2" column="2">
          <widget class="QComboBox" name="comboBox_gen_detsig_den">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -282,7 +239,7 @@ to Curr. Position</string>
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_112">
+         <widget class="QLabel" name="label_108">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -290,7 +247,50 @@ to Curr. Position</string>
            </font>
           </property>
           <property name="text">
-           <string>Denominator</string>
+           <string>Detector/Numerator</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="comboBox_gen_det">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QComboBox" name="comboBox_gen_detsig">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_109">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Motor</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_gen_mot">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
          </widget>
         </item>
@@ -395,6 +395,20 @@ to Curr. Position</string>
        <string>eV</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="push_read_amp_gains">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>270</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Read Amplifier
+Gains</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -456,49 +470,10 @@ to Curr. Position</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QLabel" name="label_64">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Read Trajectory Info</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QLabel" name="label_58">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Init Trajectory</string>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="2">
         <widget class="QPushButton" name="push_read_traj_info">
          <property name="text">
           <string>Read info</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QLabel" name="label_54">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Load Trajectory</string>
          </property>
         </widget>
        </item>
@@ -744,6 +719,27 @@ to Curr. Position</string>
          </property>
         </widget>
        </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="label_54">
+         <property name="text">
+          <string>Load Trajectory</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QLabel" name="label_58">
+         <property name="text">
+          <string>Init Trajectory</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="2">
+        <widget class="QLabel" name="label_64">
+         <property name="text">
+          <string>Read Trajectory Info</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QPushButton" name="push_prepare_trajectory">
@@ -781,23 +777,10 @@ to Curr. Position</string>
           <x>10</x>
           <y>20</y>
           <width>241</width>
-          <height>71</height>
+          <height>61</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_17">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_88">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Preedge Duration</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QLineEdit" name="edit_ds_pree_duration">
            <property name="text">
@@ -812,19 +795,6 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_90">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Postedge Duration</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QLineEdit" name="edit_ds_poste_duration">
            <property name="text">
@@ -836,6 +806,20 @@ to Curr. Position</string>
           <widget class="QLabel" name="label_91">
            <property name="text">
             <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_88">
+           <property name="text">
+            <string>Preedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_90">
+           <property name="text">
+            <string>Postedge Duration</string>
            </property>
           </widget>
          </item>
@@ -870,19 +854,6 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_134">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Postedge Duration</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QLineEdit" name="edit_ds2_poste_duration">
            <property name="text">
@@ -897,32 +868,6 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_92">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Preedge Duration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_136">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Edge Velocity</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="1">
           <widget class="QLineEdit" name="edit_vel_edge">
            <property name="text">
@@ -934,6 +879,27 @@ to Curr. Position</string>
           <widget class="QLabel" name="label_137">
            <property name="text">
             <string>eV/s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_92">
+           <property name="text">
+            <string>Preedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_134">
+           <property name="text">
+            <string>Postedge Duration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_136">
+           <property name="text">
+            <string>Edge Velocity</string>
            </property>
           </widget>
          </item>
@@ -954,42 +920,42 @@ to Curr. Position</string>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="2" column="1">
+         <item row="1" column="1">
           <widget class="QLineEdit" name="edit_preedge_hi">
            <property name="text">
             <string>-30</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
+         <item row="1" column="2">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>eV</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="2" column="1">
           <widget class="QLineEdit" name="edit_edge_hi">
            <property name="text">
             <string>50</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="1" column="0">
           <widget class="QLabel" name="label_16">
            <property name="text">
             <string>Edge start</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="2">
+         <item row="2" column="2">
           <widget class="QLabel" name="label_19">
            <property name="text">
             <string>eV</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="2" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Edge end</string>
@@ -998,12 +964,6 @@ to Curr. Position</string>
          </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_31">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
            <property name="text">
             <string>Regions</string>
            </property>
@@ -1084,19 +1044,6 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_32">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Velocities</string>
-           </property>
-          </widget>
-         </item>
          <item row="5" column="0">
           <widget class="QLabel" name="label_49">
            <property name="text">
@@ -1149,6 +1096,13 @@ to Curr. Position</string>
           <widget class="QLabel" name="label_50">
            <property name="text">
             <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_32">
+           <property name="text">
+            <string>Velocities</string>
            </property>
           </widget>
          </item>
@@ -1227,19 +1181,6 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_39">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Stitching</string>
-           </property>
-          </widget>
-         </item>
          <item row="5" column="1">
           <widget class="QLineEdit" name="edit_postedge_stitch_lo">
            <property name="text">
@@ -1303,6 +1244,13 @@ to Curr. Position</string>
            </property>
           </widget>
          </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_39">
+           <property name="text">
+            <string>Stitching</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </widget>
@@ -1320,19 +1268,6 @@ to Curr. Position</string>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_16">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_86">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Total Duration</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QLineEdit" name="edit_sine_total_duration">
            <property name="text">
@@ -1344,6 +1279,13 @@ to Curr. Position</string>
           <widget class="QLabel" name="label_87">
            <property name="text">
             <string>s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_86">
+           <property name="text">
+            <string>Total Duration</string>
            </property>
           </widget>
          </item>
@@ -1393,19 +1335,6 @@ to Curr. Position</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_62">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Tiling</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QCheckBox" name="checkBox_traj_single_dir">
          <property name="text">
@@ -1432,6 +1361,13 @@ to Curr. Position</string>
          </property>
          <property name="tristate">
           <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_62">
+         <property name="text">
+          <string>Tiling</string>
          </property>
         </widget>
        </item>
@@ -1480,36 +1416,10 @@ to Curr. Position</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_93">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Angle Offset</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="2">
         <widget class="QLabel" name="label_94">
          <property name="text">
           <string>°</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>E0</string>
          </property>
         </widget>
        </item>
@@ -1534,36 +1444,10 @@ to Curr. Position</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>K</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="2">
         <widget class="QLabel" name="label_15">
          <property name="text">
           <string>eV</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Pre-edge</string>
          </property>
         </widget>
        </item>
@@ -1578,6 +1462,34 @@ to Curr. Position</string>
         <widget class="QLineEdit" name="edit_preedge_lo">
          <property name="text">
           <string>-200</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>E0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Pre-edge</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_93">
+         <property name="text">
+          <string>Angle Offset</string>
          </property>
         </widget>
        </item>
@@ -3697,7 +3609,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="label_122">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -3710,7 +3622,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
+          <item row="3" column="0">
            <widget class="QPushButton" name="push_create_scan">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -3729,7 +3641,7 @@ scan is done</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1" colspan="2">
+          <item row="2" column="1" colspan="2">
            <widget class="QComboBox" name="comboBox_lut"/>
           </item>
           <item row="0" column="1" colspan="2">
@@ -3751,27 +3663,40 @@ scan is done</string>
           <item row="1" column="0" colspan="3">
            <layout class="QGridLayout" name="gridLayout_31"/>
           </item>
-          <item row="4" column="1" colspan="2">
+          <item row="3" column="1" colspan="2">
            <widget class="QPushButton" name="push_create_scan_update">
             <property name="text">
              <string>Update List</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="push_add_scan">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&lt; Add</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="push_delete_scan">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Delete</string>
+         </property>
         </widget>
        </item>
        <item row="1" column="0">
@@ -3787,19 +3712,6 @@ scan is done</string>
          </property>
         </spacer>
        </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="push_add_scan">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>&lt; Add</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="2">
         <spacer name="horizontalSpacer_5">
          <property name="orientation">
@@ -3812,19 +3724,6 @@ scan is done</string>
           </size>
          </property>
         </spacer>
-       </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="push_delete_scan">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Delete</string>
-         </property>
-        </widget>
        </item>
        <item row="1" column="4">
         <spacer name="horizontalSpacer_6">
@@ -4981,11 +4880,6 @@ the edge</string>
   <tabstop>checkBox_piezo_fb</tabstop>
   <tabstop>update_piezo</tabstop>
   <tabstop>push_update_piezo_center</tabstop>
-  <tabstop>comboBox_gen_det</tabstop>
-  <tabstop>comboBox_gen_detsig</tabstop>
-  <tabstop>comboBox_gen_det_den</tabstop>
-  <tabstop>comboBox_gen_detsig_den</tabstop>
-  <tabstop>comboBox_gen_mot</tabstop>
   <tabstop>edit_gen_range</tabstop>
   <tabstop>edit_gen_step</tabstop>
   <tabstop>spinBox_gen_scan_retries</tabstop>
