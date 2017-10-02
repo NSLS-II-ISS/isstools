@@ -866,6 +866,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_10.setText('{}'.format(self.RE.md['PI']))
 
     def read_amp_gains(self):
+        print('[Read Gains] Starting...')
         for detec in self.dets_with_amp:
             amp = [det.amp for det in self.det_dict if det.name == detec]
             if len(amp):
@@ -876,7 +877,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 else:
                     gain[1] = 'Low Noise'
 
-                print('{} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
+                print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
+        print('[Read Gains] Done!\n')
 
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
