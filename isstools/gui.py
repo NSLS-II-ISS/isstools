@@ -576,8 +576,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         
 
         # Redirect terminal output to GUI
-        #sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
-        #sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
         sys.stdout = EmittingStream()
         sys.stderr = EmittingStream()
         sys.stdout.textWritten.connect(self.normalOutputWritten)
@@ -1170,11 +1168,33 @@ class ScanGui(*uic.loadUiType(ui_path)):
         """Append text to the QtextEdit_terminal."""
         cursor = self.textEdit_terminal.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
-        cursor.insertText(text)
+
+        if text.find('Complete') >= 0 or text.find('Done') >= 0 or \
+                 text.find('Starting') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.darkGreen)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        elif text.find('0;3') >= 0:
+            text = text.replace('<', '(')
+            text = text.replace('>', ')')
+            text = text.replace('[0m', '</font>')
+            text = text.replace('[0;31m', '<font color=\"Red\">')
+            text = text.replace('[0;32m', '<font color=\"Green\">')
+            text = text.replace('[0;33m', '<font color=\"Yellow\">')
+            text = text.replace('[0;34m', '<font color=\"Blue\">')
+            text = text.replace('[0;36m', '<font color=\"Purple\">')
+            text = text.replace('\n', '<br />')
+            text += '<br />'
+            cursor.insertHtml(text)
+        else:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.black)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
         self.textEdit_terminal.setTextCursor(cursor)
         self.textEdit_terminal.ensureCursorVisible()
         #sys.__stdout__.writelines(text)
-
 
     def populateParams(self, index):
         for i in range(len(self.params1)):
@@ -1621,6 +1641,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.checkBox_tune.setEnabled(False)
 
     def autotune_function(self):
+        print('[Autotune procedure] Starting...')
+        self.checkBox_piezo_fb.setChecked(False)
         first_run = True
         for element in self.auto_tune_elements:
             if element['max_retries'] != -1 and element['scan_range'] != -1 and element['step_size'] != -1:
@@ -1663,6 +1685,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if button is not None:
                 if button.text() == '&Cancel':
                     break
+        print('[Autotune procedure] Complete')
 
             
 
@@ -2152,7 +2175,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if func.__name__ == 'get_offsets':
                 getoffsets_func = func
                 break
-        self.current_uid_list = getoffsets_func(10, dummy_read=True)
+        self.current_uid_list = list(getoffsets_func(10, dummy_read=True))
 
         for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
             shutter.close()
@@ -2268,30 +2291,32 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
                 print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
-                if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
-                    curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
-                    exp = int(curr_gain[0][-1])
-                    curr_hs = curr_gain[1]
-                    if data.max() > 0 and data.min() > 0:
-                        print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
-                    elif data.min() > -0.039:
-                        print_message += 'Increasing {} gain by 10^2\n'.format(devnames[index])
-                        exp += 2
-                    elif data.min() > -0.39:
-                        print_message += 'Increasing {} gain by 10^1\n'.format(devnames[index])
-                        exp += 1
-                    elif data.max() < 0 and data.min() > -3.9:
-                        print_message += '{} seems to be configured properly.\n'.format(devnames[index])
-                    elif data.min() <= -3.9:
-                        print_message += 'Decreasing {} gain by 10^1\n'.format(devnames[index])
-                        exp -= 1
-                    else:
-                        print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
-
-                    if (data.min() > -0.39 or data.min() < -3.9) and not (data.max() > 0 and data.min() > 0):
-                        not_done = 1
-                        new_gain = '10^{}'.format(exp)
-                        self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(new_gain, high_speed = curr_hs)
+                try:
+                    if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
+                        curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
+                        exp = int(curr_gain[0][-1])
+                        curr_hs = curr_gain[1]
+                        if data.max() > 0 and data.min() > 0:
+                            print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
+                        elif data.min() > -0.037:
+                            print_message += 'Increasing {} gain by 10^2\n'.format(devnames[index])
+                            exp += 2
+                        elif data.min() > -0.37:
+                            print_message += 'Increasing {} gain by 10^1\n'.format(devnames[index])
+                            exp += 1
+                        elif data.max() < 0 and data.min() > -3.7:
+                            print_message += '{} seems to be configured properly.\n'.format(devnames[index])
+                        elif data.min() <= -3.7:
+                            print_message += 'Decreasing {} gain by 10^1\n'.format(devnames[index])
+                            exp -= 1
+                        else:
+                            print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+    
+                        if (data.min() > -0.37 or data.min() < -3.7) and not (data.max() > 0 and data.min() > 0):
+                            not_done = 1
+                            self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+                except Exception as exc:
+                    print('Exception: {}'.format(exc))
 
             print('-' * 30)
             if print_message:
@@ -2300,7 +2325,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.traj_manager.init(current_lut, ip = '10.8.2.86')
 
-        print('**** Check gains finished! ****\n')
+        print('[Gain set scan] Complete\n')
 
     def toggle_xia_checkbox(self, value):
         if value:
@@ -3867,8 +3892,6 @@ class piezo_fb_thread(QThread):
                 self.gaussian_piezo_feedback(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
-                #self.gui.checkBox_piezo_fb.setChecked(0)
-                #self.go = 0
                 ttime.sleep(self.sampleTime)
 
 
