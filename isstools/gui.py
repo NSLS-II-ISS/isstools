@@ -1169,13 +1169,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         cursor = self.textEdit_terminal.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
 
-        if text.find('Complete') >= 0 or text.find('Done') >= 0 or \
-                 text.find('Starting') >= 0:
-            fmt = cursor.charFormat()
-            fmt.setForeground(QtCore.Qt.darkGreen)
-            cursor.setCharFormat(fmt)
-            cursor.insertText(text)
-        elif text.find('0;3') >= 0:
+        if text.find('0;3') >= 0:
             text = text.replace('<', '(')
             text = text.replace('>', ')')
             text = text.replace('[0m', '</font>')
@@ -1187,9 +1181,28 @@ class ScanGui(*uic.loadUiType(ui_path)):
             text = text.replace('\n', '<br />')
             text += '<br />'
             cursor.insertHtml(text)
+        elif text.lower().find('starting') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.darkYellow)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        elif text.lower().find('complete') >= 0 or text.lower().find('done') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.darkGreen)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        elif text.lower().find('abort') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.red)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
         else:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.black)
+            fmt.setFontWeight(QtGui.QFont.Normal)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
         self.textEdit_terminal.setTextCursor(cursor)
@@ -1596,9 +1609,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax))
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
-        print(curr_element is None)
         if len(uid_list) and curr_element is None:
-            print('Creating Log')
             self.create_log_scan(uid_list[0], self.figure_gen_scan)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
