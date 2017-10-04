@@ -1183,7 +1183,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             cursor.insertHtml(text)
         elif text.lower().find('starting') >= 0:
             fmt = cursor.charFormat()
-            fmt.setForeground(QtCore.Qt.darkYellow)
+            fmt.setForeground(QtCore.Qt.blue)
             fmt.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
