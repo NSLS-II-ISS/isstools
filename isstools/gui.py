@@ -1008,7 +1008,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.total_threads += 1
         self.progressBar_processing.setValue(int(np.round(100 * (self.total_threads - self.active_threads)/self.total_threads)))
         process_thread.start()
-        print('[Finished Launching Threads]')
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
@@ -1156,7 +1155,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.listWidget_denominator.setCurrentRow(-1)
         t_manager = process_threads_manager(self)
         t_manager.start()
-        print('[Finished Launching Threads]')
 
 
     def __del__(self):
@@ -1181,7 +1179,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             text = text.replace('\n', '<br />')
             text += '<br />'
             cursor.insertHtml(text)
-        elif text.lower().find('starting') >= 0:
+        elif text.lower().find('starting') >= 0 or text.lower().find('launching') >= 0:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.blue)
             fmt.setFontWeight(QtGui.QFont.Bold)
@@ -2596,7 +2594,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.edit_E0_2.setText(str(self.edge_found))
 
         if self.active_threads == 0:
-            print('[ #### All Threads Finished #### ]')
+            print('[ #### All Threads Done #### ]')
             self.total_threads = 0
             #self.progressBar_processing.setValue(int(np.round(100)))
             self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
@@ -2972,7 +2970,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_batch_average.ax.clear()
         self.canvas_batch_average.draw_idle()
         self.run_batch()
-        print('[Finished Launching Threads]')
 
     def print_batch(self):
         print('\n***** Printing Batch Steps *****')
@@ -3626,7 +3623,7 @@ class process_bin_thread(QThread):
             self.gen_parser.data_manager.export_dat(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
-        print('[Binning Thread {}] Finished'.format(self.index))
+        print('[Binning Thread {}] Done'.format(self.index))
 
 
 
@@ -3785,7 +3782,7 @@ class process_bin_thread_equal(QThread):
                          self.gui.canvas_old_scans_2]
             self.gui.plotting_list.append(plot_info)
 
-        print('[Binning Equal Thread {}] Finished'.format(self.index))
+        print('[Binning Equal Thread {}] Done'.format(self.index))
 
 
 class process_threads_manager(QThread):
