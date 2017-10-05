@@ -79,7 +79,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.ic_amplifiers = None
 
         if 'auto_tune_elements' in kwargs:
-            self.auto_tune_elements = kwargs['auto_tune_elements']
+            self.auto_tune_elements = kwargs['auto_tune_elements']['elements']
+            self.auto_tune_pre_elements = kwargs['auto_tune_elements']['pre_elements']
+            self.auto_tune_post_elements = kwargs['auto_tune_elements']['post_elements']
             del kwargs['auto_tune_elements']
         else:
             self.auto_tune_elements = None
@@ -1653,6 +1655,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         print('[Autotune procedure] Starting...')
         self.checkBox_piezo_fb.setChecked(False)
         first_run = True
+
+        for pre_element in self.auto_tune_pre_elements:
+            if pre_element['read_back'].value != pre_element['value']:
+                if hasattr(pre_element['motor'], 'move'):
+                    move_function = pre_element['motor'].move
+                elif hasattr(pre_element['motor'], 'put'):
+                    move_function = pre_element['motor'].put
+                for repeat in range(pre_element['tries']):
+                    move_function(pre_element['value'])
+                    ttime.sleep(0.1)
+
         for element in self.auto_tune_elements:
             if element['max_retries'] != -1 and element['scan_range'] != -1 and element['step_size'] != -1:
                 retries = element['max_retries']
@@ -1694,6 +1707,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if button is not None:
                 if button.text() == '&Cancel':
                     break
+
+        for post_element in self.auto_tune_post_elements:
+            if post_element['read_back'].value != post_element['value']:
+                if hasattr(post_element['motor'], 'move'):
+                    move_function = post_element['motor'].move
+                elif hasattr(post_element['motor'], 'put'):
+                    move_function = post_element['motor'].put
+                for repeat in range(post_element['tries']):
+                    move_function(post_element['value'])
+                    ttime.sleep(0.1)
+
         print('[Autotune procedure] Complete')
 
             
