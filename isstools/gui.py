@@ -62,8 +62,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, hhm = None, shutters = {},
-                 det_dict = {}, motors_dict = {}, general_scan_func = None, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, 
+                 hhm = None, shutters = {}, det_dict = {}, motors_dict = {}, 
+                 general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -83,6 +84,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.auto_tune_elements = None
             self.push_prepare_autotune.setEnabled(False)
+
+        if 'set_gains_offsets' in kwargs:
+            self.set_gains_offsets_scan = kwargs['set_gains_offsets']
+            del kwargs['set_gains_offsets']
+        else:
+            self.set_gains_offsets_scan = None
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -126,7 +133,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
-        # Initialize 'trajectory' tab
+        # Initialize 'Beamline status' tab
+        self.dets_with_amp = [det.name for det in self.det_dict 
+                             if det.name[:3] == 'pba' and hasattr(det, 'amp')]
+        if self.dets_with_amp == []:
+            self.push_read_amp_gains.setEnabled(False)
+        else:
+            self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+        # Initialize 'trajectories' tab
         self.hhm = hhm
         if self.hhm is not None:
             self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
@@ -519,6 +534,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs_names.append(self.prepare_bl.__name__)
         self.plan_funcs.append(self.adjust_ic_gains)
         self.plan_funcs_names.append(self.adjust_ic_gains.__name__)
+        if self.set_gains_offsets_scan is not None:
+            self.plan_funcs.append(self.set_gains_offsets_scan)
+            self.plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
@@ -846,6 +864,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
+
+    def read_amp_gains(self):
+        print('[Read Gains] Starting...')
+        for detec in self.dets_with_amp:
+            amp = [det.amp for det in self.det_dict if det.name == detec]
+            if len(amp):
+                amp = amp[0]
+                gain = amp.get_gain()
+                if gain[1]:
+                    gain[1] = 'High Speed'
+                else:
+                    gain[1] = 'Low Noise'
+
+                print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
+        print('[Read Gains] Done!\n')
 
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
