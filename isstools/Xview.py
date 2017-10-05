@@ -20,8 +20,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         #pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
         self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
-        self.pushbutton_plot_bin.clicked.connect(self.plot_bin)
-        self.pushbutton_plot_raw.clicked.connect(self.plot_raw)
+        self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
+        self.pushbutton_plot_raw.clicked.connect(self.plotRawData)
         self.push_bin.clicked.connect(self.bin_data)
         self.push_save_bin.clicked.connect(self.save_binned_data)
         #comboboxes
@@ -30,9 +30,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.comboBoxSortFilesBy.addItems(['Name', 'Time'])
         self.comboBoxSortFilesBy.currentIndexChanged.connect((self.getFileList))
         #file lists
-        self.listFiles_bin.itemSelectionChanged.connect(self.select_files_bin)
+        self.listFiles_bin.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
         self.listFiles_bin.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.listFiles_raw.itemSelectionChanged.connect(self.select_files_raw)
+        self.listFiles_raw.itemSelectionChanged.connect(self.selectRawDataFilesToPlot)
         self.listFiles_raw.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.addCanvas()
         self.keys = []
@@ -66,10 +66,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
     def addCanvas(self):
-        self.figure = Figure()
-        self.figure.set_facecolor(color='#FcF9F6')
-        self.figure.ax = self.figure.add_subplot(111)
-        self.canvas = FigureCanvas(self.figure)
+        self.figureBinned = Figure()
+        self.figureBinned.set_facecolor(color='#FcF9F6')
+        self.figureBinned.ax = self.figureBinned.add_subplot(111)
+        self.canvas = FigureCanvas(self.figureBinned)
 
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setMaximumHeight(25)
@@ -78,16 +78,16 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvas.draw()
 
 
-        self.figure_raw = Figure()
-        self.figure_raw.set_facecolor(color='#FcF9F6')
-        self.figure_raw.ax = self.figure_raw.add_subplot(111)
-        self.canvas_raw = FigureCanvas(self.figure_raw)
+        self.figureRaw = Figure()
+        self.figureRaw.set_facecolor(color='#FcF9F6')
+        self.figureRaw.ax = self.figureRaw.add_subplot(111)
+        self.canvasRaw = FigureCanvas(self.figureRaw)
 
-        self.toolbar_raw = NavigationToolbar(self.canvas_raw, self)
+        self.toolbar_raw = NavigationToolbar(self.canvasRaw, self)
         self.toolbar_raw.setMaximumHeight(25)
         self.layout_plot_raw.addWidget(self.toolbar_raw)
-        self.layout_plot_raw.addWidget(self.canvas_raw)
-        self.canvas_raw.draw()
+        self.layout_plot_raw.addWidget(self.canvasRaw)
+        self.canvasRaw.draw()
 
 
     def selectWorkingFolder(self):
@@ -119,7 +119,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.listFiles_raw.addItems(files_raw)
             self.listFiles_bin.addItems(files_bin)
 
-    def select_files_raw(self):
+    def selectRawDataFilesToPlot(self):
         header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
                                                                          self.listFiles_raw.currentItem().text()))
         self.keys_raw = re.sub('  +', '  ', header[header.rfind('# '):][2:-1]).split('  ')
@@ -129,18 +129,18 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             del self.keys[self.keys.index('timestamp')]
 
         if self.keys_raw != self.last_keys_raw:
-            self.listWidget_num_raw.clear()
-            self.listWidget_den_raw.clear()
-            self.listWidget_num_raw.insertItems(0, self.keys_raw)
-            self.listWidget_den_raw.insertItems(0, self.keys_raw)
+            self.listRawDataNumerator.clear()
+            self.listRawDataDenominator.clear()
+            self.listRawDataNumerator.insertItems(0, self.keys_raw)
+            self.listRawDataDenominator.insertItems(0, self.keys_raw)
 
             if self.last_num_raw != '' and self.last_num_raw <= len(self.keys_raw) - 1:
-                self.listWidget_num_raw.setCurrentRow(self.last_num_raw)
+                self.listRawDataNumerator.setCurrentRow(self.last_num_raw)
             if self.last_den_raw != '' and self.last_den_raw <= len(self.keys_raw) - 1:
-                self.listWidget_den_raw.setCurrentRow(self.last_den_raw)
+                self.listRawDataDenominator.setCurrentRow(self.last_den_raw)
 
 
-    def select_files_bin(self):
+    def selectBinnedDataFilesToPlot(self):
         header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
                                                                          self.listFiles_bin.currentItem().text()))
         self.keys = re.sub('  +', '  ', header[header.rfind('# '):][2:-1]).split('  ')
@@ -150,32 +150,32 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             del self.keys[self.keys.index('timestamp')]
 
         if self.keys != self.last_keys:
-            self.listWidget.clear()
-            self.listWidget_2.clear()
-            self.listWidget.insertItems(0, self.keys)
-            self.listWidget_2.insertItems(0, self.keys)
+            self.listBinnedDataNumerator.clear()
+            self.listBinnedDataDenominator.clear()
+            self.listBinnedDataNumerator.insertItems(0, self.keys)
+            self.listBinnedDataDenominator.insertItems(0, self.keys)
 
             if self.last_num != '' and self.last_num <= len(self.keys) - 1:
-                self.listWidget.setCurrentRow(self.last_num)
+                self.listBinnedDataNumerator.setCurrentRow(self.last_num)
             if self.last_den != '' and self.last_den <= len(self.keys) - 1:
-                self.listWidget_2.setCurrentRow(self.last_den)
+                self.listBinnedDataDenominator.setCurrentRow(self.last_den)
 
 
-    def plot_raw(self):
+    def plotRawData(self):
         self.push_save_bin.setEnabled(False)
         selected_items = (self.listFiles_raw.selectedItems())
-        self.figure_raw.ax.clear()
+        self.figureRaw.ax.clear()
         self.toolbar_raw._views.clear()
         self.toolbar_raw._positions.clear()
         self.toolbar_raw._update_view()
-        self.canvas_raw.draw_idle()
+        self.canvasRaw.draw_idle()
 
-        if self.listWidget_num_raw.currentRow() == -1 or self.listWidget_den_raw.currentRow() == -1:
+        if self.listRawDataNumerator.currentRow() == -1 or self.listRawDataDenominator.currentRow() == -1:
             self.show_info_message('Error!', 'Please, select numerator and denominator')
             return
 
-        self.last_num_raw = self.listWidget_num_raw.currentRow()
-        self.last_den_raw = self.listWidget_den_raw.currentRow()
+        self.last_num_raw = self.listRawDataNumerator.currentRow()
+        self.last_den_raw = self.listRawDataDenominator.currentRow()
 
         if 'En. (eV)' in self.keys_raw:
             energy_key = 'En. (eV)'
@@ -188,40 +188,40 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
 
-            division = df[self.listWidget_num_raw.currentItem().text()] \
-                       / df[self.listWidget_den_raw.currentItem().text()]
+            division = df[self.listRawDataNumerator.currentItem().text()] \
+                       / df[self.listRawDataDenominator.currentItem().text()]
             if self.checkBox_log_raw.checkState() :
                 division = np.log(division)
             if self.checkBox_inv_raw.checkState():
                 division = -division
 
-            self.figure_raw.ax.plot(df[energy_key], division)
-            self.figure_raw.ax.set_xlabel('Energy (eV)')
-            self.figure_raw.ax.set_ylabel('{} / {}'.format(self.listWidget_num_raw.currentItem().text(), self.listWidget_den_raw.currentItem().text()))
-            last_trace = self.figure_raw.ax.get_lines()[len(self.figure_raw.ax.get_lines()) - 1]
+            self.figureRaw.ax.plot(df[energy_key], division)
+            self.figureRaw.ax.set_xlabel('Energy (eV)')
+            self.figureRaw.ax.set_ylabel('{} / {}'.format(self.listRawDataNumerator.currentItem().text(), self.listRawDataDenominator.currentItem().text()))
+            last_trace = self.figureRaw.ax.get_lines()[len(self.figureRaw.ax.get_lines()) - 1]
             last_trace.type = 'raw'
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
             self.handles_raw.append(patch)
 
-        self.figure_raw.ax.legend(handles=self.handles_raw)
-        self.figure_raw.tight_layout()
-        self.canvas_raw.draw_idle()
+        self.figureRaw.ax.legend(handles=self.handles_raw)
+        self.figureRaw.tight_layout()
+        self.canvasRaw.draw_idle()
 
 
-    def plot_bin(self):
+    def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
-        self.figure.ax.clear()
+        self.figureBinned.ax.clear()
         self.toolbar._views.clear()
         self.toolbar._positions.clear()
         self.toolbar._update_view()
         self.canvas.draw_idle()
 
-        if self.listWidget.currentRow() == -1 or self.listWidget_2.currentRow() == -1:
+        if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
             self.show_info_message('Error!', 'Please, select numerator and denominator')
             return
 
-        self.last_num = self.listWidget.currentRow()
-        self.last_den = self.listWidget_2.currentRow()
+        self.last_num = self.listBinnedDataNumerator.currentRow()
+        self.last_den = self.listBinnedDataDenominator.currentRow()
 
         if 'En. (eV)' in self.keys:
             energy_key = 'En. (eV)'
@@ -234,27 +234,27 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
 
-            division = df[self.listWidget.currentItem().text()] \
-                       / df[self.listWidget_2.currentItem().text()]
+            division = df[self.listBinnedDataNumerator.currentItem().text()] \
+                       / df[self.listBinnedDataDenominator.currentItem().text()]
             if self.checkBox_log_bin.checkState() :
                 division = np.log(division)
             if self.checkBox_inv_bin.checkState():
                 division = -division
 
-            self.figure.ax.plot(df[energy_key], division)
-            self.figure.ax.set_xlabel('Energy (eV)')
-            self.figure.ax.set_ylabel('{} / {}'.format(self.listWidget.currentItem().text(), self.listWidget_2.currentItem().text()))
-            last_trace = self.figure.ax.get_lines()[len(self.figure.ax.get_lines()) - 1]
+            self.figureBinned.ax.plot(df[energy_key], division)
+            self.figureBinned.ax.set_xlabel('Energy (eV)')
+            self.figureBinned.ax.set_ylabel('{} / {}'.format(self.listBinnedDataNumerator.currentItem().text(), self.listBinnedDataDenominator.currentItem().text()))
+            last_trace = self.figureBinned.ax.get_lines()[len(self.figureBinned.ax.get_lines()) - 1]
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
             handles.append(patch)
 
-        self.figure.ax.legend(handles=handles)
-        self.figure.tight_layout()
+        self.figureBinned.ax.legend(handles=handles)
+        self.figureBinned.tight_layout()
         self.canvas.draw_idle()
 
 
     def bin_data(self):
-        for index, trace in enumerate(self.figure_raw.ax.get_lines()):
+        for index, trace in enumerate(self.figureRaw.ax.get_lines()):
             if trace.type == 'binned':
                 trace.remove()
                 del self.handles_raw[-1]
@@ -279,8 +279,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
     def plot_binned_data(self, binned):
-        result = binned[self.listWidget_num_raw.currentItem().text()] / binned[self.listWidget_den_raw.currentItem().text()]
-        ylabel = '{} / {}'.format(self.listWidget_num_raw.currentItem().text(), self.listWidget_den_raw.currentItem().text())
+        result = binned[self.listRawDataNumerator.currentItem().text()] / binned[self.listRawDataDenominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.listRawDataNumerator.currentItem().text(), self.listRawDataDenominator.currentItem().text())
 
         if self.checkBox_log_raw.isChecked():
             ylabel = 'log({})'.format(ylabel)
@@ -291,16 +291,16 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         if self.checkBox_inv_raw.isChecked():
             result = -result
 
-        self.figure_raw.ax.plot(binned[xlabel][:len(result)], result)
-        last_trace = self.figure_raw.ax.get_lines()[len(self.figure_raw.ax.get_lines()) - 1]
+        self.figureRaw.ax.plot(binned[xlabel][:len(result)], result)
+        last_trace = self.figureRaw.ax.get_lines()[len(self.figureRaw.ax.get_lines()) - 1]
         last_trace.type = 'binned'
         filepath = binned['filepath'][binned['filepath'].rfind('/') + 1 :] + ' (binned)'
         patch = mpatches.Patch(color=last_trace.get_color(), label=filepath)
         self.handles_raw.append(patch)
 
-        self.figure_raw.ax.legend(handles=self.handles_raw)
-        self.figure_raw.tight_layout()
-        self.canvas_raw.draw_idle()
+        self.figureRaw.ax.legend(handles=self.handles_raw)
+        self.figureRaw.tight_layout()
+        self.canvasRaw.draw_idle()
 
         self.binned_data.append(binned)
 
