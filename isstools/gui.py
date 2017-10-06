@@ -845,6 +845,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     QtCore.QCoreApplication.processEvents()
             print('[Prepare BL] Everything seems to be in position')
 
+            print('[Prepare BL] Setting energy to {}'.format(curr_energy))
+            self.hhm.energy.move(curr_energy)
+
             print('[Prepare BL] Beamline preparation done!')
 
     def prepare_bl_dialog(self):
