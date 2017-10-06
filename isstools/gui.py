@@ -2314,15 +2314,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
                         saturation = curr_amp.par.dev_saturation.value
 
-                        if (data < saturation).sum() < len(data) * 0.01:
-                            data[data < saturation] = data.mean()
-                        
                         print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
                         curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
                         exp = int(curr_gain[0][-1])
                         curr_hs = curr_gain[1]
                         if curr_amp.par.polarity == 'neg':
+                            if (data < saturation).sum() < len(data) * 0.01:
+                                data[data < saturation] = data.mean()
+                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+                        
                             if data.max() > 0 and data.min() > 0:
                                 print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
                             elif data.min() > saturation/100:
@@ -2344,6 +2345,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
 
                         elif curr_amp.par.polarity == 'pos':
+                            if (data > saturation).sum() < len(data) * 0.01:
+                                data[data > saturation] = data.mean()
+
                             if data.max() < 0 and data.min() < 0:
                                 print_message += '{} is always negative. Perhaps it\'s floating.\n'.format(devnames[index])
                             elif data.max() < saturation/100:
