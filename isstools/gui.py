@@ -2120,27 +2120,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
-            # Check saturation:
-            try: 
-                warnings = ()
-                if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:,1])) > 3.9:
-                    warnings += ('"i0" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['it'][:,1])) > 3.9:
-                    warnings += ('"it" seems to be saturated',) #(values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:,1])) > 9.9:
-                    warnings += ('"ir" seems to be saturated',) #(values > 9.9 V), please change the ion chamber gain',)
-                if len(warnings):
-                    raise Warning(warnings)
-
-            except Warning as warnings:
-                warningtxt = ''
-                for warning in warnings.args[0]:
-                    print('Warning: {}'.format(warning))
-                    warningtxt += '{}\n'.format(warning)
-                warningtxt += 'Check the gains of the ion chambers'
-                QtWidgets.QMessageBox.warning(self, 'Warning!', warningtxt)
-                #raise
-
         except Exception as exc:
             print('Could not finish parsing this scan:\n{}'.format(exc))
 
@@ -2313,7 +2292,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
             regex = re.compile('pba\d{1}.*')
             matches = [string for string in keys if re.match(regex, string)]
-            devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
+            devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] 
+                        for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
 
             print_message = ''
             for index, adc in enumerate(matches):
@@ -2321,33 +2301,59 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
                 for chunk in dd:
                     data.extend(chunk[adc])
-                data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+                data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 
+                                    if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
                 print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
                 try:
                     if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
+                        curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
+                        saturation = curr_amp.par.dev_saturation.value
                         curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
                         exp = int(curr_gain[0][-1])
                         curr_hs = curr_gain[1]
-                        if data.max() > 0 and data.min() > 0:
-                            print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
-                        elif data.min() > -0.037:
-                            print_message += 'Increasing {} gain by 10^2\n'.format(devnames[index])
-                            exp += 2
-                        elif data.min() > -0.37:
-                            print_message += 'Increasing {} gain by 10^1\n'.format(devnames[index])
-                            exp += 1
-                        elif data.max() < 0 and data.min() > -3.7:
-                            print_message += '{} seems to be configured properly.\n'.format(devnames[index])
-                        elif data.min() <= -3.7:
-                            print_message += 'Decreasing {} gain by 10^1\n'.format(devnames[index])
-                            exp -= 1
-                        else:
-                            print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
-    
-                        if (data.min() > -0.37 or data.min() < -3.7) and not (data.max() > 0 and data.min() > 0):
-                            not_done = 1
-                            self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+                        if curr_amp.par.polarity == 'neg':
+                            if data.max() > 0 and data.min() > 0:
+                                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
+                            elif data.min() > saturation/100:
+                                exp += 2
+                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() > saturation/10:
+                                exp += 1
+                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() < 0 and data.min() > saturation:
+                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() <= saturation:
+                                exp -= 1
+                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            else:
+                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+        
+                            if (data.min() > saturation/10 or data.min() < saturation) and not (data.max() > 0 and data.min() > 0):
+                                not_done = 1
+                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+
+                        elif curr_amp.par.polarity == 'pos':
+                            if data.max() < 0 and data.min() < 0:
+                                print_message += '{} is always negative. Perhaps it\'s floating.\n'.format(devnames[index])
+                            elif data.max() < saturation/100:
+                                exp += 2
+                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() < saturation/10:
+                                exp += 1
+                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() > 0 and data.max() < saturation:
+                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() >= saturation:
+                                exp -= 1
+                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            else:
+                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+
+                            if (data.max() < saturation/10 or data.max() > saturation) and not (data.min() < 0 and data.max() < 0):
+                                not_done = 1
+                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+                                 
                 except Exception as exc:
                     print('Exception: {}'.format(exc))
 
