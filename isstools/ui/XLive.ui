@@ -787,7 +787,7 @@ position</string>
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>EnergtTrajectories</string>
+      <string>Trajectories</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
