@@ -45,78 +45,30 @@
      <attribute name="title">
       <string>Beamline Status</string>
      </attribute>
-     <widget class="QPushButton" name="push_prepare_bl">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>50</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Prepare
-Beamline</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_piezo_fb">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>190</y>
-        <width>131</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Piezo Feedback</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="update_piezo">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>220</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Update Piezo
-Parameters</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="push_update_piezo_center">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>220</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Set Center
-to Curr. Position</string>
-      </property>
-     </widget>
      <widget class="QGroupBox" name="groupBox_7">
       <property name="geometry">
        <rect>
-        <x>350</x>
-        <y>50</y>
-        <width>611</width>
-        <height>731</height>
+        <x>340</x>
+        <y>10</y>
+        <width>931</width>
+        <height>901</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="title">
-       <string>General Scans</string>
+       <string>General scans</string>
       </property>
       <widget class="QWidget" name="gridLayoutWidget_3">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
+         <y>80</y>
          <width>491</width>
          <height>201</height>
         </rect>
@@ -124,6 +76,13 @@ to Curr. Position</string>
        <layout class="QGridLayout" name="gridLayout_8">
         <item row="4" column="1">
          <widget class="QLineEdit" name="edit_gen_step">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>0.05</string>
           </property>
@@ -133,8 +92,9 @@ to Curr. Position</string>
          <widget class="QLabel" name="label_145">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -146,8 +106,9 @@ to Curr. Position</string>
          <widget class="QLabel" name="label_110">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -157,6 +118,13 @@ to Curr. Position</string>
         </item>
         <item row="3" column="1">
          <widget class="QLineEdit" name="edit_gen_range">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>1</string>
           </property>
@@ -166,8 +134,9 @@ to Curr. Position</string>
          <widget class="QLabel" name="label_111">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -180,6 +149,11 @@ to Curr. Position</string>
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
           <property name="value">
            <number>10</number>
           </property>
@@ -187,6 +161,13 @@ to Curr. Position</string>
         </item>
         <item row="6" column="1">
          <widget class="QCheckBox" name="checkBox_tune">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -196,8 +177,9 @@ to Curr. Position</string>
          <widget class="QLabel" name="label_146">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -209,12 +191,13 @@ to Curr. Position</string>
          <widget class="QLabel" name="label_112">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
-           <string>Detector/Denominator</string>
+           <string>Detector-Denominator</string>
           </property>
          </widget>
         </item>
@@ -226,6 +209,13 @@ to Curr. Position</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
          </widget>
         </item>
         <item row="2" column="2">
@@ -236,18 +226,26 @@ to Curr. Position</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_108">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
-           <string>Detector/Numerator</string>
+           <string>Detector-Numerator</string>
           </property>
          </widget>
         </item>
@@ -259,6 +257,13 @@ to Curr. Position</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
          </widget>
         </item>
         <item row="1" column="2">
@@ -269,14 +274,22 @@ to Curr. Position</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
          </widget>
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_109">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -292,6 +305,13 @@ to Curr. Position</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
          </widget>
         </item>
        </layout>
@@ -299,10 +319,10 @@ to Curr. Position</string>
       <widget class="QPushButton" name="push_gen_scan">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>230</y>
-         <width>294</width>
-         <height>25</height>
+         <x>510</x>
+         <y>80</y>
+         <width>151</width>
+         <height>41</height>
         </rect>
        </property>
        <property name="text">
@@ -315,9 +335,9 @@ to Curr. Position</string>
        </property>
        <property name="geometry">
         <rect>
-         <x>310</x>
-         <y>230</y>
-         <width>191</width>
+         <x>510</x>
+         <y>130</y>
+         <width>151</width>
          <height>25</height>
         </rect>
        </property>
@@ -329,98 +349,453 @@ to Curr. Position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>260</y>
-         <width>591</width>
-         <height>461</height>
+         <y>300</y>
+         <width>911</width>
+         <height>591</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="plot_gen_scan"/>
       </widget>
+      <widget class="QLabel" name="label_60">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>641</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the motor and detector (detector-numerator/detector-denominator), scan range and step size and press Start&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="push_prepare_autotune">
+     <widget class="QGroupBox" name="groupBox_8">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>100</y>
-        <width>121</width>
-        <height>41</height>
+        <x>10</x>
+        <y>10</y>
+        <width>321</width>
+        <height>901</height>
        </rect>
       </property>
-      <property name="toolTip">
-       <string>Will use parameters set in the General Scans boxes (Scan Range, Step Size and Max Retries)</string>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
-      <property name="text">
-       <string>Auto Tune</string>
+      <property name="title">
+       <string>Workflow</string>
       </property>
+      <widget class="QLabel" name="label_61">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>101</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Select energy</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="edit_pb_energy">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>30</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>8333</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_38">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>30</y>
+         <width>31</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>eV</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="push_prepare_bl">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>181</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Prepare beamline</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>60</y>
+         <width>20</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+      <widget class="Line" name="line_2">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>170</y>
+         <width>20</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="push_prepare_autotune">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>230</y>
+         <width>181</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Will use parameters set in the General Scans boxes (Scan Range, Step Size and Max Retries)</string>
+       </property>
+       <property name="text">
+        <string>Tune beamline</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="checkBox_autotune_manual">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>240</y>
+         <width>91</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>If checked, after each scan, it will ask the user to select optimal position before going to the next step</string>
+       </property>
+       <property name="text">
+        <string>supervised</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="push_update_piezo_center">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>340</y>
+         <width>181</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Set feedback settings</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_3">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>280</y>
+         <width>20</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="update_piezo">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>345</y>
+         <width>91</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Update 
+position</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_4">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>390</y>
+         <width>20</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushEnableHHMFeedback">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>450</y>
+         <width>181</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Enable feedback</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
-     <widget class="QCheckBox" name="checkBox_autotune_manual">
+     <widget class="QGroupBox" name="groupBox_9">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>150</y>
-        <width>131</width>
-        <height>20</height>
+        <x>1300</x>
+        <y>10</y>
+        <width>311</width>
+        <height>911</height>
        </rect>
       </property>
-      <property name="toolTip">
-       <string>If checked, after each scan, it will ask the user to select optimal position before going to the next step</string>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
-      <property name="text">
-       <string>Manual Steps</string>
+      <property name="title">
+       <string notr="true">Detector setup</string>
       </property>
-     </widget>
-     <widget class="QLineEdit" name="edit_pb_energy">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>60</y>
-        <width>91</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>8333</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_38">
-      <property name="geometry">
-       <rect>
-        <x>259</x>
-        <y>60</y>
-        <width>31</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>eV</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="push_read_amp_gains">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>270</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Read Amplifier
-Gains</string>
-      </property>
+      <widget class="QPushButton" name="push_read_amp_gains">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>291</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Read  Amplifier Gains</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="run_check_gains">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>70</y>
+         <width>291</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Check Gains</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="run_check_gains_scan">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>291</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Check Gains Scan</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_9">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>220</y>
+         <width>291</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_19">
+        <item row="3" column="0">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_samp_time">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>21</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLabel" name="label_100">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>ms</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_101">
+          <property name="text">
+           <string>Encoder Sampling time</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_104">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>ms</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_samp_time"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_114">
+          <property name="text">
+           <string>XIA Sampling time</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_xia_samp"/>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="label_115">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>ms</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_99">
+          <property name="text">
+           <string>ADC Sampling time</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="push_get_offsets">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>170</y>
+         <width>291</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Get Offsets</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Trajectories</string>
+      <string>EnergtTrajectories</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
         <x>20</x>
         <y>280</y>
-        <width>551</width>
-        <height>481</height>
+        <width>541</width>
+        <height>641</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_single_trajectory"/>
@@ -428,10 +803,10 @@ Gains</string>
      <widget class="QWidget" name="verticalLayoutWidget_4">
       <property name="geometry">
        <rect>
-        <x>590</x>
+        <x>570</x>
         <y>280</y>
-        <width>791</width>
-        <height>481</height>
+        <width>1031</width>
+        <height>641</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plot_full_trajectory"/>
@@ -2804,8 +3179,8 @@ Offset</string>
        <rect>
         <x>410</x>
         <y>40</y>
-        <width>1131</width>
-        <height>751</height>
+        <width>1201</width>
+        <height>881</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="plots"/>
@@ -2861,8 +3236,8 @@ Offset</string>
      <widget class="QCheckBox" name="checkBox_auto_process">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>500</y>
+        <x>210</x>
+        <y>840</y>
         <width>161</width>
         <height>51</height>
        </rect>
@@ -2914,151 +3289,17 @@ file and switch to
        </item>
       </layout>
      </widget>
-     <widget class="QPushButton" name="run_check_gains">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>560</y>
-        <width>111</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Check Gains</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_9">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>610</y>
-        <width>350</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_19">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_99">
-         <property name="text">
-          <string>ADC Sampling time</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="comboBox_samp_time">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>21</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_100">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>ms</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_101">
-         <property name="text">
-          <string>Encoder Sampling time</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_104">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>ms</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_samp_time"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_114">
-         <property name="text">
-          <string>XIA Sampling time</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit_xia_samp"/>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_115">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>ms</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QPushButton" name="run_check_gains_scan">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>560</y>
-        <width>141</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Check Gains Scan</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBox_parse_after_scan">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>460</y>
-        <width>181</width>
-        <height>31</height>
+        <x>210</x>
+        <y>790</y>
+        <width>201</width>
+        <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Parse immediately after
-scan is done</string>
+       <string>Parse after scan</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -4756,19 +4997,6 @@ the edge</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QLabel" name="label_10">
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -4787,6 +5015,19 @@ the edge</string>
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Year</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLabel" name="label_10">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -4821,8 +5062,8 @@ the edge</string>
    <widget class="QGroupBox" name="groupBox_shutters">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>0</y>
+      <x>1330</x>
+      <y>20</y>
       <width>111</width>
       <height>111</height>
      </rect>
@@ -4832,6 +5073,12 @@ the edge</string>
       <horstretch>0</horstretch>
       <verstretch>0</verstretch>
      </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="title">
      <string>Shutters</string>
@@ -4864,6 +5111,12 @@ the edge</string>
       <height>20</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>Terminal window</string>
     </property>
@@ -4890,7 +5143,6 @@ the edge</string>
   <tabstop>push_update_user</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>push_prepare_bl</tabstop>
-  <tabstop>checkBox_piezo_fb</tabstop>
   <tabstop>update_piezo</tabstop>
   <tabstop>push_update_piezo_center</tabstop>
   <tabstop>edit_gen_range</tabstop>

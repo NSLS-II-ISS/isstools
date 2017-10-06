@@ -169,7 +169,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.tabWidget.setTabEnabled(1, False)
             self.tabWidget.setTabEnabled(4, False)
-            self.checkBox_piezo_fb.setEnabled(False)
+            self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
         self.traj_creator = trajectory()
@@ -313,7 +313,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 found_bpm = 1
                 break     
         if found_bpm == 0 or self.hhm is None:
-            self.checkBox_piezo_fb.setEnabled(False)
+            self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
                 self.tabWidget.setTabEnabled(3, False)
@@ -341,7 +341,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
         self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
-        self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)
+        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
@@ -608,7 +608,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.go = 0
             self.hhm.fb_status.put(0)
             self.fb_master = 0
-            self.checkBox_piezo_fb.setChecked(False)
+            self.pushEnableHHMFeedback.setChecked(False)
         else:
             if self.fb_master:
                 self.piezo_thread.start()
@@ -616,7 +616,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.fb_master = -1
             else:
                 self.fb_master = -1
-                self.checkBox_piezo_fb.setChecked(True)
+                self.pushEnableHHMFeedback.setChecked(True)
 
     def update_fb_status(self, pvname=None, value=None, char_value=None, **kwargs):
         if value:
@@ -1653,7 +1653,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def autotune_function(self):
         print('[Autotune procedure] Starting...')
-        self.checkBox_piezo_fb.setChecked(False)
+        self.pushEnableHHMFeedback.setChecked(False)
         first_run = True
 
         for pre_element in self.auto_tune_pre_elements:
@@ -3863,9 +3863,8 @@ class piezo_fb_thread(QThread):
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
-        image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
 
-        #image = image.transpose()
         image = image.astype(np.int16)
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
         #remove background (do it better later)
@@ -3891,7 +3890,7 @@ class piezo_fb_thread(QThread):
         #getting center:
         centers = []
         for i in range(n_measures):
-            image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
 
             image = image.astype(np.int16)
             sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
