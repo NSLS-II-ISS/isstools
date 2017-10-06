@@ -2314,8 +2314,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
                         saturation = curr_amp.par.dev_saturation.value
 
-                        print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
-
                         curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
                         exp = int(curr_gain[0][-1])
                         curr_hs = curr_gain[1]
