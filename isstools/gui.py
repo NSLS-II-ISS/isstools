@@ -1606,7 +1606,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
 
         self.push_gen_scan.setEnabled(False)
-        uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start, rel_stop, num_steps, self.checkBox_tune.isChecked(), retries = self.spinBox_gen_scan_retries.value(), ax = self.figure_gen_scan.ax))
+        uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), 
+                                           self.comboBox_gen_detsig_den.currentText(), 
+                                           result_name, curr_mot, rel_start, rel_stop, 
+                                           num_steps, self.checkBox_tune.isChecked(), 
+                                           retries = self.spinBox_gen_scan_retries.value(), 
+                                           ax = self.figure_gen_scan.ax))
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
         if len(uid_list) and curr_element is None:
