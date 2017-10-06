@@ -2308,12 +2308,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     data.extend(chunk[adc])
                 data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 
                                     if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
-                print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
                 try:
                     if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
                         curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
                         saturation = curr_amp.par.dev_saturation.value
+
+                        if (data < saturation).sum() < len(data) * 0.01:
+                            data[data < saturation] = data.mean()
+                        
+                        print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+
                         curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
                         exp = int(curr_gain[0][-1])
                         curr_hs = curr_gain[1]
