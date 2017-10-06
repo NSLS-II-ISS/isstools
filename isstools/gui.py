@@ -1042,9 +1042,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_den_text = self.listWidget_denominator.currentItem().text()
 
         self.den_offset = 0
-        if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.last_den_text][:, 1])))[0]):
-            self.den_offset = self.gen_parser.interp_arrays[self.last_den_text][:, 1].max() + 0.2
-            print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.den_offset))
+        array = self.gen_parser.interp_arrays[self.last_den_text][:, 1]
+        if self.last_den_text != '1':
+            det = [det for det in [det for det in self.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.last_den_text][0]
+            polarity = det.polarity
+            if polarity == 'neg':
+                if sum(array > 0):
+                    array[array > 0] = -array[array > 0]
+                    print('invalid value encountered in denominator! Fixed for visualization')
+            else:
+                if sum(array < 0):
+                    array[array < 0] = -array[array < 0]
+                    print('invalid value encountered in denominator! Fixed for visualization')
+        #if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.last_den_text][:, 1])))[0]):
+#        if array
+#            det = [det for det in [det for det in self.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.last_den_text][0]
+#            polarity = det.polarity
+
+#            if polarity == 'neg':
+#                array[array > 0] = -array[array > 0]
+#            else:
+#                array[array < 0] = -array[array < 0]
+
+
+            #self.den_offset = self.gen_parser.interp_arrays[self.last_den_text][:, 1].max() + 0.2
+            #print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.den_offset))
             
         result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / (self.gen_parser.interp_arrays[self.last_den_text][:, 1] - self.den_offset)
         ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
@@ -1189,6 +1211,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             text = text.replace('\n', '<br />')
             text += '<br />'
             cursor.insertHtml(text)
+        elif text.lower().find('abort') >= 0 or text.lower().find('error') >= 0 or text.lower().find('invalid') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.red)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
         elif text.lower().find('starting') >= 0 or text.lower().find('launching') >= 0:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.blue)
@@ -1198,12 +1226,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         elif text.lower().find('complete') >= 0 or text.lower().find('done') >= 0:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.darkGreen)
-            fmt.setFontWeight(QtGui.QFont.Bold)
-            cursor.setCharFormat(fmt)
-            cursor.insertText(text)
-        elif text.lower().find('abort') >= 0:
-            fmt = cursor.charFormat()
-            fmt.setForeground(QtCore.Qt.red)
             fmt.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
@@ -1614,12 +1636,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
 
         self.push_gen_scan.setEnabled(False)
-        uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), 
-                                           self.comboBox_gen_detsig_den.currentText(), 
-                                           result_name, curr_mot, rel_start, rel_stop, 
-                                           num_steps, self.checkBox_tune.isChecked(), 
-                                           retries = self.spinBox_gen_scan_retries.value(), 
-                                           ax = self.figure_gen_scan.ax))
+        try:
+            uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), 
+                                               self.comboBox_gen_detsig_den.currentText(), 
+                                               result_name, curr_mot, rel_start, rel_stop, 
+                                               num_steps, self.checkBox_tune.isChecked(), 
+                                               retries = self.spinBox_gen_scan_retries.value(), 
+                                               ax = self.figure_gen_scan.ax))
+        except Exception as exc:
+            print('[General Scan] Aborted! Exception: {}'.format(exc))
+            print('[General Scan] Probably you hit one of the limit switches. Try again with a smaller range.')
+            uid_list = []
+
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
         if len(uid_list) and curr_element is None:
@@ -3748,9 +3776,33 @@ class process_bin_thread_equal(QThread):
 
             self.gui.den_offset = 0
             self.gui.bin_offset = 0
-            if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1])))[0]):
-                self.gui.den_offset = self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1].max() + 0.2
-                print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.gui.den_offset))
+
+            array = self.gui.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
+            if self.gui.last_den_text != '1':
+                det = [det for det in [det for det in self.gui.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.gui.last_den_text][0]
+                polarity = det.polarity
+                if polarity == 'neg':
+                    if sum(array > 0):
+                        array[array > 0] = -array[array > 0]
+                        print('invalid value encountered in denominator! Fixed for visualization')
+                else:   
+                    if sum(array < 0):
+                        array[array < 0] = -array[array < 0]
+                        print('invalid value encountered in denominator! Fixed for visualization')
+
+#            if len(np.where(np.diff(np.sign(self.gui.gen_parser.interp_arrays[self.gui.last_den_text][:, 1])))[0]):
+#                det = [det for det in [det for det in self.gui.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.gui.last_den_text][0]
+#                polarity = det.polarity
+
+#                array = self.gui.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
+#                if polarity == 'neg':
+#                    array[array > 0] = -array[array > 0]
+#                else:
+#                    array[array < 0] = -array[array < 0]
+
+
+                #self.gui.den_offset = self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1].max() + 0.2
+                #print('invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(self.gui.den_offset))
 
             result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / (self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1] - self.gui.den_offset)
             ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
