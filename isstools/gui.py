@@ -292,8 +292,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_prepare_autotune.clicked.connect(self.autotune_function)
-        if self.hhm is not None:
-            self.hhm.energy.subscribe(self.update_hhm_params)
+        #if self.hhm is not None:
+        #    self.hhm.energy.subscribe(self.update_hhm_params)
 
         self.last_text = '0'
         self.tune_dialog = None
