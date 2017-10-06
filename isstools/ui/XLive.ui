@@ -628,7 +628,7 @@ position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
+         <y>30</y>
          <width>291</width>
          <height>41</height>
         </rect>
@@ -641,7 +641,7 @@ position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>70</y>
+         <y>80</y>
          <width>291</width>
          <height>41</height>
         </rect>
@@ -654,7 +654,7 @@ position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>120</y>
+         <y>130</y>
          <width>291</width>
          <height>41</height>
         </rect>
@@ -667,7 +667,7 @@ position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>220</y>
+         <y>230</y>
          <width>291</width>
          <height>91</height>
         </rect>
@@ -774,7 +774,7 @@ position</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>170</y>
+         <y>180</y>
          <width>291</width>
          <height>41</height>
         </rect>
@@ -5107,7 +5107,7 @@ the edge</string>
      <rect>
       <x>1650</x>
       <y>15</y>
-      <width>121</width>
+      <width>141</width>
       <height>20</height>
      </rect>
     </property>

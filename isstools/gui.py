@@ -136,12 +136,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.gen_scan_func = general_scan_func
 
         # Initialize 'Beamline status' tab
+        self.plan_funcs = plan_funcs
+        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.dets_with_amp = [det.name for det in self.det_dict 
                              if det.name[:3] == 'pba' and hasattr(det, 'amp')]
         if self.dets_with_amp == []:
             self.push_read_amp_gains.setEnabled(False)
         else:
             self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+        if 'get_offsets' in self.plan_funcs_names:
+            self.push_get_offsets.clicked.connect(self.run_get_offsets)
+        else:
+            self.push_get_offsets.setEnabled(False)
 
         # Initialize 'trajectories' tab
         self.hhm = hhm
@@ -333,8 +340,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         # Initialize 'run' tab
-        self.plan_funcs = plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
         self.run_check_gains.clicked.connect(self.run_gains_test)
         self.run_check_gains_scan.clicked.connect(self.adjust_ic_gains)
@@ -2178,6 +2183,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.edit_pb_energy.setText('{:.2f}'.format(round(value, 2)))
                 self.last_text = text
 
+    def run_get_offsets(self):
+        for shutter in [self.shutters[shutter] for shutter in self.shutters
+                        if self.shutters[shutter].shutter_type == 'PH' and 
+                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 1]:
+            shutter.close()
+            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
+                QtWidgets.QApplication.processEvents()
+                ttime.sleep(0.1)
+        get_offsets = [func for func in self.plan_funcs if func.__name__ == 'get_offsets'][0]
+        list(get_offsets())
 
     def run_gains_test(self):
 
