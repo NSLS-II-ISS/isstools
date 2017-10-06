@@ -2347,6 +2347,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         elif curr_amp.par.polarity == 'pos':
                             if (data > saturation).sum() < len(data) * 0.01:
                                 data[data > saturation] = data.mean()
+                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
 
                             if data.max() < 0 and data.min() < 0:
                                 print_message += '{} is always negative. Perhaps it\'s floating.\n'.format(devnames[index])
