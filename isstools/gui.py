@@ -40,6 +40,8 @@ import signal
 import json
 import pandas as pd
 import warnings
+import requests
+import urllib.request
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -123,7 +125,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_re_abort.setEnabled(False)
             self.run_start.setEnabled(False)
             self.run_check_gains.setEnabled(False)
-            #self.tabWidget.setTabEnabled(2, False)
 
         self.db = db
         if self.db is None:
@@ -135,10 +136,29 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
-        # Initialize 'Beamline status' tab
+
+        # Initialize 'Beamline setup' tab
+        # Looking for analog pizzaboxes:
+        regex = re.compile('pba\d{1}.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.adc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Looking for encoder pizzaboxes:
+        regex = re.compile('pb\d{1}_enc.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.enc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Populate analog detectors setup section with adcs:
+        self.adc_checkboxes = []
+        for index, adc_name in enumerate([adc.dev_name.value for adc in self.adc_list if adc.dev_name.value != adc.name]):
+            checkbox = QtWidgets.QCheckBox(adc_name)
+            checkbox.setChecked(True)
+            self.adc_checkboxes.append(checkbox)
+            self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
+
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
-        self.dets_with_amp = [det.name for det in self.det_dict 
+        self.dets_with_amp = [det for det in self.det_dict
                              if det.name[:3] == 'pba' and hasattr(det, 'amp')]
         if self.dets_with_amp == []:
             self.push_read_amp_gains.setEnabled(False)
@@ -153,7 +173,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Initialize 'trajectories' tab
         self.hhm = hhm
         if self.hhm is not None:
-            self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
             self.hhm.angle_offset.subscribe(self.update_angle_offset)
             self.hhm.trajectory_progress.subscribe(self.update_progress)
             self.progress_sig.connect(self.update_progressbar) 
@@ -174,8 +193,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
         else:
-            self.tabWidget.setTabEnabled(1, False)
-            self.tabWidget.setTabEnabled(4, False)
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Trajectories setup'))
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run'))
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run Batch'))
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
@@ -223,7 +246,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if self.xia_list == []:
-            self.tabWidget.setTabEnabled(2, False)
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in
+                 range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
             self.xia = None
         else:
             self.xia = self.xia_list[0]
@@ -275,18 +300,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
                 self.push_chackall_xia.clicked.connect(self.toggle_xia_all)
 
-            
-
-        # Looking for analog pizzaboxes:
-        regex = re.compile('pba\d{1}.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.adc_list = [x for x in self.det_dict if x.name in matches]
-        
-        # Looking for encoder pizzaboxes:
-        regex = re.compile('pb\d{1}_enc.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.enc_list = [x for x in self.det_dict if x.name in matches]
-
 
         # Initialize 'Beamline Status' tab
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
@@ -323,7 +336,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
-                self.tabWidget.setTabEnabled(3, False)
+                self.tabWidget.removeTab(
+                    [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index(
+                        'Run'))
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
 
@@ -580,13 +595,47 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.stage_y = 'huber_stage_y'
         else:
             print('No stage set! Batch mode will not work!')
-        
+
+
+        # Start QTimer to display current day and time
+        self.timerCurrentTime= QtCore.QTimer(self)
+        self.timerCurrentTime.setInterval(1000)
+        self.timerCurrentTime.timeout.connect(self.displayTime)
+        self.timerCurrentTime.start()
+
+        self.timerCurrentWeather= QtCore.QTimer(self)
+        self.timerCurrentWeather.singleShot(0, self.displayWeather)
+        self.timerCurrentWeather.setInterval(1000*60*5)
+        self.timerCurrentWeather.timeout.connect(self.displayWeather)
+        self.timerCurrentWeather.start()
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream()
         sys.stderr = EmittingStream()
         sys.stdout.textWritten.connect(self.normalOutputWritten)
         sys.stderr.textWritten.connect(self.normalOutputWritten)
+
+    def displayWeather(self):
+        try:
+            w = requests.get(
+                'http://api.openweathermap.org/data/2.5/weather?zip=11973&APPID=a3be6bc4eaf889b154327fadfd9d6532')
+            dictCurrentWeather = w.json()
+            stringCurrentWeather = dictCurrentWeather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.0f} °F outside,\
+             humidity is {1:.0f}%'\
+                .format(((dictCurrentWeather['main']['temp']-273)*1.8+32), dictCurrentWeather['main']['humidity'])
+            icon_url = 'http://openweathermap.org/img/w/' + dictCurrentWeather['weather'][0]['icon'] + '.png'
+            image = QtGui.QImage()
+            image.loadFromData(urllib.request.urlopen(icon_url).read())
+            self.labelCurrentWeatherIcon.setPixmap(QtGui.QPixmap(image))
+
+        except:
+            stringCurrentWeather = 'Weather information not availaible'
+
+        self.labelCurrentWeather.setText(stringCurrentWeather)
+
+
+    def displayTime(self):
+        self.labelCurrentTime.setText('Today is ' + QtCore.QDateTime.currentDateTime().toString(('MMMM d, yyyy, h:mm:ss ap')))
 
     def update_combo_edge(self, index):
         self.comboBoxEdge.clear()
@@ -874,9 +923,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_10.setText('{}'.format(self.RE.md['PI']))
 
     def read_amp_gains(self):
+        adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        if not len(adcs):
+            print('[Read Gains] Please select one or more Analog detectors')
+            return
+
         print('[Read Gains] Starting...')
-        for detec in self.dets_with_amp:
-            amp = [det.amp for det in self.det_dict if det.name == detec]
+
+        det_dict_with_amp = [det for det in self.det_dict if hasattr(det, 'dev_name')]
+        for detec in adcs:
+            amp = [det.amp for det in det_dict_with_amp if det.dev_name.value == detec]
             if len(amp):
                 amp = amp[0]
                 gain = amp.get_gain()
@@ -892,7 +948,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
         if dlg.exec_():
             self.hhm.angle_offset.put(dlg.getValues())
-            self.label_angle_offset.setText('{}'.format(self.hhm.angle_offset.value))
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if 'obj' in kwargs.keys():
@@ -966,9 +1021,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             print ('[E0 Calibration] Aborted!')
             return False
         self.hhm.angle_offset.put(str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000))
-        self.label_angle_offset.setText('{0:.8f}'.format(self.hhm.angle_offset.value))
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.hhm.angle_offset.value))
-
 
     def update_k_view(self):
         e0 = int(self.edit_E0_2.text())
@@ -1571,10 +1624,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if not ignore_shutter:
             for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type != 'SP']:
                 if shutter.state.value:
-                    ret = self.questionMessage('Shutter closed', 'Would you like to run the scan with the shutter closed?')
+                    ret = self.questionMessage('Photon shutter closed', 'Proceed with the shutter closed?')
                     if not ret:
                         print ('Aborted!')
-                        return False
+                        return Falsev
                     break
 
         if curr_element is not None:
@@ -1645,7 +1698,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                ax = self.figure_gen_scan.ax))
         except Exception as exc:
             print('[General Scan] Aborted! Exception: {}'.format(exc))
-            print('[General Scan] Probably you hit one of the limit switches. Try again with a smaller range.')
+            print('[General Scan] Limit switch reached . Set narrower range and try again.')
             uid_list = []
 
         self.figure_gen_scan.tight_layout()
@@ -1999,9 +2052,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.create_log_scan(self.current_uid, self.figure)
 
             if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
-                self.tabWidget.setCurrentIndex(5)
+                self.tabWidget.setCurrentIndex(
+                    [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Processing'))
                 self.selected_filename_bin = self.filepaths
-                self.label_24.setText(' '.join(filepath[filepath.rfind('/') + 1 : len(filepath)] for filepath in self.filepaths))
+                self.label_24.setText(
+                    ' '.join(filepath[filepath.rfind('/') + 1: len(filepath)] for filepath in self.filepaths))
                 self.process_bin_equal()
 
         else:
@@ -2207,7 +2262,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 QtWidgets.QApplication.processEvents()
                 ttime.sleep(0.1)
         get_offsets = [func for func in self.plan_funcs if func.__name__ == 'get_offsets'][0]
-        list(get_offsets())
+
+        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+
+        list(get_offsets(20, *adcs))
+        #list(get_offsets())
 
     def run_gains_test(self):
 
@@ -2238,7 +2298,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if func.__name__ == 'get_offsets':
                 getoffsets_func = func
                 break
-        self.current_uid_list = list(getoffsets_func(10, dummy_read=True))
+
+        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+
+        self.current_uid_list = list(getoffsets_func(20, *adcs, dummy_read=True))
 
         for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
             shutter.close()
@@ -2339,12 +2403,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
             for enc in self.enc_list:
                 enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
+            adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+
             run = self.db[-1]
             keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
             regex = re.compile('pba\d{1}.*')
             matches = [string for string in keys if re.match(regex, string)]
             devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] 
-                        for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
+                        for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches
+                        and run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
+            matches = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors']) if
+                       run['descriptors'][i]['name'] in matches and
+                       run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
 
             print_message = ''
             for index, adc in enumerate(matches):
@@ -3952,10 +4022,12 @@ class piezo_fb_thread(QThread):
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
+        # Eli's comment - that's where the check for the intensity should go.
         image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
 
         image = image.astype(np.int16)
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
+        # Eli's comment - need some work here
         #remove background (do it better later)
         if len(sum_lines) > 0:
             sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))

@@ -1,35 +1,45 @@
-import sys, os
-import numpy as np
-from PyQt5 import QtGui, QtWidgets, uic
-from PyQt5.QtCore import QSettings, QThread, pyqtSignal
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import  FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
-import matplotlib.patches as mpatches
-import pkg_resources
-from isstools.xasdata import xasdata
+import os
 import re
+import sys
+import time
+import matplotlib.patches as mpatches
+import numpy as np
 import pandas as pd
+import pkg_resources
+from PyQt5 import QtGui, QtWidgets, uic
+from PyQt5.Qt import QSplashScreen
+from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
+from PyQt5.QtGui import QPixmap
+from PyQt5.Qt import Qt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+
+
+
+from matplotlib.figure import Figure
+
+from isstools.xasdata import xasdata
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
+
 class GUI(QtWidgets.QMainWindow, gui_form):
     def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self, parent)
+
         self.setupUi(self)
-        #pushbuttons
+        # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
         self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
         self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
         self.pushbutton_plot_raw.clicked.connect(self.plotRawData)
         self.push_bin.clicked.connect(self.bin_data)
         self.push_save_bin.clicked.connect(self.save_binned_data)
-        #comboboxes
-        #self.comboBoxFileType.addItems( ['Raw (*.txt)', 'Binned (*.dat)','All'])
-        #self.comboBoxFileType.currentIndexChanged.connect((self.getFileList))
+        # comboboxes
+        # self.comboBoxFileType.addItems( ['Raw (*.txt)', 'Binned (*.dat)','All'])
+        # self.comboBoxFileType.currentIndexChanged.connect((self.getFileList))
         self.comboBoxSortFilesBy.addItems(['Name', 'Time'])
         self.comboBoxSortFilesBy.currentIndexChanged.connect((self.getFileList))
-        #file lists
+        # file lists
         self.listFiles_bin.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
         self.listFiles_bin.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.listFiles_raw.itemSelectionChanged.connect(self.selectRawDataFilesToPlot)
@@ -41,13 +51,12 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.last_keys_raw = []
         self.binned_data = []
 
-
-        #mds = MDS({'host': 'xf08id-ca1.cs.nsls2.local', 'port': 7770,'timezone': 'US/Eastern'})
-        #self.db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
+        # mds = MDS({'host': 'xf08id-ca1.cs.nsls2.local', 'port': 7770,'timezone': 'US/Eastern'})
+        # self.db = Broker(mds, FileStore({'host':'xf08id-ca1.cs.nsls2.local', 'port': 27017, 'database':'filestore'}))
 
 
         # Create generic parser
-        self.gen = xasdata.XASdataGeneric(db = None)
+        self.gen = xasdata.XASdataGeneric(db=None)
 
         self.last_num = ''
         self.last_den = ''
@@ -56,8 +65,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         # Persistent settings
         self.settings = QSettings('ISS Beamline', 'Xview')
-        self.workingFolder = self.settings.value('WorkingFolder', defaultValue = '/GPFS/xf08id/User Data', type = str)
-
+        self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
         if self.workingFolder != '/GPFS/xf08id/User Data':
             self.labelWorkingFolder.setText(self.workingFolder)
@@ -77,7 +85,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.layout_plot_bin.addWidget(self.canvas)
         self.canvas.draw()
 
-
         self.figureRaw = Figure()
         self.figureRaw.set_facecolor(color='#FcF9F6')
         self.figureRaw.ax = self.figureRaw.add_subplot(111)
@@ -89,17 +96,16 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.layout_plot_raw.addWidget(self.canvasRaw)
         self.canvasRaw.draw()
 
-
     def selectWorkingFolder(self):
-        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Open a folder", self.workingFolder, QtWidgets.QFileDialog.ShowDirsOnly)
+        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Open a folder", self.workingFolder,
+                                                                        QtWidgets.QFileDialog.ShowDirsOnly)
         self.settings.setValue('WorkingFolder', self.workingFolder)
-        if len(self.workingFolder)>50:
-            self.labelWorkingFolder.setText(self.workingFolder [1:20] + '...' + self.WorkingFolder[-30:])
+        if len(self.workingFolder) > 50:
+            self.labelWorkingFolder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
         else:
             self.labelWorkingFolder.setText(self.workingFolder)
         self.labelWorkingFolder.setToolTip(self.workingFolder)
         self.getFileList()
-
 
     def getFileList(self):
         if self.workingFolder:
@@ -139,7 +145,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             if self.last_den_raw != '' and self.last_den_raw <= len(self.keys_raw) - 1:
                 self.listRawDataDenominator.setCurrentRow(self.last_den_raw)
 
-
     def selectBinnedDataFilesToPlot(self):
         header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
                                                                          self.listFiles_bin.currentItem().text()))
@@ -160,7 +165,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             if self.last_den != '' and self.last_den <= len(self.keys) - 1:
                 self.listBinnedDataDenominator.setCurrentRow(self.last_den)
 
-
     def plotRawData(self):
         self.push_save_bin.setEnabled(False)
         selected_items = (self.listFiles_raw.selectedItems())
@@ -171,7 +175,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvasRaw.draw_idle()
 
         if self.listRawDataNumerator.currentRow() == -1 or self.listRawDataDenominator.currentRow() == -1:
-            self.show_info_message('Error!', 'Please, select numerator and denominator')
+            self.show_info_message('Error!', '1 Please, select numerator and denominator')
             return
 
         self.last_num_raw = self.listRawDataNumerator.currentRow()
@@ -190,14 +194,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             division = df[self.listRawDataNumerator.currentItem().text()] \
                        / df[self.listRawDataDenominator.currentItem().text()]
-            if self.checkBox_log_raw.checkState() :
+            if self.checkBox_log_raw.checkState():
                 division = np.log(division)
             if self.checkBox_inv_raw.checkState():
                 division = -division
 
             self.figureRaw.ax.plot(df[energy_key], division)
             self.figureRaw.ax.set_xlabel('Energy (eV)')
-            self.figureRaw.ax.set_ylabel('{} / {}'.format(self.listRawDataNumerator.currentItem().text(), self.listRawDataDenominator.currentItem().text()))
+            self.figureRaw.ax.set_ylabel('{} / {}'.format(self.listRawDataNumerator.currentItem().text(),
+                                                          self.listRawDataDenominator.currentItem().text()))
             last_trace = self.figureRaw.ax.get_lines()[len(self.figureRaw.ax.get_lines()) - 1]
             last_trace.type = 'raw'
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
@@ -206,7 +211,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureRaw.ax.legend(handles=self.handles_raw)
         self.figureRaw.tight_layout()
         self.canvasRaw.draw_idle()
-
 
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
@@ -217,7 +221,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvas.draw_idle()
 
         if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
-            self.show_info_message('Error!', 'Please, select numerator and denominator')
+            self.show_info_message('Error!', '2 Please, select numerator and denominator')
             return
 
         self.last_num = self.listBinnedDataNumerator.currentRow()
@@ -236,14 +240,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             division = df[self.listBinnedDataNumerator.currentItem().text()] \
                        / df[self.listBinnedDataDenominator.currentItem().text()]
-            if self.checkBox_log_bin.checkState() :
+            if self.checkBox_log_bin.checkState():
                 division = np.log(division)
             if self.checkBox_inv_bin.checkState():
                 division = -division
 
             self.figureBinned.ax.plot(df[energy_key], division)
             self.figureBinned.ax.set_xlabel('Energy (eV)')
-            self.figureBinned.ax.set_ylabel('{} / {}'.format(self.listBinnedDataNumerator.currentItem().text(), self.listBinnedDataDenominator.currentItem().text()))
+            self.figureBinned.ax.set_ylabel('{} / {}'.format(self.listBinnedDataNumerator.currentItem().text(),
+                                                             self.listBinnedDataDenominator.currentItem().text()))
             last_trace = self.figureBinned.ax.get_lines()[len(self.figureBinned.ax.get_lines()) - 1]
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
             handles.append(patch)
@@ -252,7 +257,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureBinned.tight_layout()
         self.canvas.draw_idle()
 
-
     def bin_data(self):
         for index, trace in enumerate(self.figureRaw.ax.get_lines()):
             if trace.type == 'binned':
@@ -260,10 +264,13 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 del self.handles_raw[-1]
 
         selected_items = [f.text() for f in self.listFiles_raw.selectedItems()]
-        
+
         for index, f in enumerate(selected_items):
             filepath = '{}/{}'.format(self.workingFolder, f)
-
+            ''' Eli's comment - exception handling - if user types a character in one of the field the float() will fail
+                an expensive was of doing it is to have a function for each field which, as user typess the value, checks if it's 
+                indeed a number'''
+            # for  now I suggest try except
             e0 = float(self.edit_E0.text())
             edge_start = float(self.edit_edge_start.text())
             edge_end = float(self.edit_edge_end.text())
@@ -273,14 +280,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             filepath = '{}/{}'.format(self.workingFolder, f)
             params = (e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath)
 
-            process_thread_bin = process_bin_thread(*params, index = index) 
+            process_thread_bin = process_bin_thread(*params, index=index)
             process_thread_bin.finished_bin.connect(self.plot_binned_data)
             process_thread_bin.start()
 
-
     def plot_binned_data(self, binned):
-        result = binned[self.listRawDataNumerator.currentItem().text()] / binned[self.listRawDataDenominator.currentItem().text()]
-        ylabel = '{} / {}'.format(self.listRawDataNumerator.currentItem().text(), self.listRawDataDenominator.currentItem().text())
+        result = binned[self.listRawDataNumerator.currentItem().text()] / binned[
+            self.listRawDataDenominator.currentItem().text()]
+        ylabel = '{} / {}'.format(self.listRawDataNumerator.currentItem().text(),
+                                  self.listRawDataDenominator.currentItem().text())
 
         if self.checkBox_log_raw.isChecked():
             ylabel = 'log({})'.format(ylabel)
@@ -294,7 +302,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureRaw.ax.plot(binned[xlabel][:len(result)], result)
         last_trace = self.figureRaw.ax.get_lines()[len(self.figureRaw.ax.get_lines()) - 1]
         last_trace.type = 'binned'
-        filepath = binned['filepath'][binned['filepath'].rfind('/') + 1 :] + ' (binned)'
+        filepath = binned['filepath'][binned['filepath'].rfind('/') + 1:] + ' (binned)'
         patch = mpatches.Patch(color=last_trace.get_color(), label=filepath)
         self.handles_raw.append(patch)
 
@@ -306,25 +314,24 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.push_save_bin.setEnabled(True)
 
-
     def save_binned_data(self):
         for binned in self.binned_data:
             self.gen.data_manager.binned_arrays = binned
             self.gen.data_manager.export_dat(binned['filepath'])
 
-
     def show_info_message(self, title, message):
         QtWidgets.QMessageBox.question(self,
-                                   title,
-                                   message,
-                                   QtWidgets.QMessageBox.Ok)
+                                       title,
+                                       message,
+                                       QtWidgets.QMessageBox.Ok)
 
 
 class process_bin_thread(QThread):
     finished_bin = pyqtSignal(dict)
-    def __init__(self, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath, index = 1):
+
+    def __init__(self, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath, index=1):
         QThread.__init__(self)
-        self.gen_parser = xasdata.XASdataGeneric(db = None)
+        self.gen_parser = xasdata.XASdataGeneric(db=None)
 
         self.e0 = e0
         self.edge_start = edge_start
@@ -343,11 +350,11 @@ class process_bin_thread(QThread):
         print('[Binning Thread {}] Starting...'.format(self.index))
 
         self.gen_parser.loadInterpFile(self.filepath)
-        binned = self.gen_parser.bin(self.e0, 
-                                     self.e0 + self.edge_start, 
-                                     self.e0 + self.edge_end, 
-                                     self.preedge_spacing, 
-                                     self.xanes_spacing, 
+        binned = self.gen_parser.bin(self.e0,
+                                     self.e0 + self.edge_start,
+                                     self.e0 + self.edge_end,
+                                     self.preedge_spacing,
+                                     self.xanes_spacing,
                                      self.exafs_spacing)
 
         energy_string = self.gen_parser.get_energy_string()
