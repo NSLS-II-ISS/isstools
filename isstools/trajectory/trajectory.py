@@ -353,6 +353,7 @@ class trajectory_manager():
                     ttime.sleep(0.01)
                     ftp.close()
                     print('[Load Trajectory] Permissions OK')
+                f.close()
 
             s.logout()
             s.pid = None
@@ -428,8 +429,12 @@ class trajectory_manager():
                 self.hhm.cycle_limit.put(size)
                 while (self.hhm.cycle_limit_rbv.value != size):
                     ttime.sleep(.01)
-                print('[Init Trajectory] New lut number: {}\n[Init Trajectory] Trajectory name: {}\n[Init Trajectory] Number of points: {}\n[Init Trajectory] Completed!'.format(lut_number, name, size))
+                print('[Init Trajectory] New lut number: {}'.format(lut_number))
+                print('[Init Trajectory] Trajectory name: {}'.format(name))
+                print('[Init Trajectory] Number of points: {}'.format(size))
+                print('[Init Trajectory] Completed!')
                 self.hhm.trajectory_name.put(name)
+            ftp.close()
     
 
     ########## read_info ##########

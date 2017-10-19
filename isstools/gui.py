@@ -17,7 +17,7 @@ import time as ttime
 import math
 from subprocess import call
 
-from ophyd import (Component as Cpt, EpicsSignal, EpicsSignalRO, EpicsMotor)
+from ophyd import utils as ophyd_utils
 
 from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from isstools.xasdata import xasdata
@@ -40,6 +40,8 @@ import signal
 import json
 import pandas as pd
 import warnings
+import requests
+import urllib.request
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -58,8 +60,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs=[], prep_traj_plan=None, RE=None, db=None, hhm=None, shutters={}, det_dict={},
-                 motors_list=[], general_scan_func=None, parent=None, *args, **kwargs):
+    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, 
+                 hhm = None, shutters = {}, det_dict = {}, motors_dict = {}, 
+                 general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -67,8 +70,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.html_log_func = None
 
+        if 'ic_amplifiers' in kwargs:
+            self.ic_amplifiers = kwargs['ic_amplifiers']
+            del kwargs['ic_amplifiers']
+        else:
+            self.ic_amplifiers = None
+
         if 'auto_tune_elements' in kwargs:
-            self.auto_tune_elements = kwargs['auto_tune_elements']
+            self.auto_tune_elements = kwargs['auto_tune_elements']['elements']
+            self.auto_tune_pre_elements = kwargs['auto_tune_elements']['pre_elements']
+            self.auto_tune_post_elements = kwargs['auto_tune_elements']['post_elements']
             del kwargs['auto_tune_elements']
         else:
             self.auto_tune_elements = None
@@ -79,6 +90,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
             del kwargs['prepare_bl']
         else:
             self.prepare_bl_plan = None
+
+        if 'set_gains_offsets' in kwargs:
+            self.set_gains_offsets_scan = kwargs['set_gains_offsets']
+            del kwargs['set_gains_offsets']
+        else:
+            self.set_gains_offsets_scan = None
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -110,7 +127,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_re_abort.setEnabled(False)
             self.run_start.setEnabled(False)
             self.run_check_gains.setEnabled(False)
-            # self.tabWidget.setTabEnabled(2, False)
 
         self.db = db
         if self.db is None:
@@ -119,13 +135,46 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_update_user.clicked.connect(self.update_user)
         self.det_dict = det_dict
 
-        self.motors_list = motors_list
+        self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
-        # Initialize 'trajectory' tab
+
+        # Initialize 'Beamline setup' tab
+        # Looking for analog pizzaboxes:
+        regex = re.compile('pba\d{1}.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.adc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Looking for encoder pizzaboxes:
+        regex = re.compile('pb\d{1}_enc.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.enc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Populate analog detectors setup section with adcs:
+        self.adc_checkboxes = []
+        for index, adc_name in enumerate([adc.dev_name.value for adc in self.adc_list if adc.dev_name.value != adc.name]):
+            checkbox = QtWidgets.QCheckBox(adc_name)
+            checkbox.setChecked(True)
+            self.adc_checkboxes.append(checkbox)
+            self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
+
+        self.plan_funcs = plan_funcs
+        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.dets_with_amp = [det for det in self.det_dict
+                             if det.name[:3] == 'pba' and hasattr(det, 'amp')]
+        if self.dets_with_amp == []:
+            self.push_read_amp_gains.setEnabled(False)
+        else:
+            self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+        if 'get_offsets' in self.plan_funcs_names:
+            self.push_get_offsets.clicked.connect(self.run_get_offsets)
+        else:
+            self.push_get_offsets.setEnabled(False)
+
+        # Initialize 'trajectories' tab
         self.hhm = hhm
         if self.hhm is not None:
-            self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
             self.hhm.angle_offset.subscribe(self.update_angle_offset)
             self.hhm.trajectory_progress.subscribe(self.update_progress)
             self.progress_sig.connect(self.update_progressbar)
@@ -146,9 +195,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
         else:
-            self.tabWidget.setTabEnabled(1, False)
-            self.tabWidget.setTabEnabled(4, False)
-            self.checkBox_piezo_fb.setEnabled(False)
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Trajectories setup'))
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run'))
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run Batch'))
+            self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
         self.traj_creator = trajectory()
@@ -194,7 +247,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if self.xia_list == []:
-            self.tabWidget.setTabEnabled(2, False)
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in
+                 range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
             self.xia = None
         else:
             self.xia = self.xia_list[0]
@@ -248,22 +303,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
                 self.push_chackall_xia.clicked.connect(self.toggle_xia_all)
 
-        # Looking for analog pizzaboxes:
-        regex = re.compile('pba\d{1}.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.adc_list = [x for x in self.det_dict if x.name in matches]
-
-        # Looking for encoder pizzaboxes:
-        regex = re.compile('pb\d{1}_enc.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.enc_list = [x for x in self.det_dict if x.name in matches]
-
         # Initialize 'Beamline Status' tab
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_prepare_autotune.clicked.connect(self.autotune_function)
-        if self.hhm is not None:
-            self.hhm.energy.subscribe(self.update_hhm_params)
+        #if self.hhm is not None:
+        #    self.hhm.energy.subscribe(self.update_hhm_params)
 
         self.last_text = '0'
         self.tune_dialog = None
@@ -271,7 +316,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
-        self.mot_list = [motor.name for motor in self.motors_list]
+        self.mot_list = self.motors_dict.keys()
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
         self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
@@ -290,10 +335,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 found_bpm = 1
                 break
         if found_bpm == 0 or self.hhm is None:
-            self.checkBox_piezo_fb.setEnabled(False)
+            self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
             if self.run_start.isEnabled() == False:
-                self.tabWidget.setTabEnabled(3, False)
+                self.tabWidget.removeTab(
+                    [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index(
+                        'Run'))
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
 
@@ -309,24 +356,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.settings = QSettings('ISS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
+        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/User Data/', type = str)
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         # Initialize 'run' tab
-        self.plan_funcs = plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.run_type.addItems(self.plan_funcs_names)
         self.run_check_gains.clicked.connect(self.run_gains_test)
-        self.run_check_gains_scan.clicked.connect(self.run_gains_test_scan)
+        self.run_check_gains_scan.clicked.connect(self.adjust_ic_gains)
         self.push_re_abort.clicked.connect(self.re_abort)
         self.pushButton_scantype_help.clicked.connect(self.show_scan_help)
-        self.checkBox_piezo_fb.stateChanged.connect(self.enable_fb)  # toggle_piezo_fb)
-
+        
         if self.prepare_bl_plan is not None:
             self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
             self.push_prepare_bl.setEnabled(True)
         else:
             self.push_prepare_bl.setEnabled(False)
+        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+
+        if self.ic_amplifiers is None:
+            self.run_check_gains_scan.setEnabled(False)
 
         if self.hhm is not None:
             self.piezo_thread = piezo_fb_thread(self)
@@ -519,6 +568,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if self.prepare_bl_plan is not None:
             self.plan_funcs.append(self.prepare_bl)
             self.plan_funcs_names.append(self.prepare_bl.__name__)
+
+        self.plan_funcs.append(self.adjust_ic_gains)
+        self.plan_funcs_names.append(self.adjust_ic_gains.__name__)
+        if self.set_gains_offsets_scan is not None:
+            self.plan_funcs.append(self.set_gains_offsets_scan)
+            self.plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
+
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
         self.push_create_scan_update.clicked.connect(self.update_batch_traj)
@@ -543,9 +599,58 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_load_csv.clicked.connect(self.load_csv)
         self.push_save_csv.clicked.connect(self.save_csv)
 
+        #checking which xystage to use:
+        if self.motors_dict['samplexy_x']['object'].connected and\
+               self.motors_dict['samplexy_y']['object'].connected:
+            self.stage_x = 'samplexy_x'
+            self.stage_y = 'samplexy_y'
+        elif self.motors_dict['huber_stage_z']['object'].connected and\
+                self.motors_dict['huber_stage_y']['object'].connected:
+            self.stage_x = 'huber_stage_z'
+            self.stage_y = 'huber_stage_y'
+        else:
+            print('No stage set! Batch mode will not work!')
+
+
+        # Start QTimer to display current day and time
+        self.timerCurrentTime= QtCore.QTimer(self)
+        self.timerCurrentTime.setInterval(1000)
+        self.timerCurrentTime.timeout.connect(self.displayTime)
+        self.timerCurrentTime.start()
+
+        self.timerCurrentWeather= QtCore.QTimer(self)
+        self.timerCurrentWeather.singleShot(0, self.displayWeather)
+        self.timerCurrentWeather.setInterval(1000*60*5)
+        self.timerCurrentWeather.timeout.connect(self.displayWeather)
+        self.timerCurrentWeather.start()
+
         # Redirect terminal output to GUI
-        # sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
-        # sys.stderr = EmittingStream(textWritten=self.normalOutputWritten)
+        sys.stdout = EmittingStream()
+        sys.stderr = EmittingStream()
+        sys.stdout.textWritten.connect(self.normalOutputWritten)
+        sys.stderr.textWritten.connect(self.normalOutputWritten)
+
+    def displayWeather(self):
+        try:
+            w = requests.get(
+                'http://api.openweathermap.org/data/2.5/weather?zip=11973&APPID=a3be6bc4eaf889b154327fadfd9d6532')
+            dictCurrentWeather = w.json()
+            stringCurrentWeather = dictCurrentWeather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.0f} °F outside,\
+             humidity is {1:.0f}%'\
+                .format(((dictCurrentWeather['main']['temp']-273)*1.8+32), dictCurrentWeather['main']['humidity'])
+            icon_url = 'http://openweathermap.org/img/w/' + dictCurrentWeather['weather'][0]['icon'] + '.png'
+            image = QtGui.QImage()
+            image.loadFromData(urllib.request.urlopen(icon_url).read())
+            self.labelCurrentWeatherIcon.setPixmap(QtGui.QPixmap(image))
+
+        except:
+            stringCurrentWeather = 'Weather information not availaible'
+
+        self.labelCurrentWeather.setText(stringCurrentWeather)
+
+
+    def displayTime(self):
+        self.labelCurrentTime.setText('Today is ' + QtCore.QDateTime.currentDateTime().toString(('MMMM d, yyyy, h:mm:ss ap')))
 
     def update_combo_edge(self, index):
         self.comboBoxEdge.clear()
@@ -573,7 +678,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.piezo_thread.go = 0
             self.hhm.fb_status.put(0)
             self.fb_master = 0
-            self.checkBox_piezo_fb.setChecked(False)
+            self.pushEnableHHMFeedback.setChecked(False)
         else:
             if self.fb_master:
                 self.piezo_thread.start()
@@ -581,7 +686,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.fb_master = -1
             else:
                 self.fb_master = -1
-                self.checkBox_piezo_fb.setChecked(True)
+                self.pushEnableHHMFeedback.setChecked(True)
 
     def update_fb_status(self, pvname=None, value=None, char_value=None, **kwargs):
         if value:
@@ -630,7 +735,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.prepare_bl_def, parent=self)
         if dlg.exec_():
-            self.RE(self.prepare_bl_plan())
+            self.prepare_bl(curr_energy)
 
     def update_user(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(),
@@ -644,11 +749,43 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.label_9.setText('{}'.format(self.RE.md['SAF']))
             self.label_10.setText('{}'.format(self.RE.md['PI']))
 
+    def read_amp_gains(self):
+        adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        if not len(adcs):
+            print('[Read Gains] Please select one or more Analog detectors')
+            return
+
+        print('[Read Gains] Starting...')
+
+        det_dict_with_amp = [det for det in self.det_dict if hasattr(det, 'dev_name')]
+        for detec in adcs:
+            amp = [det.amp for det in det_dict_with_amp if det.dev_name.value == detec]
+            if len(amp):
+                amp = amp[0]
+                gain = amp.get_gain()
+                if gain[1]:
+                    gain[1] = 'High Speed'
+                else:
+                    gain[1] = 'Low Noise'
+
+                print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
+        print('[Read Gains] Done!\n')
+
+    def set_new_angle_offset(self, value):
+        try:
+            self.hhm.angle_offset.put(float(value))
+        except Exception as exc:
+            if type(exc) == ophyd_utils.errors.LimitError:
+                print('[New offset] {}. No reason to be desperate, though.'.format(exc))
+            else:
+                print('[New offset] Something went wrong, not the limit: {}'.format(exc))
+            return 1
+        return 0
+
     def update_offset(self):
-        dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text())
+        dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text(), parent=self)
         if dlg.exec_():
-            self.hhm.angle_offset.put(dlg.getValues())
-            self.label_angle_offset.setText('{}'.format(self.hhm.angle_offset.value))
+            self.set_new_angle_offset(dlg.getValues())
 
     def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
         if 'obj' in kwargs.keys():
@@ -665,8 +802,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def change_shutter_color(self):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
-    def update_angle_offset(self, pvname=None, value=None, char_value=None, **kwargs):
-        self.label_angle_offset.setText('{0:.4f}'.format(value))
+    def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
+        self.label_angle_offset.setText('{0:.8f}'.format(value))
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
@@ -694,21 +831,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
-            self.selected_filename_bin = \
-            QtWidgets.QFileDialog.getOpenFileNames(directory='/GPFS/xf08id/User Data/', filter='*.txt', parent=self)[0]
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*.txt', parent = self)[0]
         else:
-            self.selected_filename_bin = [
-                QtWidgets.QFileDialog.getOpenFileName(directory='/GPFS/xf08id/User Data/', filter='*.txt', parent=self)[
-                    0]]
+            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
         if len(self.selected_filename_bin[0]):
             if len(self.selected_filename_bin) > 1:
                 filenames = []
+                self.user_dir = self.selected_filename_bin[0].rsplit('/', 1)[0]
                 for name in self.selected_filename_bin:
                     filenames.append(name.rsplit('/', 1)[1])
                 filenames = ', '.join(filenames)
             elif len(self.selected_filename_bin) == 1:
                 filenames = self.selected_filename_bin[0]
+                self.user_dir = filenames.rsplit('/', 1)[0]
 
+            self.settings.setValue('user_dir', self.user_dir)          
             self.label_24.setText(filenames)
             self.process_bin_equal()
 
@@ -722,11 +859,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if not ret:
             print('[E0 Calibration] Aborted!')
             return False
-        self.hhm.angle_offset.put(str(self.hhm.angle_offset.value - (
-        xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(
-            float(self.edit_ECal.text()))) / 360000))
-        self.label_angle_offset.setText('{0:.4f}'.format(self.hhm.angle_offset.value))
-        print('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(self.hhm.angle_offset.value))
+
+        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000)
+        if self.set_new_angle_offset(new_value):
+            return
+        print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
 
     def update_k_view(self):
         e0 = int(self.edit_E0_2.text())
@@ -778,7 +915,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressBar_processing.setValue(
             int(np.round(100 * (self.total_threads - self.active_threads) / self.total_threads)))
         process_thread.start()
-        print('[Finished Launching Threads]')
 
     def replot_bin_equal(self):
         # Erase final plot (in case there is old data there)
@@ -803,14 +939,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.last_den_text = self.listWidget_denominator.currentItem().text()
 
         self.den_offset = 0
-        if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.last_den_text][:, 1])))[0]):
-            self.den_offset = self.gen_parser.interp_arrays[self.last_den_text][:, 1].max() + 0.2
-            print(
-                'invalid value encountered in denominator: Added an offset of {} so that we can '
-                'plot the graphs properly (only for data visualization)'.format(self.den_offset))
 
-        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / (
-        self.gen_parser.interp_arrays[self.last_den_text][:, 1] - self.den_offset)
+        array = self.gen_parser.interp_arrays[self.last_den_text][:, 1]
+        if self.last_den_text != '1':
+            det = [det for det in [det for det in self.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.last_den_text][0]
+            polarity = det.polarity
+            if polarity == 'neg':
+                if sum(array > 0):
+                    array[array > 0] = -array[array > 0]
+                    print('invalid value encountered in denominator! Fixed for visualization')
+            else:
+                if sum(array < 0):
+                    array[array < 0] = -array[array < 0]
+                    print('invalid value encountered in denominator! Fixed for visualization')
+            
+        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / (self.gen_parser.interp_arrays[self.last_den_text][:, 1] - self.den_offset)
         ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
 
         self.bin_offset = 0
@@ -928,7 +1071,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.listWidget_denominator.setCurrentRow(-1)
         t_manager = process_threads_manager(self)
         t_manager.start()
-        print('[Finished Launching Threads]')
 
     def __del__(self):
         # Restore sys.stdout
@@ -938,11 +1080,46 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def normalOutputWritten(self, text):
         """Append text to the QtextEdit_terminal."""
         cursor = self.textEdit_terminal.textCursor()
-        cursor.movePosition(QtWidgets.QTextCursor.End)
-        cursor.insertText(text)
+        cursor.movePosition(QtGui.QTextCursor.End)
+
+        if text.find('0;3') >= 0:
+            text = text.replace('<', '(')
+            text = text.replace('>', ')')
+            text = text.replace('[0m', '</font>')
+            text = text.replace('[0;31m', '<font color=\"Red\">')
+            text = text.replace('[0;32m', '<font color=\"Green\">')
+            text = text.replace('[0;33m', '<font color=\"Yellow\">')
+            text = text.replace('[0;34m', '<font color=\"Blue\">')
+            text = text.replace('[0;36m', '<font color=\"Purple\">')
+            text = text.replace('\n', '<br />')
+            text += '<br />'
+            cursor.insertHtml(text)
+        elif text.lower().find('abort') >= 0 or text.lower().find('error') >= 0 or text.lower().find('invalid') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.red)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        elif text.lower().find('starting') >= 0 or text.lower().find('launching') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.blue)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        elif text.lower().find('complete') >= 0 or text.lower().find('done') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.darkGreen)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
+        else:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.black)
+            fmt.setFontWeight(QtGui.QFont.Normal)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
         self.textEdit_terminal.setTextCursor(cursor)
         self.textEdit_terminal.ensureCursorVisible()
-        # sys.__stdout__.writelines(text)
 
     def populateParams(self, index):
         for i in range(len(self.params1)):
@@ -1279,11 +1456,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
             for shutter in [self.shutters[shutter] for shutter in self.shutters if
                             self.shutters[shutter].shutter_type != 'SP']:
                 if shutter.state.value:
-                    ret = self.questionMessage('Shutter closed',
-                                               'Would you like to run the scan with the shutter closed?')
+                    ret = self.questionMessage('Photon shutter closed', 'Proceed with the shutter closed?')
                     if not ret:
-                        print('Aborted!')
-                        return False
+                        print ('Aborted!')
+                        return Falsev
                     break
 
         if curr_element is not None:
@@ -1318,15 +1494,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     curr_det = list(self.det_dict.keys())[i]
                     detectors.append(curr_det)
 
-        for i in range(self.comboBox_gen_mot.count()):
-            if self.comboBox_gen_mot.currentText() == self.mot_list[i]:
-                curr_mot = self.motors_list[i]
+        curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
 
-        if (curr_det == ''):
+        if curr_det == '':
             print('Detector not found. Aborting...')
             raise
 
-        if (curr_mot == ''):
+        if curr_mot == '':
             print('Motor not found. Aborting...')
             raise
 
@@ -1347,15 +1521,21 @@ class ScanGui(*uic.loadUiType(ui_path)):
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
 
         self.push_gen_scan.setEnabled(False)
-        uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(),
-                                           self.comboBox_gen_detsig_den.currentText(), result_name, curr_mot, rel_start,
-                                           rel_stop, num_steps, self.checkBox_tune.isChecked(),
-                                           retries=self.spinBox_gen_scan_retries.value(), ax=self.figure_gen_scan.ax))
+        try:
+            uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(), 
+                                               self.comboBox_gen_detsig_den.currentText(), 
+                                               result_name, curr_mot, rel_start, rel_stop, 
+                                               num_steps, self.checkBox_tune.isChecked(), 
+                                               retries = self.spinBox_gen_scan_retries.value(), 
+                                               ax = self.figure_gen_scan.ax))
+        except Exception as exc:
+            print('[General Scan] Aborted! Exception: {}'.format(exc))
+            print('[General Scan] Limit switch reached . Set narrower range and try again.')
+            uid_list = []
+
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
-        print(curr_element is None)
         if len(uid_list) and curr_element is None:
-            print('Creating Log')
             self.create_log_scan(uid_list[0], self.figure_gen_scan)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
@@ -1398,7 +1578,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.checkBox_tune.setEnabled(False)
 
     def autotune_function(self):
+        print('[Autotune procedure] Starting...')
+        self.pushEnableHHMFeedback.setChecked(False)
         first_run = True
+
+        for pre_element in self.auto_tune_pre_elements:
+            if pre_element['read_back'].value != pre_element['value']:
+                if hasattr(pre_element['motor'], 'move'):
+                    move_function = pre_element['motor'].move
+                elif hasattr(pre_element['motor'], 'put'):
+                    move_function = pre_element['motor'].put
+                for repeat in range(pre_element['tries']):
+                    move_function(pre_element['value'])
+                    ttime.sleep(0.1)
+
         for element in self.auto_tune_elements:
             if element['max_retries'] != -1 and element['scan_range'] != -1 and element['step_size'] != -1:
                 retries = element['max_retries']
@@ -1443,6 +1636,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if button is not None:
                 if button.text() == '&Cancel':
                     break
+
+        for post_element in self.auto_tune_post_elements:
+            if post_element['read_back'].value != post_element['value']:
+                if hasattr(post_element['motor'], 'move'):
+                    move_function = post_element['motor'].move
+                elif hasattr(post_element['motor'], 'put'):
+                    move_function = post_element['motor'].put
+                for repeat in range(post_element['tries']):
+                    move_function(post_element['value'])
+                    ttime.sleep(0.1)
+
+        print('[Autotune procedure] Complete')
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
@@ -1681,7 +1886,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
 
-                if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets':
+                if self.plan_funcs[self.run_type.currentIndex()].__name__ == 'get_offsets' or uid == None:
                     return
 
                 self.current_uid_list.append(uid)
@@ -1695,14 +1900,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.create_log_scan(self.current_uid, self.figure)
 
             if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
-                self.tabWidget.setCurrentIndex(6)
+                self.tabWidget.setCurrentIndex(
+                    [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Processing'))
                 self.selected_filename_bin = self.filepaths
                 self.label_24.setText(
                     ' '.join(filepath[filepath.rfind('/') + 1: len(filepath)] for filepath in self.filepaths))
                 self.process_bin_equal()
 
         else:
-            print('\nPlease, type a comment about the scan in the field "comment"\nTry again')
+            print('\nPlease, type the name of the scan in the field "name"\nTry again')
 
     def parse_scans(self, uid):
         # Erase last graph
@@ -1710,6 +1916,31 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.toolbar._views.clear()
         self.toolbar._positions.clear()
         self.toolbar._update_view()
+
+        year = self.db[uid]['start']['year']
+        cycle = self.db[uid]['start']['cycle']
+        proposal = self.db[uid]['start']['PROPOSAL']
+        # Create dirs if they are not there
+        log_path = '/GPFS/xf08id/User Data/'
+        if log_path[-1] != '/':
+            log_path += '/'
+        log_path = '{}{}.{}.{}/'.format(log_path, year, cycle, proposal)
+        if(not os.path.exists(log_path)):
+            os.makedirs(log_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
+            call(['chmod', '770', log_path])
+    
+        log_path = log_path + 'log/'
+        if(not os.path.exists(log_path)):
+            os.makedirs(log_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
+            call(['chmod', '770', log_path])
+    
+        snapshots_path = log_path + 'snapshots/'
+        if(not os.path.exists(snapshots_path)):
+            os.makedirs(snapshots_path)
+            call(['setfacl', '-m', 'g:iss-staff:rwx', snapshots_path])
+            call(['chmod', '770', snapshots_path])
 
         try:
             self.current_uid = uid
@@ -1719,7 +1950,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if 'xia_filename' in self.db[self.current_uid]['start']:
                 # Parse xia
                 xia_filename = self.db[self.current_uid]['start']['xia_filename']
-                xia_filepath = 'smb://elistavitski-ni/epics/{}'.format(xia_filename)
+                xia_filepath = 'smb://xf08id-nas1/xia_data/{}'.format(xia_filename)
                 xia_destfilepath = '/GPFS/xf08id/xia_files/{}'.format(xia_filename)
                 smbclient = xiaparser.smbclient(xia_filepath, xia_destfilepath)
                 try:
@@ -1736,7 +1967,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                     '{}.txt'.format(self.db[self.current_uid]['start']['year'],
                                                     self.db[self.current_uid]['start']['cycle'],
                                                     self.db[self.current_uid]['start']['PROPOSAL'],
-                                                    self.db[self.current_uid]['start']['comment'])
+                                                    self.db[self.current_uid]['start']['name'])
             if os.path.isfile(self.current_filepath):
                 iterator = 2
                 while True:
@@ -1744,7 +1975,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                             '{}-{}.txt'.format(self.db[self.current_uid]['start']['year'],
                                                                self.db[self.current_uid]['start']['cycle'],
                                                                self.db[self.current_uid]['start']['PROPOSAL'],
-                                                               self.db[self.current_uid]['start']['comment'],
+                                                               self.db[self.current_uid]['start']['name'],
                                                                iterator)
                     if not os.path.isfile(self.current_filepath):
                         break
@@ -1842,30 +2073,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
             self.gen_parser.export_trace(self.current_filepath[:-4], '')
 
-            # Check saturation:
-            try:
-                warnings = ()
-                if np.max(np.abs(self.gen_parser.interp_arrays['i0'][:, 1])) > 3.9:
-                    warnings += (
-                    '"i0" seems to be saturated',)  # (values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['it'][:, 1])) > 3.9:
-                    warnings += (
-                    '"it" seems to be saturated',)  # (values > 3.9 V), please change the ion chamber gain',)
-                if np.max(np.abs(self.gen_parser.interp_arrays['ir'][:, 1])) > 9.9:
-                    warnings += (
-                    '"ir" seems to be saturated',)  # (values > 9.9 V), please change the ion chamber gain',)
-                if len(warnings):
-                    raise Warning(warnings)
-
-            except Warning as warnings:
-                warningtxt = ''
-                for warning in warnings.args[0]:
-                    print('Warning: {}'.format(warning))
-                    warningtxt += '{}\n'.format(warning)
-                warningtxt += 'Check the gains of the ion chambers'
-                QtWidgets.QMessageBox.warning(self, 'Warning!', warningtxt)
-                # raise
-
         except Exception as exc:
             print('Could not finish parsing this scan:\n{}'.format(exc))
 
@@ -1901,11 +2108,27 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.edit_pb_energy.setText('{:.2f}'.format(round(value, 2)))
                 self.last_text = text
 
+    def run_get_offsets(self):
+        for shutter in [self.shutters[shutter] for shutter in self.shutters
+                        if self.shutters[shutter].shutter_type == 'PH' and 
+                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 1]:
+            shutter.close()
+            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
+                QtWidgets.QApplication.processEvents()
+                ttime.sleep(0.1)
+        get_offsets = [func for func in self.plan_funcs if func.__name__ == 'get_offsets'][0]
+
+        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+
+        list(get_offsets(20, *adcs))
+        #list(get_offsets())
+
     def run_gains_test(self):
 
         def handler(signum, frame):
             print("Could not open shutters")
-            raise Exception("end of time")
+            raise Exception("Timeout! Aborted!")
 
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
@@ -1933,34 +2156,39 @@ class ScanGui(*uic.loadUiType(ui_path)):
             if func.__name__ == 'get_offsets':
                 getoffsets_func = func
                 break
-        self.current_uid_list = getoffsets_func(10, dummy_read=True)
+
+        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+
+        self.current_uid_list = list(getoffsets_func(20, *adcs, dummy_read=True))
 
         for shutter in [self.shutters[shutter] for shutter in self.shutters if
                         self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
             shutter.close()
+        print('Done!')            
 
-        print('Done!')
-
-    def run_gains_test_scan(self):
+    def adjust_ic_gains(self):
 
         def handler(signum, frame):
             print("Could not open shutters")
-            raise Exception("end of time")
+            raise Exception("Timeout! Aborted!")
 
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(6)
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type !=
-                        'SP' and self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if
+                        self.shutters[shutter].shutter_type != 'SP' and
+                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
+
             try:
                 shutter.open()
             except Exception as exc:
                 print('Timeout! Aborting!')
                 return
 
-            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
-                QtWidgets.QApplication.processEvents()
-                ttime.sleep(0.1)
+        #    while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
+        #        QtWidgets.QApplication.processEvents()
+        #        ttime.sleep(0.1)
 
         signal.alarm(0)
 
@@ -1992,8 +2220,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             raise Exception('Trajectory creation failed. Try again.')
 
         # Everything ready, send the new daq sampling times:
-        self.comboBox_samp_time.setCurrentIndex(8)
-        self.current_enc_value = self.lineEdit_samp_time.setText('0.896')
+        self.comboBox_samp_time.setCurrentIndex(3)
+        self.current_enc_value = self.lineEdit_samp_time.setText('0.028')
         # Send sampling time to the pizzaboxes:
         value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
         for adc in self.adc_list:
@@ -2014,68 +2242,124 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.traj_manager.init(9, ip='10.8.2.86')
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
-            shutter.open()
+        not_done = 1
+        max_tries = 1
+        while not_done and max_tries:
+            not_done = 0
+            max_tries -= 1
 
-        for func in self.plan_funcs:
-            if func.__name__ == 'tscan':
-                tscan_func = func
-                break
-        self.current_uid_list = tscan_func('Check gains')
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
+                shutter.open()
 
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
-            shutter.close()
+            for func in self.plan_funcs:
+                if func.__name__ == 'tscan':
+                    tscan_func = func
+                    break
+            self.current_uid_list = list(tscan_func('Check gains', ''))
 
-        # Send sampling time to the pizzaboxes:
-        self.comboBox_samp_time.setCurrentIndex(current_adc_index)
-        self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
-        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
-        for adc in self.adc_list:
-            adc.averaging_points.put(str(value))
-        for enc in self.enc_list:
-            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+            for shutter in [self.shutters[shutter] for shutter in self.shutters if self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
+                shutter.close()
 
-        run = self.db[-1]
-        keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
-        regex = re.compile('pba\d{1}.*')
-        matches = [string for string in keys if re.match(regex, string)]
-        devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] for i, desc in
-                    enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches]
+            # Send sampling time to the pizzaboxes:
+            self.comboBox_samp_time.setCurrentIndex(current_adc_index)
+            self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
+            value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+            for adc in self.adc_list:
+                adc.averaging_points.put(str(value))
+            for enc in self.enc_list:
+                enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
-        print_message = ''
-        for index, adc in enumerate(matches):
-            data = []
-            dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
-            for chunk in dd:
-                data.extend(chunk[adc])
-            data = pd.DataFrame(np.array(data)[25:-25, 3])[0].apply(
-                lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
-            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+            adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
 
-            if data.max() > 0 and data.min() > 0:
-                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
-            elif data.min() > -0.039:
-                print_message += 'Increase {} gain by 10^2\n'.format(devnames[index])
-            elif data.max() <= -0.039 and data.min() > -0.39:
-                print_message += 'Increase {} gain by 10^1\n'.format(devnames[index])
-            elif data.max() < 0 and data.min() > -3.9:
-                print_message += '{} seems to be configured properly.\n'.format(devnames[index])
-            elif data.min() <= -3.9:
-                print_message += 'Decrease {} gain by 10^1\n'.format(devnames[index])
-            else:
-                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(
-                    devnames[index])
+            run = self.db[-1]
+            keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
+            regex = re.compile('pba\d{1}.*')
+            matches = [string for string in keys if re.match(regex, string)]
+            devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] 
+                        for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches
+                        and run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
+            matches = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors']) if
+                       run['descriptors'][i]['name'] in matches and
+                       run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
 
-        print('-' * 30)
-        if print_message:
-            print(print_message[:-1])
-        print('-' * 30)
+            print_message = ''
+            for index, adc in enumerate(matches):
+                data = []
+                dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
+                for chunk in dd:
+                    data.extend(chunk[adc])
+                data = pd.DataFrame(np.array(data)[25:-25,3])[0].apply(lambda x: (x >> 8) - 0x40000 
+                                    if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+
+                try:
+                    if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
+                        curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
+                        saturation = curr_amp.par.dev_saturation.value
+
+                        curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
+                        exp = int(curr_gain[0][-1])
+                        curr_hs = curr_gain[1]
+                        if curr_amp.par.polarity == 'neg':
+                            if (data < saturation).sum() < len(data) * 0.01:
+                                data[data < saturation] = data.mean()
+                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+                        
+                            if data.max() > 0 and data.min() > 0:
+                                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(devnames[index])
+                            elif data.min() > saturation/100:
+                                exp += 2
+                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() > saturation/10:
+                                exp += 1
+                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() < 0 and data.min() > saturation:
+                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() <= saturation:
+                                exp -= 1
+                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            else:
+                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+        
+                            if (data.min() > saturation/10 or data.min() < saturation) and not (data.max() > 0 and data.min() > 0):
+                                not_done = 1
+                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+
+                        elif curr_amp.par.polarity == 'pos':
+                            if (data > saturation).sum() < len(data) * 0.01:
+                                data[data > saturation] = data.mean()
+                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
+
+                            if data.max() < 0 and data.min() < 0:
+                                print_message += '{} is always negative. Perhaps it\'s floating.\n'.format(devnames[index])
+                            elif data.max() < saturation/100:
+                                exp += 2
+                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() < saturation/10:
+                                exp += 1
+                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.min() > 0 and data.max() < saturation:
+                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(devnames[index], exp)
+                            elif data.max() >= saturation:
+                                exp -= 1
+                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index], exp)
+                            else:
+                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(devnames[index])
+
+                            if (data.max() < saturation/10 or data.max() > saturation) and not (data.min() < 0 and data.max() < 0):
+                                not_done = 1
+                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed = curr_hs)
+                                 
+                except Exception as exc:
+                    print('Exception: {}'.format(exc))
+
+            print('-' * 30)
+            if print_message:
+                print(print_message[:-1])
+            print('-' * 30)
 
         self.traj_manager.init(current_lut, ip='10.8.2.86')
 
-        print('**** Check gains finished! ****')
+        print('[Gain set scan] Complete\n')
 
     def toggle_xia_checkbox(self, value):
         if value:
@@ -2355,7 +2639,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.edit_E0_2.setText(str(self.edge_found))
 
         if self.active_threads == 0:
-            print('[ #### All Threads Finished #### ]')
+            print('[ #### All Threads Done #### ]')
             self.total_threads = 0
             # self.progressBar_processing.setValue(int(np.round(100)))
             self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
@@ -2403,17 +2687,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.treeView_samples.expand(self.model_samples.indexFromItem(item))
 
     def get_sample_pos(self):
-        if 'samplexy_x' not in self.mot_list:
-            raise Exception('samplexy_x was not passed to the GUI')
-        if 'samplexy_y' not in self.mot_list:
-            raise Exception('samplexy_y was not passed to the GUI')
+        if self.stage_x not in self.mot_list:
+            raise Exception('Stage X was not passed to the GUI')
+        if self.stage_y not in self.mot_list:
+            raise Exception('Stage Y was not passed to the GUI')
 
-        if not self.motors_list[self.mot_list.index('samplexy_x')].connected or not self.motors_list[
-            self.mot_list.index('samplexy_y')].connected:
-            raise Exception('SampleXY stage IOC not connected')
+        if not self.motors_dict[self.stage_x]['object'].connected or \
+                not self.motors_dict[self.stage_y]['object'].connected:
+            raise Exception('Stage IOC not connected')
 
-        x_value = self.motors_list[self.mot_list.index('samplexy_x')].read()['samplexy_x']['value']
-        y_value = self.motors_list[self.mot_list.index('samplexy_y')].read()['samplexy_y']['value']
+        x_value = self.motors_dict[self.stage_x]['object'].position
+        y_value = self.motors_dict[self.stage_y]['object'].position
         self.doubleSpinBox_sample_x.setValue(x_value)
         self.doubleSpinBox_sample_y.setValue(y_value)
 
@@ -2495,9 +2779,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         parent.appendRow(new_item)
 
     def update_loop_values(self, text):
-        for i in range(self.comboBox_sample_loop_motor.count()):
-            if text == self.mot_list[i]:
-                curr_mot = self.motors_list[i]
+        curr_mot = self.motors_dict[self.comboBox_sample_loop_motor.currentText()]['object']
         if self.radioButton_sample_rel.isChecked():
             if curr_mot.connected == True:
                 self.push_add_sample_loop.setEnabled(True)
@@ -2736,7 +3018,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.figure_batch_average.ax.clear()
         self.canvas_batch_average.draw_idle()
         self.run_batch()
-        print('[Finished Launching Threads]')
 
     def print_batch(self):
         print('\n***** Printing Batch Steps *****')
@@ -2874,11 +3155,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     if print_only == False:
                         self.label_batch_step.setText('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
                         self.check_pause_abort_batch()
-                        self.motors_list[self.mot_list.index('samplexy_x')].move(item_x, wait=False)
-                        self.motors_list[self.mot_list.index('samplexy_y')].move(item_y, wait=False)
+
+                        self.motors_dict[self.stage_x]['object'].move(item_x, wait = False)
+                        self.motors_dict[self.stage_y]['object'].move(item_y, wait = False)
                         ttime.sleep(0.2)
-                        while (self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                       self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                        while(self.motors_dict[self.stage_x]['object'].moving or \
+                              self.motors_dict[self.stage_y]['object'].moving):
                             QtCore.QCoreApplication.processEvents()
                             ### Uncomment
 
@@ -2919,12 +3201,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 self.label_batch_step.setText('Prepare trajectory {} - {}'.format(lut, traj_name))
                                 self.check_pause_abort_batch()
                                 self.run_prep_traj()
-
-                        if 'comment' in scans[scan]:
-                            old_comment = scans[scan]['comment']
-                            scans[scan]['comment'] = '{}-{}'.format(scans[scan]['comment'],
-                                                                    traj_name[:traj_name.find('.txt')])
-
+        
+                        if 'name' in scans[scan]:
+                            old_name = scans[scan]['name']
+                            scans[scan]['name'] = '{}-{}'.format(scans[scan]['name'], traj_name[:traj_name.find('.txt')])
+        
                         if scan.find('-') != -1:
                             scan_name = scan[:scan.find('-')]
                         else:
@@ -2932,9 +3213,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                         ### Uncomment
                         if print_only == False:
-                            if 'comment' in scans[scan]:
-                                self.label_batch_step.setText(
-                                    'Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+                            if 'name' in scans[scan]:
+                                self.label_batch_step.setText('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
                                 self.check_pause_abort_batch()
                             else:
                                 self.label_batch_step.setText('Execute {}'.format(scan_name))
@@ -2944,9 +3224,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                 self.uids_to_process.extend(uid)
                         ### Uncomment (previous line)
 
-                        if 'comment' in scans[scan]:
-                            print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
-                            scans[scan]['comment'] = old_comment
+                        if 'name' in scans[scan]:
+                            print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
+                            scans[scan]['name'] = old_name
                         else:
                             print('Execute {}'.format(scan_name))
 
@@ -2959,9 +3239,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                         repetitions = np.arange(int(repetitions[repetitions.find(':') + 1:]))
                     elif rep_type == 'Motor':
                         repetitions = repetitions.split(' ')
-                        # rep_motor = self.motors_list[self.motors_list.index(repetitions[0][repetitions[0].find(':') + 1:])]
                         rep_motor = repetitions[0][repetitions[0].find(':') + 1:]
-                        rep_motor = [motor for motor in self.motors_list if motor.name == rep_motor][0]
+                        rep_motor = self.motors_dict[rep_motor]['object']
                         rep_start = float(repetitions[1][repetitions[1].find(':') + 1:])
                         rep_stop = float(repetitions[2][repetitions[2].find(':') + 1:])
                         rep_step = float(repetitions[3][repetitions[3].find(':') + 1:])
@@ -3045,13 +3324,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                                                             len(
                                                                                                                 repetitions)))
                                     self.check_pause_abort_batch()
-                                    self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'],
-                                                                                             wait=False)
-                                    self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'],
-                                                                                             wait=False)
+                                    self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait = False)
+                                    self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait = False)
                                     ttime.sleep(0.2)
-                                    while (self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                                   self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                    while(self.motors_dict[self.stage_x]['object'].moving or \
+                                          self.motors_dict[self.stage_y]['object'].moving):
                                         QtCore.QCoreApplication.processEvents()
                                 ### Uncomment
 
@@ -3082,15 +3359,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                                                                   repetitions)))
                                             self.check_pause_abort_batch()
                                             self.run_prep_traj()
-
-                                    if 'comment' in scans[scan]:
-                                        old_comment = scans[scan]['comment']
-                                        scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample,
-                                                                                            scans[scan]['comment'],
-                                                                                            traj_name[
-                                                                                            :traj_name.find('.txt')],
-                                                                                            rep + 1)
-
+                    
+                                    if 'name' in scans[scan]:
+                                        old_name = scans[scan]['name']
+                                        scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'], traj_name[:traj_name.find('.txt')], rep + 1)
+                    
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
                                     else:
@@ -3098,14 +3371,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                                     ### Uncomment
                                     if print_only == False:
-                                        if 'comment' in scans[scan]:
-                                            self.label_batch_step.setText(
-                                                'Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name,
-                                                                                                            scans[scan][
-                                                                                                                'comment'],
-                                                                                                            step_number + 1,
-                                                                                                            len(
-                                                                                                                repetitions)))
+                                        if 'name' in scans[scan]:
+                                            self.label_batch_step.setText('Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['name'], step_number + 1, len(repetitions)))
                                             self.check_pause_abort_batch()
                                         else:
                                             self.label_batch_step.setText(
@@ -3115,10 +3382,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                         if uid:
                                             self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
-
-                                    if 'comment' in scans[scan]:
-                                        print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
-                                        scans[scan]['comment'] = old_comment
+                                    if 'name' in scans[scan]:    
+                                        print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
+                                        scans[scan]['name'] = old_name
                                     else:
                                         print('Execute {}'.format(scan_name))
 
@@ -3147,13 +3413,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                                                                 len(
                                                                                                                     repetitions)))
                                         self.check_pause_abort_batch()
-                                        self.motors_list[self.mot_list.index('samplexy_x')].move(samples[sample]['X'],
-                                                                                                 wait=False)
-                                        self.motors_list[self.mot_list.index('samplexy_y')].move(samples[sample]['Y'],
-                                                                                                 wait=False)
+                                        self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait = False)
+                                        self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait = False)
                                         ttime.sleep(0.2)
-                                        while (self.motors_list[self.mot_list.index('samplexy_x')].moving or \
-                                                       self.motors_list[self.mot_list.index('samplexy_y')].moving):
+                                        while(self.motors_dict[self.stage_x]['object'].moving or \
+                                              self.motors_dict[self.stage_y]['object'].moving):
                                             QtCore.QCoreApplication.processEvents()
                                     ### Uncomment
 
@@ -3181,35 +3445,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                                                               repetitions)))
                                         self.check_pause_abort_batch()
                                         self.run_prep_traj()
-
-                                    old_comment = scans[scan]['comment']
-                                    scans[scan]['comment'] = '{} - {} - {} - {}'.format(sample, scans[scan]['comment'],
-                                                                                        traj_name[
-                                                                                        :traj_name.find('.txt')],
-                                                                                        rep + 1)
-
+        
+                                    old_name = scans[scan]['name']
+                                    scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'], traj_name[:traj_name.find('.txt')], rep + 1)
+        
                                     if scan.find('-') != -1:
                                         scan_name = scan[:scan.find('-')]
                                     else:
                                         scan_name = scan
-
-                                    print('Execute {} - comment: {}'.format(scan_name, scans[scan]['comment']))
+        
+                                    print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
                                     ### Uncomment
                                     if print_only == False:
-                                        self.label_batch_step.setText(
-                                            'Execute {} - comment: {} | Loop step number: {}/{}'.format(scan_name,
-                                                                                                        scans[scan][
-                                                                                                            'comment'],
-                                                                                                        step_number + 1,
-                                                                                                        len(
-                                                                                                            repetitions)))
+                                        self.label_batch_step.setText('Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name, scans[scan]['name'], step_number + 1, len(repetitions)))
                                         self.check_pause_abort_batch()
                                         uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
                                         if uid:
                                             self.uids_to_process.extend(uid)
                                     ### Uncomment (previous line)
-                                    scans[scan]['comment'] = old_comment
-
+                                    scans[scan]['name'] = old_name
+        
                         print('-' * 40)
 
                 font = QtGui.QFont()
@@ -3321,7 +3576,7 @@ class process_batch_thread(QThread):
                                                          xanes_spacing,
                                                          exafs_spacing)
 
-                        sample_name = self.gui.db[uid]['start']['comment'].split(' - ')[0]
+                        sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
 
                         if sample_name in self.gui.batch_results:
                             self.gui.batch_results[sample_name]['data'].append(
@@ -3415,10 +3670,8 @@ class process_bin_thread(QThread):
             # self.gui.checkBox_log.setChecked(False)
         warnings.filterwarnings('default')
 
-        result = binned[self.gui.listWidget_numerator.currentItem().text()] / binned[
-            self.gui.listWidget_denominator.currentItem().text()]
-        result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] /
-                       self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
+        result = binned[self.gui.last_num_text] / binned[self.gui.last_den_text]
+        result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
         ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
 
         if self.gui.checkBox_log.checkState() > 0:
@@ -3475,7 +3728,7 @@ class process_bin_thread(QThread):
             self.gen_parser.data_manager.export_dat(filename)
             print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
 
-        print('[Binning Thread {}] Finished'.format(self.index))
+        print('[Binning Thread {}] Done'.format(self.index))
 
 
 class process_bin_thread_equal(QThread):
@@ -3538,11 +3791,19 @@ class process_bin_thread_equal(QThread):
 
             self.gui.den_offset = 0
             self.gui.bin_offset = 0
-            if len(np.where(np.diff(np.sign(self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1])))[0]):
-                self.gui.den_offset = self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1].max() + 0.2
-                print(
-                    'invalid value encountered in denominator: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(
-                        self.gui.den_offset))
+
+            array = self.gui.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
+            if self.gui.last_den_text != '1':
+                det = [det for det in [det for det in self.gui.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.gui.last_den_text][0]
+                polarity = det.polarity
+                if polarity == 'neg':
+                    if sum(array > 0):
+                        array[array > 0] = -array[array > 0]
+                        print('invalid value encountered in denominator! Fixed for visualization')
+                else:   
+                    if sum(array < 0):
+                        array[array < 0] = -array[array < 0]
+                        print('invalid value encountered in denominator! Fixed for visualization')
 
             result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / (
             self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1] - self.gui.den_offset)
@@ -3575,7 +3836,7 @@ class process_bin_thread_equal(QThread):
                          self.gui.canvas_old_scans_3]
             self.gui.plotting_list.append(plot_info)
 
-            bin_eq = self.gen_parser.bin_equal()
+            bin_eq = self.gen_parser.bin_equal(en_spacing=0.5)
 
             result = bin_eq[self.gui.last_num_text] / bin_eq[self.gui.last_den_text]
             ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
@@ -3635,7 +3896,7 @@ class process_bin_thread_equal(QThread):
                          self.gui.canvas_old_scans_2]
             self.gui.plotting_list.append(plot_info)
 
-        print('[Binning Equal Thread {}] Finished'.format(self.index))
+        print('[Binning Equal Thread {}] Done'.format(self.index))
 
 
 class process_threads_manager(QThread):
@@ -3692,14 +3953,14 @@ class piezo_fb_thread(QThread):
         A, mu, sigma = p
         return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
 
-    def gaussian_piezo_feedback(self, line=420, center_point=655, n_lines=1, n_measures=10):
-        image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960, 1280))
+    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
+        # Eli's comment - that's where the check for the intensity should go.
+        image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
 
-        # image = image.transpose()
         image = image.astype(np.int16)
-        sum_lines = sum(
-            image[:, [i for i in range(line - math.floor(n_lines / 2), line + math.ceil(n_lines / 2))]].transpose())
-        # remove background (do it better later)
+        sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
+        # Eli's comment - need some work here
+        #remove background (do it better later)
         if len(sum_lines) > 0:
             sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
         index_max = sum_lines.argmax()
@@ -3722,7 +3983,7 @@ class piezo_fb_thread(QThread):
         # getting center:
         centers = []
         for i in range(n_measures):
-            image = self.gui.bpm_es.image.read()['bpm_es_image_array_data']['value'].reshape((960, 1280))
+            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
 
             image = image.astype(np.int16)
             sum_lines = sum(
@@ -3760,6 +4021,4 @@ class piezo_fb_thread(QThread):
                                              n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)
                 ttime.sleep(self.sampleTime)
             else:
-                # self.gui.checkBox_piezo_fb.setChecked(0)
-                # self.go = 0
                 ttime.sleep(self.sampleTime)

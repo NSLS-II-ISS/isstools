@@ -99,6 +99,8 @@ class XASdataGeneric(XASdata):
         self.arrays = {}
         self.interp_arrays = {}
         self.db = db
+        #if self.db is None:
+        #    print('The databroker was not passed as argument to the parser.\nSome features will be disabled.')
         self.uid = ''
         
     def process(self, uid):
@@ -107,8 +109,8 @@ class XASdataGeneric(XASdata):
         self.interpolate()
 
     def load(self, uid):
-        if self.db is None:
-            raise Exception('The databroker was not passed as argument to the parser')
+        #if self.db is None:
+        #    raise Exception('The databroker was not passed as argument to the parser. This feature is disabled.')
         self.arrays = {}
         self.interp_arrays = {}
         self.uid = uid
@@ -212,7 +214,7 @@ class XASdataGeneric(XASdata):
 
     def export_trace(self, filename, filepath = '/GPFS/xf08id/Sandbox/', overwrite = False):
         if self.db is None:
-            raise Exception('The databroker was not passed as argument to the parser')
+            raise Exception('The databroker was not passed as argument to the parser. This feature is disabled.')
         suffix = '.txt'
         fn = filepath + filename + suffix
         if not overwrite:
@@ -224,6 +226,7 @@ class XASdataGeneric(XASdata):
         pi = self.db[self.uid]['start']['PI']
         proposal = self.db[self.uid]['start']['PROPOSAL']
         saf = self.db[self.uid]['start']['SAF']
+        name = self.db[self.uid]['start']['name']
         comment = self.db[self.uid]['start']['comment']
         year = self.db[self.uid]['start']['year']
         cycle = self.db[self.uid]['start']['cycle']
@@ -331,6 +334,7 @@ class XASdataGeneric(XASdata):
                               '# PROPOSAL: {}\n'\
                               '# Scan ID: {}\n'\
                               '# UID: {}\n'\
+                              '# Comment: {}\n'\
                               '# Trajectory name: {}\n'\
                               '# Start time: {}\n'\
                               '# Stop time: {}\n'\
@@ -341,6 +345,7 @@ class XASdataGeneric(XASdata):
                                                                proposal, 
                                                                scan_id, 
                                                                real_uid, 
+                                                               comment,
                                                                trajectory_name, 
                                                                human_start_time, 
                                                                human_stop_time, 
@@ -580,6 +585,13 @@ class XASDataManager:
         filename = filename[0: len(filename) - 3] + 'dat'
 
         copy_interp = collections.OrderedDict(sorted(self.binned_arrays.items())).copy()
+
+        if 'filepath' in copy_interp:
+            del copy_interp['filepath']
+
+        if 'energy_string' in copy_interp:
+            del copy_interp['energy_string']
+
         if '1' in copy_interp:
             del copy_interp['1']
         keys = copy_interp.keys()
