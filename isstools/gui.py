@@ -491,7 +491,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.uids_to_process = []
         self.treeView_batch = elements.TreeView(self, 'all')
         self.treeView_samples_loop = elements.TreeView(self, 'sample')
-        self.treeView_samples_loop_scans = elements.TreeView(self, 'scan')
+        self.treeView_samples_loop_scans = elements.TreeView(self, 'scan', unique_elements=False)
         self.treeView_samples = elements.TreeView(self, 'sample')
         self.treeView_scans = elements.TreeView(self, 'scan')
         self.push_batch_delete_all.clicked.connect(self.delete_all_batch)
@@ -2308,7 +2308,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
             shutter.close()
         print('Done!')            
 
-    def adjust_ic_gains(self):
+    def adjust_ic_gains(self, trajectory:int=-1):
+
+        trajectory = int(trajectory)
+        if trajectory < 0 or trajectory > 8:
+            current_lut = int(self.hhm.lut_number_rbv.value)
+        else:
+            current_lut = trajectory
 
         def handler(signum, frame):
             print("Could not open shutters")
@@ -2333,7 +2339,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         current_enc_value = self.lineEdit_samp_time.text()
 
         info = self.traj_manager.read_info(silent=True)
-        current_lut = int(self.hhm.lut_number_rbv.value)
 
         if 'max' not in info[str(current_lut)] or 'min' not in info[str(current_lut)]:
             raise Exception(
