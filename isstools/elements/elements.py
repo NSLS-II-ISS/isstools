@@ -3,9 +3,10 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 
 class TreeView(QtWidgets.QTreeView):
-    def __init__(self, parent, accepted_type):
+    def __init__(self, parent, accepted_type, unique_elements=True):
         QtWidgets.QTreeView.__init__(self, parent)
         self.accepted_type = accepted_type
+        self.unique_elements = unique_elements
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
 
@@ -46,10 +47,11 @@ class TreeView(QtWidgets.QTreeView):
 
         exists = False
         curr_item_text = event.mimeData().text()
-        for i in range(self.model().rowCount()):
-            if self.model().item(i).text() == curr_item_text:
-                exists = True
-                break
+        if self.unique_elements:
+            for i in range(self.model().rowCount()):
+                if self.model().item(i).text() == curr_item_text:
+                    exists = True
+                    break
 
         if not exists:
             event.acceptProposedAction()
