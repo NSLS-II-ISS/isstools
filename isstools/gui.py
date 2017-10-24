@@ -43,6 +43,9 @@ import warnings
 import requests
 import urllib.request
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 
