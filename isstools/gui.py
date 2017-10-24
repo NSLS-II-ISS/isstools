@@ -1691,6 +1691,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         vel_edge = float(self.edit_vel_edge.text())
 
+
+        self.traj_creator.elem = self.comboBoxElement.currentText()
+        self.traj_creator.edge = '{}({})'.format(self.comboBoxEdge.currentText(), self.edit_E0.text())
         # Create and interpolate trajectory
         self.traj_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
                                  velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
@@ -1767,7 +1770,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     return
             print('Filename = {}'.format(filename))
             np.savetxt(filename,
-                       self.traj_creator.energy_grid, fmt='%.6f')
+                       self.traj_creator.energy_grid, fmt='%.6f',
+                       header='element: {}, edge: {}'.format(self.traj_creator.elem,
+                                                             self.traj_creator.edge))
             call(['chmod', '666', filename])
 
             self.trajectory_path = filename[:filename.rfind('/')] + '/'

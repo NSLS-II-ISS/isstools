@@ -167,7 +167,6 @@ class trajectory():
                 vel2_2 = scipy.integrate.cumtrapz(accel2_2 * (1 / (x2_num/2)), initial = 0) + vel2_1[-1]
                 vel2 = np.concatenate((vel2_1, vel2_2))
                 pos2 = scipy.integrate.cumtrapz(vel2, initial = 0) + pos_int[-1] + (pos_int[-1] - pos_int[-2])
-                #print("2:", abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo)), m_factor)
                 error = abs((pos2[-1] - pos2[0]) - (postedge_hi - postedge_lo))
                 if(error > last_error):
                     m_factor_der = -(m_factor_der / 2)
@@ -240,6 +239,9 @@ class trajectory():
     def load_trajectory_file(self, filename, offset, is_energy):
         array_out=[]
         with open(str(filename)) as f:
+            first = f.readline()
+            if first[0] != '#':
+                array_out.append(float(first))
             for line in f:
                 array_out.append(float(line))
         array_out = np.array(array_out)
@@ -259,9 +261,21 @@ class trajectory_manager():
     # Function used to count the number of lines in a file
     def file_len(self, fname):
         with open(fname) as f:
+            plusone = 0
+            if f.readline()[0] != '#':
+                plusone = 1
             for i, l in enumerate(f):
                 pass
-        return i + 1
+        return i + 1 + plusone
+
+    def read_header(self, filename):
+        test = ''
+        line = '#'
+        with open(filename) as myfile:
+            while line[0] == '#':
+                line = next(myfile)
+                test += line
+        return test[:-len(line)-1]
 
     ########## load ##########
     # Transfer the trajectory file to the motor controller
@@ -273,6 +287,7 @@ class trajectory_manager():
     def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
 
         print('[Load Trajectory] Starting...')
+        traj_fn = orig_file_name
 
         # Check if new_file_path is between the possible values
         if int(new_file_path) > 9 or int(new_file_path) < 1:
@@ -287,14 +302,15 @@ class trajectory_manager():
         if orig_file_path[-1] != '/':
             fp += '/'
 
-        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name), header=None)
+        traj = pd.read_table('{}{}'.format(orig_file_path, orig_file_name), header=None, comment='#')
         name = orig_file_name
+        header = self.read_header('{}{}'.format(orig_file_path, orig_file_name))
         if is_energy:
             min_energy = int(np.round(traj).min())
             max_energy = int(np.round(traj).max())
             enc = np.int64(np.round(xray.energy2encoder(-traj, -offset)))
             orig_file_name = '.energy_traj_aux.txt'
-            np.savetxt('{}{}'.format(orig_file_path, orig_file_name), enc, fmt='%d')
+            np.savetxt('{}{}'.format(orig_file_path, orig_file_name), enc, fmt='%d', header=header, comments='')
         else:
             min_energy = int(xray.encoder2energy((-traj).min()))
             max_energy = int(xray.encoder2energy((-traj).max()))
@@ -344,6 +360,21 @@ class trajectory_manager():
         # Open file and transfer to the power pmac
             f = open(orig_file_path + str(orig_file_name), 'rb')
             if(f.readable()):
+                first_line = f.readline().decode('utf-8')
+                if first_line[0] == '#':
+                    element = first_line[first_line.find('element:') + 9: first_line.find(',')].lstrip()
+                    edge_value = first_line[first_line.find('edge:') + 6:-1]
+                    curr_hhm_traj = getattr(self.hhm, 'traj{}'.format(new_file_path))
+                    curr_hhm_traj.filename.put(traj_fn)
+                    curr_hhm_traj.elem.put(element)
+                    curr_hhm_traj.edge.put(edge_value)
+                else:
+                    curr_hhm_traj = getattr(self.hhm, 'traj{}'.format(new_file_path))
+                    curr_hhm_traj.filename.put(traj_fn)
+                    curr_hhm_traj.elem.put('')
+                    curr_hhm_traj.edge.put('')
+                    f.close()
+                    f = open(orig_file_path + str(orig_file_name), 'rb')
                 result = ftp.storbinary('STOR ' + '/usrflash/lut/' + str(new_file_path) + '/' + new_file_name, f)
                 if(result == '226 File receive OK.'):
                     print('[Load Trajectory] File sent OK')
@@ -353,6 +384,7 @@ class trajectory_manager():
                     ttime.sleep(0.01)
                     ftp.close()
                     print('[Load Trajectory] Permissions OK')
+
                 f.close()
 
             s.logout()
