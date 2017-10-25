@@ -64,8 +64,15 @@ class ScanGui(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs = [], prep_traj_plan = None, RE = None, db = None, 
-                 hhm = None, shutters = {}, det_dict = {}, motors_dict = {}, 
+    def __init__(self, plan_funcs = [],
+                 prep_traj_plan = None,
+                 RE = None,
+                 db = None,
+                 accelerator = None,
+                 hhm = None,
+                 shutters = {},
+                 det_dict = {},
+                 motors_dict = {},
                  general_scan_func = None, parent=None, *args, **kwargs):
 
         if 'write_html_log' in kwargs:
@@ -136,6 +143,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
 
+        # Initialize general settings
+        self.accelerator = accelerator
+        #print(self.accelerator.beam_current.value)
+        self.accelerator.beam_current.subscribe(self.labelBeamCurrentUpdate)
+        self.accelerator.status.subscribe(self.labelAcceleratorStatusUpdate)
+        #self.labelAcceleratorStatusUpdate(value = self.accelerator.status.value)
 
         # Initialize 'Beamline setup' tab
         # Looking for analog pizzaboxes:
@@ -169,6 +182,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.push_get_offsets.clicked.connect(self.run_get_offsets)
         else:
             self.push_get_offsets.setEnabled(False)
+
 
         # Initialize 'trajectories' tab
         self.hhm = hhm
@@ -1814,7 +1828,23 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         print('[Autotune procedure] Complete')
 
-            
+    def labelBeamCurrentUpdate(self, **kwargs):
+        self.labelBeamCurrent.setText('Beam current is {:.1f} mA'.format(kwargs['value']))
+
+
+    def labelAcceleratorStatusUpdate(self,**kwargs):
+        if kwargs['value'] == 0:
+            self.labelAcceleratorStatus.setText('Beam available')
+            self.labelAcceleratorStatus.setStyleSheet('color: rgb(19,139,67)')
+        elif kwargs['value'] == 1:
+            self.labelAcceleratorStatus.setText('Accelerator setup')
+            self.labelAcceleratorStatus.setStyleSheet('color: rgb(209,116,42)')
+        elif kwargs['value'] == 2:
+            self.labelAcceleratorStatus.setText('Accelerator studies')
+            self.labelAcceleratorStatus.setStyleSheet('color: rgb(209,116,42)')
+        elif kwargs['value'] == 3:
+            self.labelAcceleratorStatus.setText('Beam has dumped')
+            self.labelAcceleratorStatus.setStyleSheet('color: rgb(237,30,30)')
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
