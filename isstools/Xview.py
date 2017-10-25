@@ -26,6 +26,7 @@ gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 class GUI(QtWidgets.QMainWindow, gui_form):
     def __init__(self, parent=None):
 
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.setupUi(self)
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
