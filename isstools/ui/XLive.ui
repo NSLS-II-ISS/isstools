@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_11">
      <attribute name="title">
@@ -2414,7 +2414,7 @@ sampling time</string>
         </rect>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_8">
         <attribute name="title">
@@ -5484,7 +5484,7 @@ b</string>
    <widget class="QGroupBox" name="groupBox_11">
     <property name="geometry">
      <rect>
-      <x>780</x>
+      <x>940</x>
       <y>10</y>
       <width>371</width>
       <height>131</height>
@@ -5631,7 +5631,7 @@ b</string>
      <rect>
       <x>20</x>
       <y>10</y>
-      <width>361</width>
+      <width>341</width>
       <height>20</height>
      </rect>
     </property>
@@ -5691,9 +5691,9 @@ b</string>
    <widget class="QLabel" name="labelBeamCurrent">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>430</x>
       <y>10</y>
-      <width>341</width>
+      <width>241</width>
       <height>20</height>
      </rect>
     </property>
@@ -5711,7 +5711,7 @@ b</string>
    <widget class="QLabel" name="labelAcceleratorStatus">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>430</x>
       <y>30</y>
       <width>291</width>
       <height>21</height>
@@ -5734,6 +5734,39 @@ b</string>
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="labelAcceleratorStatusIndicator">
+    <property name="geometry">
+     <rect>
+      <x>379</x>
+      <y>10</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelCurrentEnergy">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>10</y>
+      <width>241</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Current energy</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -5741,7 +5774,7 @@ b</string>
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

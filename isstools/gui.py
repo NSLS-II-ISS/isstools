@@ -1674,15 +1674,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if kwargs['value'] == 0:
             self.labelAcceleratorStatus.setText('Beam available')
             self.labelAcceleratorStatus.setStyleSheet('color: rgb(19,139,67)')
+            self.labelAcceleratorStatusIndicator.setStyleSheet('background-color: rgb(95,249,95)')
         elif kwargs['value'] == 1:
             self.labelAcceleratorStatus.setText('Accelerator setup')
             self.labelAcceleratorStatus.setStyleSheet('color: rgb(209,116,42)')
+            self.labelAcceleratorStatusIndicator.setStyleSheet('background-color: rgb(209,116,42)')
         elif kwargs['value'] == 2:
             self.labelAcceleratorStatus.setText('Accelerator studies')
             self.labelAcceleratorStatus.setStyleSheet('color: rgb(209,116,42)')
+            self.labelAcceleratorStatusIndicator.setStyleSheet('background-color: rgb(209,116,42)')
         elif kwargs['value'] == 3:
             self.labelAcceleratorStatus.setText('Beam has dumped')
             self.labelAcceleratorStatus.setStyleSheet('color: rgb(237,30,30)')
+            self.labelAcceleratorStatusIndicator.setStyleSheet('background-color: rgb(237,30,30)')
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
