@@ -241,6 +241,17 @@ class XASdataGeneric(XASdata):
             trajectory_name = self.db[self.uid]['start']['trajectory_name']
         else:
             trajectory_name = ''
+
+        if hasattr(self.db[self.uid]['start'], 'element'):
+            element = self.db[self.uid]['start']['element']
+        else:
+            element = ''
+
+        if hasattr(self.db[self.uid]['start'], 'edge'):
+            edge = self.db[self.uid]['start']['edge']
+        else:
+            edge = ''
+
         copy_interp = collections.OrderedDict(sorted(self.interp_arrays.items())).copy()
         #copy_interp = self.interp_arrays.copy()
         if '1' in copy_interp:
@@ -336,6 +347,8 @@ class XASdataGeneric(XASdata):
                               '# UID: {}\n'\
                               '# Comment: {}\n'\
                               '# Trajectory name: {}\n'\
+                              '# Element: {}\n'\
+                              '# Edge: {}\n'\
                               '# Start time: {}\n'\
                               '# Stop time: {}\n'\
                               '# Total time: {}\n#\n# '.format(year, 
@@ -347,6 +360,8 @@ class XASdataGeneric(XASdata):
                                                                real_uid, 
                                                                comment,
                                                                trajectory_name, 
+                                                               element,
+                                                               edge,
                                                                human_start_time, 
                                                                human_stop_time, 
                                                                human_duration))
