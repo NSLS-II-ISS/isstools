@@ -2214,7 +2214,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
     def adjust_ic_gains(self, trajectory:int=-1):
 
         trajectory = int(trajectory)
-        if trajectory < 0 or trajectory > 8:
+        if trajectory < 1 or trajectory > 8:
             current_lut = int(self.hhm.lut_number_rbv.value)
         else:
             current_lut = trajectory
