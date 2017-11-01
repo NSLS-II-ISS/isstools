@@ -557,13 +557,12 @@ class XASDataManager:
 
         filename = filename[0: len(filename) - 3] + 'dat'
 
-        #copy_binned = self.binned_df.copy()
+        copy_binned = self.binned_df.copy()
 
+        if '1' in copy_binned:
+            del copy_binned['1']
 
-        #if '1' in copy_binned:
-        #    del copy_binned['1']
-
-        cols = binned_df.columns.tolist()
+        cols = copy_binned.columns.tolist()
 
         energy_header = ''
         if 'energy' in copy_binned.keys():
