@@ -29,7 +29,7 @@ class XASdata:
             #del df['times']
             #del df['timens']
             df['adc'] = df['adc'].apply(lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x, 16) >> 8) * 7.62939453125e-05
-            return np.array(df.iloc[:, 4:1:-1])
+            return df.iloc[:, 4:1:-1]
         else:
             return -1
 
@@ -40,7 +40,7 @@ class XASdata:
             df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
             df['timestamps'] = df['times'] + 1e-9 * df['timens']
             df['encoder'] = df['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
-            return np.array(df.iloc[:, [5, 2]])
+            return df.iloc[:, [5, 2]]
         else:
             return -1
 
@@ -52,37 +52,11 @@ class XASdata:
             df['timestamps'] = df['times'] + 1e-9 * df['timens']
             df = df.iloc[::2]
             #df = df[df['counter'] % 2 == 0]
-            return np.array(df.iloc[:, [5, 3]])
+            return df.iloc[:, [5, 3]]
         else:
             return -1
 
-    def loadINTERPtrace(self, filename):
-        array_timestamp=[]
-        array_energy=[]
-        array_i0=[]
-        array_it=[]
-        array_ir=[]
-        array_iff=[]
-        with open(str(filename)) as f:
-            for line in f:
-                current_line = line.split()
-                if(current_line[0] != '#'):
-                    array_timestamp.append(float(current_line[0]))
-                    array_energy.append(float(current_line[1]))
-                    array_i0.append(float(current_line[2]))
-                    array_it.append(float(current_line[3]))
-                    if len(current_line) >= 5:
-                        array_ir.append(float(current_line[4]))
-                    if len(current_line) >= 6:
-                        array_iff.append(float(current_line[5]))
-        self.header_read = self.read_header(filename)
-        ts, energy, i0, it, ir, iff = np.array(array_timestamp), np.array(array_energy), np.array(array_i0), np.array(array_it), np.array(array_ir), np.array(array_iff)
 
-        # Trying to make it compatible with old files (iff = [1, 1, ..., 1, 1]):
-        if not len(iff):
-            iff = np.ones(len(i0))
-        return np.concatenate(([ts], [energy])).transpose(), np.concatenate(([ts], [i0])).transpose(),np.concatenate(([ts], [it])).transpose(), np.concatenate(([ts], [ir])).transpose(), np.concatenate(([ts], [iff])).transpose()
-        
     def read_header(self, filename):
         test = ''
         line = '#'
@@ -129,17 +103,18 @@ class XASdataGeneric(XASdata):
                     data = self.loadTRIGtrace(i['data_keys'][i['name']]['filename'], '')
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
                     data = self.loadADCtrace(i['data_keys'][i['name']]['filename'], '')
-                    if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == np.ndarray:
-                        data[:, 1] = data[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+                    if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == pd.core.frame.DataFrame:
+                        data.iloc[:, 1] = data.iloc[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
                     data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
-                if type(data) == np.ndarray:
-                    self.arrays[name] = data
+                #if type(data) == np.ndarray:
+                self.arrays[name] = data
         
         if has_encoder is not False:
-            energy = np.copy(self.arrays.get(has_encoder))
+            energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
-                energy[:, 1] = xray.encoder2energy(energy[:, 1], - float(self.db[uid]['start']['angle_offset']))
+                energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], - float(self.db[uid]['start']['angle_offset']))
+                energy.columns = ['timestamps', 'energy']
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
@@ -167,7 +142,9 @@ class XASdataGeneric(XASdata):
         elif 'timestamp' in keys:
             timestamp_index = keys.index('timestamp')
 
-        df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])   
+        df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
+        df['1'] = pd.Series(np.ones(len(df.iloc[:, 0])), index=df.index)
+        self.interp_df = df
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
                 self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index], df.iloc[:, index]]).transpose()
@@ -175,8 +152,8 @@ class XASdataGeneric(XASdata):
 
 
     def interpolate(self, key_base = 'i0'):
-        min_timestamp = max([self.arrays.get(key)[0, 0] for key in self.arrays])
-        max_timestamp = min([self.arrays.get(key)[len(self.arrays.get(key)) - 1, 0] for key in self.arrays])
+        min_timestamp = max([self.arrays.get(key).iloc[0, 0] for key in self.arrays])
+        max_timestamp = min([self.arrays.get(key).iloc[len(self.arrays.get(key)) - 1, 0] for key in self.arrays])
         
         try:
             if key_base not in self.arrays.keys():
@@ -185,7 +162,7 @@ class XASdataGeneric(XASdata):
             print(err.args[0], '\nAborted...')
             return
         
-        timestamps = self.arrays[key_base][:,0]
+        timestamps = self.arrays[key_base].iloc[:,0]
         
         condition = timestamps < min_timestamp
         timestamps = timestamps[np.sum(condition):]
@@ -196,13 +173,18 @@ class XASdataGeneric(XASdata):
         #time = [np.mean(array) for array in np.array_split(self.arrays[key_base][:,0], len(timestamps))]
         
         for key in self.arrays.keys():
-            if len(self.arrays.get(key)[:, 0]) > 5 * len(timestamps):
-                time = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 0], len(timestamps))]
-                val = [np.mean(array) for array in np.array_split(self.arrays.get(key)[:, 1], len(timestamps))]
+            if len(self.arrays.get(key).iloc[:, 0]) > 5 * len(timestamps):
+                time = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 0], len(timestamps))]
+                val = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 1], len(timestamps))]
                 self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, time, val)]).transpose()
             else:
-                self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key)[:,0], self.arrays.get(key)[:,1])]).transpose()
+                self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key).iloc[:,0], self.arrays.get(key).iloc[:,1])]).transpose()
         self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
+        self.interp_df = pd.DataFrame(np.vstack((timestamps, np.array([self.interp_arrays[array][:, 1] for
+                                                array in self.interp_arrays]))).transpose())
+        keys = ['timestamps']
+        keys.extend(self.interp_arrays.keys())
+        self.interp_df.columns = keys
 
 
     def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
@@ -252,90 +234,67 @@ class XASdataGeneric(XASdata):
         else:
             edge = ''
 
-        copy_interp = collections.OrderedDict(sorted(self.interp_arrays.items())).copy()
-        #copy_interp = self.interp_arrays.copy()
+        copy_interp = self.interp_df.copy()
+
         if '1' in copy_interp:
             del copy_interp['1']
-        keys = copy_interp.keys()
-        matrix = [self.interp_arrays[list(self.interp_arrays.keys())[0]][:,0]]
+
+        cols = copy_interp.columns.tolist()
+        cols.remove('timestamps')
+
         energy_header = ''
         if 'energy' in copy_interp.keys():
-            matrix.append(copy_interp['energy'][:,1])
-            del copy_interp['energy']
             energy_header = 'energy'
+            cols.remove(energy_header)
         elif 'En. (eV)' in copy_interp.keys():
-            matrix.append(copy_interp['En. (eV)'][:,1])
-            del copy_interp['En. (eV)']
             energy_header = 'En. (eV)'
+            cols.remove(energy_header)
 
         i0_header = ''
         if 'i0' in copy_interp.keys():
-            matrix.append(copy_interp['i0'][:,1])
-            del copy_interp['i0']
             i0_header = 'i0'
+            cols.remove(i0_header)
         elif 'i0 (V)' in copy_interp.keys():
-            matrix.append(copy_interp['i0 (V)'][:,1])
-            del copy_interp['i0 (V)']
             i0_header = 'i0 (V)'
+            cols.remove(i0_header)
 
         it_header = ''
         if 'it' in copy_interp.keys():
-            matrix.append(copy_interp['it'][:,1])
-            del copy_interp['it']
             it_header = 'it'
+            cols.remove(it_header)
         elif 'it(V)' in copy_interp.keys():
-            matrix.append(copy_interp['it(V)'][:,1])
-            del copy_interp['it(V)']
             it_header = 'it(V)'
+            cols.remove(it_header)
 
         ir_header = ''
         if 'ir' in copy_interp.keys():
-            matrix.append(copy_interp['ir'][:,1])
-            del copy_interp['ir']
             ir_header = 'ir'
+            cols.remove(ir_header)
         elif 'ir(V)' in copy_interp.keys():
-            matrix.append(copy_interp['ir(V)'][:,1])
-            del copy_interp['ir(V)']
             ir_header = 'ir(V)'
+            cols.remove(ir_header)
 
         iff_header = ''
         if 'iff' in copy_interp.keys():
-            matrix.append(copy_interp['iff'][:,1])
-            del copy_interp['iff']
             iff_header = 'iff'
+            cols.remove(iff_header)
         elif 'iff(V)' in copy_interp.keys():
-            matrix.append(copy_interp['iff(V)'][:,1])
-            del copy_interp['iff(V)']
             iff_header = 'iff(V)'
-        
+            cols.remove(iff_header)
 
-        for key in copy_interp.keys():
-            matrix.append(copy_interp[key][:,1])
-        matrix = np.array(matrix).transpose()
+        cols2 = ['timestamps', energy_header, i0_header, it_header, ir_header, iff_header]
+        cols2.extend(cols)
+        cols = cols2
+
+        copy_interp = copy_interp[cols]
 
         fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
         header = '  '.join(copy_interp.keys())
-        if iff_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(iff_header, header)
-        if ir_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(ir_header, header)
-        if it_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(it_header, header)
-        if i0_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(i0_header, header)
-        if energy_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(energy_header, header)
-        fmt = '{} {}'.format('%17.6f', fmt)
-        header = '{}  {}'.format('timestamp', header)
+        fmt = '%17.6f ' + fmt[7:]
 
-        np.savetxt(fn, 
-                   matrix, 
-                   fmt=fmt, 
+        np.savetxt(fn,
+                   copy_interp.values,
+                   fmt=fmt,
                    delimiter=" ", 
                    header = header,
                    comments = '# Year: {}\n'\
@@ -374,7 +333,7 @@ class XASdataGeneric(XASdata):
         try:
             energy_string = ''
             for string in possibilities:
-                if string in self.interp_arrays.keys():
+                if string in self.interp_df.keys():
                     return string
             raise ValueError('Could not find energy'\
                              ' in the header of the'\
@@ -389,9 +348,9 @@ class XASdataGeneric(XASdata):
 
         try:
             energy_string = ''
-            if 'energy' in self.interp_arrays.keys():
+            if 'energy' in self.interp_df.keys():
                 energy_string = 'energy'
-            elif 'En. (eV)' in self.interp_arrays.keys():
+            elif 'En. (eV)' in self.interp_df.keys():
                 energy_string = 'En. (eV)'
             else:
                 raise ValueError('Could not find energy'\
@@ -401,7 +360,7 @@ class XASdataGeneric(XASdata):
             print(err.args[0], '\nAborted...')
             return -1
 
-        return self.data_manager.process_equal(self.interp_arrays,
+        return self.data_manager.process_equal(self.interp_df,
                                             energy_string = energy_string,
                                             delta_en = en_spacing)
 
@@ -409,9 +368,9 @@ class XASdataGeneric(XASdata):
 
         try:
             energy_string = ''
-            if 'energy' in self.interp_arrays.keys():
+            if 'energy' in self.interp_df.keys():
                 energy_string = 'energy'
-            elif 'En. (eV)' in self.interp_arrays.keys():
+            elif 'En. (eV)' in self.interp_df.keys():
                 energy_string = 'En. (eV)'
             else:
                 raise ValueError('Could not find energy'\
@@ -421,7 +380,7 @@ class XASdataGeneric(XASdata):
             print(err.args[0], '\nAborted...')
             return    
 
-        return self.data_manager.process(self.interp_arrays, 
+        return self.data_manager.process(self.interp_df,
                                              e0, edge_start, edge_end,
                                              preedge_spacing, xanes, 
                                              exafsk, energy_string = energy_string)
@@ -585,7 +544,6 @@ class XASDataManager:
         data_st = np.matmul(np.array(delta_en * mat), data_y)
         return data_st.transpose()
 
-  
 
     def get_derivative(self, array):
         derivative = np.diff(array)
@@ -599,95 +557,65 @@ class XASDataManager:
 
         filename = filename[0: len(filename) - 3] + 'dat'
 
-        copy_interp = collections.OrderedDict(sorted(self.binned_arrays.items())).copy()
+        #copy_binned = self.binned_df.copy()
 
-        if 'filepath' in copy_interp:
-            del copy_interp['filepath']
 
-        if 'energy_string' in copy_interp:
-            del copy_interp['energy_string']
+        #if '1' in copy_binned:
+        #    del copy_binned['1']
 
-        if '1' in copy_interp:
-            del copy_interp['1']
-        keys = copy_interp.keys()
-        matrix = []
+        cols = binned_df.columns.tolist()
 
         energy_header = ''
-        if 'energy' in copy_interp.keys():
-            matrix.append(copy_interp['energy'])
-            del copy_interp['energy']
+        if 'energy' in copy_binned.keys():
             energy_header = 'energy'
-        elif 'En. (eV)' in copy_interp.keys():
-            matrix.append(copy_interp['En. (eV)'])
-            del copy_interp['En. (eV)']
+            cols.remove(energy_header)
+        elif 'En. (eV)' in copy_binned.keys():
             energy_header = 'En. (eV)'
+            cols.remove(energy_header)
 
         i0_header = ''
-        if 'i0' in copy_interp.keys():
-            matrix.append(copy_interp['i0'])
-            del copy_interp['i0']
+        if 'i0' in copy_binned.keys():
             i0_header = 'i0'
-        elif 'i0 (V)' in copy_interp.keys():
-            matrix.append(copy_interp['i0 (V)'])
-            del copy_interp['i0 (V)']
+            cols.remove(i0_header)
+        elif 'i0 (V)' in copy_binned.keys():
             i0_header = 'i0 (V)'
+            cols.remove(i0_header)
 
         it_header = ''
-        if 'it' in copy_interp.keys():
-            matrix.append(copy_interp['it'])
-            del copy_interp['it']
+        if 'it' in copy_binned.keys():
             it_header = 'it'
-        elif 'it(V)' in copy_interp.keys():
-            matrix.append(copy_interp['it(V)'])
-            del copy_interp['it(V)']
+            cols.remove(it_header)
+        elif 'it(V)' in copy_binned.keys():
             it_header = 'it(V)'
+            cols.remove(it_header)
 
         ir_header = ''
-        if 'ir' in copy_interp.keys():
-            matrix.append(copy_interp['ir'])
-            del copy_interp['ir']
+        if 'ir' in copy_binned.keys():
             ir_header = 'ir'
-        elif 'ir(V)' in copy_interp.keys():
-            matrix.append(copy_interp['ir(V)'])
-            del copy_interp['ir(V)']
+            cols.remove(ir_header)
+        elif 'ir(V)' in copy_binned.keys():
             ir_header = 'ir(V)'
+            cols.remove(ir_header)
 
         iff_header = ''
-        if 'iff' in copy_interp.keys():
-            matrix.append(copy_interp['iff'])
-            del copy_interp['iff']
+        if 'iff' in copy_binned.keys():
             iff_header = 'iff'
-        elif 'iff(V)' in copy_interp.keys():
-            matrix.append(copy_interp['iff(V)'])
-            del copy_interp['iff(V)']
+            cols.remove(iff_header)
+        elif 'iff(V)' in copy_binned.keys():
             iff_header = 'iff(V)'
+            cols.remove(iff_header)
 
+        cols2 = [energy_header, i0_header, it_header, ir_header, iff_header]
+        cols2.extend(cols)
+        cols = cols2
 
-        for key in copy_interp.keys():
-            matrix.append(copy_interp[key])
-        matrix = np.array(matrix).transpose()
+        copy_binned = copy_binned[cols]
 
-        fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
-        header = '  '.join(copy_interp.keys())
-
-        if iff_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(iff_header, header)
-        if ir_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(ir_header, header)
-        if it_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(it_header, header)
-        if i0_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(i0_header, header)
-        if energy_header:
-            fmt = '{} {}'.format('%12.6f', fmt)
-            header = '{}  {}'.format(energy_header, header)
+        fmt = ' '.join(['%12.6f' for key in copy_binned.keys()])
+        header = '  '.join(copy_binned.keys())
 
         np.savetxt(filename,
-                   matrix,
+                   copy_binned.values,
                    fmt=fmt,
                    delimiter=" ",
                    header = header,
@@ -697,11 +625,11 @@ class XASDataManager:
         return filename
 
 
-    def process(self, interp_dict, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
-        if len(interp_dict[list(interp_dict.keys())[0]].shape) > 1:
-            df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+    def process(self, interp_df, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
+        if len(interp_df[list(interp_df.keys())[0]].shape) > 1:
+            df = interp_df.copy().sort_values(energy_string)#pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
         else:
-            df = pd.DataFrame({k: v for k, v in interp_dict.items()}).sort_values(energy_string)
+            df = interp_df.copy().sort_values(energy_string)#pd.DataFrame({k: v for k, v in interp_dict.items()}).sort_values(energy_string)
         self.data_arrays = df
         en_grid = self.energy_grid(df[energy_string].values, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk)
         self.en_grid = en_grid
@@ -709,11 +637,12 @@ class XASDataManager:
         ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
         ret[energy_string] = en_grid
         self.binned_arrays = ret
+        self.binned_df = pd.DataFrame(ret)
         return ret
 
 
-    def process_equal(self, interp_dict, energy_string = 'energy', delta_en = 2):
-        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+    def process_equal(self, interp_df, energy_string = 'energy', delta_en = 2):
+        df = interp_df.copy().sort_values(energy_string)
         self.data_arrays = df
         en_grid_eq = self.energy_grid_equal(df[energy_string], delta_en)
         self.en_grid_eq = en_grid_eq
@@ -721,6 +650,7 @@ class XASDataManager:
         ret = {k: convo_mat @ v.values for k, v in df.items() if k != energy_string}
         ret[energy_string] = en_grid_eq
         self.binned_eq_arrays = ret
+        self.binned_eq_df = pd.DataFrame(ret)
         return ret
 
 
