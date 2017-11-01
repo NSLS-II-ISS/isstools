@@ -234,68 +234,32 @@ class XASdataGeneric(XASdata):
         else:
             edge = ''
 
-        copy_interp = self.interp_df.copy()
+        cols = self.interp_df.columns.tolist()
+        cols.remove('1')
 
-        if '1' in copy_interp:
-            del copy_interp['1']
+        index = 1
+        for pair in [['energy', 'En. (eV)'], ['i0', 'i0 (V)'], ['it', 'it(V)'], ['ir', 'ir(V)'], ['iff', 'iff(V)']]:
+            if pair[0] in cols:
+                cols.remove(pair[0])
+                cols.insert(index, pair[0])
+                index += 1
+            elif pair[1] in cols:
+                cols.remove(pair[1])
+                cols.insert(index, pair[1])
+                index += 1
 
-        cols = copy_interp.columns.tolist()
-        cols.remove('timestamps')
-
-        energy_header = ''
-        if 'energy' in copy_interp.keys():
-            energy_header = 'energy'
-            cols.remove(energy_header)
-        elif 'En. (eV)' in copy_interp.keys():
-            energy_header = 'En. (eV)'
-            cols.remove(energy_header)
-
-        i0_header = ''
-        if 'i0' in copy_interp.keys():
-            i0_header = 'i0'
-            cols.remove(i0_header)
-        elif 'i0 (V)' in copy_interp.keys():
-            i0_header = 'i0 (V)'
-            cols.remove(i0_header)
-
-        it_header = ''
-        if 'it' in copy_interp.keys():
-            it_header = 'it'
-            cols.remove(it_header)
-        elif 'it(V)' in copy_interp.keys():
-            it_header = 'it(V)'
-            cols.remove(it_header)
-
-        ir_header = ''
-        if 'ir' in copy_interp.keys():
-            ir_header = 'ir'
-            cols.remove(ir_header)
-        elif 'ir(V)' in copy_interp.keys():
-            ir_header = 'ir(V)'
-            cols.remove(ir_header)
-
-        iff_header = ''
-        if 'iff' in copy_interp.keys():
-            iff_header = 'iff'
-            cols.remove(iff_header)
-        elif 'iff(V)' in copy_interp.keys():
-            iff_header = 'iff(V)'
-            cols.remove(iff_header)
-
-        cols2 = ['timestamps', energy_header, i0_header, it_header, ir_header, iff_header]
-        cols2.extend(cols)
-        cols = cols2
-
-        copy_interp = copy_interp[cols]
-
-        fmt = ' '.join(['%12.6f' for key in copy_interp.keys()])
-        header = '  '.join(copy_interp.keys())
+        fmt = ' '.join(['%12.6f' for key in cols])
         fmt = '%17.6f ' + fmt[7:]
+        header = '  '.join(cols)
+
+        cols.append('1')
+        self.interp_df = self.interp_df[cols]
+
 
         np.savetxt(fn,
-                   copy_interp.values,
+                   self.interp_df.iloc[:,:-1].values,
                    fmt=fmt,
-                   delimiter=" ", 
+                   delimiter=" ",
                    header = header,
                    comments = '# Year: {}\n'\
                               '# Cycle: {}\n'\
@@ -310,20 +274,21 @@ class XASdataGeneric(XASdata):
                               '# Edge: {}\n'\
                               '# Start time: {}\n'\
                               '# Stop time: {}\n'\
-                              '# Total time: {}\n#\n# '.format(year, 
-                                                               cycle, 
-                                                               saf, 
-                                                               pi, 
-                                                               proposal, 
-                                                               scan_id, 
-                                                               real_uid, 
+                              '# Total time: {}\n#\n# '.format(year,
+                                                               cycle,
+                                                               saf,
+                                                               pi,
+                                                               proposal,
+                                                               scan_id,
+                                                               real_uid,
                                                                comment,
-                                                               trajectory_name, 
+                                                               trajectory_name,
                                                                element,
                                                                edge,
-                                                               human_start_time, 
-                                                               human_stop_time, 
+                                                               human_start_time,
+                                                               human_stop_time,
                                                                human_duration))
+
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
         return fn
@@ -557,64 +522,31 @@ class XASDataManager:
 
         filename = filename[0: len(filename) - 3] + 'dat'
 
-        copy_binned = self.binned_df.copy()
+        cols = self.binned_df.columns.tolist()
+        cols.remove('1')
+        cols.remove('timestamp')
 
-        if '1' in copy_binned:
-            del copy_binned['1']
+        index = 0
+        for pair in [['energy', 'En. (eV)'], ['i0', 'i0 (V)'], ['it', 'it(V)'], ['ir', 'ir(V)'], ['iff', 'iff(V)']]:
+            if pair[0] in cols:
+                cols.remove(pair[0])
+                cols.insert(index, pair[0])
+                index += 1
+            elif pair[1] in cols:
+                cols.remove(pair[1])
+                cols.insert(index, pair[1])
+                index += 1
 
-        cols = copy_binned.columns.tolist()
+        fmt = ' '.join(['%12.6f' for key in cols])
+        header = '  '.join(cols)
 
-        energy_header = ''
-        if 'energy' in copy_binned.keys():
-            energy_header = 'energy'
-            cols.remove(energy_header)
-        elif 'En. (eV)' in copy_binned.keys():
-            energy_header = 'En. (eV)'
-            cols.remove(energy_header)
+        cols.append('timestamp')
+        cols.append('1')
+        self.binned_df = self.binned_df[cols]
 
-        i0_header = ''
-        if 'i0' in copy_binned.keys():
-            i0_header = 'i0'
-            cols.remove(i0_header)
-        elif 'i0 (V)' in copy_binned.keys():
-            i0_header = 'i0 (V)'
-            cols.remove(i0_header)
-
-        it_header = ''
-        if 'it' in copy_binned.keys():
-            it_header = 'it'
-            cols.remove(it_header)
-        elif 'it(V)' in copy_binned.keys():
-            it_header = 'it(V)'
-            cols.remove(it_header)
-
-        ir_header = ''
-        if 'ir' in copy_binned.keys():
-            ir_header = 'ir'
-            cols.remove(ir_header)
-        elif 'ir(V)' in copy_binned.keys():
-            ir_header = 'ir(V)'
-            cols.remove(ir_header)
-
-        iff_header = ''
-        if 'iff' in copy_binned.keys():
-            iff_header = 'iff'
-            cols.remove(iff_header)
-        elif 'iff(V)' in copy_binned.keys():
-            iff_header = 'iff(V)'
-            cols.remove(iff_header)
-
-        cols2 = [energy_header, i0_header, it_header, ir_header, iff_header]
-        cols2.extend(cols)
-        cols = cols2
-
-        copy_binned = copy_binned[cols]
-
-        fmt = ' '.join(['%12.6f' for key in copy_binned.keys()])
-        header = '  '.join(copy_binned.keys())
 
         np.savetxt(filename,
-                   copy_binned.values,
+                   self.binned_df.iloc[:,:-2].values,
                    fmt=fmt,
                    delimiter=" ",
                    header = header,
