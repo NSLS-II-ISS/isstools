@@ -107,6 +107,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.set_gains_offsets_scan = None
 
+        if 'sample_stages' in kwargs:
+            self.sample_stages = kwargs['sample_stages']
+            del kwargs['sample_stages']
+        else:
+            self.sample_stages = []
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         print(QtWidgets.QApplication.instance())
@@ -149,11 +155,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.gen_scan_func = general_scan_func
 
         # Initialize general settings
-        self.accelerator = accelerator
-        #print(self.accelerator.beam_current.value)
-        self.accelerator.beam_current.subscribe(self.labelBeamCurrentUpdate)
-        self.accelerator.status.subscribe(self.labelAcceleratorStatusUpdate)
-        #self.labelAcceleratorStatusUpdate(value = self.accelerator.status.value)
+        if accelerator is not None:
+            self.accelerator = accelerator
+            self.accelerator.beam_current.subscribe(self.labelBeamCurrentUpdate)
+            self.accelerator.status.subscribe(self.labelAcceleratorStatusUpdate)
 
         # Initialize 'Beamline setup' tab
         # Looking for analog pizzaboxes:
@@ -617,17 +622,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.push_save_csv.clicked.connect(self.save_csv)
 
         #checking which xystage to use:
-        if self.motors_dict['samplexy_x']['object'].connected and\
-               self.motors_dict['samplexy_y']['object'].connected:
-            self.stage_x = 'samplexy_x'
-            self.stage_y = 'samplexy_y'
-        elif self.motors_dict['huber_stage_z']['object'].connected and\
-                self.motors_dict['huber_stage_y']['object'].connected:
-            self.stage_x = 'huber_stage_z'
-            self.stage_y = 'huber_stage_y'
-        else:
+        self.stage_x = ''
+        self.stage_y = ''
+        for stage in self.sample_stages:
+            if stage['x'] in self.motors_dict and stage['y'] in self.motors_dict:
+                if self.motors_dict[stage['x']]['object'].connected and\
+                    self.motors_dict[stage['y']]['object'].connected:
+                    self.stage_x = stage['x']
+                    self.stage_y = stage['y']
+                    break
+        if self.stage_x == '' or self.stage_y == '':
             print('No stage set! Batch mode will not work!')
-
 
         # Start QTimer to display current day and time
         self.timerCurrentTime= QtCore.QTimer(self)
