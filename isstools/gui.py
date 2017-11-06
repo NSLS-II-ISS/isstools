@@ -1339,13 +1339,13 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.parse_scans(uid)
                     self.create_log_scan(self.current_uid, self.figure)
 
-            if self.checkBox_auto_process.checkState() > 0 and self.active_threads == 0:
+            if self.checkBox_auto_process.checkState() > 0 and self.widget_processing.active_threads == 0:
                 self.tabWidget.setCurrentIndex(
                     [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Processing'))
-                self.selected_filename_bin = self.filepaths
-                self.label_24.setText(
+                self.widget_processing.selected_filename_bin = self.filepaths
+                self.widget_processing.label_24.setText(
                     ' '.join(filepath[filepath.rfind('/') + 1: len(filepath)] for filepath in self.filepaths))
-                self.process_bin_equal()
+                self.widget_processing.process_bin_equal()
 
         else:
             print('\nPlease, type the name of the scan in the field "name"\nTry again')
@@ -1422,20 +1422,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     iterator += 1
 
             self.filepaths.append(self.current_filepath)
-            self.gen_parser.load(self.current_uid)
+            self.widget_processing.gen_parser.load(self.current_uid)
 
             key_base = 'i0'
             if 'xia_filename' in self.db[self.current_uid]['start']:
                 key_base = 'xia_trigger'
-            self.gen_parser.interpolate(key_base=key_base)
+            self.widget_processing.gen_parser.interpolate(key_base=key_base)
 
-            division = self.gen_parser.interp_arrays['i0'][:, 1] / self.gen_parser.interp_arrays['it'][:, 1]
+            division = self.widget_processing.gen_parser.interp_arrays['i0'][:, 1] / self.widget_processing.gen_parser.interp_arrays['it'][:, 1]
             division[division < 0] = 1
-            self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
+            self.figure.ax.plot(self.widget_processing.gen_parser.interp_arrays['energy'][:, 1], np.log(division))
             self.figure.ax.set_xlabel('Energy (eV)')
             self.figure.ax.set_ylabel('log(i0 / it)')
 
-            # self.gen_parser should be able to generate the interpolated file
+            # self.widget_processing.gen_parser should be able to generate the interpolated file
 
             if 'xia_filename' in self.db[self.current_uid]['start']:
                 # Parse xia
@@ -1446,12 +1446,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 try:
                     if xia_parser.channelsCount():
-                        length = min(xia_parser.pixelsCount(0), len(self.gen_parser.interp_arrays['energy']))
-                        if xia_parser.pixelsCount(0) != len(self.gen_parser.interp_arrays['energy']):
+                        length = min(xia_parser.pixelsCount(0), len(self.widget_processing.gen_parser.interp_arrays['energy']))
+                        if xia_parser.pixelsCount(0) != len(self.widget_processing.gen_parser.interp_arrays['energy']):
                             raise Exception(
                                 "XIA Pixels number ({}) != Pizzabox Trigger file ({})".format(xia_parser.pixelsCount(0),
                                                                                               len(
-                                                                                                  self.gen_parser.interp_arrays[
+                                                                                                  self.widget_processing.gen_parser.interp_arrays[
                                                                                                       'energy'])))
                     else:
                         raise Exception("Could not find channels data in the XIA file")
@@ -1496,22 +1496,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
                 for index_roi, roi in enumerate([[i for i in zip(*mcas)][ind] for ind, k in enumerate(roi_numbers)]):
                     xia_sum = [sum(i) for i in zip(*roi)]
-                    if len(self.gen_parser.interp_arrays['energy']) > length:
-                        xia_sum.extend([xia_sum[-1]] * (len(self.gen_parser.interp_arrays['energy']) - length))
+                    if len(self.widget_processing.gen_parser.interp_arrays['energy']) > length:
+                        xia_sum.extend([xia_sum[-1]] * (len(self.widget_processing.gen_parser.interp_arrays['energy']) - length))
 
                     roi_label = getattr(self, 'edit_roi_name_{}'.format(roi_numbers[index_roi])).text()
                     if not len(roi_label):
                         roi_label = 'XIA_ROI{}'.format(roi_numbers[index_roi])
 
-                    self.gen_parser.interp_arrays[roi_label] = np.array(
-                        [self.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
-                    self.figure.ax.plot(self.gen_parser.interp_arrays['energy'][:, 1], -(
-                    self.gen_parser.interp_arrays[roi_label][:, 1] / self.gen_parser.interp_arrays['i0'][:, 1]))
+                    self.widget_processing.gen_parser.interp_arrays[roi_label] = np.array(
+                        [self.widget_processing.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
+                    self.figure.ax.plot(self.widget_processing.gen_parser.interp_arrays['energy'][:, 1], -(
+                    self.widget_processing.gen_parser.interp_arrays[roi_label][:, 1] / self.widget_processing.gen_parser.interp_arrays['i0'][:, 1]))
 
                 self.figure.ax.set_xlabel('Energy (eV)')
                 self.figure.ax.set_ylabel('XIA ROIs')
 
-            self.gen_parser.export_trace(self.current_filepath[:-4], '')
+            self.widget_processing.gen_parser.export_trace(self.current_filepath[:-4], '')
 
         except Exception as exc:
             print('Could not finish parsing this scan:\n{}'.format(exc))
@@ -2943,7 +2943,7 @@ class process_batch_thread(QThread):
                         xanes_spacing = 0.2
                         exafs_spacing = 0.04
 
-                        binned = self.gui.gen_parser.bin(e0,
+                        binned = self.gui.widget_processing.gen_parser.bin(e0,
                                                          e0 + edge_start,
                                                          e0 + edge_end,
                                                          preedge_spacing,
@@ -2954,13 +2954,13 @@ class process_batch_thread(QThread):
 
                         if sample_name in self.gui.batch_results:
                             self.gui.batch_results[sample_name]['data'].append(
-                                self.gui.gen_parser.data_manager.binned_arrays)
-                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                                self.gui.widget_processing.gen_parser.data_manager.binned_arrays)
+                            for key in self.gui.widget_processing.gen_parser.data_manager.binned_arrays.keys():
                                 self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
                                     self.gui.batch_results[sample_name]['orig_all'][key],
-                                    self.gui.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.gen_parser.bin(e0,
+                                    self.gui.widget_processing.gen_parser.data_manager.binned_arrays[key])
+                            self.gui.widget_processing.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                            binned = self.gui.widget_processing.gen_parser.bin(e0,
                                                              e0 + edge_start,
                                                              e0 + edge_end,
                                                              preedge_spacing,
@@ -2970,13 +2970,13 @@ class process_batch_thread(QThread):
 
                         else:
                             self.gui.batch_results[sample_name] = {
-                                'data': [self.gui.gen_parser.data_manager.binned_arrays]}
+                                'data': [self.gui.widget_processing.gen_parser.data_manager.binned_arrays]}
                             self.gui.batch_results[sample_name]['orig_all'] = {}
-                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                            for key in self.gui.widget_processing.gen_parser.data_manager.binned_arrays.keys():
                                 self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
-                                    self.gui.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.gen_parser.bin(e0,
+                                    self.gui.widget_processing.gen_parser.data_manager.binned_arrays[key])
+                            self.gui.widget_processing.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                            binned = self.gui.widget_processing.gen_parser.bin(e0,
                                                              e0 + edge_start,
                                                              e0 + edge_end,
                                                              preedge_spacing,
