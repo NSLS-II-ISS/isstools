@@ -6,7 +6,6 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 import matplotlib.patches as mpatches
-#from matplotlib.widgets import Cursor
 import numpy as np
 import collections
 import time as ttime
