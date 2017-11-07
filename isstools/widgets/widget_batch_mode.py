@@ -25,6 +25,14 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  motors_dict,
                  hhm,
                  RE,
+                 db,
+                 gen_parser,
+                 adc_list,
+                 enc_list,
+                 xia,
+                 run_prep_traj,
+                 parse_scans,
+                 scan_figure,
                  create_log_scan,
                  *args, **kwargs):
 
@@ -43,6 +51,12 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.traj_manager = trajectory_manager(hhm)
         self.create_log_scan = create_log_scan
         self.RE = RE
+        self.db = db
+        self.parse_scans = parse_scans
+        self.figure = scan_figure
+        self.run_prep_traj = run_prep_traj
+
+        self.gen_parser = gen_parser
 
         self.uids_to_process = []
         self.treeView_batch = elements.TreeView(self, 'all')
@@ -71,6 +85,12 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.push_replot_batch.clicked.connect(self.plot_batches)
         self.last_num_batch_text = 'i0'
         self.last_den_batch_text = 'it'
+
+        self.analog_samp_time = '1'
+        self.enc_samp_time = '1'
+        self.adc_list = adc_list
+        self.enc_list = enc_list
+        self.xia = xia
 
         self.treeView_batch.header().hide()
         self.treeView_samples.header().hide()
@@ -667,17 +687,17 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
                 # Send sampling time to the pizzaboxes:
                 value = int(
-                    round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
+                    round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
 
                 for adc in self.adc_list:
                     adc.averaging_points.put(str(value))
 
                 for enc in self.enc_list:
-                    enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
+                    enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
                 if self.xia.input_trigger is not None:
                     self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                    self.xia.input_trigger.period_sp.put(int(self.lineEdit_xia_samp.text()))
+                    self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
                 self.batch_results = {}
 
@@ -1049,8 +1069,16 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.label_batch_step.setText('Aborted! (Idle)')
             return
 
-# Process batch thread
+    def setAnalogSampTime(self, text):
+        self.analog_samp_time = text
 
+    def setEncSampTime(self, text):
+        self.enc_samp_time = text
+
+    def setXiaSampTime(self, text):
+        self.xia_samp_time = text
+
+# Process batch thread
 def represents_int(s):
     try:
         int(s)
@@ -1073,73 +1101,74 @@ class process_batch_thread(QThread):
         self.go = 1
         while (self.go or len(self.gui.uids_to_process) > 0):
             if len(self.gui.uids_to_process) > 0:
-                try:
-                    uid = self.gui.uids_to_process.pop(0)
-                    self.gui.current_uid = uid
+                #try:
+                uid = self.gui.uids_to_process.pop(0)
+                self.gui.current_uid = uid
+                print(self.gui.current_uid)
 
-                    if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
-                        print('get_offsets, nothing to process')
-                        continue
+                if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
+                    print('get_offsets, nothing to process')
+                    continue
 
-                    self.gui.parse_scans(uid)
-                    self.generate_log.emit(self.gui.current_uid, self.gui.figure)
+                self.gui.parse_scans(uid)
+                self.generate_log.emit(self.gui.current_uid, self.gui.figure)
 
-                    traj_name = self.gui.db[uid]['start']['trajectory_name']
-                    if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
-                        # bin data
-                        e0 = int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')])
-                        edge_start = -30
-                        edge_end = 50
-                        preedge_spacing = 10
-                        xanes_spacing = 0.2
-                        exafs_spacing = 0.04
+                traj_name = self.gui.db[uid]['start']['trajectory_name']
+                if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
+                    # bin data
+                    e0 = int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')])
+                    edge_start = -30
+                    edge_end = 50
+                    preedge_spacing = 10
+                    xanes_spacing = 0.2
+                    exafs_spacing = 0.04
 
-                        binned = self.gui.widget_processing.gen_parser.bin(e0,
+                    binned = self.gui.gen_parser.bin(e0,
+                                                     e0 + edge_start,
+                                                     e0 + edge_end,
+                                                     preedge_spacing,
+                                                     xanes_spacing,
+                                                     exafs_spacing)
+
+                    sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
+
+                    if sample_name in self.gui.batch_results:
+                        self.gui.batch_results[sample_name]['data'].append(
+                            self.gui.gen_parser.data_manager.binned_arrays)
+                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                            self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
+                                self.gui.batch_results[sample_name]['orig_all'][key],
+                                self.gui.gen_parser.data_manager.binned_arrays[key])
+                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                        binned = self.gui.gen_parser.bin(e0,
                                                          e0 + edge_start,
                                                          e0 + edge_end,
                                                          preedge_spacing,
                                                          xanes_spacing,
                                                          exafs_spacing)
+                        self.gui.batch_results[sample_name]['data_all'] = binned
 
-                        sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
+                    else:
+                        self.gui.batch_results[sample_name] = {
+                            'data': [self.gui.gen_parser.data_manager.binned_arrays]}
+                        self.gui.batch_results[sample_name]['orig_all'] = {}
+                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                            self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
+                                self.gui.gen_parser.data_manager.binned_arrays[key])
+                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                        binned = self.gui.gen_parser.bin(e0,
+                                                         e0 + edge_start,
+                                                         e0 + edge_end,
+                                                         preedge_spacing,
+                                                         xanes_spacing,
+                                                         exafs_spacing)
+                        self.gui.batch_results[sample_name]['data_all'] = binned
+                    self.finished_processing.emit()
 
-                        if sample_name in self.gui.batch_results:
-                            self.gui.batch_results[sample_name]['data'].append(
-                                self.gui.widget_processing.gen_parser.data_manager.binned_arrays)
-                            for key in self.gui.widget_processing.gen_parser.data_manager.binned_arrays.keys():
-                                self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
-                                    self.gui.batch_results[sample_name]['orig_all'][key],
-                                    self.gui.widget_processing.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.widget_processing.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.widget_processing.gen_parser.bin(e0,
-                                                             e0 + edge_start,
-                                                             e0 + edge_end,
-                                                             preedge_spacing,
-                                                             xanes_spacing,
-                                                             exafs_spacing)
-                            self.gui.batch_results[sample_name]['data_all'] = binned
+                print('Finished processing scan') #{}'.format(self.gui.current_filepath))
 
-                        else:
-                            self.gui.batch_results[sample_name] = {
-                                'data': [self.gui.widget_processing.gen_parser.data_manager.binned_arrays]}
-                            self.gui.batch_results[sample_name]['orig_all'] = {}
-                            for key in self.gui.widget_processing.gen_parser.data_manager.binned_arrays.keys():
-                                self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
-                                    self.gui.widget_processing.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.widget_processing.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.widget_processing.gen_parser.bin(e0,
-                                                             e0 + edge_start,
-                                                             e0 + edge_end,
-                                                             preedge_spacing,
-                                                             xanes_spacing,
-                                                             exafs_spacing)
-                            self.gui.batch_results[sample_name]['data_all'] = binned
-                        self.finished_processing.emit()
-
-                    print('Finished processing scan {}'.format(self.gui.current_filepath))
-
-                except Exception as exc:
-                    print('Could not finish parsing this scan:\n{}'.format(exc))
+                #except Exception as exc:
+                #    print('Could not finish parsing this batch scan:\n{}'.format(exc))
 
             else:
                 QtCore.QCoreApplication.processEvents()

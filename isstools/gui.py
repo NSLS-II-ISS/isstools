@@ -60,9 +60,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  motors_dict={},
                  general_scan_func = None, parent=None, *args, **kwargs):
 
-
-
-
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
             del kwargs['write_html_log']
@@ -131,20 +128,40 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
 
+        # Looking for analog pizzaboxes:
+        regex = re.compile('pba\d{1}.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.adc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Looking for encoder pizzaboxes:
+        regex = re.compile('pb\d{1}_enc.*')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.enc_list = [x for x in self.det_dict if x.name in matches]
+
+        # Looking for xias:
+        regex = re.compile('xia\d{1}')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.xia_list = [x for x in self.det_dict if x.name in matches]
+        if len(self.xia_list):
+            self.xia = self.xia_list[0]
+        else:
+            self.xia = None
+
+        self.addCanvas()
+
         self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
         self.layout_general_info.addWidget(self.widget_general_info)
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm)
         self.layout_trajectroy_manager.addWidget(self.widget_trajectory_manager)
         self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict)
         self.layout_processing.addWidget(self.widget_processing)
-        self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs,
-                                                               self.motors_dict,
-                                                               hhm,
-                                                               RE,
+        self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
+                                                               RE, db, self.widget_processing.gen_parser,
+                                                               self.adc_list, self.enc_list, self.xia,
+                                                               self.run_prep_traj, self.parse_scans, self.figure,
                                                                self.create_log_scan)
         self.layout_batch.addWidget(self.widget_batch_mode)
 
-        self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
         self.prep_traj_plan = prep_traj_plan
         if self.prep_traj_plan is None:
@@ -175,16 +192,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
 
         # Initialize 'Beamline setup' tab
-        # Looking for analog pizzaboxes:
-        regex = re.compile('pba\d{1}.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.adc_list = [x for x in self.det_dict if x.name in matches]
-
-        # Looking for encoder pizzaboxes:
-        regex = re.compile('pb\d{1}_enc.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.enc_list = [x for x in self.det_dict if x.name in matches]
-
         # Populate analog detectors setup section with adcs:
         self.adc_checkboxes = []
         for index, adc_name in enumerate([adc.dev_name.value for adc in self.adc_list if adc.dev_name.value != adc.name]):
@@ -205,8 +212,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.hhm.trajectory_progress.subscribe(self.update_progress)
             self.progress_sig.connect(self.update_progressbar)
             self.progressBar.setValue(0)
-
-
 
         self.fb_master = 0
         self.piezo_line = int(self.hhm.fb_line.value)
@@ -232,16 +237,11 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia_graphs_labels = []
         self.xia_handles = []
 
-        regex = re.compile('xia\d{1}')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.xia_list = [x for x in self.det_dict if x.name in matches]
-        if self.xia_list == []:
+        if self.xia is None:
             self.tabWidget.removeTab(
                 [self.tabWidget.tabText(index) for index in
                  range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
-            self.xia = None
         else:
-            self.xia = self.xia_list[0]
             self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
             self.xia_tog_channels = []
             if len(self.xia_channels):
@@ -380,14 +380,17 @@ class ScanGui(*uic.loadUiType(ui_path)):
             times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.value / 100000)
             times_arr = [str(elem) for elem in times_arr]
             self.comboBox_samp_time.addItems(times_arr)
+            self.comboBox_samp_time.currentTextChanged.connect(self.widget_batch_mode.setAnalogSampTime)
             self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.value)
 
         if len(self.enc_list):
+            self.lineEdit_samp_time.textChanged.connect(self.widget_batch_mode.setEncSampTime)
             self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
 
         if hasattr(self.xia, 'input_trigger'):
             if self.xia.input_trigger is not None:
                 self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                self.lineEdit_xia_samp.textChanged.connect(self.widget_batch_mode.setXiaSampTime)
                 self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
         # Initialize Ophyd elements
@@ -1228,19 +1231,19 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if log_path[-1] != '/':
             log_path += '/'
         log_path = '{}{}.{}.{}/'.format(log_path, year, cycle, proposal)
-        if(not os.path.exists(log_path)):
+        if (not os.path.exists(log_path)):
             os.makedirs(log_path)
             call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
             call(['chmod', '770', log_path])
-    
+
         log_path = log_path + 'log/'
-        if(not os.path.exists(log_path)):
+        if (not os.path.exists(log_path)):
             os.makedirs(log_path)
             call(['setfacl', '-m', 'g:iss-staff:rwx', log_path])
             call(['chmod', '770', log_path])
-    
+
         snapshots_path = log_path + 'snapshots/'
-        if(not os.path.exists(snapshots_path)):
+        if (not os.path.exists(snapshots_path)):
             os.makedirs(snapshots_path)
             call(['setfacl', '-m', 'g:iss-staff:rwx', snapshots_path])
             call(['chmod', '770', snapshots_path])
@@ -1298,7 +1301,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.figure.ax.set_xlabel('Energy (eV)')
             self.figure.ax.set_ylabel('log(i0 / it)')
 
-            # self.widget_processing.gen_parser should be able to generate the interpolated file
+            # self.gen_parser should be able to generate the interpolated file
 
             if 'xia_filename' in self.db[self.current_uid]['start']:
                 # Parse xia
@@ -1369,7 +1372,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                     self.widget_processing.gen_parser.interp_arrays[roi_label] = np.array(
                         [self.widget_processing.gen_parser.interp_arrays['energy'][:, 0], xia_sum]).transpose()
                     self.figure.ax.plot(self.widget_processing.gen_parser.interp_arrays['energy'][:, 1], -(
-                    self.widget_processing.gen_parser.interp_arrays[roi_label][:, 1] / self.widget_processing.gen_parser.interp_arrays['i0'][:, 1]))
+                        self.widget_processing.gen_parser.interp_arrays[roi_label][:, 1] / self.widget_processing.gen_parser.interp_arrays['i0'][:, 1]))
 
                 self.figure.ax.set_xlabel('Energy (eV)')
                 self.figure.ax.set_ylabel('XIA ROIs')

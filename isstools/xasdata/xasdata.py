@@ -175,8 +175,9 @@ class XASdataGeneric(XASdata):
 
 
     def interpolate(self, key_base = 'i0'):
-        min_timestamp = max([self.arrays.get(key)[0, 0] for key in self.arrays])
-        max_timestamp = min([self.arrays.get(key)[len(self.arrays.get(key)) - 1, 0] for key in self.arrays])
+        min_timestamp = max([self.arrays.get(key)[0, 0] for key in self.arrays if len(self.arrays.get(key)[:, 0]) > 5])
+        max_timestamp = min([self.arrays.get(key)[len(self.arrays.get(key)) - 1, 0] for key in
+                             self.arrays if len(self.arrays.get(key)[:, 0]) > 5])
         
         try:
             if key_base not in self.arrays.keys():
