@@ -4,7 +4,6 @@ import re
 import os
 from subprocess import call
 from PyQt5 import uic, QtWidgets, QtCore
-from PyQt5.QtCore import QThread, QSettings
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
