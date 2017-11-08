@@ -1101,74 +1101,74 @@ class process_batch_thread(QThread):
         self.go = 1
         while (self.go or len(self.gui.uids_to_process) > 0):
             if len(self.gui.uids_to_process) > 0:
-                #try:
-                uid = self.gui.uids_to_process.pop(0)
-                self.gui.current_uid = uid
-                print(self.gui.current_uid)
+                try:
+                    uid = self.gui.uids_to_process.pop(0)
+                    self.gui.current_uid = uid
+                    print(self.gui.current_uid)
 
-                if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
-                    print('get_offsets, nothing to process')
-                    continue
+                    if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
+                        print('get_offsets, nothing to process')
+                        continue
 
-                self.gui.parse_scans(uid)
-                self.generate_log.emit(self.gui.current_uid, self.gui.figure)
+                    self.gui.parse_scans(uid)
+                    self.generate_log.emit(self.gui.current_uid, self.gui.figure)
 
-                traj_name = self.gui.db[uid]['start']['trajectory_name']
-                if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
-                    # bin data
-                    e0 = int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')])
-                    edge_start = -30
-                    edge_end = 50
-                    preedge_spacing = 10
-                    xanes_spacing = 0.2
-                    exafs_spacing = 0.04
+                    traj_name = self.gui.db[uid]['start']['trajectory_name']
+                    if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
+                        # bin data
+                        e0 = int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')])
+                        edge_start = -30
+                        edge_end = 50
+                        preedge_spacing = 10
+                        xanes_spacing = 0.2
+                        exafs_spacing = 0.04
 
-                    binned = self.gui.gen_parser.bin(e0,
-                                                     e0 + edge_start,
-                                                     e0 + edge_end,
-                                                     preedge_spacing,
-                                                     xanes_spacing,
-                                                     exafs_spacing)
-
-                    sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
-
-                    if sample_name in self.gui.batch_results:
-                        self.gui.batch_results[sample_name]['data'].append(
-                            self.gui.gen_parser.data_manager.binned_arrays)
-                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
-                            self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
-                                self.gui.batch_results[sample_name]['orig_all'][key],
-                                self.gui.gen_parser.data_manager.binned_arrays[key])
-                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
                         binned = self.gui.gen_parser.bin(e0,
                                                          e0 + edge_start,
                                                          e0 + edge_end,
                                                          preedge_spacing,
                                                          xanes_spacing,
                                                          exafs_spacing)
-                        self.gui.batch_results[sample_name]['data_all'] = binned
 
-                    else:
-                        self.gui.batch_results[sample_name] = {
-                            'data': [self.gui.gen_parser.data_manager.binned_arrays]}
-                        self.gui.batch_results[sample_name]['orig_all'] = {}
-                        for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
-                            self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
-                                self.gui.gen_parser.data_manager.binned_arrays[key])
-                        self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                        binned = self.gui.gen_parser.bin(e0,
-                                                         e0 + edge_start,
-                                                         e0 + edge_end,
-                                                         preedge_spacing,
-                                                         xanes_spacing,
-                                                         exafs_spacing)
-                        self.gui.batch_results[sample_name]['data_all'] = binned
-                    self.finished_processing.emit()
+                        sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
 
-                print('Finished processing scan') #{}'.format(self.gui.current_filepath))
+                        if sample_name in self.gui.batch_results:
+                            self.gui.batch_results[sample_name]['data'].append(
+                                self.gui.gen_parser.data_manager.binned_arrays)
+                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                                self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
+                                    self.gui.batch_results[sample_name]['orig_all'][key],
+                                    self.gui.gen_parser.data_manager.binned_arrays[key])
+                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                            binned = self.gui.gen_parser.bin(e0,
+                                                             e0 + edge_start,
+                                                             e0 + edge_end,
+                                                             preedge_spacing,
+                                                             xanes_spacing,
+                                                             exafs_spacing)
+                            self.gui.batch_results[sample_name]['data_all'] = binned
 
-                #except Exception as exc:
-                #    print('Could not finish parsing this batch scan:\n{}'.format(exc))
+                        else:
+                            self.gui.batch_results[sample_name] = {
+                                'data': [self.gui.gen_parser.data_manager.binned_arrays]}
+                            self.gui.batch_results[sample_name]['orig_all'] = {}
+                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
+                                self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
+                                    self.gui.gen_parser.data_manager.binned_arrays[key])
+                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
+                            binned = self.gui.gen_parser.bin(e0,
+                                                             e0 + edge_start,
+                                                             e0 + edge_end,
+                                                             preedge_spacing,
+                                                             xanes_spacing,
+                                                             exafs_spacing)
+                            self.gui.batch_results[sample_name]['data_all'] = binned
+                        self.finished_processing.emit()
+
+                    print('Finished processing scan') #{}'.format(self.gui.current_filepath))
+
+                except Exception as exc:
+                    print('Could not finish parsing this batch scan:\n{}'.format(exc))
 
             else:
                 QtCore.QCoreApplication.processEvents()
