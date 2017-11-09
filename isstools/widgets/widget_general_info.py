@@ -35,7 +35,6 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.db = db
         if self.RE is not None:
             self.RE.is_aborted = False
-            self.label_current_cycle.setText('It is NSLS Cycle {} of {}'.format(self.RE.md['cycle'], self.RE.md['year']))
             self.timer_update_user_info = QtCore.QTimer()
             self.timer_update_user_info.timeout.connect(self.update_user_info)
             self.timer_update_user_info.start(60*1000)
@@ -78,9 +77,9 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             self.label_accelerator_status.setStyleSheet('color: rgb(19,139,67)')
             self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
         elif kwargs['value'] == 1:
-            self.label_accelerator_status.setText('Accelerator setup')
+            self.label_accelerator_status.setText('Setup')
             self.label_accelerator_status.setStyleSheet('color: rgb(209,116,42)')
-            self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(209,116,42)')
+            self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(246,229,148)')
         elif kwargs['value'] == 2:
             self.label_accelerator_status.setText('Accelerator studies')
             self.label_accelerator_status.setStyleSheet('color: rgb(209,116,42)')
@@ -89,10 +88,25 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             self.label_accelerator_status.setText('Beam has dumped')
             self.label_accelerator_status.setStyleSheet('color: rgb(237,30,30)')
             self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(237,30,30)')
+        elif kwargs['value'] == 4:
+            self.label_accelerator_status.setText('Maintenance')
+            self.label_accelerator_status.setStyleSheet('color: rgb(209,116,42)')
+            self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(200,149,251)')
+        elif kwargs['value'] == 5:
+            self.label_accelerator_status.setText('Shutdown')
+            self.label_accelerator_status.setStyleSheet('color: rgb(190,190,190)')
+            self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(190,190,190)')
+        elif kwargs['value'] == 6:
+            self.label_accelerator_status.setText('Unscheduled ops')
+            self.label_accelerator_status.setStyleSheet('color: rgb(19,139,67)')
+            self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(0,177,0)')
 
     def update_user_info(self):
         self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
                                      format(self.RE.md['PI'], self.RE.md['PROPOSAL'], self.RE.md['SAF']))
+        self.cycle = ['', 'Spring', 'Summer', 'Fall']
+        self.label_current_cycle.setText(
+            'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
 
     def set_user_info(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'],
@@ -100,5 +114,5 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         if dlg.exec_():
             self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md[
                 'PI'] = dlg.getValues()
-            self.label_current_cycle.setText(
-                'It is NSLS Cycle {} of {}'.format(self.RE.md['cycle'], self.RE.md['year']))
+
+            self.update_user_info()

@@ -39,7 +39,10 @@ from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from isstools.xasdata import xasdata
 from isstools.xiaparser import xiaparser
 
-import isstools.widgets.widget_general_info, isstools.widgets.widget_trajectory_manager
+import isstools.widgets.widget_general_info, \
+       isstools.widgets.widget_trajectory_manager, \
+       isstools.widgets.widget_sdd_manager,\
+       isstools.widgets.widget_beamline_status
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 #print(type(UiXLiveGeneral))
@@ -55,7 +58,6 @@ def auto_redraw_factory(fnc):
 
 
 class ScanGui(*uic.loadUiType(ui_path)):
-    shutters_sig = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self, plan_funcs = [],
@@ -64,13 +66,10 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  db=None,
                  accelerator=None,
                  hhm=None,
-                 shutters={},
+                 shutters_dict={},
                  det_dict={},
                  motors_dict={},
                  general_scan_func = None, parent=None, *args, **kwargs):
-
-
-
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -111,7 +110,25 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.widget_general_info = isstools.widgets.widget_general_info.UIGeneralInfo(accelerator, RE, db)
         self.layout_general_info.addWidget(self.widget_general_info)
         self.widget_trajectory_manager = isstools.widgets.widget_trajectory_manager.UITrajectoryManager(hhm)
-        self.layout_trajectroy_manager.addWidget(self.widget_trajectory_manager)
+        self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+
+        #Check if xia is in the list of detectors
+        self.det_dict = det_dict
+        regex = re.compile('xia\d{1}')
+        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
+        self.xia_list = [x for x in self.det_dict if x.name in matches]
+        if self.xia_list == []:
+            self.tabWidget.removeTab(
+                [self.tabWidget.tabText(index) for index in
+                 range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
+            self.xia = None
+        else:
+            self.layout_sdd_manager.addWidget(
+                isstools.widgets.widget_sdd_manager.UISDDManager(self.xia_list))
+
+        self.shutters_dict = shutters_dict
+        self.layout_beamline_status.addWidget(
+            isstools.widgets.widget_beamline_status.UIBeamlineStatus(self.shutters_dict))
 
         self.addCanvas()
         self.run_start.clicked.connect(self.run_scan)
@@ -143,8 +160,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.motors_dict = motors_dict
         self.gen_scan_func = general_scan_func
-
-
 
         # Initialize 'Beamline setup' tab
         # Looking for analog pizzaboxes:
@@ -206,76 +221,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.json_blprep = json.loads(json_data)
         self.beamline_prep = self.json_blprep[0]
         self.fb_positions = self.json_blprep[1]['FB Positions']
-        # curr_energy = 5500
-        # for pv, value in [ran['pvs'] for ran in self.json_blprep[0] if ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy][0].items():
 
-
-        # Initialize XIA tab
-        self.xia_parser = xiaparser.xiaparser()
-        self.push_gain_matching.clicked.connect(self.run_gain_matching)
-        self.xia_graphs_names = []
-        self.xia_graphs_labels = []
-        self.xia_handles = []
-
-        regex = re.compile('xia\d{1}')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.xia_list = [x for x in self.det_dict if x.name in matches]
-        if self.xia_list == []:
-            self.tabWidget.removeTab(
-                [self.tabWidget.tabText(index) for index in
-                 range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
-            self.xia = None
-        else:
-            self.xia = self.xia_list[0]
-            self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
-            self.xia_tog_channels = []
-            if len(self.xia_channels):
-                self.push_gain_matching.setEnabled(True)
-                self.push_run_xia_measurement.setEnabled(True)
-                self.xia.mca_max_energy.subscribe(self.update_xia_params)
-                self.xia.real_time.subscribe(self.update_xia_params)
-                self.xia.real_time_rb.subscribe(self.update_xia_params)
-                self.edit_xia_acq_time.returnPressed.connect(self.update_xia_acqtime_pv)
-                self.edit_xia_energy_range.returnPressed.connect(self.update_xia_energyrange_pv)
-
-                max_en = self.xia.mca_max_energy.value
-                energies = np.linspace(0, max_en, 2048)
-                # np.floor(energies[getattr(self.xia, "mca{}".format(1)).roi1.low.value] * 1000)/1000
-
-                self.roi_colors = []
-                for mult in range(4):
-                    self.roi_colors.append((.4 + (.2 * mult), 0, 0))
-                    self.roi_colors.append((0, .4 + (.2 * mult), 0))
-                    self.roi_colors.append((0, 0, .4 + (.2 * mult)))
-
-                for roi in range(12):
-                    low = getattr(self.xia, "mca1.roi{}".format(roi)).low.value
-                    high = getattr(self.xia, "mca1.roi{}".format(roi)).high.value
-                    if low > 0:
-                        getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(
-                            np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).low.value] * 1000)))
-                    else:
-                        getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(low))
-                    if high > 0:
-                        getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(
-                            np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).high.value] * 1000)))
-                    else:
-                        getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(high))
-
-                    label = getattr(self.xia, "mca1.roi{}".format(roi)).label.value
-                    getattr(self, 'edit_roi_name_{}'.format(roi)).setText(label)
-
-                    getattr(self, 'edit_roi_from_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-                    getattr(self, 'edit_roi_to_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-                    getattr(self, 'edit_roi_name_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-
-                self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
-                self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
-                for channel in self.xia_channels:
-                    getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
-                    getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
-                    getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
-                self.push_chackall_xia.clicked.connect(self.toggle_xia_all)
 
         # Initialize 'Beamline Status' tab
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
@@ -374,83 +320,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if len(self.enc_list):
             self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
 
-        if hasattr(self.xia, 'input_trigger'):
-            if self.xia.input_trigger is not None:
-                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
-        # Initialize Ophyd elements
-        self.shutters_sig.connect(self.change_shutter_color)
-        self.shutters = shutters
 
-        self.fe_shutters = [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type == 'FE']
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type == 'FE']:
-            del self.shutters[shutter.name]
 
-        self.shutters_buttons = []
-        for key, item in zip(self.shutters.keys(), self.shutters.items()):
-            self.shutter_layout = QtWidgets.QVBoxLayout()
-
-            label = QtWidgets.QLabel(key)
-            label.setAlignment(QtCore.Qt.AlignCenter)
-            self.shutter_layout.addWidget(label)
-            label.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
-
-            button = QtWidgets.QPushButton('')
-            button.setFixedSize(self.height() * 0.06, self.height() * 0.06)
-            self.shutter_layout.addWidget(button)
-            # button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-
-            self.horizontalLayout_shutters.addLayout(self.shutter_layout)
-
-            self.shutters_buttons.append(button)
-            button.setFixedWidth(button.height() * 1.2)
-            QtCore.QCoreApplication.processEvents()
-
-            if hasattr(item[1].state, 'subscribe'):
-                item[1].button = button
-                item[1].state.subscribe(self.update_shutter)
-
-                def toggle_shutter_call(shutter):
-                    def toggle_shutter():
-                        if int(shutter.state.value):
-                            shutter.open()
-                        else:
-                            shutter.close()
-
-                    return toggle_shutter
-
-                button.clicked.connect(toggle_shutter_call(item[1]))
-
-                if item[1].state.value == 0:
-                    button.setStyleSheet("background-color: lime")
-                else:
-                    button.setStyleSheet("background-color: red")
-
-            elif hasattr(item[1], 'subscribe'):
-                item[1].output.parent.button = button
-                item[1].subscribe(self.update_shutter)
-
-                def toggle_shutter_call(shutter):
-                    def toggle_shutter():
-                        if shutter.state == 'closed':
-                            shutter.open()
-                        else:
-                            shutter.close()
-
-                    return toggle_shutter
-
-                if item[1].state == 'closed':
-                    button.setStyleSheet("background-color: red")
-                elif item[1].state == 'open':
-                    button.setStyleSheet("background-color: lime")
-
-                button.clicked.connect(toggle_shutter_call(item[1]))
-
-        if self.horizontalLayout_shutters.count() <= 1:
-            self.groupBox_shutters.setVisible(False)
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -667,17 +539,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         if dlg.exec_():
             self.prepare_bl(curr_energy)
 
-    #def update_user(self):
-    #    dlg = UpdateUserDialog.UpdateUserDialog(self.label_6.text(), self.label_7.text(), self.label_8.text(),
-    #                                            self.label_9.text(), self.label_10.text(), parent=self)
-    #    if dlg.exec_():
-    #        self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md[
-    #            'PI'] = dlg.getValues()
-    #        self.label_6.setText('{}'.format(self.RE.md['year']))
-    #        self.label_7.setText('{}'.format(self.RE.md['cycle']))
-    #        self.label_8.setText('{}'.format(self.RE.md['PROPOSAL']))
-    #        self.label_9.setText('{}'.format(self.RE.md['SAF']))
-    #        self.label_10.setText('{}'.format(self.RE.md['PI']))
 
     def read_amp_gains(self):
         adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
@@ -713,20 +574,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         return 0
 
 
-    def update_shutter(self, pvname=None, value=None, char_value=None, **kwargs):
-        if 'obj' in kwargs.keys():
-            if hasattr(kwargs['obj'].parent, 'button'):
-                self.current_button = kwargs['obj'].parent.button
 
-                if int(value) == 0:
-                    self.current_button_color = 'lime'
-                elif int(value) == 1:
-                    self.current_button_color = 'red'
-
-                self.shutters_sig.emit()
-
-    def change_shutter_color(self):
-        self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
@@ -1132,26 +980,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.draw_idle()
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
 
-        self.figure_gain_matching = Figure()
-        self.figure_gain_matching.set_facecolor(color='#FcF9F6')
-        self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
-        self.figure_gain_matching.add_subplot(111)
-        self.toolbar_gain_matching = NavigationToolbar(self.canvas_gain_matching, self.tab_2, coordinates=True)
-        self.plot_gain_matching.addWidget(self.toolbar_gain_matching)
-        self.plot_gain_matching.addWidget(self.canvas_gain_matching)
-        self.canvas_gain_matching.draw_idle()
-
-        self.figure_xia_all_graphs = Figure()
-        self.figure_xia_all_graphs.set_facecolor(color='#FcF9F6')
-        self.canvas_xia_all_graphs = FigureCanvas(self.figure_xia_all_graphs)
-        self.figure_xia_all_graphs.ax = self.figure_xia_all_graphs.add_subplot(111)
-        self.toolbar_xia_all_graphs = NavigationToolbar(self.canvas_xia_all_graphs, self.tab_2, coordinates=True)
-        self.plot_xia_all_graphs.addWidget(self.toolbar_xia_all_graphs)
-        self.plot_xia_all_graphs.addWidget(self.canvas_xia_all_graphs)
-        self.canvas_xia_all_graphs.draw_idle()
-        self.cursor_xia_all_graphs = Cursor(self.figure_xia_all_graphs.ax, useblit=True, color='green', linewidth=0.75)
-        self.figure_xia_all_graphs.ax.clear()
-
         self.figure_old_scans = Figure()
         self.figure_old_scans.set_facecolor(color='#FcF9F6')
         self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
@@ -1176,7 +1004,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
         self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
         self.figure_old_scans_3.ax2 = self.figure_old_scans_3.ax.twinx()
-        self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_3, coordinates=True)
+        self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self.tab_4, coordinates=True)
         self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
         self.canvas_old_scans_3.draw_idle()
@@ -1591,6 +1419,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         if self.xia.input_trigger is not None:
             self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+
             self.xia.input_trigger.period_sp.put(int(self.lineEdit_xia_samp.text()))
 
         self.comment = self.params2[0].text()
@@ -2103,219 +1932,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         print('[Gain set scan] Complete\n')
 
-    def toggle_xia_checkbox(self, value):
-        if value:
-            self.xia_tog_channels.append(self.sender().text())
-        elif self.sender().text() in self.xia_tog_channels:
-            self.xia_tog_channels.remove(self.sender().text())
-        self.erase_xia_graph()
-        for chan in self.xia_tog_channels:
-            self.update_xia_graph(getattr(self.xia, 'mca{}.array.value'.format(chan)),
-                                  obj=getattr(self.xia, 'mca{}.array'.format(chan)))
 
-    def toggle_xia_all(self):
-        if len(self.xia_tog_channels) != len(self.xia.read_attrs):
-            for index, mca in enumerate(self.xia.read_attrs):
-                if getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).isEnabled():
-                    getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).setChecked(True)
-        else:
-            for index, mca in enumerate(self.xia.read_attrs):
-                if getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).isEnabled():
-                    getattr(self, 'checkBox_gm_ch{}'.format(index + 1)).setChecked(False)
-
-    def update_xia_params(self, value, **kwargs):
-        if kwargs['obj'].name == 'xia1_real_time':
-            self.edit_xia_acq_time.setText('{:.2f}'.format(round(value, 2)))
-        elif kwargs['obj'].name == 'xia1_real_time_rb':
-            self.label_acq_time_rbv.setText('{:.2f}'.format(round(value, 2)))
-        elif kwargs['obj'].name == 'xia1_mca_max_energy':
-            self.edit_xia_energy_range.setText('{:.0f}'.format(value * 1000))
-
-    def erase_xia_graph(self):
-        self.figure_xia_all_graphs.ax.clear()
-
-        for roi in range(12):
-            if hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
-                exec('del self.figure_xia_all_graphs.ax.roi{}l,\
-                    self.figure_xia_all_graphs.ax.roi{}h'.format(roi, roi))
-
-        self.toolbar_xia_all_graphs._views.clear()
-        self.toolbar_xia_all_graphs._positions.clear()
-        self.toolbar_xia_all_graphs._update_view()
-        self.xia_graphs_names.clear()
-        self.xia_graphs_labels.clear()
-        self.xia_handles.clear()
-        self.canvas_xia_all_graphs.draw_idle()
-
-    def start_xia_spectra(self):
-        if self.xia.collect_mode.value != 0:
-            self.xia.collect_mode.put(0)
-            ttime.sleep(2)
-        self.xia.erase_start.put(1)
-
-    def update_xia_rois(self):
-        energies = np.linspace(0, float(self.edit_xia_energy_range.text()) / 1000, 2048)
-
-        for roi in range(12):
-            if float(getattr(self, 'edit_roi_from_{}'.format(roi)).text()) < 0 or float(
-                    getattr(self, 'edit_roi_to_{}'.format(roi)).text()) < 0:
-                exec('start{} = -1'.format(roi))
-                exec('end{} = -1'.format(roi))
-            else:
-                indexes_array = np.where(
-                    (energies >= float(getattr(self, 'edit_roi_from_{}'.format(roi)).text()) / 1000) & (
-                    energies <= float(getattr(self, 'edit_roi_to_{}'.format(roi)).text()) / 1000) == True)[0]
-                if len(indexes_array):
-                    exec('start{} = indexes_array.min()'.format(roi))
-                    exec('end{} = indexes_array.max()'.format(roi))
-                else:
-                    exec('start{} = -1'.format(roi))
-                    exec('end{} = -1'.format(roi))
-            exec('roi{}x = [float(self.edit_roi_from_{}.text()), float(self.edit_roi_to_{}.text())]'.format(roi, roi,
-                                                                                                            roi))
-            exec('label{} = self.edit_roi_name_{}.text()'.format(roi, roi))
-
-        for channel in self.xia_channels:
-            for roi in range(12):
-                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).low.put(eval('start{}'.format(roi)))
-                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).high.put(eval('end{}'.format(roi)))
-                getattr(self.xia, "mca{}.roi{}".format(channel, roi)).label.put(eval('label{}'.format(roi)))
-
-        for roi in range(12):
-            if not hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
-                exec(
-                    'self.figure_xia_all_graphs.ax.roi{}l = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[0], color=self.roi_colors[roi])'.format(
-                        roi, roi))
-                exec(
-                    'self.figure_xia_all_graphs.ax.roi{}h = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[1], color=self.roi_colors[roi])'.format(
-                        roi, roi))
-
-            else:
-                exec('self.figure_xia_all_graphs.ax.roi{}l.set_xdata([roi{}x[0], roi{}x[0]])'.format(roi, roi, roi))
-                exec('self.figure_xia_all_graphs.ax.roi{}h.set_xdata([roi{}x[1], roi{}x[1]])'.format(roi, roi, roi))
-
-        self.figure_xia_all_graphs.ax.grid(True)
-        self.canvas_xia_all_graphs.draw_idle()
-
-    def update_xia_acqtime_pv(self):
-        self.xia.real_time.put(float(self.edit_xia_acq_time.text()))
-
-    def update_xia_energyrange_pv(self):
-        self.xia.mca_max_energy.put(float(self.edit_xia_energy_range.text()) / 1000)
-
-    def update_xia_graph(self, value, **kwargs):
-        curr_name = kwargs['obj'].name
-        curr_index = -1
-        if len(self.figure_xia_all_graphs.ax.lines):
-            if float(self.edit_xia_energy_range.text()) != self.figure_xia_all_graphs.ax.lines[0].get_xdata()[-1]:
-                self.figure_xia_all_graphs.ax.clear()
-                for roi in range(12):
-                    if hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
-                        exec('del self.figure_xia_all_graphs.ax.roi{}l,\
-                            self.figure_xia_all_graphs.ax.roi{}h'.format(roi, roi))
-
-                self.toolbar_xia_all_graphs._views.clear()
-                self.toolbar_xia_all_graphs._positions.clear()
-                self.toolbar_xia_all_graphs._update_view()
-                self.xia_graphs_names.clear()
-                self.xia_graphs_labels.clear()
-                self.canvas_xia_all_graphs.draw_idle()
-
-        if curr_name in self.xia_graphs_names:
-            for index, name in enumerate(self.xia_graphs_names):
-                if curr_name == name:
-                    curr_index = index
-                    line = self.figure_xia_all_graphs.ax.lines[curr_index]
-                    line.set_ydata(value)
-                    break
-
-        else:
-            ch_number = curr_name.split('_')[1].split('mca')[1]
-            if ch_number in self.xia_tog_channels:
-                self.xia_graphs_names.append(curr_name)
-                label = 'Chan {}'.format(ch_number)
-                self.xia_graphs_labels.append(label)
-                handles, = self.figure_xia_all_graphs.ax.plot(
-                    np.linspace(0, float(self.edit_xia_energy_range.text()), 2048), value, label=label)
-                self.xia_handles.append(handles)
-                self.figure_xia_all_graphs.ax.legend(self.xia_handles, self.xia_graphs_labels)
-
-            if len(self.figure_xia_all_graphs.ax.lines) == len(self.xia_tog_channels) != 0:
-                for roi in range(12):
-                    exec('roi{}x = [float(self.edit_roi_from_{}.text()), float(self.edit_roi_to_{}.text())]'.format(roi,
-                                                                                                                    roi,
-                                                                                                                    roi))
-
-                for roi in range(12):
-                    if not hasattr(self.figure_xia_all_graphs.ax, 'roi{}l'.format(roi)):
-                        exec(
-                            'self.figure_xia_all_graphs.ax.roi{}l = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[0], color=self.roi_colors[roi])'.format(
-                                roi, roi))
-                        exec(
-                            'self.figure_xia_all_graphs.ax.roi{}h = self.figure_xia_all_graphs.ax.axvline(x=roi{}x[1], color=self.roi_colors[roi])'.format(
-                                roi, roi))
-
-                self.figure_xia_all_graphs.ax.grid(True)
-
-        self.figure_xia_all_graphs.ax.relim()
-        self.figure_xia_all_graphs.ax.autoscale(True, True, True)
-        y_interval = self.figure_xia_all_graphs.ax.get_yaxis().get_data_interval()
-        if len(y_interval):
-            if y_interval[0] != 0 or y_interval[1] != 0:
-                self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05,
-                                                        y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
-        self.canvas_xia_all_graphs.draw_idle()
-
-    def run_gain_matching(self):
-        ax = self.figure_gain_matching.add_subplot(111)
-        gain_adjust = [0.001] * len(self.xia_channels)  # , 0.001, 0.001, 0.001]
-        diff = [0] * len(self.xia_channels)  # , 0, 0, 0]
-        diff_old = [0] * len(self.xia_channels)  # , 0, 0, 0]
-
-        # Run number of iterations defined in the text edit edit_gain_matching_iterations:
-        for i in range(int(self.edit_gain_matching_iterations.text())):
-            self.xia.collect_mode.put('MCA spectra')
-            ttime.sleep(0.25)
-            self.xia.mode.put('Real time')
-            ttime.sleep(0.25)
-            self.xia.real_time.put('1')
-            self.xia.capt_start_stop.put(1)
-            ttime.sleep(0.05)
-            self.xia.erase_start.put(1)
-            ttime.sleep(2)
-            ax.clear()
-            self.toolbar_gain_matching._views.clear()
-            self.toolbar_gain_matching._positions.clear()
-            self.toolbar_gain_matching._update_view()
-
-            # For each channel:
-            for chann in self.xia_channels:
-                # If checkbox of current channel is checked:
-                if getattr(self, "checkBox_gm_ch{}".format(chann)).checkState() > 0:
-
-                    # Get current channel pre-amp gain:
-                    curr_ch_gain = getattr(self.xia, "pre_amp_gain{}".format(chann))
-
-                    coeff = self.xia_parser.gain_matching(self.xia, self.edit_center_gain_matching.text(),
-                                                          self.edit_range_gain_matching.text(), chann, ax)
-                    # coeff[0] = Intensity
-                    # coeff[1] = Fitted mean
-                    # coeff[2] = Sigma
-
-                    diff[chann - 1] = float(self.edit_gain_matching_target.text()) - float(coeff[1] * 1000)
-
-                    if i != 0:
-                        sign = (diff[chann - 1] * diff_old[chann - 1]) / math.fabs(
-                            diff[chann - 1] * diff_old[chann - 1])
-                        if int(sign) == -1:
-                            gain_adjust[chann - 1] /= 2
-                    print('Chan ' + str(chann) + ': ' + str(diff[chann - 1]) + '\n')
-
-                    # Update current channel pre-amp gain:
-                    curr_ch_gain.put(curr_ch_gain.value - diff[chann - 1] * gain_adjust[chann - 1])
-                    diff_old[chann - 1] = diff[chann - 1]
-
-                    self.canvas_gain_matching.draw_idle()
 
     def update_listWidgets(self):  # , value_num, value_den):
         index = [index for index, item in enumerate(

@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 
+from ophyd import utils as ophyd_utils
 
 import isstools.widgets.widget_general_info
 from isstools.conversions import xray
@@ -43,6 +44,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
+
 
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
@@ -244,7 +246,16 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text(), parent=self)
         if dlg.exec_():
-            self.set_new_angle_offset(dlg.getValues())
+            try:
+                self.hhm.angle_offset.put(float(dlg.getValues()))
+                self.update_angle_offset(value=float(dlg.getValues()))
+            except Exception as exc:
+                if type(exc) == ophyd_utils.errors.LimitError:
+                    print('[New offset] {}. No reason to be desperate, though.'.format(exc))
+                else:
+                    print('[New offset] Something went wrong, not the limit: {}'.format(exc))
+                return 1
+            return 0
 
     def get_traj_names(self):
         filepath = QtWidgets.QFileDialog.getOpenFileName(directory=self.trajectory_path, filter='*.txt', parent=self)[0]
