@@ -70,6 +70,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.push_plot_traj.clicked.connect(self.plot_traj_file)
         self.push_plot_traj.setDisabled(True)
         self.push_save_trajectory.setDisabled(True)
+        self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
+        self.checkBox_traj_single_dir.stateChanged.connect(self.checkBox_traj_revert.setEnabled)
 
     def addCanvas(self):
         self.figure_single_trajectory = Figure()
@@ -274,3 +276,10 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
     def update_element(self, text):
         self.element = text
+
+    def update_repetitions_spinbox(self):
+        if self.checkBox_traj_single_dir.isChecked():
+            self.spinBox_tiling_repetitions.setValue(1)
+            self.spinBox_tiling_repetitions.setEnabled(0)
+        else:
+            self.spinBox_tiling_repetitions.setEnabled(1)
