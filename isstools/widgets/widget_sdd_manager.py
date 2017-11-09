@@ -15,7 +15,6 @@ from isstools.xiaparser import xiaparser
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sdd_manager.ui')
-print(ui_path)
 
 
 class UISDDManager(*uic.loadUiType(ui_path)):
