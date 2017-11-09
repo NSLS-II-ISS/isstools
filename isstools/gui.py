@@ -1,11 +1,9 @@
 import re
 import sys
 
-
 import numpy as np
 import pkg_resources
 
-# import PyQt5
 from PyQt5 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
 
@@ -193,15 +191,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Restore sys.stdout
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-
-    def figure_content(self):
-        fig1 = Figure()
-        fig1.set_facecolor(color='0.89')
-        fig1.stale_callback = auto_redraw_factory(fig1.stale_callback)
-        ax1f1 = fig1.add_subplot(111)
-        ax1f1.plot(np.random.rand(5))
-        self.ax = ax1f1
-        return fig1
 
     def run_prep_traj(self):
         self.RE(self.prep_traj_plan())
