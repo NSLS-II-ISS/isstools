@@ -58,7 +58,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
 
         self.traj_creator = trajectory()
-        self.trajectory_path = '/GPFS/xf08id/trajectory/'
+        self.trajectory_path = self.hhm.traj_filepath#'/GPFS/xf08id/trajectory/'
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.push_update_offset.clicked.connect(self.update_offset)

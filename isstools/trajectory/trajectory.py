@@ -284,8 +284,9 @@ class trajectory_manager():
     # arg3 (optional) = new_file_name     -> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
     # arg4 (optional) = orig_file_path     -> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
     # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
-    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/'):
+    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt'):
         ip = self.hhm.ip
+        orig_file_path = self.hhm.traj_filepath
 
         print('[Load Trajectory] Starting...')
         traj_fn = orig_file_name
