@@ -16,9 +16,10 @@ from isstools.conversions import xray
 import pandas as pd
 
 class trajectory():
-    def __init__(self):
+    def __init__(self, hhm):
         self.energy_grid = []
         self.encoder_grid = []
+        self.hhm = hhm
 
 
     def define(self, edge_energy = 11564, offsets = ([-200,-30,50,1000]),velocities = ([200, 20, 200]), stitching = ([75, 75, 10, 10, 100, 100]),
@@ -225,11 +226,10 @@ class trajectory():
         self.energy_grid = np.tile(self.energy_grid, reps)
 
     def e2encoder(self, offset):
-        self.encoder_grid = -xray.energy2encoder(self.energy_grid, offset) 
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, self.hhm.pulses_per_deg, offset) 
 
     def e2energy(self, offset):
-        self.energy_grid = -xray.encoder2energy(self.encoder_grid, offset)
-
+        self.energy_grid = -xray.encoder2energy(self.encoder_grid, self.hhm.pulses_per_deg, offset)
 
     def plot(self):
         plt.plot(self.time, self.energy, 'r+')
@@ -248,9 +248,7 @@ class trajectory():
         if is_energy:
             self.energy_grid_loaded = array_out
         else:
-            self.energy_grid_loaded = -xray.encoder2energy(array_out, offset)
-            
-        
+            self.energy_grid_loaded = -xray.encoder2energy(array_out, self.hhm.pulses_per_deg, offset)
 
 
 class trajectory_manager():
@@ -310,12 +308,12 @@ class trajectory_manager():
         if is_energy:
             min_energy = int(np.round(traj).min())
             max_energy = int(np.round(traj).max())
-            enc = np.int64(np.round(xray.energy2encoder(-traj, -offset)))
+            enc = np.int64(np.round(xray.energy2encoder(-traj, self.hhm.pulses_per_deg, -offset)))
             orig_file_name = '.energy_traj_aux.txt'
             np.savetxt('{}{}'.format(orig_file_path, orig_file_name), enc, fmt='%d', header=header, comments='')
         else:
-            min_energy = int(xray.encoder2energy((-traj).min()))
-            max_energy = int(xray.encoder2energy((-traj).max()))
+            min_energy = int(xray.encoder2energy((-traj, self.hhm.pulses_per_deg).min()))
+            max_energy = int(xray.encoder2energy((-traj, self.hhm.pulses_per_deg).max()))
 
         print('[Load Trajectory] Min energy: {}'.format(min_energy))
         print('[Load Trajectory] Max energy: {}'.format(max_energy))

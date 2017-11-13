@@ -57,7 +57,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.trajectories = self.traj_manager.read_info(silent=True)
         self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
 
-        self.traj_creator = trajectory()
+        self.traj_creator = trajectory(self.hhm)
         self.trajectory_path = self.hhm.traj_filepath#'/GPFS/xf08id/trajectory/'
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
@@ -248,8 +248,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
     def load_trajectory(self):
         self.traj_manager.load(orig_file_name=self.label_current_trajectory.text(),
                                new_file_path=self.comboBox_slot_to_load_trajectory.currentText(),
-                               is_energy=True, offset=float(self.label_angle_offset.text()),
-                               orig_file_path=self.trajectory_path, ip='10.8.2.86')
+                               is_energy=True, offset=float(self.label_angle_offset.text()))
         self.trajectoriesChanged.emit()
 
     def init_trajectory(self):

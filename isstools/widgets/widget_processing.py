@@ -219,7 +219,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             print('[E0 Calibration] Aborted!')
             return False
 
-        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text())) - xray.energy2encoder(float(self.edit_ECal.text())))/360000)
+        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text()), self.hhm.pulses_per_deg) - xray.energy2encoder(float(self.edit_ECal.text()), self.hhm.pulses_per_deg))/self.hhm.pulses_per_deg)
         if self.set_new_angle_offset(new_value):
             return
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
