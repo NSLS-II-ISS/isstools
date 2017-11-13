@@ -284,7 +284,8 @@ class trajectory_manager():
     # arg3 (optional) = new_file_name     -> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
     # arg4 (optional) = orig_file_path     -> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
     # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
-    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
+    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/'):
+        ip = self.hhm.ip
 
         print('[Load Trajectory] Starting...')
         traj_fn = orig_file_name
@@ -399,8 +400,8 @@ class trajectory_manager():
     # arg1 = lut_number                -> lookup table number of the trajectory that will be used - must be a number between 1 and 9
     # arg2 (optional) = ip            -> IP of the controller that will receive the file. Default = '10.8.2.86'
     # arg3 (optional) = filename    -> Filename of the trajectory file in the controller. Currently, it MUST be 'hhm.txt'
-    def init(self, lut_number, ip = '10.8.2.86', filename = 'hhm.txt'):
-
+    def init(self, lut_number, filename = 'hhm.txt'):
+        ip = self.hhm.ip
         print('[Init Trajectory] Starting...')
 
         self.hhm.lut_number.put(lut_number)
@@ -472,7 +473,8 @@ class trajectory_manager():
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
     # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
-    def read_info(self, ip = '10.8.2.86', silent=False):
+    def read_info(self, silent=False):
+        ip = self.hhm.ip
         ftp = FTP(ip)
         ftp.login()
         ftp.cwd('/usrflash/lut/')
