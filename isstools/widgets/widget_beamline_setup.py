@@ -115,6 +115,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
+            self.piezo_thread = piezo_fb_thread(self)
+            self.update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+
 
         json_data = open(pkg_resources.resource_filename('isstools', 'beamline_preparation.json')).read()
         self.json_blprep = json.loads(json_data)
@@ -184,11 +188,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
-
-        if self.hhm is not None:
-            self.piezo_thread = piezo_fb_thread(self)
-        self.update_piezo.clicked.connect(self.update_piezo_params)
-        self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
         if len(self.adc_list):
             times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
