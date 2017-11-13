@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import pkg_resources
+import math
 
 from PyQt5 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
@@ -84,6 +85,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
 
+        self.prep_traj_plan = prep_traj_plan
+
         self.motors_dict = motors_dict
         self.mot_list = self.motors_dict.keys()
         self.mot_sorted_list = list(self.mot_list)
@@ -162,7 +165,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                        self.adc_list, self.enc_list, self.xia,
                                                                        self.run_prep_traj, self.widget_run.parse_scans,
                                                                        self.widget_run.figure,
-                                                                       self.widget_run.create_log_scan)
+                                                                       self.widget_run.create_log_scan, sample_stages=self.sample_stages)
                 self.layout_batch.addWidget(self.widget_batch_mode)
 
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
@@ -193,7 +196,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressValue = value
 
     def update_progressbar(self):
-        self.progressBar.setValue(int(np.round(self.progressValue)))
+        value = np.round(self.progressValue)
+        if not math.isnan(value):
+            self.progressBar.setValue(int(value))
 
     def __del__(self):
         # Restore sys.stdout

@@ -34,6 +34,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  parse_scans,
                  scan_figure,
                  create_log_scan,
+                 sample_stages,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -57,6 +58,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.run_prep_traj = run_prep_traj
 
         self.gen_parser = gen_parser
+        self.sample_stages = sample_stages
 
         self.uids_to_process = []
         self.treeView_batch = elements.TreeView(self, 'all')
@@ -153,15 +155,16 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.push_save_csv.clicked.connect(self.save_csv)
 
         #checking which xystage to use:
-        if self.motors_dict['samplexy_x']['object'].connected and\
-               self.motors_dict['samplexy_y']['object'].connected:
-            self.stage_x = 'samplexy_x'
-            self.stage_y = 'samplexy_y'
-        elif self.motors_dict['huber_stage_z']['object'].connected and\
-                self.motors_dict['huber_stage_y']['object'].connected:
-            self.stage_x = 'huber_stage_z'
-            self.stage_y = 'huber_stage_y'
-        else:
+        self.stage_x = ''
+        self.stage_y = ''
+        for stage in self.sample_stages:
+            if stage['x'] in self.motors_dict and stage['y'] in self.motors_dict:
+                if self.motors_dict[stage['x']]['object'].connected and\
+                        self.motors_dict[stage['y']]['object'].connected:
+                    self.stage_x = stage['x']
+                    self.stage_y = stage['y']
+                    break
+        if self.stage_x == '' or self.stage_y == '':
             print('No stage set! Batch mode will not work!')
 
     def addCanvas(self):
