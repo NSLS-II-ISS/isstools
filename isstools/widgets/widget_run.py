@@ -44,6 +44,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.html_log_func = html_log_func
         self.parent_gui = parent_gui
 
+        self.filepaths = []
+        self.xia_parser = xiaparser.xiaparser()
+
         self.run_type.addItems(self.plan_funcs_names)
         self.run_start.clicked.connect(self.run_scan)
 
@@ -314,7 +317,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                     if len(self.parent_gui.widget_processing.gen_parser.interp_arrays['energy']) > length:
                         xia_sum.extend([xia_sum[-1]] * (len(self.parent_gui.widget_processing.gen_parser.interp_arrays['energy']) - length))
 
-                    roi_label = getattr(self, 'edit_roi_name_{}'.format(roi_numbers[index_roi])).text()
+                    roi_label = getattr(self.parent_gui.widget_sdd_manager, 'edit_roi_name_{}'.format(roi_numbers[index_roi])).text()
                     if not len(roi_label):
                         roi_label = 'XIA_ROI{}'.format(roi_numbers[index_roi])
 

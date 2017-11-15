@@ -31,7 +31,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.db = db
         self.det_dict = det_dict
-        self.gen_parser = xasdata.XASdataGeneric(self.db)
+        self.gen_parser = xasdata.XASdataGeneric(self.hhm.pulses_per_deg, self.db)
 
         self.settings = QSettings('ISS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
@@ -556,7 +556,7 @@ class process_bin_thread_equal(QThread):
         self.index = index
         print(filename)
         self.filename = filename
-        self.gen_parser = xasdata.XASdataGeneric(gui.db)
+        self.gen_parser = xasdata.XASdataGeneric(gui.hhm.pulses_per_deg, gui.db)
         self.gen_parser.curr_filename_save = filename
 
     def __del__(self):

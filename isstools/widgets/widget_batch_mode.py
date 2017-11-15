@@ -1081,6 +1081,11 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
     def setXiaSampTime(self, text):
         self.xia_samp_time = text
 
+    def re_abort(self):
+        if self.RE.state != 'idle':
+            self.RE.abort()
+            self.RE.is_aborted = True
+
 # Process batch thread
 def represents_int(s):
     try:

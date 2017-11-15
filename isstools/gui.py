@@ -138,8 +138,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if len(self.xia_list):
             self.xia = self.xia_list[0]
-            self.layout_sdd_manager.addWidget(
-                widget_sdd_manager.UISDDManager(self.xia_list))
+            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(self.xia_list)
+            self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
         else:
             self.tabWidget.removeTab([self.tabWidget.tabText(index) for index in
                                       range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
