@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
+from scipy.optimize import curve_fit
 
 from datetime import datetime
 import numpy as np
@@ -13,11 +14,10 @@ import time as ttime
 from subprocess import call
 import re
 import pandas as pd
+import math
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QThread
-from scipy.optimize import curve_fit
-import math
+from PyQt5.QtCore import QSettings
 import signal
 
 from isstools.pid import PID
@@ -69,6 +69,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
+
+        self.settings = QSettings('ISS Beamline', 'XLive')
 
         if self.auto_tune_dict is not None:
             self.auto_tune_elements = self.auto_tune_dict['elements']
@@ -187,8 +189,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
 
-        if self.hhm is not None:
-            self.piezo_thread = piezo_fb_thread(self)
         self.update_piezo.clicked.connect(self.update_piezo_params)
         self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
@@ -826,34 +826,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.prepare_bl(curr_energy)
 
     def enable_fb(self, value):
-        if value == 0:
-            if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.value != 0:
-                self.toggle_piezo_fb(0)
-        else:
-            if self.fb_master == -1:
-                return
-            self.fb_master = 1
-            self.toggle_piezo_fb(2)
-
-    def toggle_piezo_fb(self, value):
-        if value == 0:
-            self.piezo_thread.go = 0
-            self.hhm.fb_status.put(0)
-            self.fb_master = 0
-            self.pushEnableHHMFeedback.setChecked(False)
-        else:
-            if self.fb_master:
-                self.piezo_thread.start()
-                self.hhm.fb_status.put(1)
-                self.fb_master = -1
-            else:
-                self.fb_master = -1
-                self.pushEnableHHMFeedback.setChecked(True)
+        self.hhm.fb_status.put(value)
 
     def update_fb_status(self, pvname=None, value=None, char_value=None, **kwargs):
-        if value:
-            value = 2
-        self.toggle_piezo_fb(value)
+        self.pushEnableHHMFeedback.setChecked(value)
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)
@@ -880,8 +856,33 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         nmeasures = self.piezo_nmeasures
         if nmeasures == 0:
             nmeasures = 1
-        self.piezo_thread.adjust_center_point(line=self.piezo_line, center_point=self.piezo_center,
-                                              n_lines=self.piezo_nlines, n_measures=nmeasures)
+
+        # getting center:
+        centers = []
+        for i in range(nmeasures):
+            image = self.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+
+            image = image.astype(np.int16)
+            sum_lines = sum(image[:, [i for i in range(self.piezo_line - math.floor(self.piezo_nlines / 2),
+                                                       self.piezo_line + math.ceil(
+                                                           self.piezo_nlines / 2))]].transpose())
+
+            if len(sum_lines) > 0:
+                sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+
+            index_max = sum_lines.argmax()
+            max_value = sum_lines.max()
+            min_value = sum_lines.min()
+
+            if max_value >= 10 and max_value <= self.piezo_nlines * 100 and (
+                (max_value - min_value) / self.piezo_nlines) > 5:
+                coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+                centers.append(960 - coeff[1])
+
+        if len(centers) > 0:
+            self.piezo_center = float(sum(centers) / len(centers))
+            self.settings.setValue('piezo_center', self.piezo_center)
+            self.hhm.fb_center.put(self.piezo_center)
 
     def read_amp_gains(self):
         adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
@@ -930,92 +931,3 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             return False
         else:
             return False
-
-
-class piezo_fb_thread(QThread):
-    def __init__(self, gui):
-        QThread.__init__(self)
-        self.gui = gui
-
-        P = 0.004 * self.gui.piezo_kp
-        I = 0  # 0.02
-        D = 0  # 0.01
-        self.pid = PID.PID(P, I, D)
-        self.sampleTime = 0.00025
-        self.pid.setSampleTime(self.sampleTime)
-        self.pid.windup_guard = 3
-        self.go = 0
-
-    def gauss(self, x, *p):
-        A, mu, sigma = p
-        return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
-
-    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
-        # Eli's comment - that's where the check for the intensity should go.
-        image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-
-        image = image.astype(np.int16)
-        sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
-        # Eli's comment - need some work here
-        #remove background (do it better later)
-        if len(sum_lines) > 0:
-            sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
-        index_max = sum_lines.argmax()
-        max_value = sum_lines.max()
-        min_value = sum_lines.min()
-
-        if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-            coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
-            self.pid.SetPoint = 960 - center_point
-            self.pid.update(coeff[1])
-            deviation = self.pid.output
-            # deviation = -(coeff[1] - center_point)
-            piezo_diff = deviation  # * 0.0855
-
-            curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            # print(curr_value, piezo_diff, coeff[1])
-            self.gui.hhm.pitch.move(curr_value - piezo_diff)
-
-    def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
-        # getting center:
-        centers = []
-        for i in range(n_measures):
-            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-
-            image = image.astype(np.int16)
-            sum_lines = sum(
-                image[:, [i for i in range(line - math.floor(n_lines / 2), line + math.ceil(n_lines / 2))]].transpose())
-            # remove background (do it better later)
-            if len(sum_lines) > 0:
-                sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
-
-            index_max = sum_lines.argmax()
-            max_value = sum_lines.max()
-            min_value = sum_lines.min()
-            # print('n_lines * 100: {} | max_value: {} | ((max_value - min_value) / n_lines): {}'.format(n_lines, max_value, ((max_value - min_value) / n_lines)))
-            if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-                coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
-                centers.append(960 - coeff[1])
-        # print('Centers: {}'.format(centers))
-        # print('Old Center Point: {}'.format(center_point))
-        if len(centers) > 0:
-            center_point = float(sum(centers) / len(centers))
-            self.gui.settings.setValue('piezo_center', center_point)
-            self.gui.piezo_center = center_point
-            self.gui.hhm.fb_center.put(self.gui.piezo_center)
-            # print('New Center Point: {}'.format(center_point))
-
-    def run(self):
-        self.go = 1
-        # self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
-
-        while (self.go):
-            if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if
-                    self.gui.shutters[shutter].shutter_type != 'SP' and
-                                    self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)][
-                                        'value'] != 0]) == 0:
-                self.gaussian_piezo_feedback(line=self.gui.piezo_line, center_point=self.gui.piezo_center,
-                                             n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)
-                ttime.sleep(self.sampleTime)
-            else:
-                ttime.sleep(self.sampleTime)
