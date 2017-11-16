@@ -16,9 +16,10 @@ from isstools.conversions import xray
 import pandas as pd
 
 class trajectory():
-    def __init__(self):
+    def __init__(self, hhm):
         self.energy_grid = []
         self.encoder_grid = []
+        self.hhm = hhm
 
 
     def define(self, edge_energy = 11564, offsets = ([-200,-30,50,1000]),velocities = ([200, 20, 200]), stitching = ([75, 75, 10, 10, 100, 100]),
@@ -225,11 +226,10 @@ class trajectory():
         self.energy_grid = np.tile(self.energy_grid, reps)
 
     def e2encoder(self, offset):
-        self.encoder_grid = -xray.energy2encoder(self.energy_grid, offset) 
+        self.encoder_grid = -xray.energy2encoder(self.energy_grid, self.hhm.pulses_per_deg, offset) 
 
     def e2energy(self, offset):
-        self.energy_grid = -xray.encoder2energy(self.encoder_grid, offset)
-
+        self.energy_grid = -xray.encoder2energy(self.encoder_grid, self.hhm.pulses_per_deg, offset)
 
     def plot(self):
         plt.plot(self.time, self.energy, 'r+')
@@ -248,9 +248,7 @@ class trajectory():
         if is_energy:
             self.energy_grid_loaded = array_out
         else:
-            self.energy_grid_loaded = -xray.encoder2energy(array_out, offset)
-            
-        
+            self.energy_grid_loaded = -xray.encoder2energy(array_out, self.hhm.pulses_per_deg, offset)
 
 
 class trajectory_manager():
@@ -284,7 +282,9 @@ class trajectory_manager():
     # arg3 (optional) = new_file_name     -> New name that will be used as filename in the controller. Currently, it MUST be 'hhm.txt'
     # arg4 (optional) = orig_file_path     -> Path to look for the file that will be transfered. Default = '/GPFS/xf08id/trajectory/'
     # arg5 (optional) = ip                 -> IP of the controller that will receive the file. Default = '10.8.2.86'
-    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt', orig_file_path = '/GPFS/xf08id/trajectory/', ip = '10.8.2.86'):
+    def load(self, orig_file_name, new_file_path, is_energy, offset, new_file_name = 'hhm.txt'):
+        ip = self.hhm.ip
+        orig_file_path = self.hhm.traj_filepath
 
         print('[Load Trajectory] Starting...')
         traj_fn = orig_file_name
@@ -308,12 +308,12 @@ class trajectory_manager():
         if is_energy:
             min_energy = int(np.round(traj).min())
             max_energy = int(np.round(traj).max())
-            enc = np.int64(np.round(xray.energy2encoder(-traj, -offset)))
+            enc = np.int64(np.round(xray.energy2encoder(-traj, self.hhm.pulses_per_deg, -offset)))
             orig_file_name = '.energy_traj_aux.txt'
             np.savetxt('{}{}'.format(orig_file_path, orig_file_name), enc, fmt='%d', header=header, comments='')
         else:
-            min_energy = int(xray.encoder2energy((-traj).min()))
-            max_energy = int(xray.encoder2energy((-traj).max()))
+            min_energy = int(xray.encoder2energy((-traj, self.hhm.pulses_per_deg).min()))
+            max_energy = int(xray.encoder2energy((-traj, self.hhm.pulses_per_deg).max()))
 
         print('[Load Trajectory] Min energy: {}'.format(min_energy))
         print('[Load Trajectory] Max energy: {}'.format(max_energy))
@@ -399,8 +399,8 @@ class trajectory_manager():
     # arg1 = lut_number                -> lookup table number of the trajectory that will be used - must be a number between 1 and 9
     # arg2 (optional) = ip            -> IP of the controller that will receive the file. Default = '10.8.2.86'
     # arg3 (optional) = filename    -> Filename of the trajectory file in the controller. Currently, it MUST be 'hhm.txt'
-    def init(self, lut_number, ip = '10.8.2.86', filename = 'hhm.txt'):
-
+    def init(self, lut_number, filename = 'hhm.txt'):
+        ip = self.hhm.ip
         print('[Init Trajectory] Starting...')
 
         self.hhm.lut_number.put(lut_number)
@@ -472,7 +472,8 @@ class trajectory_manager():
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
     # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
-    def read_info(self, ip = '10.8.2.86', silent=False):
+    def read_info(self, silent=False):
+        ip = self.hhm.ip
         ftp = FTP(ip)
         ftp.login()
         ftp.cwd('/usrflash/lut/')

@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import pkg_resources
+import math
 
 from PyQt5 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
@@ -71,12 +72,20 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.set_gains_offsets_scan = None
 
+        if 'sample_stages' in kwargs:
+            self.sample_stages = kwargs['sample_stages']
+            del kwargs['sample_stages']
+        else:
+            self.sample_stages = []
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.det_dict = det_dict
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+
+        self.prep_traj_plan = prep_traj_plan
 
         self.motors_dict = motors_dict
         self.mot_list = self.motors_dict.keys()
@@ -113,10 +122,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.progress_sig.connect(self.update_progressbar)
             self.progressBar.setValue(0)
 
-        self.prep_traj_plan = prep_traj_plan
-        if self.prep_traj_plan is None:
-            self.push_prepare_trajectory.setEnabled(False)
-
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
@@ -133,8 +138,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.xia_list = [x for x in self.det_dict if x.name in matches]
         if len(self.xia_list):
             self.xia = self.xia_list[0]
-            self.layout_sdd_manager.addWidget(
-                widget_sdd_manager.UISDDManager(self.xia_list))
+            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(self.xia_list)
+            self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
         else:
             self.tabWidget.removeTab([self.tabWidget.tabText(index) for index in
                                       range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
@@ -142,34 +147,40 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
         self.layout_general_info.addWidget(self.widget_general_info)
-        self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
-        self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+
+        if self.hhm is not None:
+            self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
+            self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+
         self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict)
         self.layout_processing.addWidget(self.widget_processing)
         if self.RE is not None:
             self.widget_run = widget_run.UIRun(self.plan_funcs, db, shutters_dict, self.adc_list, self.enc_list,
                                                self.xia, self.html_log_func, self)
             self.layout_run.addWidget(self.widget_run)
-            self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
-                                                                   RE, db, self.widget_processing.gen_parser,
-                                                                   self.adc_list, self.enc_list, self.xia,
-                                                                   self.run_prep_traj, self.widget_run.parse_scans,
-                                                                   self.widget_run.figure,
-                                                                   self.widget_run.create_log_scan)
-            self.layout_batch.addWidget(self.widget_batch_mode)
 
-            self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
+            if self.hhm is not None:
+                self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
+                                                                       RE, db, self.widget_processing.gen_parser,
+                                                                       self.adc_list, self.enc_list, self.xia,
+                                                                       self.run_prep_traj, self.widget_run.parse_scans,
+                                                                       self.widget_run.figure,
+                                                                       self.widget_run.create_log_scan, sample_stages=self.sample_stages)
+                self.layout_batch.addWidget(self.widget_batch_mode)
 
-        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE, self.hhm, db, self.adc_list,
-                                                                           self.enc_list, self.det_dict, self.xia,
-                                                                           self.ic_amplifiers,
-                                                                           self.prepare_bl_plan, self.plan_funcs,
-                                                                           self.prepare_bl_list,
-                                                                           self.set_gains_offsets_scan,
-                                                                           self.motors_dict, general_scan_func,
-                                                                           self.widget_run.create_log_scan,
-                                                                           self.auto_tune_dict, shutters_dict, self)
-        self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
+                self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
+
+            self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE, self.hhm, db, self.adc_list,
+                                                                               self.enc_list, self.det_dict, self.xia,
+                                                                               self.ic_amplifiers,
+                                                                               self.prepare_bl_plan, self.plan_funcs,
+                                                                               self.prepare_bl_list,
+                                                                               self.set_gains_offsets_scan,
+                                                                               self.motors_dict, general_scan_func,
+                                                                               self.widget_run.create_log_scan,
+                                                                               self.auto_tune_dict, shutters_dict, self)
+            self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
+   
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(self.shutters_dict))
 
         self.filepaths = []
@@ -185,7 +196,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.progressValue = value
 
     def update_progressbar(self):
-        self.progressBar.setValue(int(np.round(self.progressValue)))
+        value = np.round(self.progressValue)
+        if not math.isnan(value):
+            self.progressBar.setValue(int(value))
 
     def __del__(self):
         # Restore sys.stdout

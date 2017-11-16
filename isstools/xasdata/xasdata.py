@@ -94,11 +94,12 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
-    def __init__(self, db = None, *args, **kwargs):
+    def __init__(self, pulses_per_deg, db = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arrays = {}
         self.interp_arrays = {}
         self.db = db
+        self.pulses_per_deg = pulses_per_deg
         #if self.db is None:
         #    print('The databroker was not passed as argument to the parser.\nSome features will be disabled.')
         self.uid = ''
@@ -139,7 +140,7 @@ class XASdataGeneric(XASdata):
         if has_encoder is not False:
             energy = np.copy(self.arrays.get(has_encoder))
             if 'angle_offset' in self.db[uid]['start']:
-                energy[:, 1] = xray.encoder2energy(energy[:, 1], - float(self.db[uid]['start']['angle_offset']))
+                energy[:, 1] = xray.encoder2energy(energy[:, 1], self.pulses_per_deg, -float(self.db[uid]['start']['angle_offset']))
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 

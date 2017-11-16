@@ -109,13 +109,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
-        self.fb_master = 0
-        self.piezo_line = int(self.hhm.fb_line.value)
-        self.piezo_center = float(self.hhm.fb_center.value)
-        self.piezo_nlines = int(self.hhm.fb_nlines.value)
-        self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
-        self.piezo_kp = float(self.hhm.fb_pcoeff.value)
-        self.hhm.fb_status.subscribe(self.update_fb_status)
+        if hasattr(hhm, 'fb_line'):
+            self.fb_master = 0
+            self.piezo_line = int(self.hhm.fb_line.value)
+            self.piezo_center = float(self.hhm.fb_center.value)
+            self.piezo_nlines = int(self.hhm.fb_nlines.value)
+            self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
+            self.piezo_kp = float(self.hhm.fb_pcoeff.value)
+            self.hhm.fb_status.subscribe(self.update_fb_status)
+            self.piezo_thread = piezo_fb_thread(self)
+            self.update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+
 
         json_data = open(pkg_resources.resource_filename('isstools', 'beamline_preparation.json')).read()
         self.json_blprep = json.loads(json_data)
@@ -160,10 +165,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if found_bpm == 0 or self.hhm is None:
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
-            if self.run_start.isEnabled() == False:
-                self.tabWidget.removeTab(
-                    [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index(
-                        'Run'))
+
         if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
             self.push_gen_scan.setEnabled(0)
 

@@ -44,7 +44,7 @@ def e2k(E, E0):
     """
     return 16.2009 * (((E - E0)/1000) ** 0.5)
 
-def encoder2energy(encoder, offset = 0):
+def encoder2energy(encoder, pulses_per_deg, offset = 0):
     """
     Convert from encoder counts to energy in eV
 
@@ -52,6 +52,8 @@ def encoder2energy(encoder, offset = 0):
     ----------
     encoder : float or np.array()
         Encoder counts to convert
+    pulses_per_deg: float
+        Number of pulses per degree of the encoder
     offset : float
         Offset in degrees to adjust the conversion
 
@@ -64,9 +66,9 @@ def encoder2energy(encoder, offset = 0):
     --------
     :func:`isstools.conversions.xray.energy2encoder`
     """
-    return -12400 / (2 * 3.1356 * np.sin(np.deg2rad((encoder/360000) - float(offset))))
+    return -12400 / (2 * 3.1356 * np.sin(np.deg2rad((encoder/pulses_per_deg) - float(offset))))
 
-def energy2encoder(energy, offset = 0):
+def energy2encoder(energy, pulses_per_deg, offset = 0):
     """
     Convert from energy in eV to encoder counts
 
@@ -86,9 +88,5 @@ def energy2encoder(energy, offset = 0):
     --------
     :func:`isstools.conversions.xray.encoder2energy`
     """
-    return 360000 * (np.degrees(np.arcsin(-12400 / (2 * 3.1356 * energy))) - float(offset))
-
-
-
-
+    return pulses_per_deg * (np.degrees(np.arcsin(-12400 / (2 * 3.1356 * energy))) - float(offset))
 
