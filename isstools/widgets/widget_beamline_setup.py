@@ -15,7 +15,7 @@ import re
 import pandas as pd
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QSettings
 from scipy.optimize import curve_fit
 import math
 import signal
@@ -69,6 +69,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
+        self.settings = QSettings('ISS Beamline', 'Xview')
 
         if self.auto_tune_dict is not None:
             self.auto_tune_elements = self.auto_tune_dict['elements']
