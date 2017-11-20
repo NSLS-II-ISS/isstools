@@ -17,7 +17,9 @@ import pandas as pd
 import math
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QThread, QSettings
+from scipy.optimize import curve_fit
+import math
 import signal
 
 from isstools.pid import PID
@@ -69,6 +71,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
+        self.settings = QSettings('ISS Beamline', 'Xview')
 
         self.settings = QSettings('ISS Beamline', 'XLive')
 
@@ -628,7 +631,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         current_adc_index = self.comboBox_samp_time.currentIndex()
         current_enc_value = self.lineEdit_samp_time.text()
 
-        info = self.traj_manager.read_info(silent=True)
+        info = self.parent_gui.widget_trajectory_manager.traj_manager.read_info(silent=True)
 
         if 'max' not in info[str(current_lut)] or 'min' not in info[str(current_lut)]:
             raise Exception(
@@ -641,14 +644,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         preedge_lo = min_en - edge_energy
         postedge_hi = max_en - edge_energy
 
-        self.traj_creator.define(edge_energy=edge_energy, offsets=[preedge_lo, 0, 0, postedge_hi], sine_duration=2.5,
+        self.parent_gui.widget_trajectory_manager.traj_creator.define(edge_energy=edge_energy, offsets=[preedge_lo, 0, 0, postedge_hi], sine_duration=2.5,
                                  trajectory_type='Sine')
-        self.traj_creator.interpolate()
-        self.traj_creator.tile(reps=1)
-        self.traj_creator.e2encoder(0)  # float(self.RE.md['angle_offset']))
+        self.parent_gui.widget_trajectory_manager.traj_creator.interpolate()
+        self.parent_gui.widget_trajectory_manager.traj_creator.tile(reps=1)
+        self.parent_gui.widget_trajectory_manager.traj_creator.e2encoder(0)  # float(self.RE.md['angle_offset']))
         # Don't need the offset since we're getting the data already with the offset
 
-        if not len(self.traj_creator.energy_grid):
+        if not len(self.parent_gui.widget_trajectory_manager.traj_creator.energy_grid):
             raise Exception('Trajectory creation failed. Try again.')
 
         # Everything ready, send the new daq sampling times:
@@ -663,16 +666,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         filename = '/GPFS/xf08id/trajectory/gain_aux.txt'
         np.savetxt(filename,
-                   self.traj_creator.energy_grid, fmt='%.6f')
+                   self.parent_gui.widget_trajectory_manager.traj_creator.energy_grid, fmt='%.6f')
         call(['chmod', '666', filename])
 
-        self.traj_manager.load(orig_file_name=filename[filename.rfind('/') + 1:],
-                               orig_file_path=filename[:filename.rfind('/') + 1], new_file_path='9', is_energy=True,
-                               offset=float(self.label_angle_offset.text()), ip='10.8.2.86')
+        self.parent_gui.widget_trajectory_manager.traj_manager.load(orig_file_name=filename[filename.rfind('/') + 1:],
+                               new_file_path='9', is_energy=True,
+                               offset=float(self.hhm.angle_offset.value))
 
         ttime.sleep(1)
 
-        self.traj_manager.init(9, ip='10.8.2.86')
+        self.parent_gui.widget_trajectory_manager.traj_manager.init(9)
 
         not_done = 1
         max_tries = 1
@@ -750,7 +753,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                 exp += 1
                                 print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
                                                                                                         exp)
-                            elif data.max() < 0 and data.min() > saturation:
+                            elif data.max() < 0.5 and data.min() > saturation:
                                 print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(
                                     devnames[index], exp)
                             elif data.min() <= saturation:
@@ -758,7 +761,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                 print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
                                                                                                         exp)
                             else:
-                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(
+                                print_message += '{} got a case that the programmer wasn\'t expecting. Sorry.\n'.format(
                                     devnames[index])
 
                             if (data.min() > saturation / 10 or data.min() < saturation) and not (
@@ -782,7 +785,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                 exp += 1
                                 print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
                                                                                                         exp)
-                            elif data.min() > 0 and data.max() < saturation:
+                            elif data.min() > -0.5 and data.max() < saturation:
                                 print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(
                                     devnames[index], exp)
                             elif data.max() >= saturation:
@@ -790,7 +793,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                 print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
                                                                                                         exp)
                             else:
-                                print_message += '{} got a case that the [bad] programmer wasn\'t expecting. Sorry.\n'.format(
+                                print_message += '{} got a case that the programmer wasn\'t expecting. Sorry.\n'.format(
                                     devnames[index])
 
                             if (data.max() < saturation / 10 or data.max() > saturation) and not (
@@ -806,7 +809,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 print(print_message[:-1])
             print('-' * 30)
 
-        self.traj_manager.init(current_lut, ip='10.8.2.86')
+        self.parent_gui.widget_trajectory_manager.traj_manager.init(current_lut)
 
         print('[Gain set scan] Complete\n')
 
