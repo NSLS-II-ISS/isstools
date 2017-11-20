@@ -193,9 +193,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
 
-        self.update_piezo.clicked.connect(self.update_piezo_params)
-        self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
-
         if len(self.adc_list):
             times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
             times_arr[times_arr == ''] = 0.0
@@ -887,6 +884,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_center = float(sum(centers) / len(centers))
             self.settings.setValue('piezo_center', self.piezo_center)
             self.hhm.fb_center.put(self.piezo_center)
+
+    def gauss(self, x, *p):
+        A, mu, sigma = p
+        return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
 
     def read_amp_gains(self):
         adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
