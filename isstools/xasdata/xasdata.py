@@ -239,17 +239,17 @@ class XASdataGeneric(XASdata):
         human_start_time = str(datetime.fromtimestamp(start_time).strftime('%m/%d/%Y  %H:%M:%S'))
         human_stop_time = str(datetime.fromtimestamp(stop_time).strftime('%m/%d/%Y  %H:%M:%S'))
         human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
-        if hasattr(self.db[self.uid]['start'], 'trajectory_name'):
+        if 'trajectory_name' in self.db[self.uid]['start']:
             trajectory_name = self.db[self.uid]['start']['trajectory_name']
         else:
             trajectory_name = ''
 
-        if hasattr(self.db[self.uid]['start'], 'element'):
+        if 'element' in self.db[self.uid]['start']:
             element = self.db[self.uid]['start']['element']
         else:
             element = ''
 
-        if hasattr(self.db[self.uid]['start'], 'edge'):
+        if 'edge' in self.db[self.uid]['start']:
             edge = self.db[self.uid]['start']['edge']
         else:
             edge = ''

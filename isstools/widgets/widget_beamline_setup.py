@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
+from scipy.optimize import curve_fit
 
 from datetime import datetime
 import numpy as np
@@ -13,6 +14,7 @@ import time as ttime
 from subprocess import call
 import re
 import pandas as pd
+import math
 
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
@@ -71,6 +73,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.parent_gui = parent_gui
         self.settings = QSettings('ISS Beamline', 'Xview')
 
+        self.settings = QSettings('ISS Beamline', 'XLive')
+
         if self.auto_tune_dict is not None:
             self.auto_tune_elements = self.auto_tune_dict['elements']
             self.auto_tune_pre_elements = self.auto_tune_dict['pre_elements']
@@ -116,7 +120,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
-            self.piezo_thread = piezo_fb_thread(self)
+            self.piezo_thread = piezo_fb_thread(self) 
             self.update_piezo.clicked.connect(self.update_piezo_params)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
@@ -185,7 +189,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_prepare_bl.setEnabled(True)
         else:
             self.push_prepare_bl.setEnabled(False)
+        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
+        self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
+        self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
+        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
 
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
@@ -824,14 +833,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.prepare_bl(curr_energy)
 
     def enable_fb(self, value):
-        if value == 0:
-            if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.value != 0:
-                self.toggle_piezo_fb(0)
-        else:
-            if self.fb_master == -1:
-                return
-            self.fb_master = 1
-            self.toggle_piezo_fb(2)
+        if self.radioButton_fb_local.isChecked():
+            if value == 0:
+                if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.value != 0:
+                    self.toggle_piezo_fb(0)
+            else:
+                if self.fb_master == -1:
+                    return
+                self.fb_master = 1
+                self.toggle_piezo_fb(2)
+
+        elif self.radioButton_fb_remote.isChecked():
+            self.hhm.fb_status.put(value)
 
     def toggle_piezo_fb(self, value):
         if value == 0:
@@ -849,9 +862,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.pushEnableHHMFeedback.setChecked(True)
 
     def update_fb_status(self, pvname=None, value=None, char_value=None, **kwargs):
-        if value:
-            value = 2
-        self.toggle_piezo_fb(value)
+        if self.radioButton_fb_local.isChecked():
+            if value:
+                value = 2
+            self.toggle_piezo_fb(value)
+
+        elif self.radioButton_fb_remote.isChecked():
+            self.pushEnableHHMFeedback.setChecked(value)
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)
@@ -875,11 +892,50 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.hhm.fb_pcoeff.put(self.piezo_kp)
 
     def update_piezo_center(self):
-        nmeasures = self.piezo_nmeasures
-        if nmeasures == 0:
-            nmeasures = 1
-        self.piezo_thread.adjust_center_point(line=self.piezo_line, center_point=self.piezo_center,
-                                              n_lines=self.piezo_nlines, n_measures=nmeasures)
+        if self.radiobutton_fb_local.ischecked():
+            nmeasures = self.piezo_nmeasures
+            if nmeasures == 0:
+                nmeasures = 1
+            self.piezo_thread.adjust_center_point(line=self.piezo_line, 
+                                                  center_point=self.piezo_center,
+                                                  n_lines=self.piezo_nlines, 
+                                                  n_measures=nmeasures)
+
+        elif self.radioButton_fb_remote.isChecked():
+            nmeasures = self.piezo_nmeasures
+            if nmeasures == 0:
+                nmeasures = 1
+    
+            # getting center:
+            centers = []
+            for i in range(nmeasures):
+                image = self.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+    
+                image = image.astype(np.int16)
+                sum_lines = sum(image[:, [i for i in range(self.piezo_line - math.floor(self.piezo_nlines / 2),
+                                                           self.piezo_line + math.ceil(
+                                                               self.piezo_nlines / 2))]].transpose())
+    
+                if len(sum_lines) > 0:
+                    sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+    
+                index_max = sum_lines.argmax()
+                max_value = sum_lines.max()
+                min_value = sum_lines.min()
+    
+                if max_value >= 10 and max_value <= self.piezo_nlines * 100 and (
+                    (max_value - min_value) / self.piezo_nlines) > 5:
+                    coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+                    centers.append(960 - coeff[1])
+    
+            if len(centers) > 0:
+                self.piezo_center = float(sum(centers) / len(centers))
+                self.settings.setValue('piezo_center', self.piezo_center)
+                self.hhm.fb_center.put(self.piezo_center)
+
+    def gauss(self, x, *p):
+        A, mu, sigma = p
+        return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
 
     def read_amp_gains(self):
         adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
