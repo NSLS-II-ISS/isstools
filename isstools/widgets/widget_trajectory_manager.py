@@ -54,8 +54,11 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.comboBox_slot_to_load_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
         self.comboBox_slot_to_init_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
         self.comboBox_slot_to_init_trajectory.setCurrentIndex(self.traj_manager.current_lut() - 1)
-        self.trajectories = self.traj_manager.read_info(silent=True)
-        self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
+        try:
+            self.trajectories = self.traj_manager.read_info(silent=True)
+            self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
+        except OSError as err:
+            print('Error loading:', err)
 
         self.traj_creator = trajectory(self.hhm)
         self.trajectory_path = self.hhm.traj_filepath#'/GPFS/xf08id/trajectory/'

@@ -132,7 +132,11 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_scans.currentIndexChanged.connect(self.populateParams_batch)
         self.push_create_scan_update.clicked.connect(self.update_batch_traj)
-        self.update_batch_traj()
+        try:
+           self.update_batch_traj()
+        except OSError as err:
+            print('Error loading:', err)
+
         self.params1_batch = []
         self.params2_batch = []
         self.params3_batch = []

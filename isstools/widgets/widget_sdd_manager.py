@@ -48,48 +48,47 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
         self.push_run_xia_measurement.clicked.connect(self.update_xia_rois)
         self.push_run_xia_measurement.clicked.connect(self.start_xia_spectra)
-        max_en = self.xia.mca_max_energy.value
-        energies = np.linspace(0, max_en, 2048)
-
-        self.roi_colors = []
-        for mult in range(4):
-            self.roi_colors.append((.4 + (.2 * mult), 0, 0))
-            self.roi_colors.append((0, .4 + (.2 * mult), 0))
-            self.roi_colors.append((0, 0, .4 + (.2 * mult)))
-
-        for roi in range(12):
-            low = getattr(self.xia, "mca1.roi{}".format(roi)).low.value
-            high = getattr(self.xia, "mca1.roi{}".format(roi)).high.value
-            if low > 0:
-                getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(
-                    np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).low.value] * 1000)))
-            else:
-                getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(low))
-            if high > 0:
-                getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(
-                    np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).high.value] * 1000)))
-            else:
-                getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(high))
-
-            label = getattr(self.xia, "mca1.roi{}".format(roi)).label.value
-            getattr(self, 'edit_roi_name_{}'.format(roi)).setText(label)
-
-            getattr(self, 'edit_roi_from_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-            getattr(self, 'edit_roi_to_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-            getattr(self, 'edit_roi_name_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
-
-
-        for channel in self.xia_channels:
-            getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
-            getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
-            getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
-        self.push_checkall_xia.clicked.connect(self.toggle_xia_all)
-
-        if hasattr(self.xia, 'input_trigger'):
-            if self.xia.input_trigger is not None:
-                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-#Take care of this
-#                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
+        if self.xia.connected:
+            max_en = self.xia.mca_max_energy.value
+            energies = np.linspace(0, max_en, 2048)
+    
+            self.roi_colors = []
+            for mult in range(4):
+                self.roi_colors.append((.4 + (.2 * mult), 0, 0))
+                self.roi_colors.append((0, .4 + (.2 * mult), 0))
+                self.roi_colors.append((0, 0, .4 + (.2 * mult)))
+    
+            for roi in range(12):
+                low = getattr(self.xia, "mca1.roi{}".format(roi)).low.value
+                high = getattr(self.xia, "mca1.roi{}".format(roi)).high.value
+                if low > 0:
+                    getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(
+                        np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).low.value] * 1000)))
+                else:
+                    getattr(self, 'edit_roi_from_{}'.format(roi)).setText('{:.0f}'.format(low))
+                if high > 0:
+                    getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(
+                        np.floor(energies[getattr(self.xia, "mca1.roi{}".format(roi)).high.value] * 1000)))
+                else:
+                    getattr(self, 'edit_roi_to_{}'.format(roi)).setText('{:.0f}'.format(high))
+    
+                label = getattr(self.xia, "mca1.roi{}".format(roi)).label.value
+                getattr(self, 'edit_roi_name_{}'.format(roi)).setText(label)
+    
+                getattr(self, 'edit_roi_from_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+                getattr(self, 'edit_roi_to_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+                getattr(self, 'edit_roi_name_{}'.format(roi)).returnPressed.connect(self.update_xia_rois)
+    
+    
+            for channel in self.xia_channels:
+                getattr(self, "checkBox_gm_ch{}".format(channel)).setEnabled(True)
+                getattr(self.xia, "mca{}".format(channel)).array.subscribe(self.update_xia_graph)
+                getattr(self, "checkBox_gm_ch{}".format(channel)).toggled.connect(self.toggle_xia_checkbox)
+            self.push_checkall_xia.clicked.connect(self.toggle_xia_all)
+    
+            if hasattr(self.xia, 'input_trigger'):
+                if self.xia.input_trigger is not None:
+                    self.xia.input_trigger.unit_sel.put(1)  # ms, not us
 
     def addCanvas(self):
         self.figure_gain_matching = Figure()
