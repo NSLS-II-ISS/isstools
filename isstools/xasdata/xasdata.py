@@ -8,6 +8,8 @@ from subprocess import call
 import re
 import collections
 import pandas as pd
+import h5py
+from pathlib import Path
 
 class XASdata:
     def __init__(self, **kwargs):
@@ -148,14 +150,14 @@ class XASdataGeneric(XASdata):
         self.interp_df = df
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
-                self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index], df.iloc[:, index]]).transpose()
-            self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index], np.ones(len(df.iloc[:, 0]))]).transpose()
+                self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
+            self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
 
 
     def interpolate(self, key_base = 'i0'):
         min_timestamp = max([self.arrays.get(key).iloc[0, 0] for key in self.arrays])
         max_timestamp = min([self.arrays.get(key).iloc[len(self.arrays.get(key)) - 1, 0] for key in 
-                             self.arrays if len(self.arrays.get(key)[:, 0]) > 5])
+                             self.arrays if len(self.arrays.get(key).iloc[:, 0]) > 5])
         
         try:
             if key_base not in self.arrays.keys():
@@ -176,11 +178,11 @@ class XASdataGeneric(XASdata):
         
         for key in self.arrays.keys():
             if len(self.arrays.get(key).iloc[:, 0]) > 5 * len(timestamps):
-                time = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 0], len(timestamps))]
-                val = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 1], len(timestamps))]
+                time = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 0].values, len(timestamps))]
+                val = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 1].values, len(timestamps))]
                 self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, time, val)]).transpose()
             else:
-                self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key).iloc[:,0], self.arrays.get(key).iloc[:,1])]).transpose()
+                self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key).iloc[:,0].values, self.arrays.get(key).iloc[:,1])]).transpose()
         self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
         self.interp_df = pd.DataFrame(np.vstack((timestamps, np.array([self.interp_arrays[array][:, 1] for
                                                 array in self.interp_arrays]))).transpose())
@@ -290,6 +292,88 @@ class XASdataGeneric(XASdata):
                                                                human_start_time,
                                                                human_stop_time,
                                                                human_duration))
+
+        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
+        call(['chmod', '770', fn])
+        return fn
+
+    def export_trace_hdf5(self, filename, filepath = '/GPFS/xf08id/Sandbox/', overwrite = False):
+        if self.db is None:
+            raise Exception('The databroker was not passed as argument to the parser. This feature is disabled.')
+        suffix = '.hdf5'
+        fn = filepath + filename + suffix
+        if not overwrite:
+            repeat = 1
+            while(os.path.isfile(fn)):
+                repeat += 1
+                fn = filepath + filename + '-' + str(repeat) + suffix
+
+        md = {}
+
+        md['pi'] = self.db[self.uid]['start']['PI']
+        md['proposal'] = self.db[self.uid]['start']['PROPOSAL']
+        md['saf'] = self.db[self.uid]['start']['SAF']
+        md['name'] = self.db[self.uid]['start']['name']
+        md['comment'] = self.db[self.uid]['start']['comment']
+        md['year'] = self.db[self.uid]['start']['year']
+        md['cycle'] = self.db[self.uid]['start']['cycle']
+        md['scan_id'] = self.db[self.uid]['start']['scan_id']
+        md['real_uid'] = self.db[self.uid]['start']['uid']
+        md['start_time'] = self.db[self.uid]['start']['time']
+        md['stop_time'] = self.db[self.uid]['stop']['time']
+        md['human_start_time'] = str(datetime.fromtimestamp(md['start_time']).strftime('%m/%d/%Y  %H:%M:%S'))
+        md['human_stop_time'] = str(datetime.fromtimestamp(md['stop_time']).strftime('%m/%d/%Y  %H:%M:%S'))
+        md['human_duration'] = str(datetime.fromtimestamp(md['stop_time'] - md['start_time']).strftime('%M:%S'))
+        if 'trajectory_name' in self.db[self.uid]['start']:
+            md['trajectory_name'] = self.db[self.uid]['start']['trajectory_name']
+        else:
+            md['trajectory_name'] = ''
+
+        if 'element' in self.db[self.uid]['start']:
+            md['element'] = self.db[self.uid]['start']['element']
+        else:
+            md['element'] = ''
+
+        if 'edge' in self.db[self.uid]['start']:
+            md['edge'] = self.db[self.uid]['start']['edge']
+        else:
+            md['edge'] = ''
+
+        cols = self.interp_df.columns.tolist()
+        cols.remove('1')
+
+        index = 1
+        for pair in [['energy', 'En. (eV)'], ['i0', 'i0 (V)'], ['it', 'it(V)'], ['ir', 'ir(V)'], ['iff', 'iff(V)']]:
+            if pair[0] in cols:
+                cols.remove(pair[0])
+                cols.insert(index, pair[0])
+                index += 1
+            elif pair[1] in cols:
+                cols.remove(pair[1])
+                cols.insert(index, pair[1])
+                index += 1
+
+        fmt = ' '.join(['%12.6f' for key in cols])
+        fmt = '%17.6f ' + fmt[7:]
+        header = '  '.join(cols)
+
+        cols.append('1')
+        self.interp_df = self.interp_df[cols]
+
+        f = h5py.File(fn, mode='w')
+        for key in self.interp_df.keys():
+            dset = f.create_dataset(key, data=self.interp_df[key], compression='gzip')
+        for data in md:
+            f.attrs[data] = md[data]
+        f.close()
+
+        # opening a file:
+        # import h5py
+        # import pandas as pd
+        # f = h5py.File('/GPFS/xf08id/Sandbox/test.hdf5', mode='r')
+        # df = pd.DataFrame({key: value for key, value in zip(f.keys(), f.values())})
+        # for attr in f.attrs:
+        #     print(attr, f.attrs[attr]) 
 
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
