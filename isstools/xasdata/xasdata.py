@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import os
+import os.path as op
 from datetime import datetime
 from isstools.conversions import xray
 from subprocess import call
@@ -27,7 +28,7 @@ class XASdata:
         keys = ['times', 'timens', 'counter', 'adc']
         if os.path.isfile('{}{}'.format(filepath, filename)):
             df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            df['timestamp'] = df['times'] + 1e-9 * df['timens']
             #del df['times']
             #del df['timens']
             df['adc'] = df['adc'].apply(lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x, 16) >> 8) * 7.62939453125e-05
@@ -40,7 +41,7 @@ class XASdata:
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
         if os.path.isfile('{}{}'.format(filepath, filename)):
             df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            df['timestamp'] = df['times'] + 1e-9 * df['timens']
             df['encoder'] = df['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
             return df.iloc[:, [5, 2]]
         else:
@@ -51,7 +52,7 @@ class XASdata:
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
         if os.path.isfile('{}{}'.format(filepath, filename)):
             df = pd.read_table('{}{}'.format(filepath, filename), delim_whitespace=True, comment='#', names=keys, index_col=False)
-            df['timestamps'] = df['times'] + 1e-9 * df['timens']
+            df['timestamp'] = df['times'] + 1e-9 * df['timens']
             df = df.iloc[::2]
             #df = df[df['counter'] % 2 == 0]
             return df.iloc[:, [5, 3]]
@@ -117,7 +118,7 @@ class XASdataGeneric(XASdata):
             energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
                 energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg, -float(self.db[uid]['start']['angle_offset']))
-                energy.columns = ['timestamps', 'energy']
+                energy.columns = ['timestamp', 'energy']
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
@@ -135,6 +136,9 @@ class XASdataGeneric(XASdata):
         self.arrays = {}
         self.interp_arrays = {}
 
+        if not op.exists(filename):
+            raise IOError(f'The requested file {filename} does not exist.')
+
         header = self.read_header(filename)
         self.uid = header[header.find('UID') + 5: header.find('\n', header.find('UID'))]
 
@@ -151,7 +155,33 @@ class XASdataGeneric(XASdata):
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
                 self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
-            self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+        self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+
+    def loadInterpFileHDF5(self, filename):
+        self.arrays = {}
+        self.interp_arrays = {}
+
+        if not op.exists(filename):
+            raise IOError(f'The requested file {filename} does not exist.')
+
+        # opening a file:
+        f = h5py.File(filename, mode='r')
+        df = pd.DataFrame({key: value for key, value in zip(f.keys(), f.values())})
+        self.interp_df = df
+        self.md = dict(f.attrs)
+        self.uid = self.md['real_uid']
+        #for attr in f.attrs:
+        #    print(attr, f.attrs[attr])
+
+        keys = list(f.keys())
+        if 'timestamp' in keys:
+            timestamp_index = keys.index('timestamp')
+        for index, key in enumerate(df.keys()):
+            if index != timestamp_index:
+                self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
+        self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+
+        f.close()
 
 
     def interpolate(self, key_base = 'i0'):
@@ -186,7 +216,7 @@ class XASdataGeneric(XASdata):
         self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
         self.interp_df = pd.DataFrame(np.vstack((timestamps, np.array([self.interp_arrays[array][:, 1] for
                                                 array in self.interp_arrays]))).transpose())
-        keys = ['timestamps']
+        keys = ['timestamp']
         keys.extend(self.interp_arrays.keys())
         self.interp_df.columns = keys
 
@@ -238,6 +268,11 @@ class XASdataGeneric(XASdata):
         else:
             edge = ''
 
+        if 'e0' in self.db[self.uid]['start']:
+            e0 = self.db[self.uid]['start']['e0']
+        else:
+            e0 = ''
+
         cols = self.interp_df.columns.tolist()
         cols.remove('1')
 
@@ -276,6 +311,7 @@ class XASdataGeneric(XASdata):
                               '# Trajectory name: {}\n'\
                               '# Element: {}\n'\
                               '# Edge: {}\n'\
+                              '# E0: {}\n'\
                               '# Start time: {}\n'\
                               '# Stop time: {}\n'\
                               '# Total time: {}\n#\n# '.format(year,
@@ -289,6 +325,7 @@ class XASdataGeneric(XASdata):
                                                                trajectory_name,
                                                                element,
                                                                edge,
+                                                               e0,
                                                                human_start_time,
                                                                human_stop_time,
                                                                human_duration))
@@ -339,6 +376,11 @@ class XASdataGeneric(XASdata):
         else:
             md['edge'] = ''
 
+        if 'e0' in self.db[self.uid]['start']:
+            md['e0'] = self.db[self.uid]['start']['e0']
+        else:
+            md['e0'] = ''
+
         cols = self.interp_df.columns.tolist()
         cols.remove('1')
 
@@ -374,6 +416,7 @@ class XASdataGeneric(XASdata):
         # df = pd.DataFrame({key: value for key, value in zip(f.keys(), f.values())})
         # for attr in f.attrs:
         #     print(attr, f.attrs[attr]) 
+        # f.close()
 
         call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         call(['chmod', '770', fn])
