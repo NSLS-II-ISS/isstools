@@ -138,8 +138,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         vel_edge = float(self.edit_vel_edge.text())
         #Define element and edge
-        self.traj_creator.elem = '{}'.format(self.element)
-        self.traj_creator.edge = '{}({})'.format(self.edge, self.e0)
+        self.traj_creator.elem = f'{self.element}'
+        self.traj_creator.edge = f'{self.edge}'
+        self.traj_creator.e0 = f'{self.e0}'
 
         # Create and interpolate trajectory
         self.traj_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
@@ -213,9 +214,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                     print('Aborted!')
                     return
             np.savetxt(filename,
-                   self.traj_creator.energy_grid, fmt='%.6f',
-                       header='element: {}, edge: {}'.format(self.traj_creator.elem,
-                                                             self.traj_creator.edge))
+                       self.traj_creator.energy_grid, fmt='%.6f',
+                       header = f'element: {self.traj_creator.elem}, edge: {self.traj_creator.edge}, E0: {self.traj_creator.e0}')
             call(['chmod', '666', filename])
             self.trajectory_path = filename[:filename.rfind('/')] + '/'
             self.label_current_trajectory.setText(filename.rsplit('/', 1)[1])

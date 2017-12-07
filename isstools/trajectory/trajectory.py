@@ -360,19 +360,22 @@ class trajectory_manager():
         # Open file and transfer to the power pmac
             f = open(orig_file_path + str(orig_file_name), 'rb')
             if(f.readable()):
-                first_line = f.readline().decode('utf-8')
-                if first_line[0] == '#':
-                    element = first_line[first_line.find('element:') + 9: first_line.find(',')].lstrip()
-                    edge_value = first_line[first_line.find('edge:') + 6:-1]
+                line = f.readline().decode('utf-8')
+                if line[0] == '#':
+                    element = line[line.find('element:') + 9: line.find(',')].lstrip()
+                    edge_value = line[line.find('edge:') + 6: line.find(',', line.find('edge:'))].lstrip()
+                    e0_value = line[line.find('E0:') + 4:].lstrip()
                     curr_hhm_traj = getattr(self.hhm, 'traj{}'.format(new_file_path))
                     curr_hhm_traj.filename.put(traj_fn)
                     curr_hhm_traj.elem.put(element)
                     curr_hhm_traj.edge.put(edge_value)
+                    curr_hhm_traj.e0.put(e0_value)
                 else:
                     curr_hhm_traj = getattr(self.hhm, 'traj{}'.format(new_file_path))
                     curr_hhm_traj.filename.put(traj_fn)
                     curr_hhm_traj.elem.put('')
                     curr_hhm_traj.edge.put('')
+                    curr_hhm_traj.e0.put('')
                     f.close()
                     f = open(orig_file_path + str(orig_file_name), 'rb')
                 result = ftp.storbinary('STOR ' + '/usrflash/lut/' + str(new_file_path) + '/' + new_file_name, f)
