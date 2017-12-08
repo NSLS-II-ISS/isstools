@@ -24,10 +24,13 @@ gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 
 class GUI(QtWidgets.QMainWindow, gui_form):
-    def __init__(self, parent=None):
+    def __init__(self, hhm_pulses_per_deg, parent=None):
 
         QtWidgets.QMainWindow.__init__(self, parent)
         self.setupUi(self)
+
+        self.hhm_pulses_per_deg = hhm_pulses_per_deg
+
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
         self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
@@ -57,7 +60,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
         # Create generic parser
-        self.gen = xasdata.XASdataGeneric(db=None)
+        self.gen = xasdata.XASdataGeneric(self.hhm_pulses_per_deg, db=None)
 
         self.last_num = ''
         self.last_den = ''
@@ -279,7 +282,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             xanes_spacing = float(self.edit_xanes_spacing.text())
             exafs_spacing = float(self.edit_exafs_spacing.text())
             filepath = '{}/{}'.format(self.workingFolder, f)
-            params = (e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath)
+            params = (self.hhm_pulses_per_deg, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath)
 
             process_thread_bin = process_bin_thread(*params, index=index)
             process_thread_bin.finished_bin.connect(self.plot_binned_data)
@@ -330,9 +333,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 class process_bin_thread(QThread):
     finished_bin = pyqtSignal(dict)
 
-    def __init__(self, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath, index=1):
+    def __init__(self, hhm_pulses_per_deg, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_spacing, filepath, index=1):
         QThread.__init__(self)
-        self.gen_parser = xasdata.XASdataGeneric(db=None)
+        self.gen_parser = xasdata.XASdataGeneric(hhm_pulses_per_deg, db=None)
 
         self.e0 = e0
         self.edge_start = edge_start

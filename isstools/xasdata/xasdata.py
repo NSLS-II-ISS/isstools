@@ -123,15 +123,26 @@ class XASdataGeneric(XASdata):
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
-
     def read_header(self, filename):
-        test = ''
-        line = '#'
-        with open(filename) as myfile:
-            while line[0] == '#':
-                line = next(myfile)
-                test += line
-        return test[:-len(line)]
+        if filename[-3:] == 'txt' or filename[-3:] == 'dat':
+            test = ''
+            line = '#'
+            with open(filename) as myfile:
+                while line[0] == '#':
+                    line = next(myfile)
+                    test += line
+            return test[:-len(line)]
+
+        elif filename[-4:] == 'hdf5':
+            f = h5py.File(filename, mode='r')
+            header = dict(f.attrs)
+            f.close()
+            del header['start_time']
+            del header['stop_time']
+            del header['name']
+            header = '\n'.join([f'# {key}: {header[key]}' for key in header]) + '\n#\n#'
+            return header
+
 
     def loadInterpFile(self, filename):
         self.arrays = {}
@@ -680,7 +691,7 @@ class XASDataManager:
         comments = XASdataGeneric.read_header(None, filename)
         comments = comments[0: comments.rfind('#')] + '# '
 
-        filename = filename[0: len(filename) - 3] + 'dat'
+        filename = filename[:filename.rfind('.')] + '.dat'
 
         cols = self.binned_df.columns.tolist()
         cols.remove('1')
@@ -703,7 +714,6 @@ class XASDataManager:
         cols.append('timestamp')
         cols.append('1')
         self.binned_df = self.binned_df[cols]
-
 
         np.savetxt(filename,
                    self.binned_df.iloc[:,:-2].values,
@@ -729,7 +739,7 @@ class XASDataManager:
         ret[energy_string] = en_grid
         self.binned_arrays = ret
         self.binned_df = pd.DataFrame(ret)
-        return ret
+        return self.binned_df
 
 
     def process_equal(self, interp_df, energy_string = 'energy', delta_en = 2):
@@ -742,7 +752,7 @@ class XASDataManager:
         ret[energy_string] = en_grid_eq
         self.binned_eq_arrays = ret
         self.binned_eq_df = pd.DataFrame(ret)
-        return ret
+        return self.binned_eq_df
 
 
     def average_points(self, matrix, energy_column = 0):

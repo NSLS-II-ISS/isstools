@@ -163,7 +163,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                 self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
                                                                        RE, db, self.widget_processing.gen_parser,
                                                                        self.adc_list, self.enc_list, self.xia,
-                                                                       self.run_prep_traj, self.widget_run.parse_scans,
+                                                                       self.run_prep_traj,
                                                                        self.widget_run.figure,
                                                                        self.widget_run.create_log_scan, sample_stages=self.sample_stages)
                 self.layout_batch.addWidget(self.widget_batch_mode)

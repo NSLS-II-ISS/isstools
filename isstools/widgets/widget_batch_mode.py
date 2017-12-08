@@ -31,7 +31,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  enc_list,
                  xia,
                  run_prep_traj,
-                 parse_scans,
                  scan_figure,
                  create_log_scan,
                  sample_stages,
@@ -53,7 +52,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.create_log_scan = create_log_scan
         self.RE = RE
         self.db = db
-        self.parse_scans = parse_scans
         self.figure = scan_figure
         self.run_prep_traj = run_prep_traj
 
@@ -1122,8 +1120,8 @@ class process_batch_thread(QThread):
                         print('get_offsets, nothing to process')
                         continue
 
-                    self.gui.parse_scans(uid)
-                    self.generate_log.emit(self.gui.current_uid, self.gui.figure)
+                    #self.gui.parse_scans(uid)
+                    #self.generate_log.emit(self.gui.current_uid, self.gui.figure)
 
                     traj_name = self.gui.db[uid]['start']['trajectory_name']
                     if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
