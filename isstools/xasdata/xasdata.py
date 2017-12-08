@@ -71,16 +71,17 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
-    def __init__(self, pulses_per_deg, db = None, *args, **kwargs):
+    def __init__(self, pulses_per_deg, db = None, db_analysis = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arrays = {}
         self.interp_arrays = {}
         self.db = db
+        self.db_analysis = db_analysis
         self.pulses_per_deg = pulses_per_deg
         #if self.db is None:
         #    print('The databroker was not passed as argument to the parser.\nSome features will be disabled.')
         self.uid = ''
-        
+
     def process(self, uid):
         self.load(uid)
         self.uid = uid
@@ -102,7 +103,7 @@ class XASdataGeneric(XASdata):
                     name = i['data_keys'][i['name']]['devname']
                     if name == 'hhm_theta':
                         has_encoder = name
-                    
+
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
                     data = self.loadTRIGtrace(i['data_keys'][i['name']]['filename'], '')
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
@@ -113,7 +114,7 @@ class XASdataGeneric(XASdata):
                     data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
                 #if type(data) == np.ndarray:
                 self.arrays[name] = data
-        
+
         if has_encoder is not False:
             energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
@@ -122,7 +123,7 @@ class XASdataGeneric(XASdata):
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
-        
+
     def read_header(self, filename):
         test = ''
         line = '#'
@@ -184,28 +185,58 @@ class XASdataGeneric(XASdata):
         f.close()
 
 
+    def loadInterpFromDB(self, uid):
+        if self.db_analysis is None:
+            raise IOError('No db_analysis was passed to the parser in the initialization')
+
+        hdr = db_analysis[uid]
+        dd = [_['data'] for _ in db_analysis.get_events(hdr, stream_name='interpolated', fill=True)]
+        result = {}
+        for chunk in [chunk['interpolated'] for chunk in dd]:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        df = pd.DataFrame(result)
+        if 'Ones' in df.columns:
+            new_keys = list(df.columns)
+            new_keys[new_keys.index('Ones')] = '1'
+            df.columns = new_keys
+
+        self.interp_df = df
+
+        keys = list(df.keys())
+        if 'timestamp' in keys:
+            timestamp_index = keys.index('timestamp')
+        for index, key in enumerate(df.keys()):
+            if index != timestamp_index:
+                self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
+        self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+
+
     def interpolate(self, key_base = 'i0'):
         min_timestamp = max([self.arrays.get(key).iloc[0, 0] for key in self.arrays])
-        max_timestamp = min([self.arrays.get(key).iloc[len(self.arrays.get(key)) - 1, 0] for key in 
+        max_timestamp = min([self.arrays.get(key).iloc[len(self.arrays.get(key)) - 1, 0] for key in
                              self.arrays if len(self.arrays.get(key).iloc[:, 0]) > 5])
-        
+
         try:
             if key_base not in self.arrays.keys():
                 raise ValueError('Could not find "{}" in the loaded scan. Pick another key_base for the interpolation.'.format(key_base))
         except ValueError as err:
             print(err.args[0], '\nAborted...')
             return
-        
+
         timestamps = self.arrays[key_base].iloc[:,0]
-        
+
         condition = timestamps < min_timestamp
         timestamps = timestamps[np.sum(condition):]
-        
+
         condition = timestamps > max_timestamp
         timestamps = timestamps[: len(timestamps) - np.sum(condition)]
 
         #time = [np.mean(array) for array in np.array_split(self.arrays[key_base][:,0], len(timestamps))]
-        
+
         for key in self.arrays.keys():
             if len(self.arrays.get(key).iloc[:, 0]) > 5 * len(timestamps):
                 time = [np.mean(array) for array in np.array_split(self.arrays.get(key).iloc[:, 0].values, len(timestamps))]
@@ -215,7 +246,7 @@ class XASdataGeneric(XASdata):
                 self.interp_arrays[key] = np.array([timestamps, np.interp(timestamps, self.arrays.get(key).iloc[:,0].values, self.arrays.get(key).iloc[:,1])]).transpose()
         self.interp_arrays['1'] = np.array([timestamps, np.ones(len(self.interp_arrays[list(self.interp_arrays.keys())[0]]))]).transpose()
         self.interp_df = pd.DataFrame(np.vstack((timestamps, np.array([self.interp_arrays[array][:, 1] for
-                                                array in self.interp_arrays]))).transpose())
+                                                                       array in self.interp_arrays]))).transpose())
         keys = ['timestamp']
         keys.extend(self.interp_arrays.keys())
         self.interp_df.columns = keys
@@ -300,20 +331,20 @@ class XASdataGeneric(XASdata):
                    fmt=fmt,
                    delimiter=" ",
                    header = header,
-                   comments = '# Year: {}\n'\
-                              '# Cycle: {}\n'\
-                              '# SAF: {}\n'\
-                              '# PI: {}\n'\
-                              '# PROPOSAL: {}\n'\
-                              '# Scan ID: {}\n'\
-                              '# UID: {}\n'\
-                              '# Comment: {}\n'\
-                              '# Trajectory name: {}\n'\
-                              '# Element: {}\n'\
-                              '# Edge: {}\n'\
-                              '# E0: {}\n'\
-                              '# Start time: {}\n'\
-                              '# Stop time: {}\n'\
+                   comments = '# Year: {}\n' \
+                              '# Cycle: {}\n' \
+                              '# SAF: {}\n' \
+                              '# PI: {}\n' \
+                              '# PROPOSAL: {}\n' \
+                              '# Scan ID: {}\n' \
+                              '# UID: {}\n' \
+                              '# Comment: {}\n' \
+                              '# Trajectory name: {}\n' \
+                              '# Element: {}\n' \
+                              '# Edge: {}\n' \
+                              '# E0: {}\n' \
+                              '# Start time: {}\n' \
+                              '# Stop time: {}\n' \
                               '# Total time: {}\n#\n# '.format(year,
                                                                cycle,
                                                                saf,
@@ -429,8 +460,8 @@ class XASdataGeneric(XASdata):
             for string in possibilities:
                 if string in self.interp_df.keys():
                     return string
-            raise ValueError('Could not find energy'\
-                             ' in the header of the'\
+            raise ValueError('Could not find energy' \
+                             ' in the header of the' \
                              ' loaded scan. Sorry for that.')
         except ValueError as err:
             print(err.args[0], '\nAborted...')
@@ -447,16 +478,16 @@ class XASdataGeneric(XASdata):
             elif 'En. (eV)' in self.interp_df.keys():
                 energy_string = 'En. (eV)'
             else:
-                raise ValueError('Could not find energy'\
-                                 ' in the header of the'\
+                raise ValueError('Could not find energy' \
+                                 ' in the header of the' \
                                  ' loaded scan. Sorry for that.')
         except ValueError as err:
             print(err.args[0], '\nAborted...')
             return -1
 
         return self.data_manager.process_equal(self.interp_df,
-                                            energy_string = energy_string,
-                                            delta_en = en_spacing)
+                                               energy_string = energy_string,
+                                               delta_en = en_spacing)
 
     def bin(self, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk):
 
@@ -467,17 +498,17 @@ class XASdataGeneric(XASdata):
             elif 'En. (eV)' in self.interp_df.keys():
                 energy_string = 'En. (eV)'
             else:
-                raise ValueError('Could not find energy'\
-                                 ' in the header of the'\
+                raise ValueError('Could not find energy' \
+                                 ' in the header of the' \
                                  ' loaded scan. Sorry for that.')
         except ValueError as err:
             print(err.args[0], '\nAborted...')
-            return    
+            return
 
         return self.data_manager.process(self.interp_df,
-                                             e0, edge_start, edge_end,
-                                             preedge_spacing, xanes, 
-                                             exafsk, energy_string = energy_string)
+                                         e0, edge_start, edge_end,
+                                         preedge_spacing, xanes,
+                                         exafsk, energy_string = energy_string)
 
 
 
