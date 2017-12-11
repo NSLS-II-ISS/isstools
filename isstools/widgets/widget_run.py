@@ -61,6 +61,9 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.run_type.currentIndexChanged.connect(self.populateParams)
 
+        # List with uids of scans created in the "run" mode:
+        self.run_mode_uids = []
+
         self.params1 = []
         self.params2 = []
         self.params3 = []
@@ -75,25 +78,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
 
         self.receiving_thread = ReceivingThread(self)
-        self.receiving_thread.received_data.connect(self.plot_scan)
+        self.receiving_thread.received_interp_data.connect(self.plot_scan)
         self.receiving_thread.start()
-
-    def plot_scan(self, data):
-        self.figure.ax.clear()
-        self.toolbar._views.clear()
-        self.toolbar._positions.clear()
-        self.toolbar._update_view()
-
-        df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
-        df = df.sort_values('energy')
-        self.df = df
-
-        division = df['i0']/df['it']
-        division[division < 0] = 1
-        self.figure.ax.plot(df['energy'], np.log(division))
-        self.canvas.draw_idle()
-
-        self.create_log_scan(data['uid'], self.figure)
 
     def addCanvas(self):
         self.figure = Figure()
@@ -165,8 +151,10 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.canvas.draw_idle()
 
             # Run the scan using the dict created before
+            self.run_mode_uids = []
+            self.parent_gui.run_mode = 'run'
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
-                pass
+                self.run_mode_uids.append(uid)
 
         else:
             print('\nPlease, type the name of the scan in the field "name"\nTry again')
@@ -269,9 +257,28 @@ class UIRun(*uic.loadUiType(ui_path)):
     def setXiaSampTime(self, text):
         self.xia_samp_time = text
 
+    def plot_scan(self, data):
+        if self.parent_gui.run_mode == 'run':
+            self.figure.ax.clear()
+            self.toolbar._views.clear()
+            self.toolbar._positions.clear()
+            self.toolbar._update_view()
+
+            df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+            df = df.sort_values('energy')
+            self.df = df
+
+            division = df['i0']/df['it']
+            division[division < 0] = 1
+            self.figure.ax.plot(df['energy'], np.log(division))
+            self.canvas.draw_idle()
+
+            self.create_log_scan(data['uid'], self.figure)
+
 
 class ReceivingThread(QThread):
-    received_data = QtCore.pyqtSignal(object)
+    received_interp_data = QtCore.pyqtSignal(object)
+    received_bin_data = QtCore.pyqtSignal(object)
     def __init__(self, gui):
         QThread.__init__(self)
         self.setParent(gui)
@@ -284,4 +291,6 @@ class ReceivingThread(QThread):
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':
-                    self.received_data.emit(data)
+                    self.received_interp_data.emit(data)
+                if data['processing_ret']['type'] == 'bin':
+                    self.received_bin_data.emit(data)

@@ -165,7 +165,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                        self.adc_list, self.enc_list, self.xia,
                                                                        self.run_prep_traj,
                                                                        self.widget_run.figure,
-                                                                       self.widget_run.create_log_scan, sample_stages=self.sample_stages)
+                                                                       self.widget_run.create_log_scan,
+                                                                       sample_stages=self.sample_stages,
+                                                                       parent_gui = self)
                 self.layout_batch.addWidget(self.widget_batch_mode)
 
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
