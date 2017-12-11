@@ -13,7 +13,7 @@ import h5py
 from pathlib import Path
 
 class XASdata:
-    def __init__(self, **kwargs):
+    def __init__(self, db = None, **kwargs):
         self.energy = np.array([])
         self.data = np.array([])
         self.encoder_file = ''
@@ -23,6 +23,7 @@ class XASdata:
         self.iff_file = ''
         self.data_manager = XASDataManager()
         self.header_read = ''
+        self.db = db
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'counter', 'adc']
@@ -36,6 +37,21 @@ class XASdata:
         else:
             return -1
 
+    def loadADCtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df['adc'] = df['adc'].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+        return df
 
     def loadENCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
@@ -46,6 +62,22 @@ class XASdata:
             return df.iloc[:, [5, 2]]
         else:
             return -1
+
+    def loadENCtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df['encoder'] = df['encoder'].apply(lambda x: x if x <= 0 else -(x ^ 0xffffff - 1))
+        return df.iloc[:, [5, 2]]
 
 
     def loadTRIGtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
@@ -58,6 +90,22 @@ class XASdata:
             return df.iloc[:, [5, 3]]
         else:
             return -1
+
+    def loadTRIGtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df = df.iloc[::2]
+        return df.iloc[:, [5, 3]]
 
 
     def read_header(self, filename):
@@ -119,6 +167,43 @@ class XASdataGeneric(XASdata):
             energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
                 energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg, -float(self.db[uid]['start']['angle_offset']))
+                energy.columns = ['timestamp', 'energy']
+            del self.arrays[has_encoder]
+            self.arrays['energy'] = energy
+
+    def loadDB(self, uid):
+        # if self.db is None:
+        #    raise Exception('The databroker was not passed as argument to the parser. This feature is disabled.')
+        self.arrays = {}
+        self.interp_arrays = {}
+        self.uid = uid
+        has_encoder = False
+        for i in self.db[uid]['descriptors']:
+            stream_name = i['name']
+            name = i['name']
+            if name == 'pb9_enc1' or name == 'hhm_theta':
+                has_encoder = name
+            if 'devname' in i['data_keys'][i['name']]:
+                name = i['data_keys'][i['name']]['devname']
+                if name == 'hhm_theta':
+                    has_encoder = name
+
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
+                data = self.loadTRIGtraceDB(uid, stream_name)
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
+                data = self.loadADCtraceDB(uid, stream_name)
+                if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == pd.core.frame.DataFrame:
+                    data.iloc[:, 1] = data.iloc[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
+                data = self.loadENCtraceDB(uid, stream_name)
+            # if type(data) == np.ndarray:
+            self.arrays[name] = data
+
+        if has_encoder is not False:
+            energy = self.arrays.get(has_encoder).copy()
+            if 'angle_offset' in self.db[uid]['start']:
+                energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg,
+                                                        -float(self.db[uid]['start']['angle_offset']))
                 energy.columns = ['timestamp', 'energy']
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
@@ -200,8 +285,8 @@ class XASdataGeneric(XASdata):
         if self.db_analysis is None:
             raise IOError('No db_analysis was passed to the parser in the initialization')
 
-        hdr = db_analysis[uid]
-        dd = [_['data'] for _ in db_analysis.get_events(hdr, stream_name='interpolated', fill=True)]
+        hdr = self.db_analysis[uid]
+        dd = [_['data'] for _ in self.db_analysis.get_events(hdr, stream_name='interpolated', fill=True)]
         result = {}
         for chunk in [chunk['interpolated'] for chunk in dd]:
             for key in chunk.keys():
