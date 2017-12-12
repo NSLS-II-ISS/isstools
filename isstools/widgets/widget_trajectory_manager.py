@@ -55,8 +55,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.comboBox_slot_to_init_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
         self.comboBox_slot_to_init_trajectory.setCurrentIndex(self.traj_manager.current_lut() - 1)
         try:
-            self.trajectories = self.traj_manager.read_info(silent=True)
-            self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
+            pass
+        #    self.trajectories = self.traj_manager.read_info(silent=True)
+        #    self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
         except OSError as err:
             print('Error loading:', err)
 

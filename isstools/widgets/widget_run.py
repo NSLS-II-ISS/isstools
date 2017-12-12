@@ -73,12 +73,13 @@ class UIRun(*uic.loadUiType(ui_path)):
         # ZMQ communication
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://localhost:5562")
+        self.subscriber.connect("tcp://xf08id-srv1:5562")
         self.hostname_filter = socket.gethostname()
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
 
         self.receiving_thread = ReceivingThread(self)
         self.receiving_thread.received_interp_data.connect(self.plot_scan)
+        self.receiving_thread.received_bin_data.connect(self.parent_gui.widget_processing.plot_bin_data)
         self.receiving_thread.start()
 
     def addCanvas(self):

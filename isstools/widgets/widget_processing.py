@@ -11,6 +11,8 @@ import collections
 import time as ttime
 import warnings
 from ophyd import utils as ophyd_utils
+import pandas as pd
+import json
 
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
@@ -423,6 +425,30 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 if (line.get_color()[0] == 1 and line.get_color()[2] == 0) or (line.get_color() == 'r'):
                     line.set_zorder(3)
             self.canvas_old_scans_3.draw_idle()
+
+    def plot_bin_data(self, data):
+        self.figure_old_scans_3.ax.clear()
+        self.figure_old_scans_3.ax2.clear()
+        self.toolbar_old_scans_3._views.clear()
+        self.toolbar_old_scans_3._positions.clear()
+        self.toolbar_old_scans_3._update_view()
+        self.canvas_old_scans_3.draw_idle()
+
+        df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+        df = df.sort_values('energy')
+        self.df = df
+
+        division = df[self.last_num_text] / df[self.last_den_text]
+
+        if self.checkBox_log.checkState() > 0:
+            division[division < 0] = 1
+            division = np.log(division)
+
+        if self.checkBox_neg.checkState() > 0:
+            division = -division
+
+        self.figure_old_scans_3.ax.plot(df['energy'], division)
+        self.canvas_old_scans_3.draw_idle()
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,
