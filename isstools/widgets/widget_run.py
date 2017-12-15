@@ -12,10 +12,7 @@ import time as ttime
 import numpy as np
 
 # Libs needed by the ZMQ communication
-import zmq
 import json
-import socket
-from PyQt5.QtCore import QThread
 import pandas as pd
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
@@ -69,18 +66,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.params3 = []
         if len(self.plan_funcs) != 0:
             self.populateParams(0)
-
-        # ZMQ communication
-        self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://xf08id-srv1:5562")
-        self.hostname_filter = socket.gethostname()
-        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
-
-        self.receiving_thread = ReceivingThread(self)
-        self.receiving_thread.received_interp_data.connect(self.plot_scan)
-        self.receiving_thread.received_bin_data.connect(self.parent_gui.widget_processing.plot_bin_data)
-        self.receiving_thread.start()
 
     def addCanvas(self):
         self.figure = Figure()
@@ -277,21 +262,3 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.create_log_scan(data['uid'], self.figure)
 
 
-class ReceivingThread(QThread):
-    received_interp_data = QtCore.pyqtSignal(object)
-    received_bin_data = QtCore.pyqtSignal(object)
-    def __init__(self, gui):
-        QThread.__init__(self)
-        self.setParent(gui)
-
-    def run(self):
-        while True:
-            message = self.parent().subscriber.recv().decode('utf-8')
-            message = message[len(self.parent().hostname_filter):]
-            data = json.loads(message)
-
-            if data['type'] == 'spectroscopy':
-                if data['processing_ret']['type'] == 'interpolate':
-                    self.received_interp_data.emit(data)
-                if data['processing_ret']['type'] == 'bin':
-                    self.received_bin_data.emit(data)

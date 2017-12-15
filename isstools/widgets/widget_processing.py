@@ -13,6 +13,7 @@ import warnings
 from ophyd import utils as ophyd_utils
 import pandas as pd
 import json
+import socket
 
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
@@ -24,6 +25,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                  hhm,
                  db,
                  det_dict,
+                 sender,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -34,6 +36,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.db = db
         self.det_dict = det_dict
         self.gen_parser = xasdata.XASdataGeneric(self.hhm.pulses_per_deg, self.db)
+        self.sender = sender
 
         self.settings = QSettings('ISS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
@@ -46,7 +49,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.push_save_bin.clicked.connect(self.save_bin)
         self.push_calibrate.clicked.connect(self.calibrate_offset)
         self.push_replot_exafs.clicked.connect(self.update_k_view)
-        self.push_replot_file.clicked.connect(self.replot_bin_equal)
+        self.push_replot_file.clicked.connect(self.replot_data)
+        self.push_reset_data.clicked.connect(self.reset_data_plots)
         self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
         self.edge_found = -1
         # Disable buttons
@@ -62,6 +66,10 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.last_den = ''
         self.last_num_text = 'i0'
         self.last_den_text = 'it'
+        self.bin_data_sets = []
+        self.interp_data_sets = []
+        self.handles_interp = []
+        self.handles_bin = []
 
     def addCanvas(self):
         self.figure_old_scans = Figure()
@@ -119,21 +127,28 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         else:
             self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
         if len(self.selected_filename_bin[0]):
+            self.handles_interp = []
+            self.handles_bin = []
+            self.interp_data_sets = []
+            self.bin_data_sets = []
+            self.uids = []
             if len(self.selected_filename_bin) > 1:
                 filenames = []
                 self.user_dir = self.selected_filename_bin[0].rsplit('/', 1)[0]
                 for name in self.selected_filename_bin:
                     filenames.append(name.rsplit('/', 1)[1])
+                    self.uids.append(self.gen_parser.read_header(name).split('UID: ')[1].split('\n')[0])
                 filenames = ', '.join(filenames)
             elif len(self.selected_filename_bin) == 1:
                 filenames = self.selected_filename_bin[0]
                 self.user_dir = filenames.rsplit('/', 1)[0]
+                self.uids.append(self.gen_parser.read_header(filenames).split('UID: ')[1].split('\n')[0])
 
             self.settings.setValue('user_dir', self.user_dir)
             self.label_24.setText(filenames)
             self.process_bin_equal()
 
-    def update_listWidgets(self):  # , value_num, value_den):
+    def update_listWidgets(self):
         index = [index for index, item in enumerate(
             [self.listWidget_numerator.item(index) for index in range(self.listWidget_numerator.count())]) if
                  item.text() == self.last_num_text]
@@ -198,7 +213,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.toolbar_old_scans_3._update_view()
         self.canvas_old_scans_3.draw_idle()
 
-        print('[Launching Threads]')
+        # print('[Launching Threads]')
         if self.listWidget_numerator.currentRow() is not -1:
             self.last_num = self.listWidget_numerator.currentRow()
             self.last_num_text = self.listWidget_numerator.currentItem().text()
@@ -207,8 +222,45 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.last_den_text = self.listWidget_denominator.currentItem().text()
         self.listWidget_numerator.setCurrentRow(-1)
         self.listWidget_denominator.setCurrentRow(-1)
-        t_manager = process_threads_manager(self)
-        t_manager.start()
+
+        e0 = int(self.edit_E0_2.text())
+        edge_start = int(self.edit_edge_start.text())
+        edge_end = int(self.edit_edge_end.text())
+        preedge_spacing = float(self.edit_preedge_spacing.text())
+        xanes_spacing = float(self.edit_xanes_spacing.text())
+        exafs_spacing = float(self.edit_exafs_spacing.text())
+
+        for uid in self.uids:
+            req = {'uid': uid,
+                   'requester': socket.gethostname(),
+                   'type': 'spectroscopy',
+                   'processing_info': {
+                       'type': 'request_interpolated_data',
+                   }
+                  }
+            self.sender.send_string(json.dumps(req))
+
+            if self.checkBox_process_bin.checkState() > 0:
+                req = {'uid': uid,
+                       'requester': socket.gethostname(),
+                       'type': 'spectroscopy',
+                       'processing_info': {
+                           'type': 'bin',
+                           'e0': e0,
+                           'edge_start': edge_start,
+                           'edge_end': edge_end,
+                           'preedge_spacing': preedge_spacing,
+                           'xanes_spacing': xanes_spacing,
+                           'exafs_spacing': exafs_spacing,
+                       }
+                      }
+                self.sender.send_string(json.dumps(req))
+
+
+        #sender sends whatever the processor needs! haha
+
+        # t_manager = process_threads_manager(self)
+        # t_manager.start()
 
     def save_bin(self):
         filename = self.curr_filename_save
@@ -261,125 +313,61 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.figure_old_scans.ax.grid(True)
         self.canvas_old_scans.draw_idle()
 
-    def replot_bin_equal(self):
-        # Erase final plot (in case there is old data there)
-        self.figure_old_scans_3.ax.clear()
-        self.canvas_old_scans_3.draw_idle()
+    def replot_data(self):
+        self.replot(self.bin_data_sets, self.handles_bin, self.figure_old_scans_3, self.toolbar_old_scans_3)
+        self.replot(self.interp_data_sets, self.handles_interp, self.figure_old_scans_2, self.toolbar_old_scans_2)
 
-        self.figure_old_scans.ax.clear()
-        self.canvas_old_scans.draw_idle()
+    def replot(self, list_data_set, handles, figure, toolbar):
+        figure.ax.clear()
+        if hasattr(figure, 'ax2'):
+            figure.ax2.clear()
+        figure.canvas.draw_idle()
+        toolbar._views.clear()
+        toolbar._positions.clear()
+        toolbar._update_view()
 
-        self.figure_old_scans_3.ax.clear()
-        self.figure_old_scans_3.ax2.clear()
-        self.canvas_old_scans_3.draw_idle()
-        self.toolbar_old_scans_3._views.clear()
-        self.toolbar_old_scans_3._positions.clear()
-        self.toolbar_old_scans_3._update_view()
+        if self.listWidget_numerator.currentRow() is not -1:
+            self.last_num = self.listWidget_numerator.currentRow()
+            self.last_num_text = self.listWidget_numerator.currentItem().text()
+        if self.listWidget_denominator.currentRow() is not -1:
+            self.last_den = self.listWidget_denominator.currentRow()
+            self.last_den_text = self.listWidget_denominator.currentItem().text()
 
-        energy_string = self.gen_parser.get_energy_string()
+        energy_string = 'energy'
+        for data in list_data_set:
+            df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data'])).sort_values(energy_string)
+            df = df.sort_values('energy')
+            result = df[self.last_num_text] / df[self.last_den_text]
+            ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
 
-        self.last_num = self.listWidget_numerator.currentRow()
-        self.last_num_text = self.listWidget_numerator.currentItem().text()
-        self.last_den = self.listWidget_denominator.currentRow()
-        self.last_den_text = self.listWidget_denominator.currentItem().text()
+            self.bin_offset = 0
+            if self.checkBox_log.checkState() > 0:
+                ylabel = 'log({})'.format(ylabel)
+                warnings.filterwarnings('error')
+                try:
+                    result_log = np.log(result)
+                except Warning as wrn:
+                    self.bin_offset = 0.1 + np.abs(result.min())
+                    print(
+                        '{}: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(
+                            wrn, self.bin_offset))
+                    result_log = np.log(result + self.bin_offset)
+                    # self.checkBox_log.setChecked(False)
+                warnings.filterwarnings('default')
+                result = result_log
 
-        self.den_offset = 0
+            if self.checkBox_neg.checkState() > 0:
+                result = -result
 
-        array = self.gen_parser.interp_arrays[self.last_den_text][:, 1]
-        if self.last_den_text != '1':
-            det = [det for det in [det for det in self.det_dict if hasattr(det, 'dev_name')] if
-                   det.dev_name.value == self.last_den_text][0]
-            polarity = det.polarity
-            if polarity == 'neg':
-                if sum(array > 0):
-                    array[array > 0] = -array[array > 0]
-                    print('invalid value encountered in denominator! Fixed for visualization')
-            else:
-                if sum(array < 0):
-                    array[array < 0] = -array[array < 0]
-                    print('invalid value encountered in denominator! Fixed for visualization')
+            figure.ax.plot(df[energy_string].iloc[:len(result)], result)
+            figure.ax.set_ylabel(ylabel)
+            figure.ax.set_xlabel(energy_string)
+            figure.tight_layout()
 
-        result = self.gen_parser.interp_arrays[self.last_num_text][:, 1] / (
-        self.gen_parser.interp_arrays[self.last_den_text][:, 1] - self.den_offset)
-        ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
+        figure.ax.legend(handles=handles)
+        figure.tight_layout()
 
-        self.bin_offset = 0
-        if self.checkBox_log.checkState() > 0:
-            ylabel = 'log({})'.format(ylabel)
-            warnings.filterwarnings('error')
-            try:
-                result_log = np.log(result)
-            except Warning as wrn:
-                self.bin_offset = 0.1 + np.abs(result.min())
-                print(
-                    '{}: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(
-                        wrn, self.bin_offset))
-                result_log = np.log(result + self.bin_offset)
-                # self.checkBox_log.setChecked(False)
-            warnings.filterwarnings('default')
-            result = result_log
-
-        if self.checkBox_neg.checkState() > 0:
-            result = -result
-
-        self.figure_old_scans_3.ax.plot(self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)], result, 'b')
-        self.figure_old_scans_3.ax.set_ylabel(ylabel)
-        self.figure_old_scans_3.ax.set_xlabel(energy_string)
-        self.figure_old_scans_3.tight_layout()
-
-        self.figure_old_scans_2.ax.clear()
-        self.figure_old_scans_2.ax2.clear()
-        self.canvas_old_scans_2.draw_idle()
-        self.toolbar_old_scans_2._views.clear()
-        self.toolbar_old_scans_2._positions.clear()
-        self.toolbar_old_scans_2._update_view()
-
-        bin_eq = self.gen_parser.data_manager.binned_eq_arrays
-
-        result = bin_eq[self.listWidget_numerator.currentItem().text()] / bin_eq[
-            self.listWidget_denominator.currentItem().text()]
-        ylabel = '{} / {}'.format(self.listWidget_numerator.currentItem().text(),
-                                  self.listWidget_denominator.currentItem().text())
-
-        if self.checkBox_log.checkState() > 0:
-            ylabel = 'log({})'.format(ylabel)
-            result = np.log(result)
-        ylabel = 'Binned Equally {}'.format(ylabel)
-
-        if self.checkBox_neg.checkState() > 0:
-            result = -result
-
-        self.figure_old_scans_2.ax.plot(bin_eq[energy_string], result, 'b')
-        self.figure_old_scans_2.ax.set_ylabel(ylabel)
-        self.figure_old_scans_2.ax.set_xlabel(energy_string)
-        self.figure_old_scans_2.tight_layout()
-
-        if self.checkBox_find_edge.checkState() > 0:
-            self.edge_index = self.gen_parser.data_manager.get_edge_index(result)
-            if self.edge_index > 0:
-                x_edge = self.gen_parser.data_manager.en_grid_eq[self.edge_index]
-                y_edge = result[self.edge_index]
-
-                self.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                edge_path = mpatches.Patch(facecolor='y', edgecolor='black', label='Edge')
-                self.figure_old_scans_2.ax.legend(handles=[edge_path])
-                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(x_edge, y_edge), xy=(x_edge, y_edge),
-                                                    textcoords='data')
-                print('Edge: ' + str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.edge_index]))))
-                self.edit_E0_2.setText(str(int(np.round(self.gen_parser.data_manager.en_grid_eq[self.edge_index]))))
-        else:
-            self.edge_index = -1
-
-        result_der = self.gen_parser.data_manager.get_derivative(result)
-        self.figure_old_scans_2.ax2.plot(bin_eq[energy_string], result_der, 'r')
-        self.figure_old_scans_2.ax2.set_ylabel('Derivative')
-        self.figure_old_scans_2.ax2.set_xlabel(energy_string)
-
-        self.canvas_old_scans_3.draw_idle()
-        self.canvas_old_scans_2.draw_idle()
-
-        self.push_replot_exafs.setDisabled(True)
-        self.push_save_bin.setDisabled(True)
+        figure.canvas.draw_idle()
 
     def reset_processing_tab(self):
         self.active_threads -= 1
@@ -426,17 +414,14 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                     line.set_zorder(3)
             self.canvas_old_scans_3.draw_idle()
 
-    def plot_bin_data(self, data):
-        self.figure_old_scans_3.ax.clear()
-        self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3._views.clear()
-        self.toolbar_old_scans_3._positions.clear()
-        self.toolbar_old_scans_3._update_view()
-        self.canvas_old_scans_3.draw_idle()
-
+    def plot_data(self, data):
         df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
+        self.bin_data_sets.append(data)
+        self.create_lists(df.keys(), df.keys())
+        self.update_listWidgets()
+        self.push_replot_file.setEnabled(True)
 
         division = df[self.last_num_text] / df[self.last_den_text]
 
@@ -448,7 +433,74 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             division = -division
 
         self.figure_old_scans_3.ax.plot(df['energy'], division)
+
+        last_trace = self.figure_old_scans_3.ax.get_lines()[len(self.figure_old_scans_3.ax.get_lines()) - 1]
+        patch = mpatches.Patch(color=last_trace.get_color(), label=data['processing_ret']['metadata']['name'])
+        self.handles_bin.append(patch)
+
+        self.figure_old_scans_3.ax.legend(handles=self.handles_bin)
+        self.figure_old_scans_3.tight_layout()
         self.canvas_old_scans_3.draw_idle()
+
+    def plot_interp_data(self, data):
+        df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+        df = df.sort_values('energy')
+        self.df = df
+        self.interp_data_sets.append(data)
+        self.create_lists(df.keys(), df.keys())
+        self.update_listWidgets()
+        self.push_replot_file.setEnabled(True)
+
+        division = df[self.last_num_text] / df[self.last_den_text]
+
+        if self.checkBox_log.checkState() > 0:
+            division[division < 0] = 1
+            division = np.log(division)
+
+        if self.checkBox_neg.checkState() > 0:
+            division = -division
+
+        self.figure_old_scans_2.ax.plot(df['energy'], division)
+
+        last_trace = self.figure_old_scans_2.ax.get_lines()[len(self.figure_old_scans_2.ax.get_lines()) - 1]
+        patch = mpatches.Patch(color=last_trace.get_color(), label=data['processing_ret']['metadata']['name'])
+        self.handles_interp.append(patch)
+
+        self.figure_old_scans_2.ax.legend(handles=self.handles_interp)
+        self.figure_old_scans_2.tight_layout()
+        self.canvas_old_scans_2.draw_idle()
+
+    def erase_plots(self):
+        self.figure_old_scans.ax.clear()
+        self.toolbar_old_scans._views.clear()
+        self.toolbar_old_scans._positions.clear()
+        self.toolbar_old_scans._update_view()
+        self.canvas_old_scans.draw_idle()
+
+        self.figure_old_scans_2.ax.clear()
+        self.figure_old_scans_2.ax2.clear()
+        self.toolbar_old_scans_2._views.clear()
+        self.toolbar_old_scans_2._positions.clear()
+        self.toolbar_old_scans_2._update_view()
+        self.canvas_old_scans_2.draw_idle()
+
+        self.figure_old_scans_3.ax.clear()
+        self.figure_old_scans_3.ax2.clear()
+        self.toolbar_old_scans_3._views.clear()
+        self.toolbar_old_scans_3._positions.clear()
+        self.toolbar_old_scans_3._update_view()
+        self.canvas_old_scans_3.draw_idle()
+
+    def reset_data_plots(self):
+        self.push_replot_file.setEnabled(False)
+        self.listWidget_numerator.clear()
+        self.listWidget_denominator.clear()
+        self.bin_data_sets = []
+        self.interp_data_sets = []
+        self.handles_interp = []
+        self.handles_bin = []
+        self.df = pd.DataFrame([])
+        self.erase_plots()
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,

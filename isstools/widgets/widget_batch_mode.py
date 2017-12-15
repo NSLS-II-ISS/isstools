@@ -63,8 +63,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.sample_stages = sample_stages
         self.parent_gui = parent_gui
 
-        self.parent_gui.widget_run.receiving_thread.received_bin_data.connect(self.plot_batches)
-
         self.batch_mode_uids = []
         self.treeView_batch = elements.TreeView(self, 'all')
         self.treeView_samples_loop = elements.TreeView(self, 'sample')

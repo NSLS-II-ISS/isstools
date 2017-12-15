@@ -12,6 +12,11 @@ from isstools.widgets import (widget_general_info, widget_trajectory_manager, wi
                               widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements import EmittingStream
+#Libs for ZeroMQ communication
+import socket
+from PyQt5.QtCore import QThread
+import zmq
+import json
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -78,6 +83,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.sample_stages = []
 
+        if 'processing_sender' in kwargs:
+            self.sender = kwargs['processing_sender']
+            del kwargs['processing_sender']
+        else:
+            self.sender = None
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -122,6 +133,14 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.progress_sig.connect(self.update_progressbar)
             self.progressBar.setValue(0)
 
+        # Activating ZeroMQ Receiving Socket
+        self.context = zmq.Context()
+        self.subscriber = self.context.socket(zmq.SUB)
+        self.subscriber.connect("tcp://xf08id-srv1:5562")
+        self.hostname_filter = socket.gethostname()
+        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        self.receiving_thread = ReceivingThread(self)
+
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
         matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
@@ -152,12 +171,16 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
             self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
-        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict)
+        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, self.sender)
         self.layout_processing.addWidget(self.widget_processing)
+        self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
+        self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
+
         if self.RE is not None:
             self.widget_run = widget_run.UIRun(self.plan_funcs, db, shutters_dict, self.adc_list, self.enc_list,
                                                self.xia, self.html_log_func, self)
             self.layout_run.addWidget(self.widget_run)
+            self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
             if self.hhm is not None:
                 self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
@@ -169,6 +192,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                        sample_stages=self.sample_stages,
                                                                        parent_gui = self)
                 self.layout_batch.addWidget(self.widget_batch_mode)
+                self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
 
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
 
@@ -188,6 +212,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.filepaths = []
 
         self.push_re_abort.clicked.connect(self.re_abort)
+
+        # After connecting signals to slots, start receiving thread
+        self.receiving_thread.start()
 
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream.EmittingStream(self.textEdit_terminal)
@@ -227,3 +254,26 @@ class ScanGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
+
+
+class ReceivingThread(QThread):
+    received_interp_data = QtCore.pyqtSignal(object)
+    received_bin_data = QtCore.pyqtSignal(object)
+    received_req_interp_data = QtCore.pyqtSignal(object)
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.setParent(gui)
+
+    def run(self):
+        while True:
+            message = self.parent().subscriber.recv().decode('utf-8')
+            message = message[len(self.parent().hostname_filter):]
+            data = json.loads(message)
+
+            if data['type'] == 'spectroscopy':
+                if data['processing_ret']['type'] == 'interpolate':
+                    self.received_interp_data.emit(data)
+                if data['processing_ret']['type'] == 'bin':
+                    self.received_bin_data.emit(data)
+                if data['processing_ret']['type'] == 'request_interpolated_data':
+                    self.received_req_interp_data.emit(data)
