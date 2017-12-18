@@ -228,7 +228,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.toolbar_batch_average._update_view()
             self.canvas_batch_average.draw_idle()
 
-            df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
 

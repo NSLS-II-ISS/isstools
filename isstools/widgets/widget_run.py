@@ -250,7 +250,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.toolbar._positions.clear()
             self.toolbar._update_view()
 
-            df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
 

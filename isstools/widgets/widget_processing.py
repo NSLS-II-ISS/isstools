@@ -335,7 +335,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         energy_string = 'energy'
         for data in list_data_set:
-            df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data'])).sort_values(energy_string)
+            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data'])).sort_values(energy_string)
             df = df.sort_values('energy')
             result = df[self.last_num_text] / df[self.last_den_text]
             ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
@@ -415,7 +416,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.canvas_old_scans_3.draw_idle()
 
     def plot_data(self, data):
-        df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+        df = pd.read_msgpack(data['processing_ret']['data'])
+        #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
         self.bin_data_sets.append(data)
@@ -443,7 +445,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_3.draw_idle()
 
     def plot_interp_data(self, data):
-        df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+        df = pd.read_msgpack(data['processing_ret']['data'])
+        #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
         self.interp_data_sets.append(data)

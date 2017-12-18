@@ -16,7 +16,7 @@ from isstools.elements import EmittingStream
 import socket
 from PyQt5.QtCore import QThread
 import zmq
-import json
+import pickle
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -266,9 +266,10 @@ class ReceivingThread(QThread):
 
     def run(self):
         while True:
-            message = self.parent().subscriber.recv().decode('utf-8')
+            message = self.parent().subscriber.recv()
             message = message[len(self.parent().hostname_filter):]
-            data = json.loads(message)
+            data = pickle.loads(message)
+            #data = json.loads(message)
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':
