@@ -146,7 +146,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
             self.settings.setValue('user_dir', self.user_dir)
             self.label_24.setText(filenames)
-            self.process_bin_equal()
+            self.send_data_request()
 
     def update_listWidgets(self):
         index = [index for index, item in enumerate(
@@ -187,7 +187,30 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             int(np.round(100 * (self.total_threads - self.active_threads) / self.total_threads)))
         process_thread.start()
 
-    def process_bin_equal(self):
+    def send_bin_request(self, uid):
+        e0 = int(self.edit_E0_2.text())
+        edge_start = int(self.edit_edge_start.text())
+        edge_end = int(self.edit_edge_end.text())
+        preedge_spacing = float(self.edit_preedge_spacing.text())
+        xanes_spacing = float(self.edit_xanes_spacing.text())
+        exafs_spacing = float(self.edit_exafs_spacing.text())
+        req = {'uid': uid,
+               'requester': socket.gethostname(),
+               'type': 'spectroscopy',
+               'processing_info': {
+                   'type': 'bin',
+                   'e0': e0,
+                   'edge_start': edge_start,
+                   'edge_end': edge_end,
+                   'preedge_spacing': preedge_spacing,
+                   'xanes_spacing': xanes_spacing,
+                   'exafs_spacing': exafs_spacing,
+                }
+               }
+        self.sender.send_string(json.dumps(req))
+
+
+    def send_data_request(self):
         index = 1
         self.old_scans_control = 1
         self.old_scans_2_control = 1
@@ -223,13 +246,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.listWidget_numerator.setCurrentRow(-1)
         self.listWidget_denominator.setCurrentRow(-1)
 
-        e0 = int(self.edit_E0_2.text())
-        edge_start = int(self.edit_edge_start.text())
-        edge_end = int(self.edit_edge_end.text())
-        preedge_spacing = float(self.edit_preedge_spacing.text())
-        xanes_spacing = float(self.edit_xanes_spacing.text())
-        exafs_spacing = float(self.edit_exafs_spacing.text())
-
         for uid in self.uids:
             req = {'uid': uid,
                    'requester': socket.gethostname(),
@@ -241,26 +257,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.sender.send_string(json.dumps(req))
 
             if self.checkBox_process_bin.checkState() > 0:
-                req = {'uid': uid,
-                       'requester': socket.gethostname(),
-                       'type': 'spectroscopy',
-                       'processing_info': {
-                           'type': 'bin',
-                           'e0': e0,
-                           'edge_start': edge_start,
-                           'edge_end': edge_end,
-                           'preedge_spacing': preedge_spacing,
-                           'xanes_spacing': xanes_spacing,
-                           'exafs_spacing': exafs_spacing,
-                       }
-                      }
-                self.sender.send_string(json.dumps(req))
-
-
-        #sender sends whatever the processor needs! haha
-
-        # t_manager = process_threads_manager(self)
-        # t_manager.start()
+                self.send_bin_request(uid)
 
     def save_bin(self):
         filename = self.curr_filename_save
@@ -515,317 +512,3 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             return False
         else:
             return False
-
-# Bin threads:
-
-class process_bin_thread(QThread):
-    def __init__(self, gui, index=1, parent_thread=None, parser=None):
-        QThread.__init__(self)
-        self.gui = gui
-        self.parent_thread = parent_thread
-        self.index = index
-        if parser is None:
-            self.gen_parser = self.gui.gen_parser
-        else:
-            self.gen_parser = parser
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        print("[Binning Thread {}] Checking Parent Thread".format(self.index))
-        if self.parent_thread is not None:
-            print("[Binning Thread {}] Parent Thread exists. Waiting...".format(self.index))
-            while (self.parent_thread.isFinished() == False):
-                QtCore.QCoreApplication.processEvents()
-                pass
-
-        # Plot equal spacing bin
-        e0 = int(self.gui.edit_E0_2.text())
-        edge_start = int(self.gui.edit_edge_start.text())
-        edge_end = int(self.gui.edit_edge_end.text())
-        preedge_spacing = float(self.gui.edit_preedge_spacing.text())
-        xanes_spacing = float(self.gui.edit_xanes_spacing.text())
-        exafs_spacing = float(self.gui.edit_exafs_spacing.text())
-        k_power = float(self.gui.edit_y_power.text())
-
-        binned = self.gen_parser.bin(e0,
-                                     e0 + edge_start,
-                                     e0 + edge_end,
-                                     preedge_spacing,
-                                     xanes_spacing,
-                                     exafs_spacing)
-
-        warnings.filterwarnings('error')
-        try:
-            # print(self.gui.bin_offset)
-            result = (binned[self.gui.last_num_text] / (
-            binned[self.gui.last_den_text] - self.gui.den_offset)) + self.gui.bin_offset
-        except Warning as wrn:
-            print('{}: This is not supposed to happen. If it is plotting properly, ignore this message.'.format(wrn))
-            # self.gui.checkBox_log.setChecked(False)
-        warnings.filterwarnings('default')
-
-        result = binned[self.gui.last_num_text] / binned[self.gui.last_den_text]
-        result_orig = (self.gen_parser.data_manager.data_arrays[self.gui.last_num_text] / self.gen_parser.data_manager.data_arrays[self.gui.last_den_text]) + self.gui.bin_offset
-        ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
-
-        if self.gui.checkBox_log.checkState() > 0:
-            ylabel = 'log({})'.format(ylabel)
-            result = np.log(result)
-            result_orig = np.log(result_orig)
-        ylabel = 'Binned {}'.format(ylabel)
-
-        if self.gui.checkBox_neg.checkState() > 0:
-            result = -result
-            result_orig = -result_orig
-
-        energy_string = self.gen_parser.get_energy_string()
-
-        plot_info = [binned[energy_string][:len(result)],
-                     result,
-                     'r',
-                     energy_string,
-                     ylabel,
-                     self.gui.figure_old_scans_3.ax,
-                     self.gui.canvas_old_scans_3]
-        self.gui.plotting_list.append(plot_info)
-
-        if self.gui.checkBox_der.checkState() > 0:
-            result_der = self.gen_parser.data_manager.get_derivative(result)
-            plot_info = [binned[energy_string][:len(result_der)],
-                         result_der,
-                         'g',
-                         energy_string,
-                         ylabel,
-                         self.gui.figure_old_scans_3.ax2,
-                         self.gui.canvas_old_scans_3]
-            self.gui.plotting_list.append(plot_info)
-
-        k_data = self.gen_parser.data_manager.get_k_data(e0,
-                                                         edge_end,
-                                                         exafs_spacing,
-                                                         result,
-                                                         self.gen_parser.interp_arrays,
-                                                         self.gen_parser.data_manager.data_arrays[energy_string],
-                                                         result_orig,
-                                                         k_power,
-                                                         energy_string)
-
-        plot_info = [k_data[0][:len(k_data[1])], k_data[1], '', 'k', r'$\kappa$ * k ^ {}'.format(k_power),
-                     self.gui.figure_old_scans.ax, self.gui.canvas_old_scans]
-        self.gui.plotting_list.append(plot_info)
-
-        self.gui.push_replot_exafs.setEnabled(True)
-        self.gui.push_save_bin.setEnabled(True)
-
-        if self.gui.checkBox_process_bin.checkState() > 0:
-            filename = self.gen_parser.curr_filename_save
-            self.gen_parser.data_manager.export_dat(filename)
-            print('[Binning Thread {}] File Saved! [{}]'.format(self.index, filename[:-3] + 'dat'))
-
-        print('[Binning Thread {}] Done'.format(self.index))
-
-
-class process_bin_thread_equal(QThread):
-    update_listWidgets = QtCore.pyqtSignal()  # list, list)
-    create_lists = QtCore.pyqtSignal(list, list)
-
-    def __init__(self, gui, filename, index=1):
-        QThread.__init__(self)
-        self.gui = gui
-        self.index = index
-        print(filename)
-        self.filename = filename
-        self.gen_parser = xasdata.XASdataGeneric(gui.hhm.pulses_per_deg, gui.db)
-        self.gen_parser.curr_filename_save = filename
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        print('[Binning Equal Thread {}] Starting...'.format(self.index))
-        self.gen_parser.loadInterpFile(self.filename)
-
-        ordered_dict = collections.OrderedDict(sorted(self.gen_parser.interp_arrays.items()))
-        self.create_lists.emit(list(ordered_dict.keys()), list(ordered_dict.keys()))
-        # while(self.gui.listWidget_denominator.count() == 0 or self.gui.listWidget_numerator.count() == 0):
-        # print('stuck here')
-        # self.gui.app.processEvents()
-        # QtCore.QCoreApplication.processEvents()
-        # QtWidgets.QApplication.instance().processEvents()
-        # ttime.sleep(0.1)
-        # self.gui.app.processEvents()
-
-        if not (self.gui.last_num_text in ordered_dict.keys() and self.gui.last_den_text in ordered_dict.keys()):
-            self.gui.last_num_text = list(ordered_dict.keys())[2]
-            self.gui.last_den_text = list(ordered_dict.keys())[3]
-
-        # if self.gui.listWidget_numerator.count() > 0 and self.gui.listWidget_denominator.count() > 0:
-        if (self.gui.last_num_text in ordered_dict.keys() and self.gui.last_den_text in ordered_dict.keys()):
-            value_num = ''
-            if self.gui.last_num != '' and self.gui.last_num <= len(self.gen_parser.interp_arrays.keys()) - 1:
-                items_num = self.gui.last_num
-                value_num = [items_num]
-            if value_num == '':
-                value_num = [2]
-
-            value_den = ''
-            if self.gui.last_den != '' and self.gui.last_den <= len(self.gen_parser.interp_arrays.keys()) - 1:
-                items_den = self.gui.last_den
-                value_den = [items_den]
-            if value_den == '':
-                if len(self.gen_parser.interp_arrays.keys()) >= 2:
-                    value_den = [len(self.gen_parser.interp_arrays.keys()) - 2]
-                else:
-                    value_den = [0]
-
-            self.update_listWidgets.emit()
-            ttime.sleep(0.2)
-
-            energy_string = self.gen_parser.get_energy_string()
-
-            self.gui.den_offset = 0
-            self.gui.bin_offset = 0
-
-            array = self.gui.gen_parser.interp_arrays[self.gui.last_den_text][:, 1]
-            if self.gui.last_den_text != '1':
-                det = [det for det in [det for det in self.gui.det_dict if hasattr(det, 'dev_name')] if det.dev_name.value == self.gui.last_den_text][0]
-                polarity = det.polarity
-                if polarity == 'neg':
-                    if sum(array > 0):
-                        array[array > 0] = -array[array > 0]
-                        print('invalid value encountered in denominator! Fixed for visualization')
-                else:
-                    if sum(array < 0):
-                        array[array < 0] = -array[array < 0]
-                        print('invalid value encountered in denominator! Fixed for visualization')
-
-            result = self.gen_parser.interp_arrays[self.gui.last_num_text][:, 1] / (
-            self.gen_parser.interp_arrays[self.gui.last_den_text][:, 1] - self.gui.den_offset)
-            ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
-
-            if self.gui.checkBox_log.checkState() > 0:
-                ylabel = 'log({})'.format(ylabel)
-                warnings.filterwarnings('error')
-                try:
-                    result_log = np.log(result)
-                except Warning as wrn:
-                    self.gui.bin_offset = 0.1 + np.abs(result.min())
-                    print(
-                        '{}: Added an offset of {} so that we can plot the graphs properly (only for data visualization)'.format(
-                            wrn, self.gui.bin_offset))
-                    result_log = np.log(result + self.gui.bin_offset)
-                    # self.gui.checkBox_log.setChecked(False)
-                warnings.filterwarnings('default')
-                result = result_log
-
-            if self.gui.checkBox_neg.checkState() > 0:
-                result = -result
-
-            plot_info = [self.gen_parser.interp_arrays[energy_string][:, 1][:len(result)],
-                         result,
-                         'b',
-                         energy_string,
-                         ylabel,
-                         self.gui.figure_old_scans_3.ax,
-                         self.gui.canvas_old_scans_3]
-            self.gui.plotting_list.append(plot_info)
-
-            bin_eq = self.gen_parser.bin_equal(en_spacing=0.5)
-
-            result = bin_eq[self.gui.last_num_text] / bin_eq[self.gui.last_den_text]
-            ylabel = '{} / {}'.format(self.gui.last_num_text, self.gui.last_den_text)
-
-            if self.gui.checkBox_log.checkState() > 0:
-                ylabel = 'log({})'.format(ylabel)
-                result = np.log(result)
-            ylabel = 'Binned Equally {}'.format(ylabel)
-
-            if self.gui.checkBox_neg.checkState() > 0:
-                result = -result
-
-            plot_info = [bin_eq[energy_string][:len(result)],
-                         result,
-                         'b',
-                         energy_string,
-                         ylabel,
-                         self.gui.figure_old_scans_2.ax,
-                         self.gui.canvas_old_scans_2]
-            self.gui.plotting_list.append(plot_info)
-
-            if self.gui.checkBox_find_edge.checkState() > 0:
-
-                self.gui.edge_index = self.gen_parser.data_manager.get_edge_index(result)
-                self.gui.edge_found = -1
-                if self.gui.edge_index > 0:
-                    x_edge = self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index]
-                    y_edge = result[self.gui.edge_index]
-
-                    self.gui.figure_old_scans_2.ax.plot(x_edge, y_edge, 'ys')
-                    plot_info = [x_edge,
-                                 y_edge,
-                                 'ys',
-                                 '',
-                                 '',
-                                 self.gui.figure_old_scans_2.ax,
-                                 self.gui.canvas_old_scans_2]
-                    self.gui.plotting_list.append(plot_info)
-
-                    print('[Binning Equal Thread {}] Edge: '.format(self.index) + str(
-                        int(np.round(self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index]))))
-                    self.gui.edge_found = str(
-                        int(np.round(self.gen_parser.data_manager.en_grid_eq[self.gui.edge_index])))
-            else:
-                self.gui.edge_index = -1
-
-            result_der = self.gen_parser.data_manager.get_derivative(result)
-
-            if self.gui.checkBox_neg.checkState() > 0:
-                result_der = -result_der
-
-            plot_info = [bin_eq[energy_string][:len(result_der)],
-                         result_der,
-                         'r', energy_string,
-                         'Derivative',
-                         self.gui.figure_old_scans_2.ax2,
-                         self.gui.canvas_old_scans_2]
-            self.gui.plotting_list.append(plot_info)
-
-        print('[Binning Equal Thread {}] Done'.format(self.index))
-
-
-class process_threads_manager(QThread):
-    def __init__(self, gui):
-        QThread.__init__(self)
-        self.gui = gui
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        index = 1
-        self.gui.canvas_old_scans_2.mpl_disconnect(self.gui.cid)
-        for filename in self.gui.selected_filename_bin:
-            print(filename)
-            process_thread_equal = process_bin_thread_equal(self.gui, filename, index)
-            # self.gui.connect(process_thread_equal, pyqtSignal("finished()"), self.gui.reset_processing_tab)
-            process_thread_equal.update_listWidgets.connect(self.gui.update_listWidgets)
-            process_thread_equal.create_lists.connect(self.gui.create_lists)
-            process_thread_equal.finished.connect(self.gui.reset_processing_tab)
-            process_thread_equal.start()
-            self.gui.active_threads += 1
-            self.gui.total_threads += 1
-            self.gui.edge_found = -1
-
-            self.gui.curr_filename_save = filename
-            if self.gui.checkBox_process_bin.checkState() > 0:
-                process_thread = process_bin_thread(self.gui, index, process_thread_equal,
-                                                    process_thread_equal.gen_parser)
-                # self.gui.connect(process_thread, pyqtSignal("finished()"), self.gui.reset_processing_tab)
-                process_thread.finished.connect(self.gui.reset_processing_tab)
-                process_thread.start()
-                self.gui.active_threads += 1
-                self.gui.total_threads += 1
-            index += 1
-        self.gui.gen_parser = process_thread_equal.gen_parser
