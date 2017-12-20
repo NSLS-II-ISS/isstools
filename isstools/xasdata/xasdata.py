@@ -601,6 +601,7 @@ class XASdataGeneric(XASdata):
             print(err.args[0], '\nAborted...')
             return
 
+        self.e0_bin = e0
         return self.data_manager.process(self.interp_df,
                                          e0, edge_start, edge_end,
                                          preedge_spacing, xanes,
@@ -780,6 +781,7 @@ class XASDataManager:
 
         comments = XASdataGeneric.read_header(None, filename)
         comments = comments[0: comments.rfind('#')] + '# '
+        comments = comments[:comments.rfind('#', 0, -2)] + f'# e0_bin: {self.e0_bin}\n#\n#'
 
         filename = filename[:filename.rfind('.') + 1] + 'dat'
         filename = XASDataManager.get_new_filename(filename)
