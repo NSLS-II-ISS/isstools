@@ -782,6 +782,7 @@ class XASDataManager:
         comments = comments[0: comments.rfind('#')] + '# '
 
         filename = filename[:filename.rfind('.') + 1] + 'dat'
+        filename = XASDataManager.get_new_filename(filename)
 
         cols = self.binned_df.columns.tolist()
         cols.remove('1')
@@ -815,6 +816,21 @@ class XASDataManager:
         call(['chmod', '770', filename])
         return filename
 
+    def get_new_filename(filename):
+        for extension in ['.txt', '.dat', '.hdf5']:
+            if filename[-len(extension):] == extension:
+                filename = filename[:-len(extension)]
+                break
+
+        if op.exists(Path(filename + extension)):
+            iterator = 2
+
+            while True:
+                new_filename = f'{filename}-{iterator}{extension}'
+                if not op.isfile(new_filename):
+                    return new_filename
+                iterator += 1
+        return filename
 
     def process(self, interp_df, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
         if len(interp_df[list(interp_df.keys())[0]].shape) > 1:
