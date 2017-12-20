@@ -773,10 +773,15 @@ class XASDataManager:
 
 
     def export_dat(self, filename):
+        for extension in ['txt', 'dat', 'hdf5']:
+            if op.isfile(filename + extension):
+                filename = filename + extension
+                break
+
         comments = XASdataGeneric.read_header(None, filename)
         comments = comments[0: comments.rfind('#')] + '# '
 
-        filename = filename[:filename.rfind('.')] + '.dat'
+        filename = filename[:filename.rfind('.') + 1] + 'dat'
 
         cols = self.binned_df.columns.tolist()
         cols.remove('1')
