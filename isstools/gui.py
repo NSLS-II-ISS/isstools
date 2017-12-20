@@ -17,6 +17,7 @@ import socket
 from PyQt5.QtCore import QThread
 import zmq
 import pickle
+import pandas as pd
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -140,6 +141,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.hostname_filter = socket.gethostname()
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
         self.receiving_thread = ReceivingThread(self)
+        self.run_mode = 'run'
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
@@ -269,7 +271,9 @@ class ReceivingThread(QThread):
             message = self.parent().subscriber.recv()
             message = message[len(self.parent().hostname_filter):]
             data = pickle.loads(message)
-            #data = json.loads(message)
+
+            if 'data' in data['processing_ret']:
+                data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':

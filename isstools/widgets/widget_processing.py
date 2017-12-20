@@ -45,18 +45,14 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
-        self.push_bin.clicked.connect(self.process_bin)
-        self.push_save_bin.clicked.connect(self.save_bin)
+        self.push_bin_save.clicked.connect(self.bin_single_data)
         self.push_calibrate.clicked.connect(self.calibrate_offset)
-        self.push_replot_exafs.clicked.connect(self.update_k_view)
         self.push_replot_file.clicked.connect(self.replot_data)
         self.push_reset_data.clicked.connect(self.reset_data_plots)
         self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
         self.edge_found = -1
         # Disable buttons
-        self.push_bin.setDisabled(True)
-        self.push_save_bin.setDisabled(True)
-        self.push_replot_exafs.setDisabled(True)
+        self.push_bin_save.setDisabled(True)
         self.push_replot_file.setDisabled(True)
         self.active_threads = 0
         self.total_threads = 0
@@ -139,11 +135,14 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                     filenames.append(name.rsplit('/', 1)[1])
                     self.uids.append(self.gen_parser.read_header(name).split('UID: ')[1].split('\n')[0])
                 filenames = ', '.join(filenames)
+                self.push_bin_save.setEnabled(False)
             elif len(self.selected_filename_bin) == 1:
                 filenames = self.selected_filename_bin[0]
                 self.user_dir = filenames.rsplit('/', 1)[0]
                 self.uids.append(self.gen_parser.read_header(filenames).split('UID: ')[1].split('\n')[0])
+                self.push_bin_save.setEnabled(True)
 
+            print(self.uids)
             self.settings.setValue('user_dir', self.user_dir)
             self.label_24.setText(filenames)
             self.send_data_request()
@@ -171,23 +170,11 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.listWidget_numerator.insertItems(0, list_num)
         self.listWidget_denominator.insertItems(0, list_den)
 
-    def process_bin(self):
-        self.old_scans_control = 1
-        self.old_scans_2_control = 1
-        self.old_scans_3_control = 1
-        print('[Launching Threads]')
-        process_thread = process_bin_thread(self)
-        self.canvas_old_scans_2.mpl_disconnect(self.cid)
-        if self.edge_found != int(self.edit_E0_2.text()):
-            self.edge_found = -1
-        process_thread.finished.connect(self.reset_processing_tab)
-        self.active_threads += 1
-        self.total_threads += 1
-        self.progressBar_processing.setValue(
-            int(np.round(100 * (self.total_threads - self.active_threads) / self.total_threads)))
-        process_thread.start()
+    def bin_single_data(self):
+        for index, uid in enumerate(self.uids):
+            self.send_bin_request(uid, filepath=self.selected_filename_bin[index])
 
-    def send_bin_request(self, uid):
+    def send_bin_request(self, uid, filepath):
         e0 = int(self.edit_E0_2.text())
         edge_start = int(self.edit_edge_start.text())
         edge_end = int(self.edit_edge_end.text())
@@ -199,6 +186,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                'type': 'spectroscopy',
                'processing_info': {
                    'type': 'bin',
+                   'filepath': filepath, #self.selected_filename_bin[index],
                    'e0': e0,
                    'edge_start': edge_start,
                    'edge_end': edge_end,
@@ -246,18 +234,19 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.listWidget_numerator.setCurrentRow(-1)
         self.listWidget_denominator.setCurrentRow(-1)
 
-        for uid in self.uids:
+        for index, uid in enumerate(self.uids):
             req = {'uid': uid,
                    'requester': socket.gethostname(),
                    'type': 'spectroscopy',
                    'processing_info': {
                        'type': 'request_interpolated_data',
+                       'filepath': self.selected_filename_bin[index],
                    }
                   }
             self.sender.send_string(json.dumps(req))
 
             if self.checkBox_process_bin.checkState() > 0:
-                self.send_bin_request(uid)
+                self.send_bin_request(uid, self.selected_filename_bin[index])
 
     def save_bin(self):
         filename = self.curr_filename_save
@@ -275,7 +264,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             return
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
 
-    def update_k_view(self):
+    def update_k_view(self, df):
         e0 = int(self.edit_E0_2.text())
         edge_start = int(self.edit_edge_start.text())
         edge_end = int(self.edit_edge_end.text())
@@ -284,10 +273,10 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         exafs_spacing = float(self.edit_exafs_spacing.text())
         k_power = float(self.edit_y_power.text())
 
-        energy_string = self.gen_parser.get_energy_string()
+        energy_string = 'energy'
 
-        result_orig = self.gen_parser.data_manager.data_arrays[self.listWidget_numerator.currentItem().text()] / \
-                      self.gen_parser.data_manager.data_arrays[self.listWidget_denominator.currentItem().text()]
+        result_orig = df[self.listWidget_numerator.currentItem().text()] / \
+                      df[self.listWidget_denominator.currentItem().text()]
 
         if self.checkBox_log.checkState() > 0:
             result_orig = np.log(result_orig)
@@ -295,24 +284,35 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         k_data = self.gen_parser.data_manager.get_k_data(e0,
                                                          edge_end,
                                                          exafs_spacing,
-                                                         result,
-                                                         self.gen_parser.interp_arrays,
-                                                         self.gen_parser.data_manager.data_arrays[energy_string],
+                                                         df,
+                                                         df[energy_string],
                                                          result_orig,
                                                          k_power)
-        self.figure_old_scans.ax.clear()
-        self.toolbar_old_scans._views.clear()
-        self.toolbar_old_scans._positions.clear()
-        self.toolbar_old_scans._update_view()
+
         self.figure_old_scans.ax.plot(k_data[0], k_data[1])
         self.figure_old_scans.ax.set_xlabel('k')
         self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power))  # 'ϰ * k ^ {}'.format(k_power))
         self.figure_old_scans.ax.grid(True)
+
+        self.figure_old_scans.ax.legend(handles=self.handles_bin)
+        self.figure_old_scans.tight_layout()
         self.canvas_old_scans.draw_idle()
 
     def replot_data(self):
         self.replot(self.bin_data_sets, self.handles_bin, self.figure_old_scans_3, self.toolbar_old_scans_3)
         self.replot(self.interp_data_sets, self.handles_interp, self.figure_old_scans_2, self.toolbar_old_scans_2)
+        self.replot_y()
+
+    def replot_y(self):
+        self.figure_old_scans.ax.clear()
+        self.figure_old_scans.canvas.draw_idle()
+        self.toolbar_old_scans._views.clear()
+        self.toolbar_old_scans._positions.clear()
+        self.toolbar_old_scans._update_view()
+
+        for data in self.bin_data_sets:
+            df = data['processing_ret']['data']
+            self.update_k_view(df)
 
     def replot(self, list_data_set, handles, figure, toolbar):
         figure.ax.clear()
@@ -330,10 +330,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.last_den = self.listWidget_denominator.currentRow()
             self.last_den_text = self.listWidget_denominator.currentItem().text()
 
-        energy_string = 'energy'
         for data in list_data_set:
-            df = pd.read_msgpack(data['processing_ret']['data'])
-            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data'])).sort_values(energy_string)
+            df = data['processing_ret']['data']
             df = df.sort_values('energy')
             result = df[self.last_num_text] / df[self.last_den_text]
             ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
@@ -357,9 +355,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             if self.checkBox_neg.checkState() > 0:
                 result = -result
 
-            figure.ax.plot(df[energy_string].iloc[:len(result)], result)
+            figure.ax.plot(df['energy'].iloc[:len(result)], result)
             figure.ax.set_ylabel(ylabel)
-            figure.ax.set_xlabel(energy_string)
+            figure.ax.set_xlabel('energy')
             figure.tight_layout()
 
         figure.ax.legend(handles=handles)
@@ -367,53 +365,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         figure.canvas.draw_idle()
 
-    def reset_processing_tab(self):
-        self.active_threads -= 1
-        print('[Threads] Number of active threads: {}'.format(self.active_threads))
-        self.progressBar_processing.setValue(
-            int(np.round(100 * (self.total_threads - self.active_threads) / self.total_threads)))
-
-        while len(self.plotting_list) > 0:
-            plot_info = self.plotting_list.pop()
-            plot_info[5].plot(plot_info[0], plot_info[1], plot_info[2])
-            plot_info[5].set_xlabel(plot_info[3])
-            plot_info[5].set_ylabel(plot_info[4])
-            plot_info[5].figure.tight_layout()
-            if (plot_info[2] == 'ys'):
-                edge_path = mpatches.Patch(facecolor='y', edgecolor='black', label='Edge')
-                self.figure_old_scans_2.ax.legend(handles=[edge_path])
-                self.figure_old_scans_2.ax.annotate('({0:.2f}, {1:.2f})'.format(plot_info[0], plot_info[1]),
-                                                    xy=(plot_info[0], plot_info[1]), textcoords='data')
-            plot_info[6].draw_idle()
-        if self.edge_found != -1:
-            self.edit_E0_2.setText(str(self.edge_found))
-
-        if self.active_threads == 0:
-            print('[ #### All Threads Done #### ]')
-            self.total_threads = 0
-            # self.progressBar_processing.setValue(int(np.round(100)))
-            self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
-            if len(self.selected_filename_bin) > 1:
-                self.push_bin.setDisabled(True)
-                self.push_replot_exafs.setDisabled(True)
-                self.push_save_bin.setDisabled(True)
-                self.push_replot_file.setDisabled(True)
-            elif len(self.selected_filename_bin) == 1:
-                self.push_bin.setEnabled(True)
-                if len(self.figure_old_scans.ax.lines):
-                    self.push_save_bin.setEnabled(True)
-                    self.push_replot_exafs.setEnabled(True)
-                else:
-                    self.push_save_bin.setEnabled(False)
-                    self.push_replot_exafs.setEnabled(False)
-                self.push_replot_file.setEnabled(True)
-            for line in self.figure_old_scans_3.ax.lines:
-                if (line.get_color()[0] == 1 and line.get_color()[2] == 0) or (line.get_color() == 'r'):
-                    line.set_zorder(3)
-            self.canvas_old_scans_3.draw_idle()
-
     def plot_data(self, data):
-        df = pd.read_msgpack(data['processing_ret']['data'])
+        df = data['processing_ret']['data']
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
@@ -441,8 +394,10 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3.tight_layout()
         self.canvas_old_scans_3.draw_idle()
 
+        self.update_k_view(df)
+
     def plot_interp_data(self, data):
-        df = pd.read_msgpack(data['processing_ret']['data'])
+        df = data['processing_ret']['data']
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df

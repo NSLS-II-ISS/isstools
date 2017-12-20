@@ -214,32 +214,6 @@ b</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_replot_exafs">
-   <property name="geometry">
-    <rect>
-     <x>1410</x>
-     <y>80</y>
-     <width>101</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Replot Exafs</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_save_bin">
-   <property name="geometry">
-    <rect>
-     <x>1520</x>
-     <y>10</y>
-     <width>101</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </widget>
   <widget class="QWidget" name="verticalLayoutWidget_7">
    <property name="geometry">
     <rect>
@@ -510,17 +484,17 @@ b</string>
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="push_bin">
+  <widget class="QPushButton" name="push_bin_save">
    <property name="geometry">
     <rect>
      <x>1410</x>
      <y>10</y>
-     <width>101</width>
+     <width>121</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Bin</string>
+    <string>Bin and Save</string>
    </property>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget_8">
