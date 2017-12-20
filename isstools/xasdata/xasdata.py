@@ -691,8 +691,8 @@ class XASDataManager:
 
         return np.append(np.append(preedge, edge), postedge)
 
-    def get_k_data(self, e0, edge_end, exafsk, y_data, interp_dict, en_orig, data_orig, pow = 1, energy_string = 'energy'):
-        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+    def get_k_data(self, e0, edge_end, exafsk, df, en_orig, data_orig, pow = 1, energy_string = 'energy'):
+        y_data = data_orig.copy()
         energy_array = df[energy_string].values
         e_interval = self.get_k_interval(energy_array, e0, e0 + edge_end, exafsk)
         k_interval = xray.e2k(e_interval, e0) #e0 + edge_end)
@@ -831,7 +831,7 @@ class XASDataManager:
                 if not op.isfile(new_filename):
                     return new_filename
                 iterator += 1
-        return filename
+        return filename + extension
 
     def process(self, interp_df, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
         if len(interp_df[list(interp_df.keys())[0]].shape) > 1:
