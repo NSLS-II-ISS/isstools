@@ -137,7 +137,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://xf08id-srv1:5562")
+        self.subscriber.connect("tcp://xf08id-srv2:5562")
         self.hostname_filter = socket.gethostname()
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
         self.receiving_thread = ReceivingThread(self)
