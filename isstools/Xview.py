@@ -6,30 +6,60 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 import pkg_resources
-from PyQt5 import QtGui, QtWidgets, uic
+from PyQt5 import QtGui, QtWidgets, QtCore, uic
 from PyQt5.Qt import QSplashScreen
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 
+from pathlib import Path
 
+import larch
+from larch_plugins.io import read_ascii
+from larch_plugins.xafs import pre_edge, autobk, mback
+from larch import Interpreter
+from larch import Group as xafsgroup
+
+#Libs for ZeroMQ communication
+import socket
+from PyQt5.QtCore import QThread
+import zmq
+import pickle
+import pandas as pd
 
 from matplotlib.figure import Figure
 
 from isstools.xasdata import xasdata
+from isstools.xasproject import xasproject
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 
 class GUI(QtWidgets.QMainWindow, gui_form):
-    def __init__(self, hhm_pulses_per_deg, parent=None):
+    def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None, parent=None):
 
         QtWidgets.QMainWindow.__init__(self, parent)
         self.setupUi(self)
 
         self.hhm_pulses_per_deg = hhm_pulses_per_deg
+        self.sender = processing_sender
+        self.db = db
+        self.db_analysis = db
+        self.gen_parser = xasdata.XASdataGeneric(hhm_pulses_per_deg, db=db)
+
+        # Activating ZeroMQ Receiving Socket
+        # self.context = zmq.Context()
+        # self.subscriber = self.context.socket(zmq.SUB)
+        # self.subscriber.connect("tcp://xf08id-srv1:5562")
+        # self.hostname_filter = socket.gethostname()
+        # self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        # self.receiving_thread = ReceivingThread(self)
+
+        self.xasproject = xasproject.XASProject()
+        self.xasproject.datasets_changed.connect(self.addFilenameToXASProject)
+        self._larch = Interpreter(with_plugins=False)
 
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
@@ -38,6 +68,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushbutton_plot_raw.clicked.connect(self.plotRawData)
         self.push_bin.clicked.connect(self.bin_data)
         self.push_save_bin.clicked.connect(self.save_binned_data)
+
         # comboboxes
         # self.comboBoxFileType.addItems( ['Raw (*.txt)', 'Binned (*.dat)','All'])
         # self.comboBoxFileType.currentIndexChanged.connect((self.getFileList))
@@ -76,6 +107,92 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.labelWorkingFolder.setToolTip(self.workingFolder)
             self.getFileList()
 
+        # Setting up Preprocess tab:
+        self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
+        #self.listFiles_xasproject.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
+        self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
+        self.pushbutton_plotE_xasproject.clicked.connect(self.plotEXASProject)
+
+    def addDsToXASProject(self):
+        if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
+            for item in self.listFiles_bin.selectedItems():
+                filepath = str(Path(self.workingFolder) / Path(item.text()))
+                header = self.gen_parser.read_header(filepath)
+                uid = header[header.find('UID:') + 5: header.find('\n', header.find('UID:'))]
+                #print(uid)
+                md = self.db[uid]['start']
+
+                ds = xasproject.XASDataSet()
+                self.gen_parser.data_manager.loadBinFile(filepath)
+                df = self.gen_parser.data_manager.binned_df
+                df = df.sort_values('energy')
+                num_key = self.listBinnedDataNumerator.currentItem().text()
+                den_key = self.listBinnedDataDenominator.currentItem().text()
+                mu = df[num_key] / df[den_key]
+
+                if self.checkBox_log_bin.checkState():
+                    mu = np.log(mu)
+                if self.checkBox_inv_bin.checkState():
+                    mu = -mu
+
+                ds.data = df
+                ds.md = md
+                ds.mu = mu
+                ds.filename = filepath
+
+                pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
+
+                self.xasproject.append(ds)
+
+        else:
+            raise IndexError('Select Numerator and Denominator')
+
+        print('Scans added to the project successfully')
+
+    def addFilenameToXASProject(self, datasets):
+        self.listFiles_xasproject.clear()
+        for ds in datasets:
+            fn = ds.filename
+            fn = fn[fn.rfind('/') + 1:]
+            self.listFiles_xasproject.addItem(fn)
+
+    def removeFromXASProject(self):
+        for index in self.listFiles_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
+            self.xasproject.removeDatasetIndex(index.row())
+
+    def plotEXASProject(self):
+        self.figureXASProject.ax.clear()
+        self.toolbar_XASProject._views.clear()
+        self.toolbar_XASProject._positions.clear()
+        self.toolbar_XASProject._update_view()
+        self.canvasXASProject.draw_idle()
+
+        for index in self.listFiles_xasproject.selectedIndexes():
+            ds = self.xasproject[index.row()]
+        #for ds in self.xasproject:
+            larch = ds.larch
+            if self.radioButton_mu_xasproject.isChecked():
+                data = larch.mu
+                if self.checkBox_preedge_show.checkState():
+                    self.figureXASProject.ax.plot(larch.energy, larch.pre_edge)
+                if self.checkBox_postedge_show.checkState():
+                    self.figureXASProject.ax.plot(larch.energy, larch.post_edge)
+            elif self.radioButton_norm_xasproject.isChecked():
+                if self.checkBox_norm_flat_xasproject.checkState():
+                    indx_e0 = np.abs(larch.energy-larch.e0).argmin()
+                    flattening_bkg = larch.post_edge - larch.pre_edge
+                    norm_factor = flattening_bkg[indx_e0]
+
+                    flattening_bkg[indx_e0::] = flattening_bkg[indx_e0::] - norm_factor
+                    mu_flattened = larch.mu.values.flatten()-larch.pre_edge
+                    mu_flattened[indx_e0::] = mu_flattened[indx_e0::] - flattening_bkg[indx_e0::]
+                    mu_flattened[indx_e0::] = mu_flattened[indx_e0::] / norm_factor
+                    data = mu_flattened
+                else:
+                    data = larch.norm
+            self.figureXASProject.ax.plot(larch.energy, data)
+        self.canvasXASProject.draw_idle()
 
     def addCanvas(self):
         self.figureBinned = Figure()
@@ -99,6 +216,20 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.layout_plot_raw.addWidget(self.toolbar_raw)
         self.layout_plot_raw.addWidget(self.canvasRaw)
         self.canvasRaw.draw()
+
+
+        # XASProject Plot:
+        self.figureXASProject = Figure()
+        self.figureXASProject.set_facecolor(color='#FcF9F6')
+        self.figureXASProject.ax = self.figureXASProject.add_subplot(111)
+        self.canvasXASProject = FigureCanvas(self.figureXASProject)
+
+        self.toolbar_XASProject = NavigationToolbar(self.canvasXASProject, self)
+        self.toolbar_XASProject.setMaximumHeight(25)
+        self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
+        self.layout_plot_xasproject.addWidget(self.canvasXASProject)
+        self.canvasXASProject.draw()
+        #layout_plot_xasproject
 
     def selectWorkingFolder(self):
         self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Open a folder", self.workingFolder,
@@ -369,9 +500,35 @@ class process_bin_thread(QThread):
         self.finished_bin.emit(binned)
 
 
+class ReceivingThread(QThread):
+    received_interp_data = QtCore.pyqtSignal(object)
+    received_bin_data = QtCore.pyqtSignal(object)
+    received_req_interp_data = QtCore.pyqtSignal(object)
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.setParent(gui)
+
+    def run(self):
+        while True:
+            message = self.parent().subscriber.recv()
+            message = message[len(self.parent().hostname_filter):]
+            data = pickle.loads(message)
+
+            if 'data' in data['processing_ret']:
+                data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+
+            if data['type'] == 'spectroscopy':
+                if data['processing_ret']['type'] == 'interpolate':
+                    self.received_interp_data.emit(data)
+                if data['processing_ret']['type'] == 'bin':
+                    self.received_bin_data.emit(data)
+                if data['processing_ret']['type'] == 'request_interpolated_data':
+                    self.received_req_interp_data.emit(data)
+
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    main = MyWindowClass()
+    main = GUI()
     main.show()
 
     sys.exit(app.exec_())
