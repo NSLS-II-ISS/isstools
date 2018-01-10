@@ -82,7 +82,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.auto_tune_elements = None
 
-        self.mot_list = self.motors_dict.keys()
+        #self.mot_list = self.motors_dict.keys()
+        self.mot_list = [self.motors_dict[motor]['description'] for motor in self.motors_dict]
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
 
@@ -297,7 +298,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     curr_det = list(self.det_dict.keys())[i]
                     detectors.append(curr_det)
 
-        curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
+        #curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
+        for motor in self.motors_dict:
+            if self.comboBox_gen_mot.currentText() == self.motors_dict[motor]['description']:
+                curr_mot = self.motors_dict[motor]['object']
+                break
 
         if curr_det == '':
             print('Detector not found. Aborting...')

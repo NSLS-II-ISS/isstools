@@ -487,7 +487,10 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         parent.appendRow(new_item)
 
     def update_loop_values(self, text):
-        curr_mot = self.motors_dict[self.comboBox_sample_loop_motor.currentText()]['object']
+        for motor in self.motors_dict:
+            if self.comboBox_sample_loop_motor.currentText() == self.motors_dict[motor]['description']:
+                curr_mot = self.motors_dict[motor]['object']
+                break
         if self.radioButton_sample_rel.isChecked():
             if curr_mot.connected == True:
                 self.push_add_sample_loop.setEnabled(True)

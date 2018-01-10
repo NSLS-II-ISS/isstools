@@ -88,9 +88,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.prep_traj_plan = prep_traj_plan
 
         self.motors_dict = motors_dict
-        self.mot_list = self.motors_dict.keys()
-        self.mot_sorted_list = list(self.mot_list)
-        self.mot_sorted_list.sort()
 
         self.shutters_dict = shutters_dict
 
