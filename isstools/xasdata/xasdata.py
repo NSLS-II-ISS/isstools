@@ -702,14 +702,15 @@ class XASDataManager:
         data_orig = np.extract(condition, data_orig)
         try:
             polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+            p = np.poly1d(polyfit)
+            calibration = p(e_interval)
+
+            y_data = y_data[-len(k_interval):] - calibration
+            data = y_data[-len(k_interval):] * (k_interval ** pow)
+            return np.array([k_interval, data])
         except Exception as exc:
             print(exc)
-        p = np.poly1d(polyfit)
-        calibration = p(e_interval)
-
-        y_data = y_data[-len(k_interval):] - calibration
-        data = y_data[-len(k_interval):] * (k_interval ** pow)
-        return np.array([k_interval, data])
+            return np.array([[], []])
 
 
     def get_k_interval(self, energy_array, e0, edge_end, exafsk):
