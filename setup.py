@@ -3,6 +3,13 @@ import versioneer
 
 import setuptools
 
+no_git_reqs = []
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+    for r in required:
+        if not (r.startswith('git') or r.startswith('#') or r.strip() == ''):
+            no_git_reqs.append(r)
+
 setuptools.setup(
     name='isstools',
     version=versioneer.get_version(),
@@ -17,4 +24,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
     ],
+    install_requires=no_git_reqs,
 )
