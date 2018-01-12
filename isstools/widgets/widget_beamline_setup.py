@@ -147,7 +147,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_text = '0'
         self.tune_dialog = None
         self.last_gen_scan_uid = ''
-        self.det_list = [det.dev_name.value if hasattr(det, 'dev_name') else det.name for det in det_dict.keys()]
+        self.det_list = [det_dict[det]['obj'].dev_name.value if hasattr(det_dict[det]['obj'], 'dev_name') else det_dict[det]['obj'].name for det in det_dict]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
         self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
@@ -161,11 +161,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.process_detsig_den()
 
         found_bpm = 0
-        for i in range(self.comboBox_gen_det.count()):
-            if 'bpm_es' == list(self.det_dict.keys())[i].name:
-                self.bpm_es = list(self.det_dict.keys())[i]
-                found_bpm = 1
-                break
+        if 'bpm_es' in self.det_dict:
+            self.bpm_es = self.det_dict['bpm_es']['obj']
+            found_bpm = 1
+
         if found_bpm == 0 or self.hhm is None:
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
@@ -222,8 +221,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
                 self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
-        self.dets_with_amp = [det for det in self.det_dict
-                             if det.name[:3] == 'pba' and hasattr(det, 'amp')]
+        self.dets_with_amp = [self.det_dict[det]['obj'] for det in self.det_dict
+                             if self.det_dict[det]['obj'].name[:3] == 'pba' and hasattr(self.det_dict[det]['obj'], 'amp')]
         if self.dets_with_amp == []:
             self.push_read_amp_gains.setEnabled(False)
         else:
@@ -283,19 +282,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
         for i in range(self.comboBox_gen_det.count()):
-            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].dev_name.value:
-                    curr_det = list(self.det_dict.keys())[i]
+            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].dev_name.value:
-                    curr_det = list(self.det_dict.keys())[i]
+                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
                     detectors.append(curr_det)
             else:
-                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
-                    curr_det = list(self.det_dict.keys())[i]
+                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].name:
-                    curr_det = list(self.det_dict.keys())[i]
+                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
                     detectors.append(curr_det)
 
         #curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
@@ -531,29 +530,29 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
-            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].dev_name.value:
-                    curr_det = list(self.det_dict.keys())[i]
-                    detsig = self.det_dict[curr_det]
+            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.det_dict.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
             else:
-                if self.comboBox_gen_det.currentText() == list(self.det_dict.keys())[i].name:
-                    curr_det = list(self.det_dict.keys())[i]
-                    detsig = self.det_dict[curr_det]
+                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
 
     def process_detsig_den(self):
         self.comboBox_gen_detsig_den.clear()
         for i in range(self.comboBox_gen_det_den.count() - 1):
-            if hasattr(list(self.det_dict.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].dev_name.value:
-                    curr_det = list(self.det_dict.keys())[i]
-                    detsig = self.det_dict[curr_det]
+            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.det_dict.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
             else:
-                if self.comboBox_gen_det_den.currentText() == list(self.det_dict.keys())[i].name:
-                    curr_det = list(self.det_dict.keys())[i]
-                    detsig = self.det_dict[curr_det]
+                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
+                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
         if self.comboBox_gen_det_den.currentText() == '1':
             self.comboBox_gen_detsig_den.addItem('1')
@@ -950,7 +949,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         print('[Read Gains] Starting...')
 
-        det_dict_with_amp = [det for det in self.det_dict if hasattr(det, 'dev_name')]
+        det_dict_with_amp = [self.det_dict[det]['obj'] for det in self.det_dict if hasattr(self.det_dict[det]['obj'], 'dev_name')]
         for detec in adcs:
             amp = [det.amp for det in det_dict_with_amp if det.dev_name.value == detec]
             if len(amp):
