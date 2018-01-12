@@ -100,9 +100,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.prep_traj_plan = prep_traj_plan
 
         self.motors_dict = motors_dict
-        self.mot_list = self.motors_dict.keys()
-        self.mot_sorted_list = list(self.mot_list)
-        self.mot_sorted_list.sort()
 
         self.shutters_dict = shutters_dict
 
@@ -145,18 +142,18 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.adc_list = [x for x in self.det_dict if x.name in matches]
+        matches = [det for det in self.det_dict if re.match(regex, det)]
+        self.adc_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
 
         # Looking for encoder pizzaboxes:
         regex = re.compile('pb\d{1}_enc.*')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.enc_list = [x for x in self.det_dict if x.name in matches]
+        matches = [det for det in self.det_dict if re.match(regex, det)]
+        self.enc_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
 
         # Looking for xias:
         regex = re.compile('xia\d{1}')
-        matches = [string for string in [det.name for det in self.det_dict] if re.match(regex, string)]
-        self.xia_list = [x for x in self.det_dict if x.name in matches]
+        matches = [det for det in self.det_dict if re.match(regex, det)]
+        self.xia_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
         if len(self.xia_list):
             self.xia = self.xia_list[0]
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(self.xia_list)
