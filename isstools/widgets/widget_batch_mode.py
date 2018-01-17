@@ -681,10 +681,10 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             params[2].append(param3)
 
     def update_batch_traj(self):
-        #self.trajectories = self.traj_manager.read_info(silent=True)
+        self.trajectories = self.traj_manager.read_info(silent=True)
         self.comboBox_lut.clear()
-        #self.comboBox_lut.addItems(
-        #    ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
+        self.comboBox_lut.addItems(
+            ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
 
     def load_csv(self):
         user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
