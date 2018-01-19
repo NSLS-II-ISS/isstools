@@ -902,7 +902,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.hhm.fb_pcoeff.put(self.piezo_kp)
 
     def update_piezo_center(self):
-        if self.radioButton_fb_local.ischecked():
+        if self.radioButton_fb_local.isChecked():
             nmeasures = self.piezo_nmeasures
             if nmeasures == 0:
                 nmeasures = 1
