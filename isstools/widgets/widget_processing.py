@@ -35,7 +35,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.db = db
         self.det_dict = det_dict
-        self.gen_parser = xasdata.XASdataGeneric(self.hhm.pulses_per_deg, self.db)
+        self.gen_parser = xasdata.XASdataGeneric(self.hhm.enc.pulses_per_deg, self.db)
         self.sender = sender
 
         self.settings = QSettings('ISS Beamline', 'XLive')

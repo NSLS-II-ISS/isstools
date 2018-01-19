@@ -189,12 +189,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_prepare_bl.setEnabled(True)
         else:
             self.push_prepare_bl.setEnabled(False)
-        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
-        self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
-        self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
-        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
-        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
+
+        if hasattr(self.hhm, 'fb_status'):
+            self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
+            self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
+            self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
+            self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+            self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
+            self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
+        else:
+            self.pushEnableHHMFeedback.setEnabled(False)
+            self.radioButton_fb_local.setEnabled(False)
+            self.radioButton_fb_remote.setEnabled(False)
 
         if self.ic_amplifiers is None:
             self.run_check_gains_scan.setEnabled(False)
@@ -896,7 +902,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.hhm.fb_pcoeff.put(self.piezo_kp)
 
     def update_piezo_center(self):
-        if self.radiobutton_fb_local.ischecked():
+        if self.radioButton_fb_local.ischecked():
             nmeasures = self.piezo_nmeasures
             if nmeasures == 0:
                 nmeasures = 1
