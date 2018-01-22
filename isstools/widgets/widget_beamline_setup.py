@@ -1016,9 +1016,13 @@ class piezo_fb_thread(QThread):
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         # Eli's comment - that's where the check for the intensity should go.
-        # if the feedback is too slow, check teh Max retries value in the piezo IOC or maybe the network load.
+        # if the feedback is too slow, check the max retries value in the piezo IOC or maybe the network load.
         #print("Here all the time? 2")
-        image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        try:
+            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        except Exception as e:
+            print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
+            return
 
         image = image.astype(np.int16)
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
@@ -1047,7 +1051,11 @@ class piezo_fb_thread(QThread):
         # getting center:
         centers = []
         for i in range(n_measures):
-            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            try:
+                image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            except Exception as e:
+                print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
+                return
 
             image = image.astype(np.int16)
             sum_lines = sum(
