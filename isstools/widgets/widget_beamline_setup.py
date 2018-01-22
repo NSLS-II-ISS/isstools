@@ -1016,7 +1016,13 @@ class piezo_fb_thread(QThread):
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         # Eli's comment - that's where the check for the intensity should go.
-        image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        # if the feedback is too slow, check the max retries value in the piezo IOC or maybe the network load.
+        #print("Here all the time? 2")
+        try:
+            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+        except Exception as e:
+            print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
+            return
 
         image = image.astype(np.int16)
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
@@ -1028,6 +1034,7 @@ class piezo_fb_thread(QThread):
         max_value = sum_lines.max()
         min_value = sum_lines.min()
 
+        #print("Here all the time? 3")
         if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
             coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
             self.pid.SetPoint = 960 - center_point
@@ -1037,14 +1044,18 @@ class piezo_fb_thread(QThread):
             piezo_diff = deviation  # * 0.0855
 
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            # print(curr_value, piezo_diff, coeff[1])
+            #print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}, coeff[1]: {coeff[1]}")
             self.gui.hhm.pitch.move(curr_value - piezo_diff)
 
     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
         # getting center:
         centers = []
         for i in range(n_measures):
-            image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            try:
+                image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+            except Exception as e:
+                print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
+                return
 
             image = image.astype(np.int16)
             sum_lines = sum(
@@ -1074,12 +1085,16 @@ class piezo_fb_thread(QThread):
         # self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
 
         while (self.go):
+            #print("Here all the time? 1")
             if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if
                     self.gui.shutters[shutter].shutter_type != 'SP' and
                                     self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)][
                                         'value'] != 0]) == 0:
                 self.gaussian_piezo_feedback(line=self.gui.piezo_line, center_point=self.gui.piezo_center,
                                              n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)
+                #print("Here all the time? 4")
                 ttime.sleep(self.sampleTime)
+                #print("Here all the time? 5")
             else:
+                #print("Here all the time? Not here!")
                 ttime.sleep(self.sampleTime)
