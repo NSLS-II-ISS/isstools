@@ -19,6 +19,9 @@ from isstools.batch.batch import BatchManager
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
 
+import json
+import pandas as pd
+
 class UIBatchMode(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
@@ -31,10 +34,10 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  enc_list,
                  xia,
                  run_prep_traj,
-                 parse_scans,
                  scan_figure,
                  create_log_scan,
                  sample_stages,
+                 parent_gui,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -53,14 +56,14 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.create_log_scan = create_log_scan
         self.RE = RE
         self.db = db
-        self.parse_scans = parse_scans
         self.figure = scan_figure
         self.run_prep_traj = run_prep_traj
 
         self.gen_parser = gen_parser
         self.sample_stages = sample_stages
+        self.parent_gui = parent_gui
 
-        self.uids_to_process = []
+        self.batch_mode_uids = []
         self.treeView_batch = elements.TreeView(self, 'all')
         self.treeView_samples_loop = elements.TreeView(self, 'sample')
         self.treeView_samples_loop_scans = elements.TreeView(self, 'scan', unique_elements=False)
@@ -211,83 +214,120 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.batch_abort = True
             self.re_abort()
 
-    def plot_batches(self):
-        self.figure_batch_waterfall.ax.clear()
-        self.toolbar_batch_waterfall._views.clear()
-        self.toolbar_batch_waterfall._positions.clear()
-        self.toolbar_batch_waterfall._update_view()
-        self.canvas_batch_waterfall.draw_idle()
+    def plot_batches(self, data):
+        if self.parent_gui.run_mode == 'batch':
+            self.figure_batch_waterfall.ax.clear()
+            self.toolbar_batch_waterfall._views.clear()
+            self.toolbar_batch_waterfall._positions.clear()
+            self.toolbar_batch_waterfall._update_view()
+            self.canvas_batch_waterfall.draw_idle()
 
-        self.figure_batch_average.ax.clear()
-        self.toolbar_batch_average._views.clear()
-        self.toolbar_batch_average._positions.clear()
-        self.toolbar_batch_average._update_view()
-        self.canvas_batch_average.draw_idle()
+            self.figure_batch_average.ax.clear()
+            self.toolbar_batch_average._views.clear()
+            self.toolbar_batch_average._positions.clear()
+            self.toolbar_batch_average._update_view()
+            self.canvas_batch_average.draw_idle()
 
-        largest_range = 0
-        for sample_index, sample in enumerate(self.batch_results):
-            for data_index, data_set in enumerate(self.batch_results[sample]['data']):
-                if self.listWidget_numerator_batch.count() == 0:
-                    self.listWidget_numerator_batch.insertItems(0, list(data_set.keys()))
-                    self.listWidget_denominator_batch.insertItems(0, list(data_set.keys()))
-                    if len(data_set.keys()):
-                        while self.listWidget_numerator_batch.count() == 0 or self.listWidget_denominator_batch.count() == 0:
-                            QtCore.QCoreApplication.processEvents()
-                    index_num = [index for index, item in enumerate(
-                        [self.listWidget_numerator_batch.item(index) for index in
-                         range(self.listWidget_numerator_batch.count())]) if item.text() == self.last_num_batch_text]
-                    if len(index_num):
-                        self.listWidget_numerator_batch.setCurrentRow(index_num[0])
-                    index_den = [index for index, item in enumerate(
-                        [self.listWidget_denominator_batch.item(index) for index in
-                         range(self.listWidget_denominator_batch.count())]) if item.text() == self.last_den_batch_text]
-                    if len(index_den):
-                        self.listWidget_denominator_batch.setCurrentRow(index_den[0])
+            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+            df = df.sort_values('energy')
+            self.df = df
 
-                else:
-                    if self.listWidget_numerator_batch.currentRow() != -1:
-                        self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
-                    if self.listWidget_denominator_batch.currentRow() != -1:
-                        self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
+            md = data['processing_ret']['metadata']
+            trajectory_name = md['trajectory_name']
+            scan_name = md['name']
+            sample_name = scan_name.split(' - ')[0]
+            e0 = int(md['e0'])
 
-                energy_string = 'energy'
-                result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
+            if sample_name in self.batch_results:
+                self.batch_results[sample_name]['data'].append(df)
+                self.batch_results[sample_name]['orig_all'] = self.batch_results[sample_name]['orig_all'].append(df,
+                                                                                                                 ignore_index=True)
+                self.gen_parser.interp_arrays = self.batch_results[sample_name]['orig_all']
+                binned = self.gen_parser.bin(e0,
+                                             e0 - 30,
+                                             e0 + 50,
+                                             10,
+                                             0.2,
+                                             0.04)
+                self.batch_results[sample_name]['data_all'] = binned
 
-                if self.checkBox_log_batch.checkState() > 0:
-                    result = np.log(result)
+            else:
+                self.batch_results[sample_name] = {'data': [df]}
+                self.batch_results[sample_name]['orig_all'] = df
+                self.gen_parser.interp_df = self.batch_results[sample_name]['orig_all']
+                binned = self.gen_parser.bin(e0,
+                                             e0 - 30,
+                                             e0 + 50,
+                                             10,
+                                             0.2,
+                                             0.04)
+                self.batch_results[sample_name]['data_all'] = binned
 
-                if result.max() - result.min() > largest_range:
-                    largest_range = result.max() - result.min()
+            largest_range = 0
+            for sample_index, sample in enumerate(self.batch_results):
+                for data_index, data_set in enumerate(self.batch_results[sample]['data']):
+                    if self.listWidget_numerator_batch.count() == 0:
+                        self.listWidget_numerator_batch.insertItems(0, list(data_set.keys()))
+                        self.listWidget_denominator_batch.insertItems(0, list(data_set.keys()))
+                        if len(data_set.keys()):
+                            while self.listWidget_numerator_batch.count() == 0 or self.listWidget_denominator_batch.count() == 0:
+                                QtCore.QCoreApplication.processEvents()
+                        index_num = [index for index, item in enumerate(
+                            [self.listWidget_numerator_batch.item(index) for index in
+                             range(self.listWidget_numerator_batch.count())]) if item.text() == self.last_num_batch_text]
+                        if len(index_num):
+                            self.listWidget_numerator_batch.setCurrentRow(index_num[0])
+                        index_den = [index for index, item in enumerate(
+                            [self.listWidget_denominator_batch.item(index) for index in
+                             range(self.listWidget_denominator_batch.count())]) if item.text() == self.last_den_batch_text]
+                        if len(index_den):
+                            self.listWidget_denominator_batch.setCurrentRow(index_den[0])
 
-        for sample_index, sample in enumerate(self.batch_results):
-            for data_index, data_set in enumerate(self.batch_results[sample]['data']):
+                    else:
+                        if self.listWidget_numerator_batch.currentRow() != -1:
+                            self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
+                        if self.listWidget_denominator_batch.currentRow() != -1:
+                            self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
 
-                energy_string = 'energy'
-                result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
-                data_set_all = self.batch_results[sample]['data_all']
-                result_all = data_set_all[self.last_num_batch_text] / data_set_all[self.last_den_batch_text]
-                # print('data_set', len(data_set['i0']))
+                    energy_string = 'energy'
+                    result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
 
-                if self.checkBox_log_batch.checkState() > 0:
-                    result = np.log(result)
-                    result_all = np.log(result_all)
+                    if self.checkBox_log_batch.checkState() > 0:
+                        result = np.log(result)
 
-                distance_multiplier = 1.25
+                    if result.max() - result.min() > largest_range:
+                        largest_range = result.max() - result.min()
 
-                if data_index == 0:
-                    text_y = (sample_index * largest_range * distance_multiplier) + (result.max() + result.min()) / 2
-                    bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=1.3)
-                    self.figure_batch_waterfall.ax.text(data_set[energy_string][-1], text_y, sample, size=11,
-                                                        horizontalalignment='right', clip_on=True, bbox=bbox_props)
-                    self.figure_batch_average.ax.text(data_set_all[energy_string][-1], text_y, sample, size=11,
-                                                      horizontalalignment='right', clip_on=True, bbox=bbox_props)
+            for sample_index, sample in enumerate(self.batch_results):
+                for data_index, data_set in enumerate(self.batch_results[sample]['data']):
 
-                self.figure_batch_waterfall.ax.plot(data_set[energy_string][:len(result)],
-                                                    (sample_index * largest_range * distance_multiplier) + result)
-                self.figure_batch_average.ax.plot(data_set_all[energy_string][:len(result_all)],
-                                                  (sample_index * largest_range * distance_multiplier) + result_all)
-        self.canvas_batch_waterfall.draw_idle()
-        self.canvas_batch_average.draw_idle()
+                    energy_string = 'energy'
+                    result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
+                    data_set_all = self.batch_results[sample]['data_all']
+                    result_all = data_set_all[self.last_num_batch_text] / data_set_all[self.last_den_batch_text]
+                    # print('data_set', len(data_set['i0']))
+
+                    if self.checkBox_log_batch.checkState() > 0:
+                        result = np.log(result)
+                        result_all = np.log(result_all)
+
+                    distance_multiplier = 1.25
+
+                    if data_index == 0:
+                        text_y = (sample_index * largest_range * distance_multiplier) + (result.max() + result.min()) / 2
+                        bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=1.3)
+                        self.figure_batch_waterfall.ax.text(data_set[energy_string].iloc[-1], text_y, sample, size=11,
+                                                            horizontalalignment='right', clip_on=True, bbox=bbox_props)
+                        self.figure_batch_average.ax.text(data_set_all[energy_string].iloc[-1], text_y, sample, size=11,
+                                                          horizontalalignment='right', clip_on=True, bbox=bbox_props)
+
+                    self.figure_batch_waterfall.ax.plot(data_set[energy_string].iloc[:len(result)],
+                                                        (sample_index * largest_range * distance_multiplier) + result)
+                    self.figure_batch_average.ax.plot(data_set_all[energy_string].iloc[:len(result_all)],
+                                                      (sample_index * largest_range * distance_multiplier) + result_all)
+            self.canvas_batch_waterfall.draw_idle()
+            self.canvas_batch_average.draw_idle()
 
     def create_new_sample_func(self):
         self.create_new_sample(self.lineEdit_sample_name.text(), self.doubleSpinBox_sample_x.value(),
@@ -364,10 +404,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
     def start_batch(self):
         print('[Launching Threads]')
-        self.batch_processor = process_batch_thread(self)
-        self.batch_processor.finished_processing.connect(self.plot_batches)
-        self.batch_processor.generate_log.connect(self.create_log_scan)
-        self.batch_processor.start()
         self.listWidget_numerator_batch.clear()
         self.listWidget_denominator_batch.clear()
         self.figure_batch_waterfall.ax.clear()
@@ -691,6 +727,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             current_index = 0
             self.current_uid_list = []
             if print_only is False:
+                self.parent_gui.run_mode = 'batch'
                 self.batch_running = True
                 self.batch_pause = False
                 self.batch_abort = False
@@ -797,7 +834,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                 self.check_pause_abort_batch()
                             uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
                             if uid:
-                                self.uids_to_process.extend(uid)
+                                self.batch_mode_uids.extend(uid)
                         ### Uncomment (previous line)
 
                         if 'name' in scans[scan]:
@@ -965,7 +1002,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                             self.check_pause_abort_batch()
                                         uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
                                         if uid:
-                                            self.uids_to_process.extend(uid)
+                                            self.batch_mode_uids.extend(uid)
                                     ### Uncomment (previous line)
                                     if 'name' in scans[scan]:
                                         print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
@@ -1053,7 +1090,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                         self.check_pause_abort_batch()
                                         uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
                                         if uid:
-                                            self.uids_to_process.extend(uid)
+                                            self.batch_mode_uids.extend(uid)
                                     ### Uncomment (previous line)
                                     scans[scan]['name'] = old_name
 
@@ -1092,98 +1129,3 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         if self.RE.state != 'idle':
             self.RE.abort()
             self.RE.is_aborted = True
-
-# Process batch thread
-def represents_int(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
-class process_batch_thread(QThread):
-    finished_processing = QtCore.pyqtSignal()
-    generate_log = QtCore.pyqtSignal(str, object)
-
-    def __init__(self, gui):
-        QThread.__init__(self)
-        self.gui = gui
-
-    def run(self):
-        self.gui.filepaths = []
-
-        self.go = 1
-        while (self.go or len(self.gui.uids_to_process) > 0):
-            if len(self.gui.uids_to_process) > 0:
-                try:
-                    uid = self.gui.uids_to_process.pop(0)
-                    self.gui.current_uid = uid
-                    print(self.gui.current_uid)
-
-                    if self.gui.db[uid]['start']['plan_name'] == 'get_offset':
-                        print('get_offsets, nothing to process')
-                        continue
-
-                    self.gui.parse_scans(uid)
-                    self.generate_log.emit(self.gui.current_uid, self.gui.figure)
-
-                    traj_name = self.gui.db[uid]['start']['trajectory_name']
-                    if represents_int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')]):
-                        # bin data
-                        e0 = int(traj_name[traj_name.rfind('-') + 1: traj_name.rfind('.')])
-                        edge_start = -30
-                        edge_end = 50
-                        preedge_spacing = 10
-                        xanes_spacing = 0.2
-                        exafs_spacing = 0.04
-
-                        binned = self.gui.gen_parser.bin(e0,
-                                                         e0 + edge_start,
-                                                         e0 + edge_end,
-                                                         preedge_spacing,
-                                                         xanes_spacing,
-                                                         exafs_spacing)
-
-                        sample_name = self.gui.db[uid]['start']['name'].split(' - ')[0]
-
-                        if sample_name in self.gui.batch_results:
-                            self.gui.batch_results[sample_name]['data'].append(
-                                self.gui.gen_parser.data_manager.binned_arrays)
-                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
-                                self.gui.batch_results[sample_name]['orig_all'][key] = np.append(
-                                    self.gui.batch_results[sample_name]['orig_all'][key],
-                                    self.gui.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.gen_parser.bin(e0,
-                                                             e0 + edge_start,
-                                                             e0 + edge_end,
-                                                             preedge_spacing,
-                                                             xanes_spacing,
-                                                             exafs_spacing)
-                            self.gui.batch_results[sample_name]['data_all'] = binned
-
-                        else:
-                            self.gui.batch_results[sample_name] = {
-                                'data': [self.gui.gen_parser.data_manager.binned_arrays]}
-                            self.gui.batch_results[sample_name]['orig_all'] = {}
-                            for key in self.gui.gen_parser.data_manager.binned_arrays.keys():
-                                self.gui.batch_results[sample_name]['orig_all'][key] = np.copy(
-                                    self.gui.gen_parser.data_manager.binned_arrays[key])
-                            self.gui.gen_parser.interp_arrays = self.gui.batch_results[sample_name]['orig_all']
-                            binned = self.gui.gen_parser.bin(e0,
-                                                             e0 + edge_start,
-                                                             e0 + edge_end,
-                                                             preedge_spacing,
-                                                             xanes_spacing,
-                                                             exafs_spacing)
-                            self.gui.batch_results[sample_name]['data_all'] = binned
-                        self.finished_processing.emit()
-
-                    print('Finished processing scan') #{}'.format(self.gui.current_filepath))
-
-                except Exception as exc:
-                    print('Could not finish parsing this batch scan:\n{}'.format(exc))
-
-            else:
-                QtCore.QCoreApplication.processEvents()

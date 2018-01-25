@@ -13,7 +13,7 @@ import h5py
 from pathlib import Path
 
 class XASdata:
-    def __init__(self, **kwargs):
+    def __init__(self, db = None, **kwargs):
         self.energy = np.array([])
         self.data = np.array([])
         self.encoder_file = ''
@@ -23,6 +23,7 @@ class XASdata:
         self.iff_file = ''
         self.data_manager = XASDataManager()
         self.header_read = ''
+        self.db = db
 
     def loadADCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'counter', 'adc']
@@ -36,6 +37,21 @@ class XASdata:
         else:
             return -1
 
+    def loadADCtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df['adc'] = df['adc'].apply(lambda x: (x >> 8) - 0x40000 if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
+        return df
 
     def loadENCtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
         keys = ['times', 'timens', 'encoder', 'counter', 'di']
@@ -46,6 +62,22 @@ class XASdata:
             return df.iloc[:, [5, 2]]
         else:
             return -1
+
+    def loadENCtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df['encoder'] = df['encoder'].apply(lambda x: x if x <= 0 else -(x ^ 0xffffff - 1))
+        return df.iloc[:, [5, 2]]
 
 
     def loadTRIGtrace(self, filename = '', filepath = '/GPFS/xf08id/pizza_box_data/'):
@@ -58,6 +90,22 @@ class XASdata:
             return df.iloc[:, [5, 3]]
         else:
             return -1
+
+    def loadTRIGtraceDB(self, uid, stream_name):
+        hdr = self.db[uid]
+        dd = [_['data'] for _ in self.db.get_events(hdr, stream_name=stream_name, fill=True)]
+        result = {}
+        for chunk in dd:
+            for key in chunk.keys():
+                if key in result:
+                    result[key] = np.concatenate((result[key], chunk[key]))
+                    continue
+                result[key] = chunk[key]
+        columns = list(dd[0][stream_name][0]._asdict().keys())
+        df = pd.DataFrame(result[stream_name], columns=columns)
+        df['timestamp'] = df['ts_s'] + 1e-9 * df['ts_ns']
+        df = df.iloc[::2]
+        return df.iloc[:, [5, 3]]
 
 
     def read_header(self, filename):
@@ -123,15 +171,62 @@ class XASdataGeneric(XASdata):
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
 
+    def loadDB(self, uid):
+        # if self.db is None:
+        #    raise Exception('The databroker was not passed as argument to the parser. This feature is disabled.')
+        self.arrays = {}
+        self.interp_arrays = {}
+        self.uid = uid
+        has_encoder = False
+        for i in self.db[uid]['descriptors']:
+            stream_name = i['name']
+            name = i['name']
+            if name == 'pb9_enc1' or name == 'hhm_theta':
+                has_encoder = name
+            if 'devname' in i['data_keys'][i['name']]:
+                name = i['data_keys'][i['name']]['devname']
+                if name == 'hhm_theta':
+                    has_encoder = name
+
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
+                data = self.loadTRIGtraceDB(uid, stream_name)
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
+                data = self.loadADCtraceDB(uid, stream_name)
+                if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == pd.core.frame.DataFrame:
+                    data.iloc[:, 1] = data.iloc[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+            if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
+                data = self.loadENCtraceDB(uid, stream_name)
+            # if type(data) == np.ndarray:
+            self.arrays[name] = data
+
+        if has_encoder is not False:
+            energy = self.arrays.get(has_encoder).copy()
+            if 'angle_offset' in self.db[uid]['start']:
+                energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg,
+                                                        -float(self.db[uid]['start']['angle_offset']))
+                energy.columns = ['timestamp', 'energy']
+            del self.arrays[has_encoder]
+            self.arrays['energy'] = energy
 
     def read_header(self, filename):
-        test = ''
-        line = '#'
-        with open(filename) as myfile:
-            while line[0] == '#':
-                line = next(myfile)
-                test += line
-        return test[:-len(line)]
+        if filename[-3:] == 'txt' or filename[-3:] == 'dat':
+            test = ''
+            line = '#'
+            with open(filename) as myfile:
+                while line[0] == '#':
+                    line = next(myfile)
+                    test += line
+            return test[:-len(line)]
+
+        elif filename[-4:] == 'hdf5':
+            f = h5py.File(filename, mode='r')
+            header = dict(f.attrs)
+            f.close()
+            del header['start_time']
+            del header['stop_time']
+            del header['name']
+            header = '\n'.join([f'# {key}: {header[key]}' for key in header]) + '\n#\n#'
+            return header
 
     def loadInterpFile(self, filename):
         self.arrays = {}
@@ -189,8 +284,8 @@ class XASdataGeneric(XASdata):
         if self.db_analysis is None:
             raise IOError('No db_analysis was passed to the parser in the initialization')
 
-        hdr = db_analysis[uid]
-        dd = [_['data'] for _ in db_analysis.get_events(hdr, stream_name='interpolated', fill=True)]
+        hdr = self.db_analysis[uid]
+        dd = [_['data'] for _ in self.db_analysis.get_events(hdr, stream_name='interpolated', fill=True)]
         result = {}
         for chunk in [chunk['interpolated'] for chunk in dd]:
             for key in chunk.keys():
@@ -567,6 +662,32 @@ class XASDataManager:
         self.data_arrays = {}
         self.binned_eq_arrays = {}
         self.binned_arrays = {}
+        self.binned_df = pd.DataFrame()
+
+    def loadBinFile(self, filename):
+        self.binned_arrays = {}
+        self.binned_df = pd.DataFrame()
+
+        if not op.exists(filename):
+            raise IOError(f'The requested file {filename} does not exist.')
+
+        header = XASdataGeneric.read_header(None, filename)
+        self.uid = header[header.find('UID') + 5: header.find('\n', header.find('UID'))]
+
+        keys = re.sub('  +', '  ', header[header.rfind('# '):][2:-1]).split('  ')
+        timestamp_index = -1
+        if 'Timestamp (s)' in keys:
+            timestamp_index = keys.index('Timestamp (s)')
+        elif 'timestamp' in keys:
+            timestamp_index = keys.index('timestamp')
+
+        df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
+        df['1'] = pd.Series(np.ones(len(df.iloc[:, 0])), index=df.index)
+        self.binned_df = df
+        for index, key in enumerate(df.keys()):
+            if index != timestamp_index:
+                self.binned_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
+        self.binned_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
 
     def delta_energy(self, array):
         diff = np.diff(array)
@@ -595,8 +716,8 @@ class XASDataManager:
 
         return np.append(np.append(preedge, edge), postedge)
 
-    def get_k_data(self, e0, edge_end, exafsk, y_data, interp_dict, en_orig, data_orig, pow = 1, energy_string = 'energy'):
-        df = pd.DataFrame({k: v[:, 1] for k, v in interp_dict.items()}).sort_values(energy_string)
+    def get_k_data(self, e0, edge_end, exafsk, df, en_orig, data_orig, pow = 1, energy_string = 'energy'):
+        y_data = data_orig.copy()
         energy_array = df[energy_string].values
         e_interval = self.get_k_interval(energy_array, e0, e0 + edge_end, exafsk)
         k_interval = xray.e2k(e_interval, e0) #e0 + edge_end)
@@ -606,14 +727,15 @@ class XASDataManager:
         data_orig = np.extract(condition, data_orig)
         try:
             polyfit = np.polyfit(en_orig, data_orig, 2) #2 is ok?
+            p = np.poly1d(polyfit)
+            calibration = p(e_interval)
+
+            y_data = y_data[-len(k_interval):] - calibration
+            data = y_data[-len(k_interval):] * (k_interval ** pow)
+            return np.array([k_interval, data])
         except Exception as exc:
             print(exc)
-        p = np.poly1d(polyfit)
-        calibration = p(e_interval)
-
-        y_data = y_data[-len(k_interval):] - calibration
-        data = y_data[-len(k_interval):] * (k_interval ** pow)
-        return np.array([k_interval, data])
+            return np.array([[], []])
 
 
     def get_k_interval(self, energy_array, e0, edge_end, exafsk):
@@ -676,11 +798,18 @@ class XASDataManager:
         return derivative
 
 
-    def export_dat(self, filename):
+    def export_dat(self, filename, e0_bin):
+        for extension in ['txt', 'dat', 'hdf5']:
+            if op.isfile(filename + extension):
+                filename = filename + extension
+                break
+
         comments = XASdataGeneric.read_header(None, filename)
         comments = comments[0: comments.rfind('#')] + '# '
+        comments = comments[:comments.rfind('#', 0, -2)] + f'# e0_bin: {e0_bin}\n#\n#'
 
-        filename = filename[0: len(filename) - 3] + 'dat'
+        filename = filename[:filename.rfind('.') + 1] + 'dat'
+        filename = XASDataManager.get_new_filename(filename)
 
         cols = self.binned_df.columns.tolist()
         cols.remove('1')
@@ -704,7 +833,6 @@ class XASDataManager:
         cols.append('1')
         self.binned_df = self.binned_df[cols]
 
-
         np.savetxt(filename,
                    self.binned_df.iloc[:,:-2].values,
                    fmt=fmt,
@@ -715,6 +843,21 @@ class XASDataManager:
         call(['chmod', '770', filename])
         return filename
 
+    def get_new_filename(filename):
+        for extension in ['.txt', '.dat', '.hdf5']:
+            if filename[-len(extension):] == extension:
+                filename = filename[:-len(extension)]
+                break
+
+        if op.exists(Path(filename + extension)):
+            iterator = 2
+
+            while True:
+                new_filename = f'{filename}-{iterator}{extension}'
+                if not op.isfile(new_filename):
+                    return new_filename
+                iterator += 1
+        return filename + extension
 
     def process(self, interp_df, e0, edge_start, edge_end, preedge_spacing, xanes, exafsk, energy_string = 'energy'):
         if len(interp_df[list(interp_df.keys())[0]].shape) > 1:
@@ -729,7 +872,7 @@ class XASDataManager:
         ret[energy_string] = en_grid
         self.binned_arrays = ret
         self.binned_df = pd.DataFrame(ret)
-        return ret
+        return self.binned_df
 
 
     def process_equal(self, interp_df, energy_string = 'energy', delta_en = 2):
@@ -742,7 +885,7 @@ class XASDataManager:
         ret[energy_string] = en_grid_eq
         self.binned_eq_arrays = ret
         self.binned_eq_df = pd.DataFrame(ret)
-        return ret
+        return self.binned_eq_df
 
 
     def average_points(self, matrix, energy_column = 0):

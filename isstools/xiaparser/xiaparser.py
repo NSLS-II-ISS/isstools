@@ -12,6 +12,7 @@ from scipy.optimize import curve_fit
 import smbc
 import time as ttime
 import warnings
+from pathlib import Path
 
 
 '''
@@ -47,7 +48,7 @@ class xiaparser:
         if(filename != self.filename or filepath != self.filepath or pixelnumber != None):
             self.filename = filename
             self.filepath = filepath
-            self.rootgrp = Dataset(filepath + filename, "r")
+            self.rootgrp = Dataset(str(Path(filepath) / Path(filename)), "r")
             self.data = self.rootgrp.variables["array_data"][:]
 
             if not silent:
