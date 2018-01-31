@@ -267,8 +267,13 @@ class ReceivingThread(QThread):
         while True:
             message = self.parent().subscriber.recv()
             message = message[len(self.parent().hostname_filter):]
-            data = pickle.loads(message)
-
+            # FIXME: We need to see where in the "data = ..." line we are
+            #        using doct dot accessor syntax.  This is to just 
+            #        suppress the warning for the moment.
+            with warnings.catch_warnings():
+              warnings.simplefilter("ignore")
+              data = pickle.loads(message)
+            
             if 'data' in data['processing_ret']:
                 data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
 
