@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 import pandas as pd
-from larch import Group as xafsgroup
+#from larch import Group as xafsgroup
 
 
 class XASDataSet:
@@ -18,10 +18,11 @@ class XASDataSet:
         if md is not None:
             self._md = md
             if 'e0' in md:
-                self.larch.e0 = int(md['e0'])
+        #          self.larch.e0 = int(md['e0'])
+                pass
             elif 'edge' in md:
                 edge = md['edge']
-                self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
+        #         self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
 
         if mu is not None:
             if hasattr(mu, 'values'):
@@ -41,7 +42,7 @@ class XASDataSet:
     @data.setter
     def data(self, data):
         self._data = pd.DataFrame(data)
-        self.larch.energy = self._data['energy']
+     #   self.larch.energy = self._data['energy']
 
     @property
     def md(self):
@@ -51,10 +52,11 @@ class XASDataSet:
     def md(self, md):
         self._md = md
         if 'e0' in md:
-            self.larch.e0 = int(md['e0'])
+       #     self.larch.e0 = int(md['e0'])
+            pass
         elif 'edge' in md:
             edge = md['edge']
-            self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
+       #s    self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
 
     @property
     def mu(self):

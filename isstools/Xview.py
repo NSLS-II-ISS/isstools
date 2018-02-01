@@ -15,11 +15,11 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pathlib import Path
 
-import larch
-from larch_plugins.io import read_ascii
-from larch_plugins.xafs import pre_edge, autobk, mback
-from larch import Interpreter
-from larch import Group as xafsgroup
+#simport larch
+#from larch_plugins.io import read_ascii
+#from larch_plugins.xafs import pre_edge, autobk, mback
+#from larch import Interpreter
+#from larch import Group as xafsgroup
 
 #Libs for ZeroMQ communication
 import socket
@@ -59,7 +59,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.xasproject = xasproject.XASProject()
         self.xasproject.datasets_changed.connect(self.addFilenameToXASProject)
-        self._larch = Interpreter(with_plugins=False)
+        #sself._larch = Interpreter(with_plugins=False)
 
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
@@ -283,9 +283,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def selectBinnedDataFilesToPlot(self):
         header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
                                                                          self.listFiles_bin.currentItem().text()))
-        self.keys = re.sub('  +', '  ', header[header.rfind('# '):][2:-1]).split('  ')
+        self.keys = header[header.rfind('#'):][1:-1].split()
         self.keys.insert(0, '1')
-
+        print(self.keys)
         if 'timestamp' in self.keys:
             del self.keys[self.keys.index('timestamp')]
 
@@ -356,7 +356,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvas.draw_idle()
 
         if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
-            self.show_info_message('Error!', '2 Please, select numerator and denominator')
+            self.show_info_message('Error!', 'Please, select numerator and denominator')
             return
 
         self.last_num = self.listBinnedDataNumerator.currentRow()
@@ -366,13 +366,13 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             energy_key = 'En. (eV)'
         elif 'energy' in self.keys:
             energy_key = 'energy'
-
+        print(energy_key)
         handles = []
         for i in selected_items:
             self.gen.loadInterpFile('{}/{}'.format(self.workingFolder, i.text()))
-
+            print('a')
             df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
-
+            print('but not b')
             division = df[self.listBinnedDataNumerator.currentItem().text()] \
                        / df[self.listBinnedDataDenominator.currentItem().text()]
             if self.checkBox_log_bin.checkState():
