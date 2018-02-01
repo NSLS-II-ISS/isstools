@@ -17,7 +17,7 @@ setuptools.setup(
     license="BSD (3-clause)",
     url="https://github.com/NSLS-II-ISS/isstools",
     packages=setuptools.find_packages(),
-    package_data={'isstools': ['ui/*.ui']},
+    package_data={'isstools': ['dialogs/*.ui']},
     #install_requires=['netcdf4','pyparsing', 'pysmbc', 'pytable'], #needs zbarlight
     classifiers=[
         "Development Status :: 3 - Alpha",
