@@ -119,10 +119,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
                 header = self.gen_parser.read_header(filepath)
-                uid = header[header.find('UID:') + 5: header.find('\n', header.find('UID:'))]
-                #print(uid)
+                uid = header[header.find('real_uid:')+10:header.find('\n', header.find('real_uid:'))]
                 md = self.db[uid]['start']
-
                 ds = xasproject.XASDataSet()
                 self.gen_parser.data_manager.loadBinFile(filepath)
                 df = self.gen_parser.data_manager.binned_df
@@ -141,7 +139,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 ds.mu = mu
                 ds.filename = filepath
 
-                pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
+               # pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
 
                 self.xasproject.append(ds)
 
@@ -366,13 +364,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             energy_key = 'En. (eV)'
         elif 'energy' in self.keys:
             energy_key = 'energy'
-        print(energy_key)
+
         handles = []
         for i in selected_items:
             self.gen.loadInterpFile('{}/{}'.format(self.workingFolder, i.text()))
-            print('a')
             df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
-            print('but not b')
             division = df[self.listBinnedDataNumerator.currentItem().text()] \
                        / df[self.listBinnedDataDenominator.currentItem().text()]
             if self.checkBox_log_bin.checkState():
