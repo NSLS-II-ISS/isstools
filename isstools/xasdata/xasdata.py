@@ -673,8 +673,8 @@ class XASDataManager:
 
         header = XASdataGeneric.read_header(None, filename)
         self.uid = header[header.find('UID') + 5: header.find('\n', header.find('UID'))]
-
-        keys = re.sub('  +', '  ', header[header.rfind('# '):][2:-1]).split('  ')
+        keys = header[header.rfind('#'):][1:-1].split()
+        #keys = header[header.rfind('#'):][2:-1]).split('  ')
         timestamp_index = -1
         if 'Timestamp (s)' in keys:
             timestamp_index = keys.index('Timestamp (s)')

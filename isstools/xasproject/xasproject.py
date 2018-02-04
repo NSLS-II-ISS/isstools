@@ -1,6 +1,9 @@
 from PyQt5 import QtCore
 import pandas as pd
-#from larch import Group as xafsgroup
+from larch import Group as xafsgroup
+from larch_plugins.xafs import pre_edge, autobk, mback
+from larch import Interpreter
+
 
 
 class XASDataSet:
@@ -8,6 +11,7 @@ class XASDataSet:
     _data = pd.DataFrame()
     _mu = pd.DataFrame()
     _filename = ''
+    _larch = Interpreter(with_plugins=False)
 
     def __init__(self, data=None, md=None, mu=None, filename=None, *args, **kwargs):
         self.larch = xafsgroup()
@@ -18,22 +22,17 @@ class XASDataSet:
         if md is not None:
             self._md = md
             if 'e0' in md:
-        #          self.larch.e0 = int(md['e0'])
-                pass
+                self.larch.e0 = int(md['e0'])
+
             elif 'edge' in md:
                 edge = md['edge']
-        #         self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
-
-        if mu is not None:
-            if hasattr(mu, 'values'):
-                values = mu.values
-            else:
-                values = mu
-            self._mu = pd.DataFrame(values, columns=['mu'])
-            self.larch.mu = self._mu
+                self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
 
         if filename is not None:
             self._filename = filename
+
+    def pre_edge(self):
+        pre_edge(self.larch, group=self.larch, _larch=self._larch)
 
     @property
     def data(self):
@@ -52,11 +51,11 @@ class XASDataSet:
     def md(self, md):
         self._md = md
         if 'e0' in md:
-       #     self.larch.e0 = int(md['e0'])
+            self.larch.e0 = int(md['e0'])
             pass
         elif 'edge' in md:
             edge = md['edge']
-       #s    self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
+            self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
 
     @property
     def mu(self):

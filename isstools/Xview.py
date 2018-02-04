@@ -15,10 +15,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pathlib import Path
 
-#simport larch
+#import larch
 #from larch_plugins.io import read_ascii
-#from larch_plugins.xafs import pre_edge, autobk, mback
-#from larch import Interpreter
 #from larch import Group as xafsgroup
 
 #Libs for ZeroMQ communication
@@ -59,7 +57,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.xasproject = xasproject.XASProject()
         self.xasproject.datasets_changed.connect(self.addFilenameToXASProject)
-        #sself._larch = Interpreter(with_plugins=False)
+
 
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
@@ -134,12 +132,13 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 if self.checkBox_inv_bin.checkState():
                     mu = -mu
 
-                ds.data = df
-                ds.md = md
-                ds.mu = mu
-                ds.filename = filepath
 
-               # pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
+                ds.md = md
+                ds.larch.mu = mu
+                ds.larch.energy = df['energy']
+                ds.filename = filepath
+                ds.pre_edge()
+                #pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
 
                 self.xasproject.append(ds)
 
