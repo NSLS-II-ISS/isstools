@@ -267,7 +267,10 @@ class ReceivingThread(QThread):
         while True:
             message = self.parent().subscriber.recv()
             message = message[len(self.parent().hostname_filter):]
-            data = pickle.loads(message)
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
                 data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
