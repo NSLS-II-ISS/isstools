@@ -265,7 +265,7 @@ b</string>
     <item row="1" column="1">
      <widget class="QLineEdit" name="edit_preedge_spacing">
       <property name="text">
-       <string>10</string>
+       <string>4</string>
       </property>
      </widget>
     </item>
@@ -430,7 +430,7 @@ b</string>
     <item row="3" column="1">
      <widget class="QLineEdit" name="edit_edge_end">
       <property name="text">
-       <string>50</string>
+       <string>30</string>
       </property>
      </widget>
     </item>
