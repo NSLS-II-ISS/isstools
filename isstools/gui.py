@@ -35,7 +35,8 @@ def auto_redraw_factory(fnc):
 class ScanGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs=[],
+    def __init__(self,
+                 plan_funcs=[],
                  prep_traj_plan=None,
                  RE=None,
                  db=None,

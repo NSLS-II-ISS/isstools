@@ -109,9 +109,11 @@ class UIRun(*uic.loadUiType(ui_path)):
         for enc in self.enc_list:
             enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
-        if self.xia.input_trigger is not None:
-            self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-            self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+        # not needed at QAS this is a detector
+        if self.xia is not None:
+            if self.xia.input_trigger is not None:
+                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         self.comment = self.params2[0].text()
         if (self.comment):
