@@ -107,10 +107,26 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         # Setting up Preprocess tab:
         self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
-        #self.listFiles_xasproject.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
+        self.listFiles_xasproject.itemSelectionChanged.connect(self.setLarchData)
         self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plotEXASProject)
+
+    def setLarchData(self):
+        if self.listFiles_xasproject.selectedIndexes():
+            index=self.listFiles_xasproject.selectedIndexes()[0]
+            print(index.row())
+            ds = self.xasproject[index.row()]
+            self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre1))
+            self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre2))
+
+            # Make the first selected line bold, and reset bold font for other selections
+            font = QtGui.QFont()
+            font.setBold(False)
+            for i in range(self.listFiles_xasproject.count()):
+                self.listFiles_xasproject.item(i).setFont(font)
+            font.setBold(True)
+            self.listFiles_xasproject.item(index.row()).setFont(font)
 
     def addDsToXASProject(self):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
@@ -194,6 +210,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def addCanvas(self):
         self.figureBinned = Figure()
         self.figureBinned.set_facecolor(color='#FcF9F6')
+        self.figureBinned.ax = self.figureBinned.add_subplot(111)
         self.figureBinned.ax = self.figureBinned.add_subplot(111)
         self.canvas = FigureCanvas(self.figureBinned)
 
