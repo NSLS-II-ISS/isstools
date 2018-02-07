@@ -115,7 +115,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def setLarchData(self):
         if self.listFiles_xasproject.selectedIndexes():
             index=self.listFiles_xasproject.selectedIndexes()[0]
-            print(index.row())
             ds = self.xasproject[index.row()]
             self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre1))
             self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre2))
