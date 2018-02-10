@@ -13,9 +13,8 @@ class XASDataSet:
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, data=None, md=None, mu=None, filename=None, *args, **kwargs):
+    def __init__(self, data=None, md=None, mu=None, filename=None,new_ds = True, *args, **kwargs):
         self.larch = xafsgroup()
-
         if data is not None:
             self._data = pd.DataFrame(data)
 
@@ -31,12 +30,32 @@ class XASDataSet:
         if filename is not None:
             self._filename = filename
 
-    def pre_edge(self):
+    def subtract_background(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch)
+        self.energy = self.larch.energy
+        self.mu = self.larch.mu
+        self.norm = self.larch.norm
+        self.new_ds = False
+        self.pre1 = self.larch.pre_edge_details.pre1
+        self.pre2 = self.larch.pre_edge_details.pre2
+        self.norm1 = self.larch.pre_edge_details.norm1
+        self.norm2 = self.larch.pre_edge_details.norm2
+        self.e0 = self.larch.e0
+        self.pre_edge=self.larch.pre_edge
+        self.preedge = self.larch.post_edge
+
+    def subtract_background_force(self):
+        pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
+                                                                           norm1=self.norm1, norm2=self.norm2)
+        self.norm = self.larch.norm
+        self.e0 = self.larch.e0
+        self.pre_edge=self.larch.pre_edge
+        self.preedge = self.larch.post_edge
 
     @property
     def data(self):
         return self._data
+
 
     @data.setter
     def data(self, data):

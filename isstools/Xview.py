@@ -110,14 +110,37 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.listFiles_xasproject.itemSelectionChanged.connect(self.setLarchData)
         self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
-        self.pushbutton_plotE_xasproject.clicked.connect(self.plotEXASProject)
+        self.pushbutton_plotE_xasproject.clicked.connect(self.plotXASProjectInE)
+        self.lineEdit_preedge_lo.textChanged.connect(self.update_ds_preedge_lo)
+        self.lineEdit_preedge_hi.textChanged.connect(self.update_ds_preedge_hi)
+
+    def update_ds_preedge_lo(self):
+        index = self.listFiles_xasproject.selectedIndexes()[0].row()
+        ds = self.xasproject[index]
+        try:
+            ds.pre1 = float(self.lineEdit_preedge_lo.text())
+        except:
+            pass
+
+    def update_ds_preedge_hi(self):
+        index = self.listFiles_xasproject.selectedIndexes()[0].row()
+        ds = self.xasproject[index]
+        try:
+            ds.pre2 = float(self.lineEdit_preedge_hi.text())
+        except:
+            pass
+
 
     def setLarchData(self):
         if self.listFiles_xasproject.selectedIndexes():
             index=self.listFiles_xasproject.selectedIndexes()[0]
             ds = self.xasproject[index.row()]
-            self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre1))
-            self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.larch.pre_edge_details.pre2))
+            self.lineEdit_e0.setText('{:.1f}'.format(ds.e0))
+            self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.pre1))
+            self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.pre2))
+            self.lineEdit_postedge_lo.setText('{:.1f}'.format(ds.norm1))
+            self.lineEdit_postedge_hi.setText('{:.1f}'.format(ds.norm2))
+            self.lineEdit_postedge_hi.setText('{:.1f}'.format(ds.norm2))
 
             # Make the first selected line bold, and reset bold font for other selections
             font = QtGui.QFont()
@@ -152,9 +175,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 ds.larch.mu = mu
                 ds.larch.energy = df['energy']
                 ds.filename = filepath
-                ds.pre_edge()
-                #pre_edge(ds.larch, group=ds.larch, _larch=self._larch)
-
+                ds.subtract_background()
                 self.xasproject.append(ds)
 
         else:
@@ -173,7 +194,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         for index in self.listFiles_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
             self.xasproject.removeDatasetIndex(index.row())
 
-    def plotEXASProject(self):
+    def plotXASProjectInE(self):
         self.figureXASProject.ax.clear()
         self.toolbar_XASProject._views.clear()
         self.toolbar_XASProject._positions.clear()
@@ -182,10 +203,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         for index in self.listFiles_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
+            ds.subtract_background_force()
         #for ds in self.xasproject:
-            larch = ds.larch
+
             if self.radioButton_mu_xasproject.isChecked():
-                data = larch.mu
+                data = ds.mu
                 if self.checkBox_preedge_show.checkState():
                     self.figureXASProject.ax.plot(larch.energy, larch.pre_edge)
                 if self.checkBox_postedge_show.checkState():
@@ -298,7 +320,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                                                                          self.listFiles_bin.currentItem().text()))
         self.keys = header[header.rfind('#'):][1:-1].split()
         self.keys.insert(0, '1')
-        print(self.keys)
         if 'timestamp' in self.keys:
             del self.keys[self.keys.index('timestamp')]
 
