@@ -42,7 +42,7 @@ class XASDataSet:
         self.norm2 = self.larch.pre_edge_details.norm2
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
-        self.preedge = self.larch.post_edge
+        self.post_edge = self.larch.post_edge
 
     def subtract_background_force(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
@@ -51,6 +51,16 @@ class XASDataSet:
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
         self.preedge = self.larch.post_edge
+
+    def extract_chi(self):
+        autobk(self.larch, group=self.larch,  _larch=self._larch)
+        self.k = self.larch.k
+        self.chi = self.larch.chi
+
+    def extract_chi_force(self):
+        autobk(self.larch, group=self.larch, _larch=self._larch)
+        self.k = self.larch.k
+        self.chi = self.larch.chi
 
     @property
     def data(self):
