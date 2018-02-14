@@ -88,15 +88,17 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plotXASProjectInE)
         self.pushbutton_plotK_xasproject.clicked.connect(self.plotXASProjectInK)
-        self.lineEdit_preedge_lo.textEdited.connect(self.update_dataset)
-        self.lineEdit_preedge_hi.textEdited.connect(self.update_dataset)
-        self.lineEdit_postedge_lo.textEdited.connect(self.update_dataset)
-        self.lineEdit_postedge_hi.textEdited.connect(self.update_dataset)
+        self.lineEdit_preedge_lo.textEdited.connect(self.updateDsParams)
+        self.lineEdit_preedge_hi.textEdited.connect(self.updateDsParams)
+        self.lineEdit_postedge_lo.textEdited.connect(self.updateDsParams)
+        self.lineEdit_postedge_hi.textEdited.connect(self.updateDsParams)
+
+        self.pushButton_preedge_lo_set.clicked.connect(self.setDsParamsFromGraph)
+        self.pushButton_preedge_hi_set.clicked.connect(self.setDsParamsFromGraph)
 
     def addCanvas(self):
         self.figureBinned = Figure()
         self.figureBinned.set_facecolor(color='#FcF9F6')
-        self.figureBinned.ax = self.figureBinned.add_subplot(111)
         self.figureBinned.ax = self.figureBinned.add_subplot(111)
         self.canvas = FigureCanvas(self.figureBinned)
 
@@ -118,6 +120,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.layout_plot_xasproject.addWidget(self.canvasXASProject)
         self.canvasXASProject.draw()
         #layout_plot_xasproject
+
 
     def selectWorkingFolder(self):
         self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Open a folder", self.workingFolder,
@@ -156,7 +159,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.listBinnedDataDenominator.clear()
             self.listBinnedDataNumerator.insertItems(0, self.keys)
             self.listBinnedDataDenominator.insertItems(0, self.keys)
-
             if self.last_num != '' and self.last_num <= len(self.keys) - 1:
                 self.listBinnedDataNumerator.setCurrentRow(self.last_num)
             if self.last_den != '' and self.last_den <= len(self.keys) - 1:
@@ -208,8 +210,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvas.draw_idle()
 
 
-    # here we begin to work on teh second pre-processing tab
-    def update_dataset(self):
+    # here we begin to work on the second pre-processing tab
+    def updateDsParams(self):
         sender = QObject()
         sender_object = sender.sender().objectName()
         selection = self.listFiles_xasproject.selectedIndexes()
@@ -217,20 +219,52 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         if selection is not None:
             index=selection[0].row()
             ds = self.xasproject[index]
+            sender_dict = {
+                'lineEdit_preedge_lo': 'pre1',
+                'lineEdit_preedge_hi': 'pre2',
+                'lineEdit_postedge_lo': 'norm1',
+                'lineEdit_postedge_hi': 'norm2',
+            }
+
             try:
                 self.statusBar().showMessage(sender_object)
-                if sender_object ==  "lineEdit_preedge_lo":
-                        ds.pre1 = float(self.lineEdit_preedge_lo.text())
-                elif sender_object ==  "lineEdit_preedge_hi":
-                        ds.pre2 = float(self.lineEdit_preedge_hi.text())
-                if sender_object ==  "lineEdit_postedge_lo":
-                        ds.norm1 = float(self.lineEdit_postedge_lo.text())
-
-                elif sender_object ==  "lineEdit_postedge_hi":
-                        ds.norm2 = float(self.lineEdit_postedge_hi.text())
+                setattr(ds, sender_dict[sender_object], float(getattr(self, sender_object).text()))
 
             except:
                 self.statusBar().showMessage('Use numbers only')
+
+    def setDsParamsFromGraph(self):
+        sender = QObject()
+        self.sender_object = sender.sender().objectName()
+        self.statusBar().showMessage('Click on graph or press Esc')
+        self.cid = self.canvasXASProject.mpl_connect('button_press_event',  self.mouse_press_event)
+        print(f'cid={self.cid}')
+
+    def _disconnect_cid(self):
+        if hasattr(self, 'cid'):
+            print(f'cid {self.cid} removed')
+            self.canvasXASProject.mpl_disconnect(self.cid)
+            delattr(self, 'cid')
+        else:
+            print(f'cid is not installed')
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            self._disconnect_cid()
+
+    def mouse_press_event(self, event):
+        print(event.button, event.x, event.y, event.xdata, event.ydata)
+        print(self.sender_object)
+        sender_dict = {
+            'pushButton_preedge_lo_set': 'lineEdit_preedge_lo',
+            'pushButton_preedge_hi_set': 'lineEdit_preedge_hi',
+            'pushButton_postedge_lo_set': 'lineEdit_postedge_lo',
+            'pushButton_postedge_hi_set': 'lineEdit_postedge_hi',
+        }
+        lineEdit=getattr(self, sender_dict[self.sender_object])
+        lineEdit.setText(str(event.xdata))
+        self._disconnect_cid()
+
 
     def setLarchData(self):
         if self.listFiles_xasproject.selectedIndexes():

@@ -37,7 +37,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
@@ -256,7 +256,7 @@
         <x>520</x>
         <y>830</y>
         <width>151</width>
-        <height>61</height>
+        <height>77</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -314,7 +314,7 @@
         <x>680</x>
         <y>830</y>
         <width>160</width>
-        <height>61</height>
+        <height>77</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -463,7 +463,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_set_e0_2">
+          <widget class="QPushButton" name="pushButton_preedge_lo_set">
            <property name="maximumSize">
             <size>
              <width>20</width>
@@ -502,7 +502,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_set_e0_3">
+          <widget class="QPushButton" name="pushButton_preedge_hi_set">
            <property name="maximumSize">
             <size>
              <width>20</width>
@@ -1165,7 +1165,7 @@
         <x>1150</x>
         <y>830</y>
         <width>160</width>
-        <height>81</height>
+        <height>104</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1221,7 +1221,7 @@
         <x>850</x>
         <y>830</y>
         <width>160</width>
-        <height>41</height>
+        <height>50</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
