@@ -14,16 +14,6 @@ from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 
 from pathlib import Path
-
-#import larch
-#from larch_plugins.io import read_ascii
-#from larch import Group as xafsgroup
-
-#Libs for ZeroMQ communication
-import socket
-from PyQt5.QtCore import QThread
-import zmq
-import pickle
 import pandas as pd
 
 from matplotlib.figure import Figure
@@ -55,7 +45,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
         self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
         self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
-        self.comboBoxSortFilesBy.addItems(['Name', 'Time'])
+        self.comboBoxSortFilesBy.addItems(['Time','Name'])
         self.comboBoxSortFilesBy.currentIndexChanged.connect((self.getFileList))
         # file lists
         self.listFiles_bin.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
@@ -77,24 +67,30 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
         if self.workingFolder != '/GPFS/xf08id/User Data':
-            self.labelWorkingFolder.setText(self.workingFolder)
-            self.labelWorkingFolder.setToolTip(self.workingFolder)
+            self.label_working_folder.setText(self.workingFolder)
+            self.label_working_folder.setToolTip(self.workingFolder)
             self.getFileList()
 
         # Setting up Preprocess tab:
         self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
-        self.listFiles_xasproject.itemSelectionChanged.connect(self.setLarchData)
+        self.listFiles_xasproject.itemSelectionChanged.connect(self.showDsParams)
         self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plotXASProjectInE)
         self.pushbutton_plotK_xasproject.clicked.connect(self.plotXASProjectInK)
+
+        self.label_E0.setText("E<sub>0</sub>")
+        self.lineEdit_e0.textEdited.connect(self.updateDsParams)
         self.lineEdit_preedge_lo.textEdited.connect(self.updateDsParams)
         self.lineEdit_preedge_hi.textEdited.connect(self.updateDsParams)
         self.lineEdit_postedge_lo.textEdited.connect(self.updateDsParams)
         self.lineEdit_postedge_hi.textEdited.connect(self.updateDsParams)
 
+        self.pushButton_e0_set.clicked.connect(self.setDsParamsFromGraph)
         self.pushButton_preedge_lo_set.clicked.connect(self.setDsParamsFromGraph)
         self.pushButton_preedge_hi_set.clicked.connect(self.setDsParamsFromGraph)
+        self.pushButton_postedge_lo_set.clicked.connect(self.setDsParamsFromGraph)
+        self.pushButton_postedge_hi_set.clicked.connect(self.setDsParamsFromGraph)
 
     def addCanvas(self):
         self.figureBinned = Figure()
@@ -112,10 +108,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureXASProject = Figure()
         self.figureXASProject.set_facecolor(color='#FcF9F6')
         self.figureXASProject.ax = self.figureXASProject.add_subplot(111)
+        self.figureXASProject.ax.grid(alpha = 0.4)
         self.canvasXASProject = FigureCanvas(self.figureXASProject)
 
         self.toolbar_XASProject = NavigationToolbar(self.canvasXASProject, self)
-        self.toolbar_XASProject.setMaximumHeight(25)
         self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
         self.layout_plot_xasproject.addWidget(self.canvasXASProject)
         self.canvasXASProject.draw()
@@ -127,10 +123,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                                                                         QtWidgets.QFileDialog.ShowDirsOnly)
         self.settings.setValue('WorkingFolder', self.workingFolder)
         if len(self.workingFolder) > 50:
-            self.labelWorkingFolder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
+            self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
         else:
-            self.labelWorkingFolder.setText(self.workingFolder)
-        self.labelWorkingFolder.setToolTip(self.workingFolder)
+            self.label_working_folder.setText(self.workingFolder)
         self.getFileList()
 
     def getFileList(self):
@@ -146,6 +141,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
                 files_bin.reverse()
             self.listFiles_bin.addItems(files_bin)
+
     def selectBinnedDataFilesToPlot(self):
         header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
                                                                          self.listFiles_bin.currentItem().text()))
@@ -190,14 +186,14 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         for i in selected_items:
             self.gen.loadInterpFile('{}/{}'.format(self.workingFolder, i.text()))
             df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
-            division = df[self.listBinnedDataNumerator.currentItem().text()] \
+            spectrum = df[self.listBinnedDataNumerator.currentItem().text()] \
                        / df[self.listBinnedDataDenominator.currentItem().text()]
             if self.checkBox_log_bin.checkState():
-                division = np.log(division)
+                spectrum = np.log(spectrum)
             if self.checkBox_inv_bin.checkState():
-                division = -division
+                spectrum = -spectrum
 
-            self.figureBinned.ax.plot(df[energy_key], division)
+            self.figureBinned.ax.plot(df[energy_key], spectrum)
             self.figureBinned.ax.set_xlabel('Energy (eV)')
             self.figureBinned.ax.set_ylabel('{} / {}'.format(self.listBinnedDataNumerator.currentItem().text(),
                                                              self.listBinnedDataDenominator.currentItem().text()))
@@ -215,8 +211,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         sender = QObject()
         sender_object = sender.sender().objectName()
         selection = self.listFiles_xasproject.selectedIndexes()
-
-        if selection is not None:
+        if selection != []:
             index=selection[0].row()
             ds = self.xasproject[index]
             sender_dict = {
@@ -224,12 +219,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 'lineEdit_preedge_hi': 'pre2',
                 'lineEdit_postedge_lo': 'norm1',
                 'lineEdit_postedge_hi': 'norm2',
+                'lineEdit_e0': 'e0'
             }
-
             try:
                 self.statusBar().showMessage(sender_object)
                 setattr(ds, sender_dict[sender_object], float(getattr(self, sender_object).text()))
-
             except:
                 self.statusBar().showMessage('Use numbers only')
 
@@ -238,35 +232,36 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.sender_object = sender.sender().objectName()
         self.statusBar().showMessage('Click on graph or press Esc')
         self.cid = self.canvasXASProject.mpl_connect('button_press_event',  self.mouse_press_event)
-        print(f'cid={self.cid}')
 
     def _disconnect_cid(self):
         if hasattr(self, 'cid'):
-            print(f'cid {self.cid} removed')
             self.canvasXASProject.mpl_disconnect(self.cid)
             delattr(self, 'cid')
-        else:
-            print(f'cid is not installed')
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self._disconnect_cid()
 
     def mouse_press_event(self, event):
-        print(event.button, event.x, event.y, event.xdata, event.ydata)
-        print(self.sender_object)
         sender_dict = {
+            'pushButton_e0_set': 'lineEdit_e0',
             'pushButton_preedge_lo_set': 'lineEdit_preedge_lo',
             'pushButton_preedge_hi_set': 'lineEdit_preedge_hi',
             'pushButton_postedge_lo_set': 'lineEdit_postedge_lo',
             'pushButton_postedge_hi_set': 'lineEdit_postedge_hi',
         }
         lineEdit=getattr(self, sender_dict[self.sender_object])
-        lineEdit.setText(str(event.xdata))
+
+        if  self.sender_object == 'pushButton_e0_set':
+            new_value = event.xdata
+        else:
+            new_value = event.xdata-float(self.lineEdit_e0.text())
+
+        lineEdit.setText('{:.1f}'.format(new_value))
         self._disconnect_cid()
 
 
-    def setLarchData(self):
+    def showDsParams(self):
         if self.listFiles_xasproject.selectedIndexes():
             index=self.listFiles_xasproject.selectedIndexes()[0]
             ds = self.xasproject[index.row()]
@@ -287,10 +282,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
+                name = Path(filepath).resolve().stem
                 header = self.gen_parser.read_header(filepath)
                 uid = header[header.find('real_uid:')+10:header.find('\n', header.find('real_uid:'))]
                 md = self.db[uid]['start']
-                ds = xasproject.XASDataSet()
+
                 self.gen_parser.data_manager.loadBinFile(filepath)
                 df = self.gen_parser.data_manager.binned_df
                 df = df.sort_values('energy')
@@ -302,13 +298,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                     mu = np.log(mu)
                 if self.checkBox_inv_bin.checkState():
                     mu = -mu
-
-
-                ds.md = md
-                ds.larch.mu = mu
-                ds.larch.energy = df['energy']
-                ds.filename = filepath
-                ds.subtract_background()
+                ds = xasproject.XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
                 self.xasproject.append(ds)
                 self.statusBar().showMessage('Scans added to the project successfully')
         else:
@@ -323,7 +313,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.listFiles_xasproject.addItem(fn)
 
     def removeFromXASProject(self):
-        print(self.listFiles_xasproject.selectedIndexes())
         for index in self.listFiles_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
             self.xasproject.removeDatasetIndex(index.row())
 
@@ -338,27 +327,29 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             ds = self.xasproject[index.row()]
             ds.subtract_background_force()
         #for ds in self.xasproject:
-
+            energy = ds.energy
             if self.radioButton_mu_xasproject.isChecked():
                 data = ds.mu
-                if self.checkBox_preedge_show.checkState():
-                    self.figureXASProject.ax.plot(ds.energy, ds.pre_edge)
-                if self.checkBox_postedge_show.checkState():
-                    self.figureXASProject.ax.plot(ds.energy, ds.post_edge)
             elif self.radioButton_norm_xasproject.isChecked():
                 if self.checkBox_norm_flat_xasproject.checkState():
-                    indx_e0 = np.abs(ds.energy-ds.e0).argmin()
-                    flattening_bkg = ds.post_edge - ds.pre_edge
-                    norm_factor = flattening_bkg[indx_e0]
-
-                    flattening_bkg[indx_e0::] = flattening_bkg[indx_e0::] - norm_factor
-                    mu_flattened = ds.mu.values.flatten()-ds.pre_edge
-                    mu_flattened[indx_e0::] = mu_flattened[indx_e0::] - flattening_bkg[indx_e0::]
-                    mu_flattened[indx_e0::] = mu_flattened[indx_e0::] / norm_factor
-                    data = mu_flattened
+                    data = ds.flat
                 else:
                     data = ds.norm
-            self.figureXASProject.ax.plot(ds.energy, data)
+            if self.checkBox_deriv.isChecked():
+                data = ds.mu_deriv
+                energy = ds.energy_deriv
+            self.figureXASProject.ax.plot(energy, data, label = ds.name)
+
+            if self.radioButton_mu_xasproject.isChecked():
+                if self.checkBox_preedge_show.checkState():
+                    line = self.figureXASProject.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
+                if self.checkBox_postedge_show.checkState():
+                    self.figureXASProject.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
+                if self.checkBox_background_show.checkState():
+                    self.figureXASProject.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
+
+        self.figureXASProject.ax.legend(fontsize = 'small')
+        self.figureXASProject.ax.grid(alpha=0.4)
         self.canvasXASProject.draw_idle()
 
     def plotXASProjectInK(self):

@@ -3,32 +3,52 @@ import pandas as pd
 from larch import Group as xafsgroup
 from larch_plugins.xafs import pre_edge, autobk, mback
 from larch import Interpreter
+import numpy as np
 
 
 
 class XASDataSet:
     _md = {}
-    _data = pd.DataFrame()
-    _mu = pd.DataFrame()
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, data=None, md=None, mu=None, filename=None,new_ds = True, *args, **kwargs):
+    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, *args, **kwargs):
         self.larch = xafsgroup()
-        if data is not None:
-            self._data = pd.DataFrame(data)
-
         if md is not None:
             self._md = md
             if 'e0' in md:
                 self.larch.e0 = int(md['e0'])
-
             elif 'edge' in md:
                 edge = md['edge']
                 self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])
 
+        if mu is not None:
+            self.larch.mu = np.array(mu)
+        if energy is not None:
+            self.larch.energy = np.array(energy)
         if filename is not None:
             self._filename = filename
+        if name is not None:
+            self.name = name
+        if datatype is not None:
+            self.datatype = datatype
+        if mu is not None and energy is not None:
+            self.subtract_background()
+            self.deriv()
+            self.extract_chi()
+
+    def deriv(self):
+        mu_deriv=np.diff(np.transpose(self.mu.values))/np.diff(self.energy)
+        self.mu_deriv=mu_deriv[0]
+        self.energy_deriv=(self.energy[1:]+self.energy[:-1])/2
+
+    def flatten(self):
+        step_index = int(np.argwhere(self.energy > self.e0)[0])
+        zeros = np.zeros(step_index)
+        ones = np.ones(self.energy.shape[0] - step_index)
+        step = np.concatenate((zeros, ones), axis=0)
+        diffline = (self.post_edge - self.pre_edge) / self.edge_step
+        self.flat = self.norm + step * (1 - diffline)
 
     def subtract_background(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch)
@@ -43,6 +63,9 @@ class XASDataSet:
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
         self.post_edge = self.larch.post_edge
+        self.edge_step = self.larch.edge_step
+        self.flatten()
+
 
     def subtract_background_force(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
@@ -50,27 +73,22 @@ class XASDataSet:
         self.norm = self.larch.norm
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
-        self.preedge = self.larch.post_edge
+        self.post_edge = self.larch.post_edge
+        self.edge_step = self.larch.edge_step
+        self.flatten()
 
     def extract_chi(self):
         autobk(self.larch, group=self.larch,  _larch=self._larch)
         self.k = self.larch.k
         self.chi = self.larch.chi
+        self.bkg=self.larch.bkg
 
     def extract_chi_force(self):
         autobk(self.larch, group=self.larch, _larch=self._larch)
         self.k = self.larch.k
         self.chi = self.larch.chi
+        self.bkg = self.larch.bkg
 
-    @property
-    def data(self):
-        return self._data
-
-
-    @data.setter
-    def data(self, data):
-        self._data = pd.DataFrame(data)
-     #   self.larch.energy = self._data['energy']
 
     @property
     def md(self):

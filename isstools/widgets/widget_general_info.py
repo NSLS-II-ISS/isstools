@@ -5,7 +5,7 @@ import requests
 import urllib.request
 
 from isstools.dialogs import UpdateUserDialog
-
+from timeit import default_timer as timer
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
 
@@ -112,7 +112,13 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'],
                                                 self.RE.md['SAF'], self.RE.md['PI'], parent=self)
         if dlg.exec_():
+            start = timer()
             self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md[
                 'PI'] = dlg.getValues()
-
+            print('2')
+            stop1 = timer()
             self.update_user_info()
+            print('3')
+            stop2 = timer()
+            print(stop1 - start)
+            print(stop2 - start)
