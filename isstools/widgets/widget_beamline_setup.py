@@ -1,5 +1,6 @@
 import pkg_resources
 import json
+import time
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -15,6 +16,7 @@ from subprocess import call
 import re
 import pandas as pd
 import math
+from timeit import default_timer as timer
 
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
