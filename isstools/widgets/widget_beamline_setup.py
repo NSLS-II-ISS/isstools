@@ -278,7 +278,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.comboBox_gen_det.setCurrentText(curr_element['det_name'])
             self.comboBox_gen_detsig.setCurrentText(curr_element['det_sig'])
             self.comboBox_gen_det_den.setCurrentText('1')
-            self.comboBox_gen_mot.setCurrentText(curr_element['motor_name'])
+            self.comboBox_gen_mot.setCurrentText(self.motors_dict[curr_element['motor_name']]['description'])
             self.edit_gen_range.setText(str(curr_element['scan_range']))
             self.edit_gen_step.setText(str(curr_element['step_size']))
             self.checkBox_tune.setChecked(curr_element['autotune'])

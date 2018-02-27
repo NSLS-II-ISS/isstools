@@ -421,6 +421,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
                                                   'XAS project files (*.xas)', options=options)
         if fileName:
+            ext = Path(fileName).suffix
+            if ext != '.xas':
+                fileName = filename + '.xas'
             print(fileName)
             self.xasproject.save(filename=fileName)
         else:
