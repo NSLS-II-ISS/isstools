@@ -25,6 +25,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 
+
 class GUI(QtWidgets.QMainWindow, gui_form):
     def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None, parent=None):
 
@@ -71,26 +72,34 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.label_working_folder.setToolTip(self.workingFolder)
             self.getFileList()
 
+        self.label_E0.setText("E<sub>0</sub>")
         # Setting up Preprocess tab:
         self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
-        self.listFiles_xasproject.itemSelectionChanged.connect(self.showDsParams)
+        self.listFiles_xasproject.itemSelectionChanged.connect(self.show_ds_params)
         self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.pushbutton_remove_xasproject.clicked.connect(self.removeFromXASProject)
-        self.pushbutton_plotE_xasproject.clicked.connect(self.plotXASProjectInE)
-        self.pushbutton_plotK_xasproject.clicked.connect(self.plotXASProjectInK)
+        self.pushbutton_remove_xasproject.clicked.connect(self.remove_from_xas_project)
+        self.pushbutton_plotE_xasproject.clicked.connect(self.plot_xas_project_in_E)
+        self.pushbutton_plotK_xasproject.clicked.connect(self.plot_xas_project_in_K)
 
-        self.label_E0.setText("E<sub>0</sub>")
-        self.lineEdit_e0.textEdited.connect(self.updateDsParams)
-        self.lineEdit_preedge_lo.textEdited.connect(self.updateDsParams)
-        self.lineEdit_preedge_hi.textEdited.connect(self.updateDsParams)
-        self.lineEdit_postedge_lo.textEdited.connect(self.updateDsParams)
-        self.lineEdit_postedge_hi.textEdited.connect(self.updateDsParams)
+        self.lineEdit_e0.textEdited.connect(self.update_ds_params)
+        self.lineEdit_preedge_lo.textEdited.connect(self.update_ds_params)
+        self.lineEdit_preedge_hi.textEdited.connect(self.update_ds_params)
+        self.lineEdit_postedge_lo.textEdited.connect(self.update_ds_params)
+        self.lineEdit_postedge_hi.textEdited.connect(self.update_ds_params)
 
-        self.pushButton_e0_set.clicked.connect(self.setDsParamsFromGraph)
-        self.pushButton_preedge_lo_set.clicked.connect(self.setDsParamsFromGraph)
-        self.pushButton_preedge_hi_set.clicked.connect(self.setDsParamsFromGraph)
-        self.pushButton_postedge_lo_set.clicked.connect(self.setDsParamsFromGraph)
-        self.pushButton_postedge_hi_set.clicked.connect(self.setDsParamsFromGraph)
+        self.pushButton_e0_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_preedge_lo_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_preedge_hi_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_postedge_lo_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_postedge_hi_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_push_norm_param_to_selected.clicked.connect(self.push_norm_param)
+        self.pushButton_push_norm_param_to_all.clicked.connect(self.push_norm_param)
+
+        self.action_exit.triggered.connect(self.close_app)
+        self.action_save_project.triggered.connect(self.save_project)
+
+    def close_app(self):
+        self.close()
 
     def addCanvas(self):
         self.figureBinned = Figure()
@@ -205,9 +214,34 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureBinned.tight_layout()
         self.canvas.draw_idle()
 
+    def push_norm_param(self):
+        norm_param_list = [
+            'e0',
+            'pre1',
+            'pre2',
+            'norm1',
+            'norm2',
+        ]
+        selection = self.listFiles_xasproject.selectedIndexes()
+        if selection != []:
+            sender = QObject()
+            sender_object = sender.sender().objectName()
+            index = selection[0].row()
+            ds_master = self.xasproject[index]
+            if sender_object == 'pushButton_push_norm_param_to_selected':
+                for indx, obj in enumerate(selection):
+                    ds = self.xasproject[ selection[indx].row()]
+                    for param in norm_param_list:
+                        setattr(ds, param, getattr(ds_master, param))
+            if sender_object == 'pushButton_push_norm_param_to_all':
+                for indx, obj in enumerate(self.xasproject):
+                    for param in norm_param_list:
+                        setattr(self.xasproject[indx], param, getattr(ds_master, param))
+
+
 
     # here we begin to work on the second pre-processing tab
-    def updateDsParams(self):
+    def update_ds_params(self):
         sender = QObject()
         sender_object = sender.sender().objectName()
         selection = self.listFiles_xasproject.selectedIndexes()
@@ -227,7 +261,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             except:
                 self.statusBar().showMessage('Use numbers only')
 
-    def setDsParamsFromGraph(self):
+    def set_ds_params_from_plot(self):
         sender = QObject()
         self.sender_object = sender.sender().objectName()
         self.statusBar().showMessage('Click on graph or press Esc')
@@ -261,7 +295,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self._disconnect_cid()
 
 
-    def showDsParams(self):
+    def show_ds_params(self):
         if self.listFiles_xasproject.selectedIndexes():
             index=self.listFiles_xasproject.selectedIndexes()[0]
             ds = self.xasproject[index.row()]
@@ -312,11 +346,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             fn = fn[fn.rfind('/') + 1:]
             self.listFiles_xasproject.addItem(fn)
 
-    def removeFromXASProject(self):
+    def remove_from_xas_project(self):
         for index in self.listFiles_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
             self.xasproject.removeDatasetIndex(index.row())
 
-    def plotXASProjectInE(self):
+    def plot_xas_project_in_E(self):
         self.figureXASProject.ax.clear()
         self.toolbar_XASProject._views.clear()
         self.toolbar_XASProject._positions.clear()
@@ -340,7 +374,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 energy = ds.energy_deriv
             self.figureXASProject.ax.plot(energy, data, label = ds.name)
 
-            if self.radioButton_mu_xasproject.isChecked():
+            if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
                 if self.checkBox_preedge_show.checkState():
                     line = self.figureXASProject.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
                 if self.checkBox_postedge_show.checkState():
@@ -350,9 +384,12 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.figureXASProject.ax.legend(fontsize = 'small')
         self.figureXASProject.ax.grid(alpha=0.4)
+        self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(E)', size='13')
+        self.figureXASProject.ax.set_xlabel('Energy /eV', size='13')
         self.canvasXASProject.draw_idle()
 
-    def plotXASProjectInK(self):
+
+    def plot_xas_project_in_K(self):
         self.figureXASProject.ax.clear()
         self.toolbar_XASProject._views.clear()
         self.toolbar_XASProject._positions.clear()
@@ -368,10 +405,27 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 data = ds.k *ds.k * ds.chi
             elif self.radioButton_k_weight_3.isChecked():
                 data = ds.k * ds.k * ds. k* ds.chi
+            self.figureXASProject.ax.plot(ds.k, data, label = ds.name)
 
-            self.figureXASProject.ax.plot(ds.k, data)
 
+        self.figureXASProject.ax.legend(fontsize = 'small')
+        self.figureXASProject.ax.grid(alpha=0.4)
+        self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(k)', size='13')
+        self.figureXASProject.ax.set_xlabel(('k (' + r'$\AA$' + '$^1$' +')'), size='13')
         self.canvasXASProject.draw_idle()
+        self.canvasXASProject.draw_idle()
+
+    def save_project(self):
+        options = QtWidgets.QFileDialog.Options()
+        #options = QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+                                                  'XAS project files (*.xas)', options=options)
+        if fileName:
+            print(fileName)
+            self.xasproject.save(filename=fileName)
+        else:
+            print(0)
+
 
 
 if __name__ == '__main__':

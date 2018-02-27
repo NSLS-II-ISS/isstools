@@ -37,7 +37,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
@@ -71,7 +71,7 @@
        <rect>
         <x>540</x>
         <y>790</y>
-        <width>91</width>
+        <width>101</width>
         <height>19</height>
        </rect>
       </property>
@@ -269,7 +269,7 @@
         <x>520</x>
         <y>820</y>
         <width>161</width>
-        <height>81</height>
+        <height>104</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -458,7 +458,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -497,7 +497,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -540,7 +540,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -579,7 +579,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -712,7 +712,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -748,7 +748,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -788,7 +788,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -824,7 +824,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -935,7 +935,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pushButton_push_norm_param_to_all">
            <property name="text">
             <string>Push to all</string>
            </property>
@@ -1002,7 +1002,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -1038,7 +1038,7 @@
             </size>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>o</string>
            </property>
           </widget>
          </item>
@@ -1152,7 +1152,7 @@
         <x>1150</x>
         <y>830</y>
         <width>160</width>
-        <height>71</height>
+        <height>104</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1208,7 +1208,7 @@
         <x>860</x>
         <y>820</y>
         <width>160</width>
-        <height>79</height>
+        <height>31</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1227,7 +1227,7 @@
         <x>690</x>
         <y>820</y>
         <width>160</width>
-        <height>61</height>
+        <height>77</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1258,6 +1258,47 @@
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1517</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_open_project"/>
+    <addaction name="action_save_project"/>
+    <addaction name="action_Save_project_as_text"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <addaction name="menu_File"/>
+  </widget>
+  <action name="action_open_project">
+   <property name="text">
+    <string>&amp;Open project</string>
+   </property>
+  </action>
+  <action name="action_save_project">
+   <property name="text">
+    <string>&amp;Save project</string>
+   </property>
+  </action>
+  <action name="action_Save_project_as_text">
+   <property name="text">
+    <string>Save project as text</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>&amp;Exit</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

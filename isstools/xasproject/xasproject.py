@@ -4,6 +4,7 @@ from larch import Group as xafsgroup
 from larch_plugins.xafs import pre_edge, autobk, mback
 from larch import Interpreter
 import numpy as np
+import pickle
 
 
 
@@ -81,7 +82,8 @@ class XASDataSet:
         autobk(self.larch, group=self.larch,  _larch=self._larch)
         self.k = self.larch.k
         self.chi = self.larch.chi
-        self.bkg=self.larch.bkg
+        self.bkg = self.larch.bkg
+        self.rbkg = 1
 
     def extract_chi_force(self):
         autobk(self.larch, group=self.larch, _larch=self._larch)
@@ -173,3 +175,23 @@ class XASProject(QtCore.QObject):
 
     def __getitem__(self, item):
         return self.datasets[item]
+
+    def save(self, filename=None):
+        if  self._datasets:
+            if filename is not None:
+                list_to_save=[]
+                for i in self._datasets:
+                    list_to_save.append(i)
+                fid = open(filename, 'wb')
+                pickle.dump(list_to_save, fid)
+                fid.close()
+                print('XAS project was succesfully stored in {}'.format(filename))
+
+    def open_from_file(self ):
+        pass
+
+
+
+
+
+
