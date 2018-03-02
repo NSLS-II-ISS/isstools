@@ -1277,7 +1277,15 @@
     <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
+   <widget class="QMenu" name="menuDatasets">
+    <property name="title">
+     <string>Datasets</string>
+    </property>
+    <addaction name="actionRename"/>
+    <addaction name="action_merge"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuDatasets"/>
   </widget>
   <action name="action_open_project">
    <property name="text">
@@ -1297,6 +1305,16 @@
   <action name="action_exit">
    <property name="text">
     <string>&amp;Exit</string>
+   </property>
+  </action>
+  <action name="action_merge">
+   <property name="text">
+    <string>Merge</string>
+   </property>
+  </action>
+  <action name="actionRename">
+   <property name="text">
+    <string>Rename</string>
    </property>
   </action>
  </widget>

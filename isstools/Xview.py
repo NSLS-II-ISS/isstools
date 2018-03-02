@@ -74,7 +74,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.label_E0.setText("E<sub>0</sub>")
         # Setting up Preprocess tab:
-        self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
+        self.pushbutton_add_to_xasproject.clicked.connect(self.add_files_to_xas_project)
         self.listView_xasproject.itemSelectionChanged.connect(self.show_ds_params)
         self.listView_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.pushbutton_remove_xasproject.clicked.connect(self.remove_from_xas_project)
@@ -99,6 +99,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.action_save_project.triggered.connect(self.save_xas_project)
         self.action_open_project.triggered.connect(self.open_xas_project)
         self.action_save_datasets_as_text.triggered.connect(self.save_xas_datasets_as_text)
+        self.action_merge.triggered.connect(self.merge_datasets)
 
     def close_app(self):
         self.close()
@@ -313,7 +314,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             font.setBold(True)
             self.listView_xasproject.item(index.row()).setFont(font)
 
-    def addDsToXASProject(self):
+    def add_files_to_xas_project(self):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
@@ -343,12 +344,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
     def update_xas_project_list(self, datasets):
+        print(2)
         self.listView_xasproject.clear()
-        print('a')
         for ds in datasets:
-            fn = ds.filename
-            fn = fn[fn.rfind('/') + 1:]
-            self.listView_xasproject.addItem(fn)
+            self.listView_xasproject.addItem(ds.name)
 
     def remove_from_xas_project(self):
         for index in self.listView_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
@@ -361,6 +360,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.toolbar_XASProject._positions.clear()
         self.toolbar_XASProject._update_view()
         self.canvasXASProject.draw_idle()
+
 
         for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
@@ -403,7 +403,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
-            ds.extract_chi()
+            ds.extract_chi_force()
             if self.radioButton_k_weight_1.isChecked():
                 data=ds.k*ds.chi
             elif self.radioButton_k_weight_2.isChecked():
@@ -463,11 +463,11 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             separator = '#______________________________________________________\n'
             if pathname is not '':
                 for indx, obj in enumerate(selection):
-                    ds = self.xasproject._datasets[ selection[indx].row()]
+                    ds = self.xasproject._datasets[selection[indx].row()]
                     filename = str(Path(ds.filename).stem)
                     if ret == 0:
                         xx = ds.energy
-                        yy = ds.mu
+                        yy = np.array(ds.mu.mu)
                         keys = '# energy(eV), mu(E)\n'
                     elif ret == 1:
                         xx = ds.energy
@@ -477,8 +477,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                         xx = ds.energy
                         yy = ds.flat
                         keys = '# energy(eV), flattened normalized mu(E)\n'
+                    table = np.stack((xx, yy)).T
+
                     filename_new = '{}/{}.{}'.format(pathname,filename,'mu')
-                    print(filename_new)
                     fid = open(filename_new, 'w')
                     print(fid)
                     header_wo_cols_names = ds.header[0:ds.header.rfind('#')]
@@ -487,18 +488,26 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                     fid.write(keys)
                     fid.close()
 
+                    fid = open(filename_new, 'a')
+                    np.savetxt(fid,table)
+                    fid.close()
 
+    def merge_datasets(self):
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            mu = self.xasproject._datasets[selection[0].row()].mu
+            mu_array=np.zeros([len(selection),len(mu)])
+            energy = self.xasproject._datasets[selection[0].row()].energy
+            md=['merged']
+            for indx, obj in enumerate(selection):
+                mu_array[indx,:] = self.xasproject._datasets[selection[indx].row()].mu.mu
+                md.append(self.xasproject._datasets[selection[indx].row()].filename)
 
-
-
-
-
-
-            # if Path(filename).suffix != '.xas':
-            #     filename = filename + '.xas'a=
-            # print(filename)
-            # self.xasproject.save(filename=filename)
-
+            mu_merged = np.average(mu_array, axis=0)
+            merged = xasproject.XASDataSet(name='merge', md=md, energy=energy, mu=mu_merged, filename='',
+                                     datatype='processed')
+            self.xasproject.append(merged)
+            self.xasproject.project_changed()
 
 
 

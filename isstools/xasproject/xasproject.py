@@ -86,7 +86,7 @@ class XASDataSet:
         self.rbkg = 1
 
     def extract_chi_force(self):
-        autobk(self.larch, group=self.larch, _larch=self._larch)
+        autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0)
         self.k = self.larch.k
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
@@ -156,6 +156,9 @@ class XASProject(QtCore.QObject):
 
     def removeDataset(self, dataset):
         self._datasets.remove(dataset)
+        self.datasets_changed.emit(self._datasets)
+
+    def project_changed(self):
         self.datasets_changed.emit(self._datasets)
 
     def __repr__(self):
