@@ -162,7 +162,7 @@
        <string>Add to project</string>
       </property>
      </widget>
-     <widget class="QComboBox" name="comboBoxSortFilesBy">
+     <widget class="QComboBox" name="comboBox_sort_files_by">
       <property name="geometry">
        <rect>
         <x>80</x>
@@ -178,7 +178,7 @@
         <x>150</x>
         <y>10</y>
         <width>131</width>
-        <height>32</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
@@ -191,7 +191,7 @@
         <x>10</x>
         <y>10</y>
         <width>131</width>
-        <height>32</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
@@ -229,7 +229,7 @@
      <attribute name="title">
       <string>Preprocess</string>
      </attribute>
-     <widget class="QListWidget" name="listFiles_xasproject">
+     <widget class="QListWidget" name="listView_xasproject">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1264,7 +1264,7 @@
      <x>0</x>
      <y>0</y>
      <width>1517</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1273,7 +1273,7 @@
     </property>
     <addaction name="action_open_project"/>
     <addaction name="action_save_project"/>
-    <addaction name="action_Save_project_as_text"/>
+    <addaction name="action_save_datasets_as_text"/>
     <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
@@ -1289,7 +1289,7 @@
     <string>&amp;Save project</string>
    </property>
   </action>
-  <action name="action_Save_project_as_text">
+  <action name="action_save_datasets_as_text">
    <property name="text">
     <string>Save project as text</string>
    </property>

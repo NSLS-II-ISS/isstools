@@ -39,15 +39,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.gen_parser = xasdata.XASdataGeneric(hhm_pulses_per_deg, db=db)
 
         self.xasproject = xasproject.XASProject()
-        self.xasproject.datasets_changed.connect(self.addFilenameToXASProject)
+        self.xasproject.datasets_changed.connect(self.update_xas_project_list)
 
 
         # pushbuttons
-        self.pushbuttonSelectFolder.clicked.connect(self.selectWorkingFolder)
+        self.pushbuttonSelectFolder.clicked.connect(self.select_working_folder)
         self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
         self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
-        self.comboBoxSortFilesBy.addItems(['Time','Name'])
-        self.comboBoxSortFilesBy.currentIndexChanged.connect((self.getFileList))
+        self.comboBox_sort_files_by.addItems(['Time','Name'])
+        self.comboBox_sort_files_by.currentIndexChanged.connect((self.getFileList))
         # file lists
         self.listFiles_bin.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
         self.listFiles_bin.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -75,8 +75,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.label_E0.setText("E<sub>0</sub>")
         # Setting up Preprocess tab:
         self.pushbutton_add_to_xasproject.clicked.connect(self.addDsToXASProject)
-        self.listFiles_xasproject.itemSelectionChanged.connect(self.show_ds_params)
-        self.listFiles_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.listView_xasproject.itemSelectionChanged.connect(self.show_ds_params)
+        self.listView_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.pushbutton_remove_xasproject.clicked.connect(self.remove_from_xas_project)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plot_xas_project_in_E)
         self.pushbutton_plotK_xasproject.clicked.connect(self.plot_xas_project_in_K)
@@ -96,7 +96,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushButton_push_norm_param_to_all.clicked.connect(self.push_norm_param)
 
         self.action_exit.triggered.connect(self.close_app)
-        self.action_save_project.triggered.connect(self.save_project)
+        self.action_save_project.triggered.connect(self.save_xas_project)
+        self.action_open_project.triggered.connect(self.open_xas_project)
+        self.action_save_datasets_as_text.triggered.connect(self.save_xas_datasets_as_text)
 
     def close_app(self):
         self.close()
@@ -126,9 +128,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvasXASProject.draw()
         #layout_plot_xasproject
 
-
-    def selectWorkingFolder(self):
-        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Open a folder", self.workingFolder,
+    def select_working_folder(self):
+        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.workingFolder,
                                                                         QtWidgets.QFileDialog.ShowDirsOnly)
         self.settings.setValue('WorkingFolder', self.workingFolder)
         if len(self.workingFolder) > 50:
@@ -143,9 +144,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             files_bin = [f for f in os.listdir(self.workingFolder) if f.endswith('.dat')]
 
-            if self.comboBoxSortFilesBy.currentText() == 'Name':
+            if self.comboBox_sort_files_by.currentText() == 'Name':
                 files_bin.sort()
-            elif self.comboBoxSortFilesBy.currentText() == 'Time':
+            elif self.comboBox_sort_files_by.currentText() == 'Time':
                 files_bin.sort(key=lambda x: os.path.getmtime('{}/{}'.format(self.workingFolder, x)))
 
                 files_bin.reverse()
@@ -222,7 +223,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             'norm1',
             'norm2',
         ]
-        selection = self.listFiles_xasproject.selectedIndexes()
+        selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             sender = QObject()
             sender_object = sender.sender().objectName()
@@ -244,7 +245,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def update_ds_params(self):
         sender = QObject()
         sender_object = sender.sender().objectName()
-        selection = self.listFiles_xasproject.selectedIndexes()
+        selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             index=selection[0].row()
             ds = self.xasproject[index]
@@ -296,8 +297,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
     def show_ds_params(self):
-        if self.listFiles_xasproject.selectedIndexes():
-            index=self.listFiles_xasproject.selectedIndexes()[0]
+        if self.listView_xasproject.selectedIndexes():
+            index=self.listView_xasproject.selectedIndexes()[0]
             ds = self.xasproject[index.row()]
             self.lineEdit_e0.setText('{:.1f}'.format(ds.e0))
             self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.pre1))
@@ -307,10 +308,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             # Make the first selected line bold, and reset bold font for other selections
             font = QtGui.QFont()
             font.setBold(False)
-            for i in range(self.listFiles_xasproject.count()):
-                self.listFiles_xasproject.item(i).setFont(font)
+            for i in range(self.listView_xasproject.count()):
+                self.listView_xasproject.item(i).setFont(font)
             font.setBold(True)
-            self.listFiles_xasproject.item(index.row()).setFont(font)
+            self.listView_xasproject.item(index.row()).setFont(font)
 
     def addDsToXASProject(self):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
@@ -332,23 +333,27 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                     mu = np.log(mu)
                 if self.checkBox_inv_bin.checkState():
                     mu = -mu
+                mu=np.array(mu)
                 ds = xasproject.XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
+                ds.header = header
                 self.xasproject.append(ds)
                 self.statusBar().showMessage('Scans added to the project successfully')
         else:
             self.statusBar().showMessage('Select numerator and denominator columns')
 
 
-    def addFilenameToXASProject(self, datasets):
-        self.listFiles_xasproject.clear()
+    def update_xas_project_list(self, datasets):
+        self.listView_xasproject.clear()
+        print('a')
         for ds in datasets:
             fn = ds.filename
             fn = fn[fn.rfind('/') + 1:]
-            self.listFiles_xasproject.addItem(fn)
+            self.listView_xasproject.addItem(fn)
 
     def remove_from_xas_project(self):
-        for index in self.listFiles_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
+        for index in self.listView_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
             self.xasproject.removeDatasetIndex(index.row())
+            print('delete')
 
     def plot_xas_project_in_E(self):
         self.figureXASProject.ax.clear()
@@ -357,7 +362,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.toolbar_XASProject._update_view()
         self.canvasXASProject.draw_idle()
 
-        for index in self.listFiles_xasproject.selectedIndexes():
+        for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
             ds.subtract_background_force()
         #for ds in self.xasproject:
@@ -396,7 +401,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.toolbar_XASProject._update_view()
         self.canvasXASProject.draw_idle()
 
-        for index in self.listFiles_xasproject.selectedIndexes():
+        for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
             ds.extract_chi()
             if self.radioButton_k_weight_1.isChecked():
@@ -415,19 +420,86 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvasXASProject.draw_idle()
         self.canvasXASProject.draw_idle()
 
-    def save_project(self):
-        options = QtWidgets.QFileDialog.Options()
-        #options = QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+    def save_xas_project(self):
+        options = QtWidgets.QFileDialog.DontUseNativeDialog
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
                                                   'XAS project files (*.xas)', options=options)
-        if fileName:
-            ext = Path(fileName).suffix
-            if ext != '.xas':
-                fileName = filename + '.xas'
-            print(fileName)
-            self.xasproject.save(filename=fileName)
-        else:
-            print(0)
+        if filename:
+            if Path(filename).suffix != '.xas':
+                filename = filename + '.xas'
+            print(filename)
+            self.xasproject.save(filename=filename)
+            
+    def open_xas_project(self):
+        options = QtWidgets.QFileDialog.DontUseNativeDialog
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.workingFolder,
+                                                  'XAS project files (*.xas)', options=options)
+        if filename:
+            self.xasproject_loaded_from_file = xasproject.XASProject()
+            self.xasproject_loaded_from_file.load(filename = filename)
+
+            if ret == 0:
+                self.xasproject = self.xasproject_loaded_from_file
+                self.update_xas_project_list(self.xasproject._datasets)
+            if ret == 1:
+                for i in self.xasproject_loaded_from_file._datasets:
+                    self.xasproject.append(i)
+
+    def save_xas_datasets_as_text(self):
+        #options = QtWidgets.QFileDialog.DontUseNativeDialog
+        #filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+        #                                          'XAS project files (*.xas)', options=options)
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            messageBox = QtWidgets.QMessageBox()
+            messageBox.setText('Save datasets as..')
+            messageBox.addButton(QtWidgets.QPushButton('mu(E)'), QtWidgets.QMessageBox.YesRole)
+            messageBox.addButton(QtWidgets.QPushButton('normalized mu(E)'), QtWidgets.QMessageBox.NoRole)
+            messageBox.addButton(QtWidgets.QPushButton('flattened mu(E)'), QtWidgets.QMessageBox.NoRole)
+            ret = messageBox.exec_()
+            options = QtWidgets.QFileDialog.DontUseNativeDialog
+            pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.workingFolder,
+                                                                    options=options)
+            separator = '#______________________________________________________\n'
+            if pathname is not '':
+                for indx, obj in enumerate(selection):
+                    ds = self.xasproject._datasets[ selection[indx].row()]
+                    filename = str(Path(ds.filename).stem)
+                    if ret == 0:
+                        xx = ds.energy
+                        yy = ds.mu
+                        keys = '# energy(eV), mu(E)\n'
+                    elif ret == 1:
+                        xx = ds.energy
+                        yy = ds.norm
+                        keys = '# energy(eV), normalized mu(E)\n'
+                    elif ret == 2:
+                        xx = ds.energy
+                        yy = ds.flat
+                        keys = '# energy(eV), flattened normalized mu(E)\n'
+                    filename_new = '{}/{}.{}'.format(pathname,filename,'mu')
+                    print(filename_new)
+                    fid = open(filename_new, 'w')
+                    print(fid)
+                    header_wo_cols_names = ds.header[0:ds.header.rfind('#')]
+                    fid.write(header_wo_cols_names)
+                    fid.write(separator)
+                    fid.write(keys)
+                    fid.close()
+
+
+
+
+
+
+
+
+            # if Path(filename).suffix != '.xas':
+            #     filename = filename + '.xas'a=
+            # print(filename)
+            # self.xasproject.save(filename=filename)
+
+
 
 
 
