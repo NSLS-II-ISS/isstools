@@ -187,8 +187,14 @@ class XASProject(QtCore.QObject):
                 fid.close()
                 print('XAS project was succesfully stored in {}'.format(filename))
 
-    def open_from_file(self ):
-        pass
+    def load(self, filename=None):
+        if filename is not None:
+            fid = open(filename, 'rb')
+            datasets = pickle.load(fid)
+            for i in datasets:
+                self.append(i)
+            fid.close()
+
 
 
 
