@@ -27,9 +27,9 @@ class UIBeamlineStatus(*uic.loadUiType(ui_path)):
             self.hhm.energy.subscribe(self.update_current_energy)
         if det_dict !={}:
             self.i0 = det_dict['pba1_adc7']['obj']
-            self.it = det_dict['pba1_adc7']['obj']
-            self.ir = det_dict['pba1_adc1']['obj']
-            self.iff = det_dict['pba2_adc6']['obj']
+            self.it = det_dict['pba1_adc1']['obj']
+            self.ir = det_dict['pba2_adc6']['obj']
+            self.iff = det_dict['pba1_adc6']['obj']
             self.i0.volt.subscribe(self.update_detector_currents)
 
 
@@ -139,7 +139,7 @@ class UIBeamlineStatus(*uic.loadUiType(ui_path)):
         elif ival< -3.5 and ival> -3.9:
             element.setStyleSheet('color: rgb(209,116,42)')
         else:
-            element.setStyleSheet('color: rgb(209,116,42)')
+            element.setStyleSheet('color: rgb(209,42,42)')
 
         ival = self.it.volt.value
         element = self.label_it_current
@@ -149,7 +149,7 @@ class UIBeamlineStatus(*uic.loadUiType(ui_path)):
         elif ival< -3.5 and ival> -3.9:
             element.setStyleSheet('color: rgb(209,116,42)')
         else:
-            element.setStyleSheet('color: rgb(209,116,42)')
+            element.setStyleSheet('color: rgb(209,42,42)')
 
         ival = self.ir.volt.value
         element = self.label_ir_current
@@ -159,7 +159,7 @@ class UIBeamlineStatus(*uic.loadUiType(ui_path)):
         elif ival< -3.5 and ival> -3.9:
             element.setStyleSheet('color: rgb(209,116,42)')
         else:
-            element.setStyleSheet('color: rgb(209,116,42)')
+            element.setStyleSheet('color: rgb(209,42,42)')
 
 
         ival = self.iff.volt.value
@@ -170,6 +170,6 @@ class UIBeamlineStatus(*uic.loadUiType(ui_path)):
         elif ival< -3.5 and ival> -3.9:
             element.setStyleSheet('color: rgb(209,116,42)')
         else:
-            element.setStyleSheet('color: rgb(209,116,42)')
+            element.setStyleSheet('color: rgb(209,42,42)')
 
 
