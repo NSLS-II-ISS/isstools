@@ -320,8 +320,14 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
                 name = Path(filepath).resolve().stem
                 header = self.gen_parser.read_header(filepath)
-                uid = header[header.find('real_uid:')+10:header.find('\n', header.find('real_uid:'))]
-                md = self.db[uid]['start']
+                uid = header[header.find('UID:')+5:header.find('\n', header.find('UID:'))]
+
+                #FIXME different UID syntax in two files from manual binning and 0mq processing
+                try:
+                    md = self.db[uid]['start']
+                except:
+                    print('Metadata not found')
+                    md={}
 
                 self.gen_parser.data_manager.loadBinFile(filepath)
                 df = self.gen_parser.data_manager.binned_df
