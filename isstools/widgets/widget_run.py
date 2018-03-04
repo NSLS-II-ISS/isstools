@@ -10,10 +10,14 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 import time as ttime
 import numpy as np
+import datetime
+from timeit import default_timer as timer
 
 # Libs needed by the ZMQ communication
 import json
 import pandas as pd
+
+timenow = datetime.datetime.now()
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
@@ -76,6 +80,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
         self.plots.addWidget(self.canvas)
+        self.figure.ax.grid(alpha = 0.4)
         self.canvas.draw_idle()
 
     def run_scan(self):
@@ -114,9 +119,10 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         self.comment = self.params2[0].text()
-        if (self.comment):
-            print('\nStarting scan...')
-
+        if (self.comment):]
+            print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S")))
+            start_scan_timer=timer()
+            
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_params = {}
             for i in range(len(self.params1)):
@@ -135,12 +141,17 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.toolbar._positions.clear()
             self.toolbar._update_view()
             self.canvas.draw_idle()
-
+            self.figure.ax.grid(alpha = 0.4)
+            
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
                 self.run_mode_uids.append(uid)
+                
+            print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
+            stop_scan_timer=timer()  
+            print('Scan duration {}.format(stop_scan_timer-start_scan_timer)
 
         else:
             print('\nPlease, type the name of the scan in the field "name"\nTry again')
@@ -246,6 +257,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def plot_scan(self, data):
         if self.parent_gui.run_mode == 'run':
             self.figure.ax.clear()
+            self.figure.ax.grid(alpha = 0.4)
             self.toolbar._views.clear()
             self.toolbar._positions.clear()
             self.toolbar._update_view()
