@@ -12,8 +12,17 @@ import pandas as pd
 import h5py
 from pathlib import Path
 
+
 class XASdata:
     def __init__(self, db = None, **kwargs):
+        '''
+            This is the xas data parser
+
+            Parameters
+            ----------
+            db : Broker instance
+                the database to read from
+        '''
         self.energy = np.array([])
         self.data = np.array([])
         self.encoder_file = ''
@@ -119,8 +128,20 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
-    def __init__(self, pulses_per_deg, db = None, db_analysis = None, *args, **kwargs):
+    '''
+            This is the xas data parser
+
+            Parameters
+            ----------
+            db : Broker instance
+                the database to read from
+            mono_name:
+                the monochromator to read the theta values from
+    '''
+    def __init__(self, pulses_per_deg, db = None, db_analysis = None,
+                 mono_name='mono1_enc', *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.mono_name = mono_name
         self.arrays = {}
         self.interp_arrays = {}
         self.db = db
@@ -145,11 +166,11 @@ class XASdataGeneric(XASdata):
         for i in self.db[uid]['descriptors']:
             if 'filename' in i['data_keys'][i['name']]:
                 name = i['name']
-                if name == 'pb9_enc1' or name == 'hhm_theta':
+                if name == self.mono_name:
                     has_encoder = name
                 if 'devname' in i['data_keys'][i['name']]:
                     name = i['data_keys'][i['name']]['devname']
-                    if name == 'hhm_theta':
+                    if name == self.mono_name:
                         has_encoder = name
 
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
@@ -164,12 +185,15 @@ class XASdataGeneric(XASdata):
                 self.arrays[name] = data
 
         if has_encoder is not False:
+            print("Converting to energy, using key {}".format(has_encoder))
             energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
                 energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg, -float(self.db[uid]['start']['angle_offset']))
                 energy.columns = ['timestamp', 'energy']
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
+        else:
+            print("Cannot convert to energy")
 
     def loadDB(self, uid):
         # if self.db is None:
@@ -181,11 +205,11 @@ class XASdataGeneric(XASdata):
         for i in self.db[uid]['descriptors']:
             stream_name = i['name']
             name = i['name']
-            if name == 'pb9_enc1' or name == 'hhm_theta':
+            if name == self.mono_name:
                 has_encoder = name
             if 'devname' in i['data_keys'][i['name']]:
                 name = i['data_keys'][i['name']]['devname']
-                if name == 'hhm_theta':
+                if name == self.mono_name:
                     has_encoder = name
 
             if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
