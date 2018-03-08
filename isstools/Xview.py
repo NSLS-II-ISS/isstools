@@ -20,6 +20,7 @@ from matplotlib.figure import Figure
 
 from isstools.xasdata import xasdata
 from isstools.xasproject import xasproject
+from isstools.conversions.xray import k2e, e2k
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
@@ -54,6 +55,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.addCanvas()
         self.keys = []
         self.last_keys = []
+        self.current_plot_in = ''
 
 
         self.binned_data = []
@@ -86,20 +88,52 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.lineEdit_preedge_hi.textEdited.connect(self.update_ds_params)
         self.lineEdit_postedge_lo.textEdited.connect(self.update_ds_params)
         self.lineEdit_postedge_hi.textEdited.connect(self.update_ds_params)
+        self.lineEdit_spline_lo.textEdited.connect(self.update_ds_params)
+        self.lineEdit_spline_hi.textEdited.connect(self.update_ds_params)
+        self.lineEdit_clamp_lo.textEdited.connect(self.update_ds_params)
+        self.lineEdit_clamp_hi.textEdited.connect(self.update_ds_params)
 
         self.pushButton_e0_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_preedge_lo_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_preedge_hi_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_postedge_lo_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_postedge_hi_set.clicked.connect(self.set_ds_params_from_plot)
-        self.pushButton_push_norm_param_to_selected.clicked.connect(self.push_norm_param)
-        self.pushButton_push_norm_param_to_all.clicked.connect(self.push_norm_param)
+        self.pushButton_spline_lo_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_spline_hi_set.clicked.connect(self.set_ds_params_from_plot)
+
+        self.pushButton_push_norm_param_to_selected.clicked.connect(self.push_param)
+        self.pushButton_push_norm_param_to_all.clicked.connect(self.push_param)
+        self.pushButton_push_bkg_param_to_selected.clicked.connect(self.push_param)
+        self.pushButton_push_bkg_param_to_all.clicked.connect(self.push_param)
 
         self.action_exit.triggered.connect(self.close_app)
         self.action_save_project.triggered.connect(self.save_xas_project)
         self.action_open_project.triggered.connect(self.open_xas_project)
         self.action_save_datasets_as_text.triggered.connect(self.save_xas_datasets_as_text)
         self.action_merge.triggered.connect(self.merge_datasets)
+        self.action_rename.triggered.connect(self.rename_dataset)
+
+        self.lineEdit_to_ds_parameter_dict = {
+            'lineEdit_preedge_lo':  'pre1',
+            'lineEdit_preedge_hi':  'pre2',
+            'lineEdit_postedge_lo': 'norm1',
+            'lineEdit_postedge_hi': 'norm2',
+            'lineEdit_e0':          'e0',
+            'lineEdit_spline_lo':   'kmin',
+            'lineEdit_spline_hi':   'kmax',
+            'lineEdit_clamp_lo':    'clamp_lo',
+            'lineEdit_clamp_hi':    'clamp_hi'
+        }
+
+        self.pushButton_set_to_lineEdit_dict = {
+            'pushButton_e0_set':           'lineEdit_e0',
+            'pushButton_preedge_lo_set':   'lineEdit_preedge_lo',
+            'pushButton_preedge_hi_set':   'lineEdit_preedge_hi',
+            'pushButton_postedge_lo_set':  'lineEdit_postedge_lo',
+            'pushButton_postedge_hi_set':  'lineEdit_postedge_hi',
+            'pushButton_spline_lo_set':    'lineEdit_spline_lo',
+            'pushButton_spline_hi_set':    'lineEdit_spline_hi'
+        }
 
     def close_app(self):
         self.close()
@@ -124,8 +158,9 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.canvasXASProject = FigureCanvas(self.figureXASProject)
 
         self.toolbar_XASProject = NavigationToolbar(self.canvasXASProject, self)
-        self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
         self.layout_plot_xasproject.addWidget(self.canvasXASProject)
+        self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
+
         self.canvasXASProject.draw()
         #layout_plot_xasproject
 
@@ -216,14 +251,22 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureBinned.tight_layout()
         self.canvas.draw_idle()
 
-    def push_norm_param(self):
-        norm_param_list = [
+    def push_param(self):
+        self.norm_param_list = [
             'e0',
             'pre1',
             'pre2',
             'norm1',
             'norm2',
         ]
+
+        self.bkg_param_list = [
+            'kmin',
+            'kmax',
+            'clamp_lo',
+            'clamp_hi'
+        ]
+
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             sender = QObject()
@@ -232,13 +275,24 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             ds_master = self.xasproject[index]
             if sender_object == 'pushButton_push_norm_param_to_selected':
                 for indx, obj in enumerate(selection):
-                    ds = self.xasproject[ selection[indx].row()]
-                    for param in norm_param_list:
+                    ds = self.xasproject[selection[indx].row()]
+                    for param in self.norm_param_list:
                         setattr(ds, param, getattr(ds_master, param))
             if sender_object == 'pushButton_push_norm_param_to_all':
                 for indx, obj in enumerate(self.xasproject):
-                    for param in norm_param_list:
+                    for param in self.norm_param_list:
                         setattr(self.xasproject[indx], param, getattr(ds_master, param))
+            if sender_object == 'pushButton_push_bkg_param_to_selected':
+                for indx, obj in enumerate(selection):
+                    ds = self.xasproject[selection[indx].row()]
+                    for param in self.bkg_param_list:
+                        setattr(ds, param, getattr(ds_master, param))
+            if sender_object == 'pushButton_push_bkg_param_to_all':
+                for indx, obj in enumerate(self.xasproject):
+                    for param in self.bkg_param_list:
+                        setattr(self.xasproject[indx], param, getattr(ds_master, param))
+
+
 
 
 
@@ -246,20 +300,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def update_ds_params(self):
         sender = QObject()
         sender_object = sender.sender().objectName()
+        print(sender_object)
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             index=selection[0].row()
             ds = self.xasproject[index]
-            sender_dict = {
-                'lineEdit_preedge_lo': 'pre1',
-                'lineEdit_preedge_hi': 'pre2',
-                'lineEdit_postedge_lo': 'norm1',
-                'lineEdit_postedge_hi': 'norm2',
-                'lineEdit_e0': 'e0'
-            }
             try:
                 self.statusBar().showMessage(sender_object)
-                setattr(ds, sender_dict[sender_object], float(getattr(self, sender_object).text()))
+                print(getattr(self, sender_object).text())
+                setattr(ds, self.lineEdit_to_ds_parameter_dict[sender_object], float(getattr(self, sender_object).text()))
             except:
                 self.statusBar().showMessage('Use numbers only')
 
@@ -279,21 +328,32 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self._disconnect_cid()
 
     def mouse_press_event(self, event):
-        sender_dict = {
-            'pushButton_e0_set': 'lineEdit_e0',
-            'pushButton_preedge_lo_set': 'lineEdit_preedge_lo',
-            'pushButton_preedge_hi_set': 'lineEdit_preedge_hi',
-            'pushButton_postedge_lo_set': 'lineEdit_postedge_lo',
-            'pushButton_postedge_hi_set': 'lineEdit_postedge_hi',
-        }
-        lineEdit=getattr(self, sender_dict[self.sender_object])
-
-        if  self.sender_object == 'pushButton_e0_set':
+        lineEdit=getattr(self, self.pushButton_set_to_lineEdit_dict[self.sender_object])
+        e0=float(self.lineEdit_e0.text())
+        if self.sender_object == 'pushButton_e0_set':
             new_value = event.xdata
+        elif (self.sender_object == 'pushButton_spline_lo_set') or (self.sender_object == 'pushButton_spline_hi_set'):
+            if self.current_plot_in == 'k':
+                new_value = event.xdata
+            elif self.current_plot_in == 'e':
+                new_value = e2k(event.xdata, e0)
         else:
-            new_value = event.xdata-float(self.lineEdit_e0.text())
+            new_value = event.xdata-e0
 
         lineEdit.setText('{:.1f}'.format(new_value))
+        sender_object = lineEdit
+
+        print (sender_object)
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            index=selection[0].row()
+            ds = self.xasproject[index]
+            try:
+                float(sender_object.text())
+                setattr(ds, self.lineEdit_to_ds_parameter_dict[sender_object.objectName()], float(sender_object.text()))
+            except:
+                print('what''s going wrong')
+
         self._disconnect_cid()
 
 
@@ -306,9 +366,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.pre2))
             self.lineEdit_postedge_lo.setText('{:.1f}'.format(ds.norm1))
             self.lineEdit_postedge_hi.setText('{:.1f}'.format(ds.norm2))
+            self.lineEdit_spline_lo.setText('{:.1f}'.format(ds.kmin))
+            self.lineEdit_spline_hi.setText('{:.1f}'.format(ds.kmax))
+            self.lineEdit_clamp_lo.setText('{:.1f}'.format(ds.clamp_lo))
+            self.lineEdit_clamp_hi.setText('{:.1f}'.format(ds.clamp_hi))
+
             # Make the first selected line bold, and reset bold font for other selections
             font = QtGui.QFont()
             font.setBold(False)
+
             for i in range(self.listView_xasproject.count()):
                 self.listView_xasproject.item(i).setFont(font)
             font.setBold(True)
@@ -350,7 +416,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
 
     def update_xas_project_list(self, datasets):
-        print(2)
         self.listView_xasproject.clear()
         for ds in datasets:
             self.listView_xasproject.addItem(ds.name)
@@ -370,8 +435,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
-            ds.subtract_background_force()
-        #for ds in self.xasproject:
+            ds.normalize_force()
+            ds.extract_chi_force()
             energy = ds.energy
             if self.radioButton_mu_xasproject.isChecked():
                 data = ds.mu
@@ -398,6 +463,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(E)', size='13')
         self.figureXASProject.ax.set_xlabel('Energy /eV', size='13')
         self.canvasXASProject.draw_idle()
+        self.current_plot_in = 'e'
 
 
     def plot_xas_project_in_K(self):
@@ -424,7 +490,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(k)', size='13')
         self.figureXASProject.ax.set_xlabel(('k (' + r'$\AA$' + '$^1$' +')'), size='13')
         self.canvasXASProject.draw_idle()
-        self.canvasXASProject.draw_idle()
+        self.current_plot_in = 'k'
 
     def save_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
@@ -515,7 +581,14 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             self.xasproject.append(merged)
             self.xasproject.project_changed()
 
-
+    def rename_dataset(self):
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            name = self.xasproject._datasets[selection[0].row()].name
+            new_name, ok = QtWidgets.QInputDialog.getText(self, 'Rename dataset', 'Enter new name:',QtWidgets.QLineEdit.Normal, name)
+            if ok:
+                self.xasproject._datasets[selection[0].row()].name=new_name
+                self.xasproject.project_changed()
 
 
 if __name__ == '__main__':
