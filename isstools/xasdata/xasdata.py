@@ -350,7 +350,6 @@ class XASdataGeneric(XASdata):
     def get_plot_info(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         pass
 
-
     def plot(self, plotting_dic = dict(), ax = plt, color = 'r', derivative = True ):
         pass
 

@@ -34,7 +34,9 @@ class XASDataSet:
         if datatype is not None:
             self.datatype = datatype
         if mu is not None and energy is not None:
-            self.subtract_background()
+            self.clamp_hi = 0
+            self.clamp_lo = 0
+            self.normalize()
             self.deriv()
             self.extract_chi()
 
@@ -51,7 +53,7 @@ class XASDataSet:
         diffline = (self.post_edge - self.pre_edge) / self.edge_step
         self.flat = self.norm + step * (1 - diffline)
 
-    def subtract_background(self):
+    def normalize(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch)
         self.energy = self.larch.energy
         self.mu = self.larch.mu
@@ -68,7 +70,7 @@ class XASDataSet:
         self.flatten()
 
 
-    def subtract_background_force(self):
+    def normalize_force(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
                                                                            norm1=self.norm1, norm2=self.norm2)
         self.norm = self.larch.norm
@@ -80,16 +82,23 @@ class XASDataSet:
 
     def extract_chi(self):
         autobk(self.larch, group=self.larch,  _larch=self._larch)
-        self.k = self.larch.k
+
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
+        self.kmin = self.larch.autobk_details.kmin
+        self.kmax = self.larch.autobk_details.kmax
+        self.nclamp = 2
         self.rbkg = 1
 
     def extract_chi_force(self):
-        autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0)
+        # autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax)
+        autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax,
+               nclamp=2, clamp_hi=10)
         self.k = self.larch.k
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
+
+
 
 
     @property
