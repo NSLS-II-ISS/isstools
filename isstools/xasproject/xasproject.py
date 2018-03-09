@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 import pandas as pd
 from larch import Group as xafsgroup
-from larch_plugins.xafs import pre_edge, autobk, mback
+from larch_plugins.xafs import pre_edge, autobk, mback, xftf
 from larch import Interpreter
 import numpy as np
 import pickle
@@ -98,7 +98,15 @@ class XASDataSet:
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
 
+    def extract_ft(self):
+        xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin, kmax=self.kmax)
 
+        self.r = self.larch.r
+        self.chir = self.larch.chir
+        self.chir_mag = self.larch.chir_mag
+        self.chir_im = self.larch.chir_re
+        self.chir_re = self.larch.chir_im
+        #self.chir_pha = self.larch.chir_pha
 
 
     @property

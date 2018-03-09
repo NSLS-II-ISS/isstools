@@ -82,7 +82,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushbutton_remove_xasproject.clicked.connect(self.remove_from_xas_project)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plot_xas_project_in_E)
         self.pushbutton_plotK_xasproject.clicked.connect(self.plot_xas_project_in_K)
-
+        self.pushbutton_plotR_xasproject.clicked.connect(self.plot_xas_project_in_R)
         self.lineEdit_e0.textEdited.connect(self.update_ds_params)
         self.lineEdit_preedge_lo.textEdited.connect(self.update_ds_params)
         self.lineEdit_preedge_hi.textEdited.connect(self.update_ds_params)
@@ -426,12 +426,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             print('delete')
 
     def plot_xas_project_in_E(self):
-        self.figureXASProject.ax.clear()
-        self.toolbar_XASProject._views.clear()
-        self.toolbar_XASProject._positions.clear()
-        self.toolbar_XASProject._update_view()
-        self.canvasXASProject.draw_idle()
-
+        self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
 
         for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
@@ -452,30 +447,28 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
             if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
                 if self.checkBox_preedge_show.checkState():
-                    line = self.figureXASProject.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
+                    self.figureXASProject.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
                 if self.checkBox_postedge_show.checkState():
                     self.figureXASProject.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
                 if self.checkBox_background_show.checkState():
                     self.figureXASProject.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
 
-        self.figureXASProject.ax.legend(fontsize = 'small')
-        self.figureXASProject.ax.grid(alpha=0.4)
-        self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(E)', size='13')
-        self.figureXASProject.ax.set_xlabel('Energy /eV', size='13')
-        self.canvasXASProject.draw_idle()
+
+        self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='Energy /eV',
+                   label_y =r'$\chi  \mu$' + '(E)'),
+        if self.checkBox_force_range_E.checkState():
+            self.figureXASProject.ax.set_xlim((int(self.lineEdit_e0.text())+self.lineEdit_range_E_lo.text()),
+                                          (self.lineEdit_e0.text() + self.lineEdit_range_E_hi.text()))
         self.current_plot_in = 'e'
 
 
     def plot_xas_project_in_K(self):
-        self.figureXASProject.ax.clear()
-        self.toolbar_XASProject._views.clear()
-        self.toolbar_XASProject._positions.clear()
-        self.toolbar_XASProject._update_view()
-        self.canvasXASProject.draw_idle()
+        self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
 
         for index in self.listView_xasproject.selectedIndexes():
             ds = self.xasproject[index.row()]
             ds.extract_chi_force()
+            ds.extract_ft()
             if self.radioButton_k_weight_1.isChecked():
                 data=ds.k*ds.chi
             elif self.radioButton_k_weight_2.isChecked():
@@ -484,13 +477,34 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 data = ds.k * ds.k * ds. k* ds.chi
             self.figureXASProject.ax.plot(ds.k, data, label = ds.name)
 
-
-        self.figureXASProject.ax.legend(fontsize = 'small')
-        self.figureXASProject.ax.grid(alpha=0.4)
-        self.figureXASProject.ax.set_ylabel(r'$\chi  \mu$' + '(k)', size='13')
-        self.figureXASProject.ax.set_xlabel(('k (' + r'$\AA$' + '$^1$' +')'), size='13')
-        self.canvasXASProject.draw_idle()
+        self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='k (' + r'$\AA$' + '$^1$' +')',
+                   label_y =r'$\chi  \mu$' + '(k)')
         self.current_plot_in = 'k'
+
+    def plot_xas_project_in_R(self):
+        self.reset_figure(self.figureXASProject.ax,self.toolbar_XASProject, self.canvasXASProject)
+
+        for index in self.listView_xasproject.selectedIndexes():
+            ds = self.xasproject[index.row()]
+            ds.extract_ft()
+            if self.checkBox_show_chir_mag.checkState():
+                print(1)
+                self.figureXASProject.ax.plot(ds.r, ds.chir_mag, label = ds.name)
+            if self.checkBox_show_chir_im.checkState():
+                print(2)
+                self.figureXASProject.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
+            if self.checkBox_show_chir_re.checkState():
+                print(3)
+                self.figureXASProject.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
+            #if self.checkBox_show_chir_pha.checked:
+            #    self.figureXASProject.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
+
+        self.set_figure(self.figureXASProject.ax,self.canvasXASProject, label_x=r'$\chi  \mu$' + '(k)',
+                   label_y='k (' + r'$\AA$' + '$^1$' +')')
+
+        self.current_plot_in = 'k'
+
+
 
     def save_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
@@ -590,7 +604,19 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 self.xasproject._datasets[selection[0].row()].name=new_name
                 self.xasproject.project_changed()
 
+    def set_figure(self,axis,canvas, label_x='', label_y=''):
+        axis.legend(fontsize='small')
+        axis.grid(alpha=0.4)
+        axis.set_ylabel(label_x, size='13')
+        axis.set_xlabel(label_y, size='13')
+        canvas.draw_idle()
 
+    def reset_figure(self,axis,toolbar,canvas):
+        axis.clear()
+        toolbar._views.clear()
+        toolbar._positions.clear()
+        toolbar._update_view()
+        canvas.draw_idle()
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     main = GUI()
