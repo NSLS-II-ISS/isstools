@@ -79,7 +79,6 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushbutton_add_to_xasproject.clicked.connect(self.add_files_to_xas_project)
         self.listView_xasproject.itemSelectionChanged.connect(self.show_ds_params)
         self.listView_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.pushbutton_remove_xasproject.clicked.connect(self.remove_from_xas_project)
         self.pushbutton_plotE_xasproject.clicked.connect(self.plot_xas_project_in_E)
         self.pushbutton_plotK_xasproject.clicked.connect(self.plot_xas_project_in_K)
         self.pushbutton_plotR_xasproject.clicked.connect(self.plot_xas_project_in_R)
@@ -110,8 +109,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.action_save_project.triggered.connect(self.save_xas_project)
         self.action_open_project.triggered.connect(self.open_xas_project)
         self.action_save_datasets_as_text.triggered.connect(self.save_xas_datasets_as_text)
+        self.action_combine_and_save_as_text.triggered.connect(self.combine_and_save_xas_datasets_as_text)
         self.action_merge.triggered.connect(self.merge_datasets)
         self.action_rename.triggered.connect(self.rename_dataset)
+        self.action_remove.triggered.connect(self.remove_from_xas_project)
 
         self.lineEdit_to_ds_parameter_dict = {
             'lineEdit_preedge_lo':  'pre1',
@@ -456,9 +457,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='Energy /eV',
                    label_y =r'$\chi  \mu$' + '(E)'),
+
         if self.checkBox_force_range_E.checkState():
-            self.figureXASProject.ax.set_xlim((int(self.lineEdit_e0.text())+self.lineEdit_range_E_lo.text()),
-                                          (self.lineEdit_e0.text() + self.lineEdit_range_E_hi.text()))
+            self.figureXASProject.ax.set_xlim((float(self.lineEdit_e0.text())+float(self.lineEdit_range_E_lo.text())),
+                                              (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_hi.text())))
         self.current_plot_in = 'e'
 
 
@@ -479,6 +481,10 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
         self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='k (' + r'$\AA$' + '$^1$' +')',
                    label_y =r'$\chi  \mu$' + '(k)')
+
+        if self.checkBox_force_range_k.checkState():
+            self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
+                                              float(self.lineEdit_range_k_hi.text()))
         self.current_plot_in = 'k'
 
     def plot_xas_project_in_R(self):
@@ -499,11 +505,12 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             #if self.checkBox_show_chir_pha.checked:
             #    self.figureXASProject.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
 
-        self.set_figure(self.figureXASProject.ax,self.canvasXASProject, label_x=r'$\chi  \mu$' + '(k)',
-                   label_y='k (' + r'$\AA$' + '$^1$' +')')
-
-        self.current_plot_in = 'k'
-
+        self.set_figure(self.figureXASProject.ax,self.canvasXASProject, label_y=r'$\chi  \mu$' + '(k)',
+                   label_x='R (' + r'$\AA$'  +')')
+        if self.checkBox_force_range_R.checkState():
+            self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
+                                              float(self.lineEdit_range_R_hi.text()))
+        self.current_plot_in = 'R'
 
 
     def save_xas_project(self):
@@ -537,12 +544,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         #                                          'XAS project files (*.xas)', options=options)
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
-            messageBox = QtWidgets.QMessageBox()
-            messageBox.setText('Save datasets as..')
-            messageBox.addButton(QtWidgets.QPushButton('mu(E)'), QtWidgets.QMessageBox.YesRole)
-            messageBox.addButton(QtWidgets.QPushButton('normalized mu(E)'), QtWidgets.QMessageBox.NoRole)
-            messageBox.addButton(QtWidgets.QPushButton('flattened mu(E)'), QtWidgets.QMessageBox.NoRole)
-            ret = messageBox.exec_()
+            ret = self.message_box_save_datasets_as()
             options = QtWidgets.QFileDialog.DontUseNativeDialog
             pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.workingFolder,
                                                                     options=options)
@@ -582,11 +584,15 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             mu = self.xasproject._datasets[selection[0].row()].mu
+            energy_master=self.xasproject._datasets[selection[0].row()].energy
             mu_array=np.zeros([len(selection),len(mu)])
             energy = self.xasproject._datasets[selection[0].row()].energy
             md=['merged']
             for indx, obj in enumerate(selection):
-                mu_array[indx,:] = self.xasproject._datasets[selection[indx].row()].mu.mu
+                energy = self.xasproject._datasets[selection[indx].row()].energy
+                mu = self.xasproject._datasets[selection[indx].row()].mu.mu
+                mu = np.interp(energy_master, energy, mu)
+                mu_array[indx, :]=mu
                 md.append(self.xasproject._datasets[selection[indx].row()].filename)
 
             mu_merged = np.average(mu_array, axis=0)
@@ -594,6 +600,58 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                                      datatype='processed')
             self.xasproject.append(merged)
             self.xasproject.project_changed()
+
+
+    def combine_and_save_xas_datasets_as_text(self):
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            ds_list = []
+            md = []
+            for indx, obj in enumerate(selection):
+                ds_list.append(self.xasproject._datasets[selection[indx].row()])
+
+            ds_list.sort(key=lambda x: x.name)
+            mu = ds_list[0].mu
+            mu_array = np.zeros([len(selection)+1, len(mu)])
+            energy_master = ds_list[0].energy
+
+            mu_array[0, :]=energy_master
+            ret = self.message_box_save_datasets_as()
+            for indx, obj in enumerate(selection):
+                print(indx)
+                ds = ds_list[indx]
+                energy=ds.energy
+                print(ds.name)
+                if ret == 0:
+                    yy = np.array(ds.mu.mu)
+                    keys = '# energy(eV), mu(E)\n'
+                elif ret == 1:
+                    yy = ds.norm
+                    keys = '# energy(eV), normalized mu(E)\n'
+                elif ret == 2:
+                    yy = ds.flat
+                    keys = '# energy(eV), flattened normalized mu(E)\n'
+
+                yy=np.interp(energy_master,energy,yy)
+                print(yy.shape)
+                mu_array[indx+1, :] = yy
+                md.append(ds.name)
+
+            self.mu_array = mu_array
+            options = QtWidgets.QFileDialog.DontUseNativeDialog
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.workingFolder,
+                                                                'XAS dataset (*.dat)', options=options)
+            if filename:
+                if Path(filename).suffix != '.xas':
+                    filename = filename + '.xas'
+                print(filename)
+                filelist = "{}".format("\n".join(md[0:]))
+                separator = '\n #______________________________________________________\n'
+
+                header = '{} {} {}'.format(filelist,separator,keys)
+                fid = open(filename, 'w')
+                np.savetxt(fid, np.transpose(mu_array), header = header)
+                fid.close()
 
     def rename_dataset(self):
         selection = self.listView_xasproject.selectedIndexes()
@@ -607,8 +665,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def set_figure(self,axis,canvas, label_x='', label_y=''):
         axis.legend(fontsize='small')
         axis.grid(alpha=0.4)
-        axis.set_ylabel(label_x, size='13')
-        axis.set_xlabel(label_y, size='13')
+        axis.set_ylabel(label_y, size='13')
+        axis.set_xlabel(label_x, size='13')
         canvas.draw_idle()
 
     def reset_figure(self,axis,toolbar,canvas):
@@ -617,9 +675,22 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         toolbar._positions.clear()
         toolbar._update_view()
         canvas.draw_idle()
+
+
+    def message_box_save_datasets_as(self):
+        messageBox = QtWidgets.QMessageBox()
+        messageBox.setText('Save datasets as..')
+        messageBox.addButton(QtWidgets.QPushButton('mu(E)'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('normalized mu(E)'), QtWidgets.QMessageBox.NoRole)
+        messageBox.addButton(QtWidgets.QPushButton('flattened mu(E)'), QtWidgets.QMessageBox.NoRole)
+        ret = messageBox.exec_()
+        return ret
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     main = GUI()
     main.show()
 
     sys.exit(app.exec_())
+
+
