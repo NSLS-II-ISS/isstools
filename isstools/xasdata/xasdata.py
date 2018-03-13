@@ -946,7 +946,7 @@ class XASDataManager:
                 abs_der[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
                 abs_der2[min([min_index_der2, max_index_der2]) : max([min_index_der2, max_index_der2]) + 1] = 0
 
-        return -1
+        return  -1
 
 
 
