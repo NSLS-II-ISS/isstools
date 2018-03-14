@@ -99,11 +99,16 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.pushButton_postedge_hi_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_spline_lo_set.clicked.connect(self.set_ds_params_from_plot)
         self.pushButton_spline_hi_set.clicked.connect(self.set_ds_params_from_plot)
+        self.pushButton_truncate_at_set.clicked.connect(self.set_ds_params_from_plot)
 
         self.pushButton_push_norm_param_to_selected.clicked.connect(self.push_param)
         self.pushButton_push_norm_param_to_all.clicked.connect(self.push_param)
         self.pushButton_push_bkg_param_to_selected.clicked.connect(self.push_param)
         self.pushButton_push_bkg_param_to_all.clicked.connect(self.push_param)
+
+        self.pushButton_truncate_below.clicked.connect(self.truncate)
+        self.pushButton_truncate_above.clicked.connect(self.truncate)
+
 
         self.action_exit.triggered.connect(self.close_app)
         self.action_save_project.triggered.connect(self.save_xas_project)
@@ -123,7 +128,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             'lineEdit_spline_lo':   'kmin',
             'lineEdit_spline_hi':   'kmax',
             'lineEdit_clamp_lo':    'clamp_lo',
-            'lineEdit_clamp_hi':    'clamp_hi'
+            'lineEdit_clamp_hi':    'clamp_hi',
+            'lineEdit_truncate_at': 'truncate'
         }
 
         self.pushButton_set_to_lineEdit_dict = {
@@ -133,7 +139,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             'pushButton_postedge_lo_set':  'lineEdit_postedge_lo',
             'pushButton_postedge_hi_set':  'lineEdit_postedge_hi',
             'pushButton_spline_lo_set':    'lineEdit_spline_lo',
-            'pushButton_spline_hi_set':    'lineEdit_spline_hi'
+            'pushButton_spline_hi_set':    'lineEdit_spline_hi',
+            'pushButton_truncate_at_set':  'lineEdit_truncate_at'
         }
 
     def close_app(self):
@@ -168,12 +175,13 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def select_working_folder(self):
         self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.workingFolder,
                                                                         QtWidgets.QFileDialog.ShowDirsOnly)
-        self.settings.setValue('WorkingFolder', self.workingFolder)
-        if len(self.workingFolder) > 50:
-            self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
-        else:
-            self.label_working_folder.setText(self.workingFolder)
-        self.getFileList()
+        if  self.workingFolder:
+            self.settings.setValue('WorkingFolder', self.workingFolder)
+            if len(self.workingFolder) > 50:
+                self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
+            else:
+                self.label_working_folder.setText(self.workingFolder)
+            self.getFileList()
 
     def getFileList(self):
         if self.workingFolder:
@@ -333,6 +341,12 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         e0=float(self.lineEdit_e0.text())
         if self.sender_object == 'pushButton_e0_set':
             new_value = event.xdata
+        elif self.sender_object == 'pushButton_truncate_at_set':
+            if self.current_plot_in == 'e':
+                new_value = event.xdata
+            elif self.current_plot_in == 'k':
+
+                new_value = k2e(event.xdata, e0)
         elif (self.sender_object == 'pushButton_spline_lo_set') or (self.sender_object == 'pushButton_spline_hi_set'):
             if self.current_plot_in == 'k':
                 new_value = event.xdata
@@ -408,6 +422,8 @@ class GUI(QtWidgets.QMainWindow, gui_form):
                 if self.checkBox_inv_bin.checkState():
                     mu = -mu
                 mu=np.array(mu)
+
+                print(type(mu))
                 ds = xasproject.XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
                 ds.header = header
                 self.xasproject.append(ds)
@@ -424,7 +440,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
     def remove_from_xas_project(self):
         for index in self.listView_xasproject.selectedIndexes()[::-1]: #[::-1] to remove using indexes from last to first
             self.xasproject.removeDatasetIndex(index.row())
-            print('delete')
+            self.statusBar().showMessage('Datasets deleted')
 
     def plot_xas_project_in_E(self):
         self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
@@ -661,6 +677,36 @@ class GUI(QtWidgets.QMainWindow, gui_form):
             if ok:
                 self.xasproject._datasets[selection[0].row()].name=new_name
                 self.xasproject.project_changed()
+
+    def truncate(self):
+        sender = QObject()
+        sender_object = sender.sender().objectName()
+        print(sender_object)
+        selection = self.listView_xasproject.selectedIndexes()
+        if selection != []:
+            for indx, obj in enumerate(selection):
+                print(indx)
+                ds = self.xasproject._datasets[selection[indx].row()]
+                print(ds.name)
+                energy=ds.energy
+                mu  = ds.mu
+                indx_energy_to_truncate_at = (np.abs(energy - float(self.lineEdit_truncate_at.text()))).argmin()
+
+                if sender_object == 'pushButton_truncate_below':
+                    ds.energy = energy[indx_energy_to_truncate_at:]
+                    ds.mu = mu[indx_energy_to_truncate_at:]
+
+                elif sender_object == 'pushButton_truncate_above':
+                    ds.energy = energy[0:indx_energy_to_truncate_at]
+                    ds.mu = mu[0:indx_energy_to_truncate_at:]
+                ds.update_larch()
+                self.xasproject._datasets[selection[indx].row()]=ds
+
+    '''
+     
+     Service routines
+     
+     '''
 
     def set_figure(self,axis,canvas, label_x='', label_y=''):
         axis.legend(fontsize='small')
