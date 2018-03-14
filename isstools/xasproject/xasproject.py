@@ -40,6 +40,12 @@ class XASDataSet:
             self.deriv()
             self.extract_chi()
 
+    def update_larch(self):
+        if self.mu is not None:
+            self.larch.mu = np.array(self.mu)
+        if self.energy is not None:
+            self.larch.energy = np.array(self.energy)
+
     def deriv(self):
         mu_deriv=np.diff(np.transpose(self.mu.values))/np.diff(self.energy)
         self.mu_deriv=mu_deriv[0]

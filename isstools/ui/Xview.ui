@@ -36,6 +36,11 @@
       <height>961</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <italic>false</italic>
+     </font>
+    </property>
     <property name="currentIndex">
      <number>1</number>
     </property>
@@ -259,6 +264,11 @@
         <height>40</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>E</string>
       </property>
@@ -297,9 +307,9 @@
            </property>
            <property name="font">
             <font>
-             <weight>75</weight>
+             <weight>50</weight>
              <italic>false</italic>
-             <bold>true</bold>
+             <bold>false</bold>
             </font>
            </property>
            <property name="text">
@@ -342,17 +352,28 @@
          </property>
          <item>
           <widget class="QLabel" name="label_E0">
-           <property name="maximumSize">
+           <property name="minimumSize">
             <size>
              <width>30</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
              <height>50</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
            </property>
            <property name="text">
             <string>E0</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -368,14 +389,28 @@
          </item>
          <item>
           <widget class="QLabel" name="label_3">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>25</width>
              <height>50</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -415,6 +450,11 @@
            <height>20</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Pre-edge range</string>
          </property>
@@ -435,6 +475,33 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_27">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -478,6 +545,33 @@
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="label_28">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pushButton_preedge_hi_set">
            <property name="maximumSize">
             <size>
@@ -500,6 +594,11 @@
            <height>20</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Post-edge range</string>
          </property>
@@ -520,6 +619,33 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_29">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -563,6 +689,33 @@
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="label_30">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pushButton_postedge_hi_set">
            <property name="maximumSize">
             <size>
@@ -583,7 +736,7 @@
       <property name="geometry">
        <rect>
         <x>280</x>
-        <y>360</y>
+        <y>370</y>
         <width>251</width>
         <height>161</height>
        </rect>
@@ -602,8 +755,8 @@
          </property>
          <property name="font">
           <font>
-           <weight>75</weight>
-           <bold>true</bold>
+           <weight>50</weight>
+           <bold>false</bold>
           </font>
          </property>
          <property name="text">
@@ -618,6 +771,11 @@
            <width>16777215</width>
            <height>20</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
          </property>
          <property name="text">
           <string>k-range</string>
@@ -703,6 +861,11 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>Window</string>
            </property>
@@ -743,6 +906,11 @@
              <width>70</width>
              <height>50</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
            </property>
            <property name="text">
             <string>Tapering</string>
@@ -791,6 +959,11 @@
         <height>40</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>k</string>
       </property>
@@ -804,6 +977,11 @@
         <height>40</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>R</string>
       </property>
@@ -814,7 +992,7 @@
         <x>280</x>
         <y>180</y>
         <width>251</width>
-        <height>178</height>
+        <height>181</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -836,9 +1014,9 @@
            </property>
            <property name="font">
             <font>
-             <weight>75</weight>
+             <weight>50</weight>
              <italic>false</italic>
-             <bold>true</bold>
+             <bold>false</bold>
             </font>
            </property>
            <property name="text">
@@ -881,6 +1059,11 @@
            <width>16777215</width>
            <height>20</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
          </property>
          <property name="text">
           <string>Spline range</string>
@@ -961,6 +1144,11 @@
            <height>20</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Spline clamping</string>
          </property>
@@ -975,6 +1163,11 @@
              <width>35</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
            </property>
            <property name="text">
             <string>low</string>
@@ -1001,6 +1194,11 @@
              <width>35</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
            </property>
            <property name="text">
             <string>high</string>
@@ -1029,17 +1227,28 @@
          </property>
          <item>
           <widget class="QLabel" name="label_11">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>70</width>
              <height>50</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>k-weight</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -1076,6 +1285,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QLabel" name="label_10">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>50</width>
@@ -1143,6 +1358,11 @@
              <height>15</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>E range</string>
            </property>
@@ -1157,6 +1377,11 @@
                <width>16777215</width>
                <height>15</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
              </property>
              <property name="text">
               <string>force</string>
@@ -1224,12 +1449,17 @@
         <x>280</x>
         <y>630</y>
         <width>260</width>
-        <height>100</height>
+        <height>104</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="3" column="0">
         <widget class="QCheckBox" name="checkBox_deriv">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Derivative</string>
          </property>
@@ -1237,6 +1467,11 @@
        </item>
        <item row="0" column="0">
         <widget class="QRadioButton" name="radioButton_mu_xasproject">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>mu</string>
          </property>
@@ -1253,6 +1488,11 @@
            <height>25</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Flatten </string>
          </property>
@@ -1263,6 +1503,11 @@
        </item>
        <item row="1" column="0">
         <widget class="QRadioButton" name="radioButton_norm_xasproject">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Normalized</string>
          </property>
@@ -1270,6 +1515,11 @@
        </item>
        <item row="0" column="1">
         <widget class="QCheckBox" name="checkBox_preedge_show">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Pre-edge</string>
          </property>
@@ -1277,6 +1527,11 @@
        </item>
        <item row="1" column="1">
         <widget class="QCheckBox" name="checkBox_postedge_show">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Post-edge</string>
          </property>
@@ -1284,6 +1539,11 @@
        </item>
        <item row="2" column="1">
         <widget class="QCheckBox" name="checkBox_background_show">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Background</string>
          </property>
@@ -1314,6 +1574,11 @@
              <height>15</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>k range</string>
            </property>
@@ -1328,6 +1593,11 @@
                <width>16777215</width>
                <height>15</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
              </property>
              <property name="text">
               <string>force</string>
@@ -1398,6 +1668,11 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
       <property name="text">
        <string>Window</string>
       </property>
@@ -1414,6 +1689,11 @@
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="1">
         <widget class="QCheckBox" name="checkBox_show_chir_re">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Real part</string>
          </property>
@@ -1421,6 +1701,11 @@
        </item>
        <item row="0" column="0">
         <widget class="QCheckBox" name="checkBox_show_chir_mag">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Magnitude</string>
          </property>
@@ -1429,8 +1714,13 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="1" column="1">
         <widget class="QCheckBox" name="checkBox_show_chir_im">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
          <property name="text">
           <string>Imaginary part</string>
          </property>
@@ -1461,6 +1751,11 @@
              <height>15</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
            <property name="text">
             <string>R range</string>
            </property>
@@ -1475,6 +1770,11 @@
                <width>16777215</width>
                <height>15</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
              </property>
              <property name="text">
               <string>force</string>
@@ -1539,6 +1839,123 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>760</y>
+        <width>191</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label_26">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>17</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Truncate</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_22">
+         <item>
+          <widget class="QPushButton" name="pushButton_truncate_below">
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>&lt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_truncate_at">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>-50</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_31">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_truncate_at_set">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>o</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_truncate_above">
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>&gt;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -1549,7 +1966,7 @@
      <x>0</x>
      <y>0</y>
      <width>1612</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
