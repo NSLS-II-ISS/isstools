@@ -38,7 +38,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.gen_parser = xasdata.XASdataGeneric(self.hhm.enc.pulses_per_deg, self.db)
         self.sender = sender
 
-        self.settings = QSettings('ISS Beamline', 'XLive')
+        self.settings = QSettings('QAS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
         self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/User Data/', type = str)
