@@ -698,6 +698,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
 
                 elif sender_object == 'pushButton_truncate_above':
                     ds.energy = energy[0:indx_energy_to_truncate_at]
+
                     ds.mu = mu[0:indx_energy_to_truncate_at:]
                 ds.update_larch()
                 self.xasproject._datasets[selection[indx].row()]=ds
