@@ -11,6 +11,9 @@ from matplotlib.figure import Figure
 import time as ttime
 import numpy as np
 
+
+from threading import Thread
+
 # Libs needed by the ZMQ communication
 import json
 import pandas as pd
@@ -29,6 +32,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                  xia,
                  html_log_func,
                  parent_gui,
+                 futures_queue=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -37,6 +41,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.futures_queue = futures_queue
         self.db = db
         if self.db is None:
             self.run_start.setEnabled(False)
@@ -67,11 +72,17 @@ class UIRun(*uic.loadUiType(ui_path)):
         if len(self.plan_funcs) != 0:
             self.populateParams(0)
 
+        # call the waiter (for plotting post processed results)
+        self.wait_on_result()
+
     def addCanvas(self):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
         self.canvas = FigureCanvas(self.figure)
         self.figure.ax = self.figure.add_subplot(111)
+        # a lock for threads waiting for data and plotting 
+        # see wait_on_result() method
+        self._plot_lock = False
         self.toolbar = NavigationToolbar(self.canvas, self, coordinates=True)
         self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
@@ -141,7 +152,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
-            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
+            # don't send the plot, just plot post-processing for now
+            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params):#, ax=self.figure.ax):
                 self.run_mode_uids.append(uid)
 
         else:
@@ -264,4 +276,72 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             self.create_log_scan(data['uid'], self.figure)
 
+    def plot_data(self, data_dict):
+        # TODO : this should be data, and retrieved from analysis store
+        if self.parent_gui.run_mode == 'run':
+            df = data_dict['interp_df']
+            scan_id = data_dict['scan_id']
+            print("DEBUG: Plotting data")
+            self.figure.ax.clear()
+            self.toolbar._views.clear()
+            self.toolbar._positions.clear()
+            self.toolbar._update_view()
 
+            #df = data['processing_ret']['data']
+            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
+            df = df.sort_values('energy')
+            self.df = df
+
+            division = df['i0']/df['it']
+            division[division < 0] = 1
+            self.figure.ax.plot(df['energy'], np.log(division))
+            self.figure.ax.set_xlabel("Energy(eV)", size=40)
+            self.figure.ax.set_ylabel("$\mu$ (np.exp(i0/it))", size=40)
+            self.figure.ax.set_title("Scan id : {}".format(str(scan_id)), size=40)
+            self.canvas.draw_idle()
+
+            #self.create_log_scan(data['uid'], self.figure)
+
+    def wait_on_result(self, poll_time=.1, timeout=300):
+        '''
+            Start a thread that waits on the next result.
+            TODO : make more flexible.
+        '''
+        if self._plot_lock:
+            print("Error, cannot call again (there's another thread already plotting)")
+            print("Maybe it's timed out")
+            return
+
+        self._plot_lock = True
+
+        # now instantiate function and run thread
+        def _wait_on_result_thread(futures_queue, poll_time, timeout):
+            ''' the thread for waiting.
+            '''
+            while True:
+                if len(futures_queue) == 0:
+                    # for python event loop, if using asyncio use their time function
+                    ttime.sleep(poll_time)
+                else:
+                    # if futures pile up, this will run many times quickly...
+                    future = futures_queue.pop()
+                    #print("found a future: {}".format(future))
+                    if future.status == 'pending':
+                        #print("found a pending result")
+                        futures_queue.append(future)
+                    elif future.status == 'finished':
+                        print("Found a done result, plotting...")
+                        # plot logic
+                        data_dict = future.result()
+                        # if not None, then result was processed, scan was right
+                        # TODO : interpret for different types of scans
+                        # this was quickly written for QAS
+                        if data_dict is not None:
+                            interp_df = data_dict
+                            self.plot_data(interp_df)
+                            print("filename is {}".format(interp_df['interp_df_filename']))
+                    else:
+                        print('Error with plotting result, status : {}'.format(future.status))
+            
+        self._plot_thread = Thread(target=_wait_on_result_thread, args=(self.futures_queue, poll_time, timeout))
+        self._plot_thread.start()

@@ -45,7 +45,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
-                 general_scan_func = None, parent=None, *args, **kwargs):
+                 general_scan_func = None, parent=None,
+                 futures_queue=None, *args, **kwargs):
+        '''
+
+            plan_funcs : functions that run plans (call RE(plan()) etc)
+            prep_traj_plan : a plan that prepares the trajectories
+            RE : a RunEngine instance
+            db : a databroker instance
+            accelerator : 
+            hhm : high heatload monochromator (the monochromator)
+            shutters_dict : dictionary of available shutters
+            det_dict : dictionary of detectors
+            motors_dict : dictionary of motors
+            general_scan_func : 
+            futures_queue : a queue of dask futures that are computed by the post processing analysis
+        '''
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -91,6 +106,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.sender = None
 
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -105,6 +121,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutters_dict = shutters_dict
 
         self.RE = RE
+
+        self.futures_queue = futures_queue
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -177,8 +195,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
         if self.RE is not None:
+            # passing futures_queue for post processing plotting
             self.widget_run = widget_run.UIRun(self.plan_funcs, db, shutters_dict, self.adc_list, self.enc_list,
-                                               self.xia, self.html_log_func, self)
+                                               self.xia, self.html_log_func, self, futures_queue=self.futures_queue)
             self.layout_run.addWidget(self.widget_run)
             self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
