@@ -14,6 +14,14 @@ from pathlib import Path
 
 class XASdata:
     def __init__(self, db = None, **kwargs):
+        '''
+            Initialize the xasdata object
+
+            Parameters
+            ----------
+            db : the database to write/read from
+
+        '''
         self.energy = np.array([])
         self.data = np.array([])
         self.encoder_file = ''
@@ -119,6 +127,14 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
+        '''
+            Initialize the xasdata generic object
+
+            Parameters
+            ----------
+            db : the database to write/read from
+
+        '''
     def __init__(self, pulses_per_deg, db = None, db_analysis = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arrays = {}
@@ -419,6 +435,16 @@ class XASdataGeneric(XASdata):
         cols.append('1')
         self.interp_df = self.interp_df[cols]
 
+
+        data = dict()
+        data['interp_df'] = dict()
+        data['interp_df']['resource_path'] = fn
+        data['interp_df']['resource_kwargs'] = {}
+        data['interp_df']['datum_kwargs'] = {}
+        data['interp_df']['SPEC'] = "ISSTrace"
+        # TODO : find better way to hint at data (don't pass data, just
+        # description)
+        data['interp_df']['data'] = self.interp_df.iloc[:,:-1].values
 
         np.savetxt(fn,
                    self.interp_df.iloc[:,:-1].values,
