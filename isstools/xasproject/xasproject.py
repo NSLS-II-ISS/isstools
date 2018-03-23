@@ -39,6 +39,8 @@ class XASDataSet:
             self.normalize()
             self.deriv()
             self.extract_chi()
+            self.kmin_ft = 3
+            self.kmax_ft = self.kmax
 
     def update_larch(self):
         if self.mu is not None:
@@ -87,6 +89,7 @@ class XASDataSet:
         self.flatten()
 
     def extract_chi(self):
+        print('chi reporting')
         autobk(self.larch, group=self.larch,  _larch=self._larch)
 
         self.chi = self.larch.chi
@@ -96,7 +99,11 @@ class XASDataSet:
         self.nclamp = 2
         self.rbkg = 1
 
+        #self.kmin_ft = self.kmin
+
+
     def extract_chi_force(self):
+        print('chi force reporting')
         # autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax)
         autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax,
                nclamp=2, clamp_hi=10)
@@ -104,8 +111,11 @@ class XASDataSet:
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
 
+
     def extract_ft(self):
-        xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin, kmax=self.kmax)
+        print('ft reporting')
+        print(self.kmin_ft)
+        xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax)
 
         self.r = self.larch.r
         self.chir = self.larch.chir
@@ -113,6 +123,27 @@ class XASDataSet:
         self.chir_im = self.larch.chir_re
         self.chir_re = self.larch.chir_im
         #self.chir_pha = self.larch.chir_pha
+        self.kmax_ft = self.kmax
+        self.kwin = self.larch.kwin
+
+    def extract_ft_force(self, window={}):
+        print('ft force reporting')
+        if not window:
+            xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax_ft)
+        else:
+            window_type = window['window_type']
+            tapering = window['tapering']
+            r_weight = window['r_weight']
+            print('setting window')
+            xftf(self.larch, group=self.larch, _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax_ft,
+                 window=window_type, dk=tapering,rweight=r_weight)
+        self.r = self.larch.r
+        self.chir = self.larch.chir
+        self.chir_mag = self.larch.chir_mag
+        self.chir_im = self.larch.chir_re
+        self.chir_re = self.larch.chir_im
+        #self.chir_pha = self.larch.chir_phas
+        self.kwin = self.larch.kwin
 
 
     @property

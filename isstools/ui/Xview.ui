@@ -736,7 +736,7 @@
       <property name="geometry">
        <rect>
         <x>280</x>
-        <y>370</y>
+        <y>350</y>
         <width>251</width>
         <height>161</height>
        </rect>
@@ -788,7 +788,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="lineEdit_12">
+          <widget class="QLineEdit" name="lineEdit_k_ft_lo">
            <property name="maximumSize">
             <size>
              <width>60</width>
@@ -798,7 +798,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_set_e0_9">
+          <widget class="QPushButton" name="pushButton_k_ft_lo_set">
            <property name="maximumSize">
             <size>
              <width>20</width>
@@ -824,7 +824,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_13">
+          <widget class="QLineEdit" name="lineEdit_k_ft_hi">
            <property name="maximumSize">
             <size>
              <width>60</width>
@@ -834,7 +834,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_set_e0_10">
+          <widget class="QPushButton" name="pushButton_k_ft_hi_set">
            <property name="maximumSize">
             <size>
              <width>20</width>
@@ -872,7 +872,10 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="comboBox_window">
+           <property name="currentText">
+            <string>Hanning</string>
+           </property>
            <item>
             <property name="text">
              <string>Hanning</string>
@@ -901,9 +904,15 @@
         <layout class="QHBoxLayout" name="horizontalLayout_14">
          <item>
           <widget class="QLabel" name="label_24">
-           <property name="maximumSize">
+           <property name="minimumSize">
             <size>
              <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>90</width>
              <height>50</height>
             </size>
            </property>
@@ -916,20 +925,23 @@
             <string>Tapering</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_16">
+          <widget class="QLineEdit" name="lineEdit_window_tapering">
            <property name="maximumSize">
             <size>
-             <width>60</width>
+             <width>50</width>
              <height>20</height>
             </size>
            </property>
            <property name="text">
             <string>1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -945,6 +957,40 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_32">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>R weight</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBox_r_weight">
+           <property name="maximum">
+            <number>3</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -992,7 +1038,7 @@
         <x>280</x>
         <y>180</y>
         <width>251</width>
-        <height>181</height>
+        <height>161</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1221,15 +1267,63 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
-         <property name="spacing">
-          <number>0</number>
-         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_10">
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Rbkg</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_rbkg">
+           <property name="maximumSize">
+            <size>
+             <width>45</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
          <item>
           <widget class="QLabel" name="label_11">
            <property name="minimumSize">
             <size>
-             <width>70</width>
+             <width>65</width>
              <height>0</height>
             </size>
            </property>
@@ -1253,83 +1347,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton_k_weight_1">
-           <property name="text">
-            <string>1</string>
+          <widget class="QSpinBox" name="spinBox_k_weight">
+           <property name="maximum">
+            <number>3</number>
            </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButton_k_weight_2">
-           <property name="text">
-            <string>2</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
+           <property name="value">
+            <number>2</number>
            </property>
           </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButton_k_weight_3">
-           <property name="text">
-            <string>3</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
-         <item>
-          <widget class="QLabel" name="label_10">
-           <property name="minimumSize">
-            <size>
-             <width>35</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Rbkg</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEdit_rbkg">
-           <property name="maximumSize">
-            <size>
-             <width>45</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>
@@ -1659,7 +1684,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QCheckBox" name="checkBox_show_postedge_3">
+     <widget class="QCheckBox" name="checkBox_show_window">
       <property name="geometry">
        <rect>
         <x>280</x>
@@ -1966,7 +1991,7 @@
      <x>0</x>
      <y>0</y>
      <width>1612</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
