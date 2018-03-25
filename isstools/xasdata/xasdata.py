@@ -803,7 +803,7 @@ class XASDataManager:
                 filename = filename + extension
                 break
 
-        comments = XASdataGeneric.read_header(None, filename)
+        comments = XASdataGeneric.read_header("", filename)
         comments = comments[0: comments.rfind('#')] + '# '
         comments = comments[:comments.rfind('#', 0, -2)] + f'# e0_bin: {e0_bin}\n#\n#'
 
