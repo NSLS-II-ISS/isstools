@@ -24,20 +24,21 @@ from isstools.xasproject import xasproject
 from isstools.conversions.xray import k2e, e2k
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
-gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
+#gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
+class XviewGui(*uic.loadUiType(ui_path)):
 
+#class GUI(QtWidgets.QMainWindow, gui_form):
+    def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None,
+                 *args, **kwargs):
 
-class GUI(QtWidgets.QMainWindow, gui_form):
-    def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None, parent=None):
-
-        QtWidgets.QMainWindow.__init__(self, parent)
+        super().__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.hhm_pulses_per_deg = hhm_pulses_per_deg
         self.sender = processing_sender
         self.db = db
-        self.db_analysis = db
+        self.db_analysis = db_analysis
         self.gen_parser = xasdata.XASdataGeneric(hhm_pulses_per_deg, db=db)
 
         self.xasproject = xasproject.XASProject()
