@@ -524,7 +524,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
     def update_loop_values(self, text):
         for motor in self.motors_dict:
-            if self.comboBox_sample_loop_motor.currentText() == self.motors_dict[motor]['description']:
+            if self.comboBox_sample_loop_motor.currentText() == self.motors_dict[motor]['name']:
                 curr_mot = self.motors_dict[motor]['object']
                 break
         if self.radioButton_sample_rel.isChecked():

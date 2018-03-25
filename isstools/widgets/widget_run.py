@@ -119,7 +119,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         self.comment = self.params2[0].text()
-        if (self.comment):]
+        if (self.comment):
+            timenow = datetime.datetime.now()
             print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S")))
             start_scan_timer=timer()
             
@@ -148,10 +149,11 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.parent_gui.run_mode = 'run'
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
                 self.run_mode_uids.append(uid)
-                
+
+            timenow = datetime.datetime.now()    
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()  
-            print('Scan duration {}.format(stop_scan_timer-start_scan_timer)
+            print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
 
         else:
             print('\nPlease, type the name of the scan in the field "name"\nTry again')

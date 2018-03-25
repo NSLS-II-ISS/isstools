@@ -206,7 +206,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                                self.auto_tune_dict, shutters_dict, self)
             self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
    
-        self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(self.shutters_dict, self.hhm, self.det_dict))
+        self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(self.shutters_dict))
 
         self.filepaths = []
 
