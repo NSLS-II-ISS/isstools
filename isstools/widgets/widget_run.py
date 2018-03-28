@@ -279,7 +279,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def plot_data(self, data_dict):
         # TODO : this should be data, and retrieved from analysis store
         if self.parent_gui.run_mode == 'run':
-            df = data_dict['interp_df']
+            df = data_dict['bin_df']
             scan_id = data_dict['scan_id']
             print("DEBUG: Plotting data")
             self.figure.ax.clear()
