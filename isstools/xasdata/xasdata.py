@@ -24,7 +24,7 @@ class XASdata:
                 the database to read from
         '''
         self.energy = np.array([])
-        self.data = np.array([])
+        self.data = np.array
         self.encoder_file = ''
         self.i0_file = ''
         self.it_file = ''
@@ -146,6 +146,7 @@ class XASdataGeneric(XASdata):
         self.interp_arrays = {}
         self.db = db
         self.db_analysis = db_analysis
+
         self.pulses_per_deg = pulses_per_deg
         #if self.db is None:
         #    print('The databroker was not passed as argument to the parser.\nSome features will be disabled.')
@@ -178,7 +179,10 @@ class XASdataGeneric(XASdata):
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
                     data = self.loadADCtrace(i['data_keys'][i['name']]['filename'], '')
                     if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == pd.core.frame.DataFrame:
+                        print("subtracting offset")
+                        print(self.db[uid]['start'][i['name'] + ' offset'])  
                         data.iloc[:, 1] = data.iloc[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
                     data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
                 #if type(data) == np.ndarray:

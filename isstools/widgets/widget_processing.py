@@ -15,6 +15,8 @@ import pandas as pd
 import json
 import socket
 
+from isstools.utils.interpfile import loadInterpFile
+
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
 
@@ -119,9 +121,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
     def selectFile(self):
         if self.checkBox_process_bin.checkState() > 0:
-            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*.txt', parent = self)[0]
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*', parent = self)[0]
         else:
-            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
+            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*', parent = self)[0]]
         if len(self.selected_filename_bin[0]):
             self.handles_interp = []
             self.handles_bin = []
@@ -145,7 +147,18 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             print(self.uids)
             self.settings.setValue('user_dir', self.user_dir)
             self.label_24.setText(filenames)
-            self.send_data_request()
+            #self.send_data_request()
+            # TODO What do do with multiple filenames?
+            if isinstance(filenames, list):
+                data = loadInterpFile(filenames[0])
+            else:
+                data = loadInterpFile(filenames)
+            data_dict = dict()
+            data_dict['processing_ret'] = dict()
+            data_dict['processing_ret']['metadata'] = dict()
+            data_dict['processing_ret']['data'] = data
+            data_dict['processing_ret']['metadata']['name'] = filenames
+            self.plot_data(data_dict)
 
     def update_listWidgets(self):
         index = [index for index, item in enumerate(
