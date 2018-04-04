@@ -76,6 +76,7 @@ class XASBatchExperiment:
             call(['chmod', '666', filename])
 
 
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.ion()
