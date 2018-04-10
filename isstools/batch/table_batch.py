@@ -59,12 +59,20 @@ class XASBatchExperiment:
             self.experiments.append(XASExperiment(definition=d))
 
     def create_unique_trajectories(self):
+        self.unique_trajectories.append(self.trajectories[0])
         for i in range(len(self.trajectories)):
-            for j in range(i+1, len(self.trajectories)):
-                if not np.allclose(self.trajectories[i], self.trajectories[j]):
-                    self.unique_trajectories.append(self.trajectories[i])
+            for j in range(len(self.unique_trajectories)):
+                print(len(self.unique_trajectories))
+                print(f'{i} <-> {j}')
+                if not np.allclose(self.trajectories[i].energy_grid, self.unique_trajectories[j].energy_grid):
+                   # if self.trajectories[i] not in self.unique_trajectories:
+                     print(f'    {i} <-> {j}')
+                     self.unique_trajectories.append(self.trajectories[i])
+                     continue
+                else:
+                    print(f'    Not selected: {i} <-> {j}')
 
-        self.unique_trajectories = self.trajectories
+                    #self.unique_trajectories = self.trajectories
 
     def save_trajectories(self):
         for ut in self.unique_trajectories:
