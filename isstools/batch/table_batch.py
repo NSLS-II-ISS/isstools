@@ -6,6 +6,7 @@ from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from isstools.conversions import xray
 from subprocess import call
 
+
 class XASExperiment:
     def __init__(self, definition=None, trajectory_num=None):
         self.definition = definition
@@ -17,9 +18,10 @@ class XASBatchExperiment:
         self.excel_file = excel_file
         self._skiprows = skiprows
         self.hhm = hhm
+        self.trajectory_manager = trajectory_manager(self.hhm)
 
         self.experiments = []
-        self.trajectory_folder = '/nsls2/xf08id/trajectory/test'
+        self.trajectory_folder = '/nsls2/xf08id/trajectory'
         # Loaded pandas dataframe:
         self.experiment_table = None
 
@@ -43,8 +45,8 @@ class XASBatchExperiment:
                 offsets=([d['pre-edge start'], d['pre-edge stop'],
                           d['post_edge stop'], xray.k2e(d['k-range'], d['Position']) - d['Position']]),
                 trajectory_type='Double Sine',
-                dsine_preedge_duration=20,
-                dsine_postedge_duration=40,
+                dsine_preedge_duration=d['time 1'],
+                dsine_postedge_duration=d['time 2'],
             )
             traj.define(**kwargs)
 
@@ -61,18 +63,20 @@ class XASBatchExperiment:
     def create_unique_trajectories(self):
         self.unique_trajectories.append(self.trajectories[0])
         for i in range(len(self.trajectories)):
+            unique_flag = True
             for j in range(len(self.unique_trajectories)):
-                print(len(self.unique_trajectories))
-                print(f'{i} <-> {j}')
-                if not np.allclose(self.trajectories[i].energy_grid, self.unique_trajectories[j].energy_grid):
-                   # if self.trajectories[i] not in self.unique_trajectories:
-                     print(f'    {i} <-> {j}')
-                     self.unique_trajectories.append(self.trajectories[i])
-                     continue
-                else:
-                    print(f'    Not selected: {i} <-> {j}')
+                if np.allclose(self.trajectories[i].energy_grid, self.unique_trajectories[j].energy_grid):
+                    unique_flag = False
+            if unique_flag:
+                self.unique_trajectories.append(self.trajectories[i])
 
-                    #self.unique_trajectories = self.trajectories
+    def assign_trajectory_number(self):
+        for i in range(len(self.trajectories)):
+            for j in range(len(self.unique_trajectories)):
+                if np.allclose(self.trajectories[i].energy_grid, self.unique_trajectories[j].energy_grid):
+                    self.experiments[i].trajectory_num = j
+                    continue
+
 
     def save_trajectories(self):
         for ut in self.unique_trajectories:
@@ -83,14 +87,25 @@ class XASBatchExperiment:
                        header=f'element: {ut.elem}, edge: {ut.edge}, E0: {ut.e0}')
             call(['chmod', '666', filename])
 
+    def load_trajectories(self):
+        offset = self.hhm.angle_offset.value
+        print(offset)
+        for i, traj_file in enumerate(self.trajectory_filenames):
+            self.trajectory_manager.load(os.path.basename(traj_file),i+1,is_energy=True, offset=offset )
+
+
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.ion()
-    xas = XASBatchExperiment()
+    xas = XASBatchExperiment(hhm=hhm)
     xas.read_excel()
     xas.batch_create_trajectories()
-    for i, t in enumerate(xas.trajectories):
-        plt.plot(t.energy, label=xas.experiment_table.iloc[i]['Name'])
-    plt.legend()
+    xas.create_unique_trajectories()
+    xas.assign_trajectory_number()
+    xas.save_trajectories()
+    xas.load_trajectories()
+    #for i, t in enumerate(xas.unique_trajectories):
+    #    plt.plot(t.energy, label = str(i))
+    #plt.legend()
