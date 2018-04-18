@@ -95,7 +95,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.enc_samp_time = '1'
         self.adc_list = adc_list
         self.enc_list = enc_list
-        self.xia = xia
+        #self.xia = xia
+        self.xia = None
 
         self.treeView_batch.header().hide()
         self.treeView_samples.header().hide()
@@ -742,9 +743,10 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                 for enc in self.enc_list:
                     enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
-                if self.xia.input_trigger is not None:
-                    self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                    self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+                if self.xia is not None:
+                    if self.xia.input_trigger is not None:
+                        self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                        self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
                 self.batch_results = {}
 
