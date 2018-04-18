@@ -485,8 +485,10 @@ class XASdataGeneric(XASdata):
                                                                human_stop_time,
                                                                human_duration))
 
-        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-        call(['chmod', '770', fn])
+        print("changing permissions to 774")
+        call(['chmod', '774', fn])
+
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         return fn
 
     def export_trace_hdf5(self, filename, filepath = '/GPFS/xf08id/Sandbox/', overwrite = False):
@@ -573,8 +575,10 @@ class XASdataGeneric(XASdata):
         #     print(attr, f.attrs[attr]) 
         # f.close()
 
-        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-        call(['chmod', '770', fn])
+        print("changing permissions to 774")
+        call(['chmod', '774', fn])
+
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         return fn
 
     def get_energy_string(self, possibilities = ['energy', 'En. (eV)']):
@@ -842,8 +846,9 @@ class XASDataManager:
                    delimiter=" ",
                    header = header,
                    comments = comments)
-        call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
-        call(['chmod', '770', filename])
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
+        print("changing permissions to 774")
+        call(['chmod', '774', filename])
         return filename
 
     def get_new_filename(filename):

@@ -43,7 +43,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.settings = QSettings('QAS Beamline', 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
-        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/User Data/', type = str)
+        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/users/', type = str)
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
