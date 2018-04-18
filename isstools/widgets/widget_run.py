@@ -344,4 +344,5 @@ class UIRun(*uic.loadUiType(ui_path)):
                         print('Error with plotting result, status : {}'.format(future.status))
             
         self._plot_thread = Thread(target=_wait_on_result_thread, args=(self.futures_queue, poll_time, timeout))
+        self._plot_thread.daemon=True
         self._plot_thread.start()
