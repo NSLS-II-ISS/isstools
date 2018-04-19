@@ -21,6 +21,8 @@ import pandas as pd
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
+# the address for where to subscribe the receiver to
+RECEIVING_ADDRESS = "tcp://xf07bm-ws1:5562"
 
 def auto_redraw_factory(fnc):
     def stale_callback(fig, stale):
@@ -153,7 +155,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://xf08id-srv2:5562")
+        self.subscriber.connect(RECEIVING_ADDRESS)
         self.hostname_filter = socket.gethostname()
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
         self.receiving_thread = ReceivingThread(self)
