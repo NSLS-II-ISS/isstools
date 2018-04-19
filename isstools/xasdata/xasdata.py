@@ -560,10 +560,17 @@ class XASdataGeneric(XASdata):
         self.interp_df = self.interp_df[cols]
 
         f = h5py.File(fn, mode='w')
+        #from celery.contrib import rdb
+        #rdb.set_trace()
         for key in self.interp_df.keys():
             dset = f.create_dataset(key, data=self.interp_df[key], compression='gzip')
         for data in md:
-            f.attrs[data] = md[data]
+            try:
+                f.attrs[data] = md[data]
+            except TypeError:
+                # ignore impossible attributes
+                f.attrs[data] = str(md[data])
+                pass
         f.close()
 
         # opening a file:
