@@ -5,6 +5,7 @@ import numpy as np
 from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from isstools.conversions import xray
 from subprocess import call
+from bluesky.plans import mv
 
 
 class XASExperiment:
@@ -35,6 +36,10 @@ class XASBatchExperiment:
 
     def read_excel(self):
         self.experiment_table = pd.read_excel(self.excel_file, skiprows=self._skiprows)
+        d = self.experiment_table.iloc[1]
+        RE.md['PROPOSAL'] = str(d['proposal'])
+        RE.md['SAF'] = str(d['saf'])
+        RE.md['PI'] = str(d['pi'])
 
     def batch_create_trajectories(self):
         for i in range(len(self.experiment_table)):
@@ -93,7 +98,33 @@ class XASBatchExperiment:
         for i, traj_file in enumerate(self.trajectory_filenames):
             self.trajectory_manager.load(os.path.basename(traj_file),i+1,is_energy=True, offset=offset )
 
+    def basic_plan(self,filename, x,y, sample_stage=None, plan=None, **kwargs):
+        assert sample_stage, "Set sample stage"
+        assert plan, "Set plan to be executed"
+        yield from mv(sample_stage.x, x, sample_stage.y, y)
+        yield from plan(filename, **kwargs)
 
+    def sample_holder_positioner(self, fiducial_x, fiducial_y, dx, dy):
+        y = fiducial_y+2-(dy-1)*16
+        x = fiducial_x+32.2+(dx-1)*15
+        return x,y
+
+
+    def plan_trajectory_priority(self, sample_stage=None, plan=None, **kwargs):
+        for i,traj in enumerate(self.unique_trajectories):
+            print('init traj{}'.format(i))
+            t = self.trajectory_manager
+            t.init(i+1)
+            for j,exp in enumerate(self.experiments):
+                if exp.trajectory_num == i:
+                    print(exp.definition['dx'])
+                    print(exp.definition['dy'])
+                    x,y = self.sample_holder_positioner(202.899,-163.720,exp.definition['dx'],exp.definition['dy'])
+                    print(x)
+                    print(y)
+                    print('execute scan on sample{}'.format( j))
+                    yield from self.basic_plan(exp.definition['name'],x, y, sample_stage, plan, **kwargs)
+               
 
 
 if __name__ == "__main__":
@@ -105,7 +136,7 @@ if __name__ == "__main__":
     xas.create_unique_trajectories()
     xas.assign_trajectory_number()
     xas.save_trajectories()
-    xas.load_trajectories()
+    # xas.load_trajectories()
     #for i, t in enumerate(xas.unique_trajectories):
     #    plt.plot(t.energy, label = str(i))
     #plt.legend()
