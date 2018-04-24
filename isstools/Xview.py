@@ -23,8 +23,8 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 
-class GUI(QtWidgets.QMainWindow, gui_form, title="QAS Beamline"):
-    def __init__(self, hhm_pulses_per_deg, parent=None):
+class GUI(QtWidgets.QMainWindow, gui_form):
+    def __init__(self, hhm_pulses_per_deg, parent=None, title="QAS Beamline"):
 
         QtWidgets.QMainWindow.__init__(self, parent)
         self.setupUi(self)
