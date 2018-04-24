@@ -19,6 +19,8 @@ import zmq
 import pickle
 import pandas as pd
 
+import kafka
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 # the address for where to subscribe the receiver to
@@ -48,7 +50,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  det_dict={},
                  motors_dict={},
                  general_scan_func = None, parent=None,
-                 futures_queue=None, *args, **kwargs):
+                 futures_queue=None, 
+                 bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
+                 kafka_topic="qas-analysis", *args, **kwargs):
         '''
 
             plan_funcs : functions that run plans (call RE(plan()) etc)
@@ -154,10 +158,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect(RECEIVING_ADDRESS)
+        #self.subscriber = self.context.socket(zmq.SUB)
+        #self.subscriber.connect("tcp://xf08id-srv2:5562")
         self.hostname_filter = socket.gethostname()
-        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        #self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        # TODO implement kafka:
+        self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
         self.run_mode = 'run'
 
@@ -286,9 +292,13 @@ class ReceivingThread(QThread):
         self.setParent(gui)
 
     def run(self):
-        while True:
-            message = self.parent().subscriber.recv()
-            message = message[len(self.parent().hostname_filter):]
+        consumer = self.parent().consumer
+        #while True:
+            # this should be a kafka process
+            #message = self.parent().subscriber.recv()
+            #message = message[len(self.parent().hostname_filter):]
+        for message in consumer:
+            message = message.value
             data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
