@@ -50,7 +50,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  det_dict={},
                  motors_dict={},
                  general_scan_func = None, parent=None,
-                 futures_queue=None, 
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", *args, **kwargs):
         '''
@@ -65,7 +64,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
             det_dict : dictionary of detectors
             motors_dict : dictionary of motors
             general_scan_func : 
-            futures_queue : a queue of dask futures that are computed by the post processing analysis
         '''
 
         if 'write_html_log' in kwargs:
@@ -128,7 +126,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         self.RE = RE
 
-        self.futures_queue = futures_queue
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -203,9 +200,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
         if self.RE is not None:
-            # passing futures_queue for post processing plotting
             self.widget_run = widget_run.UIRun(self.plan_funcs, db, shutters_dict, self.adc_list, self.enc_list,
-                                               self.xia, self.html_log_func, self, futures_queue=self.futures_queue)
+                                               self.xia, self.html_log_func, self)
             self.layout_run.addWidget(self.widget_run)
             self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
@@ -298,7 +294,9 @@ class ReceivingThread(QThread):
             #message = self.parent().subscriber.recv()
             #message = message[len(self.parent().hostname_filter):]
         for message in consumer:
-            message = message.value
+            # bruno concatenates and extra message at beginning of this packet
+            # we need to take it off
+            message = message.value[len(self.parent().hostname_filter):]
             data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:

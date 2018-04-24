@@ -23,7 +23,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 
-class GUI(QtWidgets.QMainWindow, gui_form):
+class GUI(QtWidgets.QMainWindow, gui_form, title="QAS Beamline"):
     def __init__(self, hhm_pulses_per_deg, parent=None):
 
         QtWidgets.QMainWindow.__init__(self, parent)
@@ -68,7 +68,7 @@ class GUI(QtWidgets.QMainWindow, gui_form):
         self.last_den_raw = ''
 
         # Persistent settings
-        self.settings = QSettings('ISS Beamline', 'Xview')
+        self.settings = QSettings(title, 'Xview')
         self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
         if self.workingFolder != '/GPFS/xf08id/User Data':

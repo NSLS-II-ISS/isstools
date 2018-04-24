@@ -147,18 +147,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             print(self.uids)
             self.settings.setValue('user_dir', self.user_dir)
             self.label_24.setText(filenames)
-            #self.send_data_request()
-            # TODO What do do with multiple filenames?
-            if isinstance(filenames, list):
-                data = loadInterpFile(filenames[0])
-            else:
-                data = loadInterpFile(filenames)
-            data_dict = dict()
-            data_dict['processing_ret'] = dict()
-            data_dict['processing_ret']['metadata'] = dict()
-            data_dict['processing_ret']['data'] = data
-            data_dict['processing_ret']['metadata']['name'] = filenames
-            self.plot_data(data_dict)
+            self.send_data_request()
 
     def update_listWidgets(self):
         index = [index for index, item in enumerate(

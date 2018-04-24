@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>XLive @ISS/8-ID NSLS-II</string>
+   <string>XLive @QAS/7-BM NSLS-II</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
