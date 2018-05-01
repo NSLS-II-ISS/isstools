@@ -31,7 +31,6 @@ class XviewGui(*uic.loadUiType(ui_path)):
 #class GUI(QtWidgets.QMainWindow, gui_form):
     def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None,
                  *args, **kwargs):
-
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -68,7 +67,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
 
         # Persistent settings
-        self.settings = QSettings('ISS Beamline', 'Xview')
+        self.settings = QSettings(title, 'Xview')
         self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
         if self.workingFolder != '/GPFS/xf08id/User Data':

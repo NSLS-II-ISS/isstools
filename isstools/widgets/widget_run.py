@@ -13,6 +13,8 @@ import numpy as np
 import datetime
 from timeit import default_timer as timer
 
+
+
 # Libs needed by the ZMQ communication
 import json
 import pandas as pd
@@ -114,9 +116,11 @@ class UIRun(*uic.loadUiType(ui_path)):
         for enc in self.enc_list:
             enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
-        if self.xia.input_trigger is not None:
-            self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-            self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+        # not needed at QAS this is a detector
+        if self.xia is not None:
+            if self.xia.input_trigger is not None:
+                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         self.comment = self.params2[0].text()
         if (self.comment):
@@ -275,5 +279,3 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.canvas.draw_idle()
 
             self.create_log_scan(data['uid'], self.figure)
-
-

@@ -19,8 +19,12 @@ import zmq
 import pickle
 import pandas as pd
 
+import kafka
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
+# the address for where to subscribe the receiver to
+RECEIVING_ADDRESS = "tcp://xf07bm-ws1:5562"
 
 def auto_redraw_factory(fnc):
     def stale_callback(fig, stale):
@@ -35,7 +39,8 @@ def auto_redraw_factory(fnc):
 class ScanGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs=[],
+    def __init__(self,
+                 plan_funcs=[],
                  prep_traj_plan=None,
                  RE=None,
                  db=None,
@@ -44,7 +49,22 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
-                 general_scan_func = None, parent=None, *args, **kwargs):
+                 general_scan_func = None, parent=None,
+                 bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
+                 kafka_topic="qas-analysis", *args, **kwargs):
+        '''
+
+            plan_funcs : functions that run plans (call RE(plan()) etc)
+            prep_traj_plan : a plan that prepares the trajectories
+            RE : a RunEngine instance
+            db : a databroker instance
+            accelerator : 
+            hhm : high heatload monochromator (the monochromator)
+            shutters_dict : dictionary of available shutters
+            det_dict : dictionary of detectors
+            motors_dict : dictionary of motors
+            general_scan_func : 
+        '''
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -90,6 +110,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.sender = None
 
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -104,6 +125,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutters_dict = shutters_dict
 
         self.RE = RE
+
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -133,10 +155,12 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://xf08id-srv2:5562")
+        #self.subscriber = self.context.socket(zmq.SUB)
+        #self.subscriber.connect("tcp://xf08id-srv2:5562")
         self.hostname_filter = socket.gethostname()
-        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        #self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        # TODO implement kafka:
+        self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
         self.run_mode = 'run'
 
@@ -264,13 +288,16 @@ class ReceivingThread(QThread):
         self.setParent(gui)
 
     def run(self):
-        while True:
-            message = self.parent().subscriber.recv()
-            message = message[len(self.parent().hostname_filter):]
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                data = pickle.loads(message)
+        consumer = self.parent().consumer
+        #while True:
+            # this should be a kafka process
+            #message = self.parent().subscriber.recv()
+            #message = message[len(self.parent().hostname_filter):]
+        for message in consumer:
+            # bruno concatenates and extra message at beginning of this packet
+            # we need to take it off
+            message = message.value[len(self.parent().hostname_filter):]
+            data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
                 data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
