@@ -23,9 +23,6 @@ import kafka
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
-# the address for where to subscribe the receiver to
-RECEIVING_ADDRESS = "tcp://xf07bm-ws1:5562"
-
 def auto_redraw_factory(fnc):
     def stale_callback(fig, stale):
         if fnc is not None:
@@ -52,19 +49,35 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  general_scan_func = None, parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
-                 window_title="XLive @QAS/11-ID NSLS-II", *args, **kwargs):
+                 window_title="XLive @QAS/11-ID NSLS-II",
+                 receiving_address="tcp://xf07bm-ws1:5562",
+                 *args, **kwargs):
         '''
 
-            plan_funcs : functions that run plans (call RE(plan()) etc)
-            prep_traj_plan : a plan that prepares the trajectories
-            RE : a RunEngine instance
-            db : a databroker instance
+            Parameters
+            ----------
+
+            plan_funcs : list, optional
+                functions that run plans (call RE(plan()) etc)
+            prep_traj_plan : generator or None, optional
+                a plan that prepares the trajectories
+            RE : bluesky.RunEngine, optional
+                a RunEngine instance
+            db : databroker.Broker, optional
+                the database to save acquired data to
             accelerator : 
-            hhm : high heatload monochromator (the monochromator)
-            shutters_dict : dictionary of available shutters
-            det_dict : dictionary of detectors
-            motors_dict : dictionary of motors
-            general_scan_func : 
+            hhm : ophyd.Device, optional
+                the monochromator. "hhm" stood for "high heatload monochromator" 
+                and has been kept from the legacy ISS code
+            shutters_dict : dict, optional
+                dictionary of available shutters
+            det_dict : dict, optional
+                dictionary of detectors
+            motors_dict : dict, optional
+                dictionary of motors
+            general_scan_func : generator or None, optional
+            receiving address: string, optinal
+                the address for where to subscribe the Kafka Consumer to
         '''
 
         if 'write_html_log' in kwargs:
