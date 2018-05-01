@@ -228,7 +228,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.toolbar_batch_average._update_view()
             self.canvas_batch_average.draw_idle()
 
-            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.read_msgpack(data['processing_ret']['data'])
+            df = data['processing_ret']['data']
             #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
@@ -1103,7 +1104,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
             if print_only == False:
                 self.batch_running = False
-                self.batch_processor.go = 0
                 self.label_batch_step.setText('Finished (Idle)')
 
         except Exception as e:
@@ -1113,7 +1113,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             item.setFont(font)
             item.setText(text)
             self.batch_running = False
-            self.batch_processor.go = 0
             self.label_batch_step.setText('Aborted! (Idle)')
             return
 
