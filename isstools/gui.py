@@ -169,11 +169,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
-        #self.subscriber = self.context.socket(zmq.SUB)
-        #self.subscriber.connect("tcp://xf08id-srv2:5562")
         self.hostname_filter = socket.gethostname()
-        #self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
-        # TODO implement kafka:
+        # Now using Kafka
         self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
         self.run_mode = 'run'
@@ -304,10 +301,6 @@ class ReceivingThread(QThread):
 
     def run(self):
         consumer = self.parent().consumer
-        #while True:
-            # this should be a kafka process
-            #message = self.parent().subscriber.recv()
-            #message = message[len(self.parent().hostname_filter):]
         for message in consumer:
             # bruno concatenates and extra message at beginning of this packet
             # we need to take it off
