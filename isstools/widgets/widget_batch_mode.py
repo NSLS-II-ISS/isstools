@@ -95,8 +95,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.enc_samp_time = '1'
         self.adc_list = adc_list
         self.enc_list = enc_list
-        #self.xia = xia
-        self.xia = None
+        self.xia = xia
 
         self.treeView_batch.header().hide()
         self.treeView_samples.header().hide()
