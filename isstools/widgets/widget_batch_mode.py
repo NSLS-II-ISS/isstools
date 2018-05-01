@@ -38,6 +38,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  create_log_scan,
                  sample_stages,
                  parent_gui,
+                 job_submitter,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)

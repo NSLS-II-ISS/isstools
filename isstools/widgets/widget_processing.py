@@ -26,51 +26,37 @@ import socket
 
 from bluesky.callbacks import CallbackBase
 
-# TODO : replace with message broker
-# Needs the lightflow environment
-from lightflow.config import Config
-from lightflow.workflows import start_workflow
-
-# set where the lightflow config file is
-lightflow_config_file = "/home/xf07bm/.config/lightflow/lightflow.cfg"
-
-def submit_lightflow_job(uid):
-    '''
-        Submit an interpolation job to lightflow
-        
-        uid : the uid of the data set
-    '''
-    config = Config()
-    config.load_from_file(lightflow_config_file)
-
-    store_args = dict()
-    store_args['uid'] = uid
-    # not necessary
-    store_args['requester'] = socket.gethostname()
-    job_id = start_workflow(name='interpolation', config=config,
-                            store_args=store_args, queue="qas-workflow")
-    print('Started workflow with ID', job_id)
-
 
 class UIProcessing(*uic.loadUiType(ui_path)):
     def __init__(self,
                  hhm,
                  db,
-                 det_dict,
-                 sender,
+                 det_dict, parent_gui,
+                 job_submitter,
                  *args, **kwargs):
-
+        '''
+            hhm:
+                the monochromator
+            db : the data database
+            det_dict:
+                detector dictionary
+            parent_gui:
+                the parent gui
+            job_submitter: function
+                the function that submits jobs for processing
+                takes uid as argument only (pass the rest through functools.partial)
+        '''
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
+        self.job_submitter = job_submitter
 
         self.hhm = hhm
         self.db = db
         self.det_dict = det_dict
         self.gen_parser = xasdata.XASdataGeneric(self.hhm.enc.pulses_per_deg, self.db)
-        self.sender = sender
 
-        self.settings = QSettings('QAS Beamline', 'XLive')
+        self.settings = QSettings(parent_gui.window_title, 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
         self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/users/', type = str)
@@ -227,8 +213,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                    'exafs_spacing': exafs_spacing,
                 }
                }
-        #self.sender.send_string(json.dumps(req))
-        submit_lightflow_job(uid)
+        self.job_submitter(uid)
 
 
 
@@ -278,8 +263,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                        'filepath': self.selected_filename_bin[index],
                    }
                   }
-            #self.sender.send_string(json.dumps(req))
-            submit_lightflow_job(uid)
+            self.job_submitter(uid)
 
             if self.checkBox_process_bin.checkState() > 0:
                 self.send_bin_request(uid, self.selected_filename_bin[index])

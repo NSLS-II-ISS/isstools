@@ -51,6 +51,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  kafka_topic="qas-analysis", 
                  window_title="XLive @QAS/11-ID NSLS-II",
                  receiving_address="tcp://xf07bm-ws1:5562",
+                 job_submitter=None,
                  *args, **kwargs):
         '''
 
@@ -79,6 +80,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
             receiving address: string, optinal
                 the address for where to subscribe the Kafka Consumer to
         '''
+        self.window_title = window_title
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -205,7 +207,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
             self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
-        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, self.sender)
+        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, parent_gui=self,
+                                                                job_submitter=job_submitter)
         self.layout_processing.addWidget(self.widget_processing)
         self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
@@ -224,7 +227,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                        self.widget_run.figure,
                                                                        self.widget_run.create_log_scan,
                                                                        sample_stages=self.sample_stages,
-                                                                       parent_gui = self)
+                                                                       parent_gui = self,
+                                                                       job_submitter=job_submitter)
                 self.layout_batch.addWidget(self.widget_batch_mode)
                 self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
 
