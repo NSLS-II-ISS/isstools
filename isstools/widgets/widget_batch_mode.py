@@ -1103,8 +1103,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
             if print_only == False:
                 self.batch_running = False
-                #self.batch_processor.go = 0
-                #self.label_batch_step.setText('Finished (Idle)')
+                self.batch_processor.go = 0
+                self.label_batch_step.setText('Finished (Idle)')
 
         except Exception as e:
             print(e)
@@ -1112,9 +1112,9 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             font = QtGui.QFont()
             item.setFont(font)
             item.setText(text)
-            #self.batch_running = False
-            #self.batch_processor.go = 0
-            #self.label_batch_step.setText('Aborted! (Idle)')
+            self.batch_running = False
+            self.batch_processor.go = 0
+            self.label_batch_step.setText('Aborted! (Idle)')
             return
 
     def setAnalogSampTime(self, text):
