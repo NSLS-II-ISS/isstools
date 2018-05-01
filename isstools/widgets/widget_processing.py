@@ -15,8 +15,6 @@ import pandas as pd
 import json
 import socket
 
-from isstools.utils.interpfile import loadInterpFile
-
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
 
