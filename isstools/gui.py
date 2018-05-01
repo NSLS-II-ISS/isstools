@@ -51,7 +51,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  motors_dict={},
                  general_scan_func = None, parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
-                 kafka_topic="qas-analysis", *args, **kwargs):
+                 kafka_topic="qas-analysis", 
+                 window_title="XLive @QAS/11-ID NSLS-II", *args, **kwargs):
         '''
 
             plan_funcs : functions that run plans (call RE(plan()) etc)
@@ -242,6 +243,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream.EmittingStream(self.textEdit_terminal)
         sys.stderr = EmittingStream.EmittingStream(self.textEdit_terminal)
+        self.setWindowTitle(window_title)
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
