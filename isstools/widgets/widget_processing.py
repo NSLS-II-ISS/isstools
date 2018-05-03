@@ -130,8 +130,12 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if self.checkBox_process_bin.checkState() > 0:
             self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*.txt', parent = self)[0]
         else:
-            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
-        if len(self.selected_filename_bin[0]):
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]
+            if len(self.selected_filename_bin)>0:
+                self.selected_filename_bin=[self.selected_filename_bin]
+            else:
+                self.selected_filename_bin=[]
+        if len(self.selected_filename_bin):
             self.handles_interp = []
             self.handles_bin = []
             self.interp_data_sets = []
@@ -204,7 +208,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                    'exafs_spacing': exafs_spacing,
                 }
                }
-        self.job_submitter(uid)
+        self.job_submitter(req)
 
 
 
@@ -248,7 +252,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                        'filepath': self.selected_filename_bin[index],
                    }
                   }
-            self.job_submitter(uid)
+            self.job_submitter(req)
 
             if self.checkBox_process_bin.checkState() > 0:
                 self.send_bin_request(uid, self.selected_filename_bin[index])
