@@ -86,6 +86,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
     def run_scan(self):
+        ignore_shutter=False
         if self.run_type.currentText() == 'get_offsets':
             for shutter in [self.shutters[shutter] for shutter in self.shutters if
                             self.shutters[shutter].shutter_type == 'PH' and
@@ -105,6 +106,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                     if not ret:
                         print('Aborted!')
                         return False
+                    ignore_shutter=True
                     break
 
         # Send sampling time to the pizzaboxes:
@@ -151,7 +153,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
-            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
+            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params,
+                                                                     ax=self.figure.ax,
+                                                                     ignore_shutter=ignore_shutter):
                 self.run_mode_uids.append(uid)
 
             timenow = datetime.datetime.now()    
