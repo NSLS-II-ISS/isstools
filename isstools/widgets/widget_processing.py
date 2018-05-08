@@ -309,6 +309,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         for data in list_data_set:
             df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             df = df.sort_values('energy')
             result = df[self.last_num_text] / df[self.last_den_text]
             ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
@@ -344,6 +347,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
     def plot_data(self, data):
         df = data['processing_ret']['data']
+        if isinstance(df, str):
+            # load data, it's  astring
+            df = self.gen_parser.getInterpFromFile(df)
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
@@ -374,7 +380,15 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         #self.update_k_view(df)
 
     def plot_interp_data(self, data):
+        ''' Plot the interpolated data.
+            This will check if the data is a string.
+        '''
         df = data['processing_ret']['data']
+        # TODO : implement this
+        if isinstance(df, str):
+            # load data, it's  astring
+            df = self.gen_parser.getInterpFromFile(df)
+
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
