@@ -311,7 +311,8 @@ class ReceivingThread(QThread):
             data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
-                data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                #data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                data['processing_ret']['data'] = data['processing_ret']['data'].decode()
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':
