@@ -24,6 +24,7 @@ timenow = datetime.datetime.now()
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 from isstools.xiaparser import xiaparser
+from isstools.xasdata.xasdata import XASdataGeneric
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -40,6 +41,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
+        # TODO : remove hhm dependency
+        self.gen_parser = XASdataGeneric(parent_gui.hhm.enc.pulses_per_deg, db)
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
@@ -273,6 +276,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.toolbar._update_view()
 
             df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df

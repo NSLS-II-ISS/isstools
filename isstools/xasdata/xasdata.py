@@ -256,7 +256,8 @@ class XASdataGeneric(XASdata):
             header = '\n'.join([f'# {key}: {header[key]}' for key in header]) + '\n#\n#'
             return header
 
-    def loadInterpFile(self, filename):
+    def getInterpFromFile(self, filename):
+        ''' Load interp file and return'''
         self.arrays = {}
         self.interp_arrays = {}
 
@@ -275,11 +276,19 @@ class XASdataGeneric(XASdata):
 
         df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
         df['1'] = pd.Series(np.ones(len(df.iloc[:, 0])), index=df.index)
+        return df
+
+
+    def loadInterpFile(self, filename):
+        ''' Load interp file and save to self.interp_df'''
+        df = self.getInterpFromFile(filename)
         self.interp_df = df
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
                 self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
         self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+
+
 
     def loadInterpFileHDF5(self, filename):
         self.arrays = {}

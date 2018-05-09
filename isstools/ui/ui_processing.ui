@@ -95,57 +95,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>50</y>
-     <width>101</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_37">
-    <item row="0" column="0">
-     <widget class="QCheckBox" name="checkBox_log">
-      <property name="text">
-       <string>Log</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QCheckBox" name="checkBox_neg">
-      <property name="text">
-       <string>Negative</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QCheckBox" name="checkBox_der">
-      <property name="text">
-       <string>Derivative</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QPushButton" name="push_replot_file">
    <property name="geometry">
     <rect>
@@ -217,10 +166,10 @@ b</string>
   <widget class="QWidget" name="verticalLayoutWidget_7">
    <property name="geometry">
     <rect>
-     <x>780</x>
-     <y>130</y>
-     <width>841</width>
-     <height>381</height>
+     <x>820</x>
+     <y>190</y>
+     <width>811</width>
+     <height>731</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="plot_old_scans_2"/>
@@ -384,8 +333,8 @@ b</string>
     <rect>
      <x>10</x>
      <y>190</y>
-     <width>761</width>
-     <height>641</height>
+     <width>801</width>
+     <height>731</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="plot_old_scans_3"/>
@@ -409,7 +358,7 @@ b</string>
      <x>1240</x>
      <y>10</y>
      <width>161</width>
-     <height>111</height>
+     <height>81</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_11">
@@ -468,20 +417,6 @@ b</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
-     <widget class="QLineEdit" name="edit_y_power">
-      <property name="text">
-       <string>2</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_103">
-      <property name="text">
-       <string>y (k ^ y)</string>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QPushButton" name="push_bin_save">
@@ -497,60 +432,55 @@ b</string>
     <string>Bin and Save</string>
    </property>
   </widget>
-  <widget class="QWidget" name="verticalLayoutWidget_8">
-   <property name="geometry">
-    <rect>
-     <x>780</x>
-     <y>520</y>
-     <width>841</width>
-     <height>411</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="plot_old_scans"/>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_3">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>860</y>
-     <width>331</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_6">
-    <item>
-     <widget class="QLabel" name="label_106">
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Processing</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QProgressBar" name="progressBar_processing">
-      <property name="value">
-       <number>24</number>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QPushButton" name="push_reset_data">
    <property name="geometry">
     <rect>
      <x>350</x>
      <y>140</y>
-     <width>101</width>
+     <width>81</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Reset Data</string>
+    <string>Reset</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_log">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>50</y>
+     <width>99</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Log</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="tristate">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_neg">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>70</y>
+     <width>99</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Negative</string>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="tristate">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

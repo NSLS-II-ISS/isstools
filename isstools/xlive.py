@@ -33,7 +33,7 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 
-class ScanGui(*uic.loadUiType(ui_path)):
+class XliveGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
@@ -50,7 +50,6 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
                  window_title="XLive @QAS/11-ID NSLS-II",
-                 receiving_address="tcp://xf07bm-ws1:5562",
                  job_submitter=None,
                  *args, **kwargs):
         '''
@@ -312,7 +311,8 @@ class ReceivingThread(QThread):
             data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
-                data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                #data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                data['processing_ret']['data'] = data['processing_ret']['data'].decode()
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':
