@@ -231,6 +231,9 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
             #df = pd.read_msgpack(data['processing_ret']['data'])
             df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
