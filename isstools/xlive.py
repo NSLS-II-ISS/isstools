@@ -19,8 +19,9 @@ import zmq
 import pickle
 import pandas as pd
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
+import kafka
 
+ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
 def auto_redraw_factory(fnc):
     def stale_callback(fig, stale):
@@ -32,10 +33,11 @@ def auto_redraw_factory(fnc):
     return stale_callback
 
 
-class ScanGui(*uic.loadUiType(ui_path)):
+class XliveGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
-    def __init__(self, plan_funcs=[],
+    def __init__(self,
+                 plan_funcs=[],
                  prep_traj_plan=None,
                  RE=None,
                  db=None,
@@ -44,7 +46,40 @@ class ScanGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
-                 general_scan_func = None, parent=None, *args, **kwargs):
+                 general_scan_func = None, parent=None,
+                 bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
+                 kafka_topic="qas-analysis", 
+                 window_title="XLive @QAS/11-ID NSLS-II",
+                 job_submitter=None,
+                 *args, **kwargs):
+        '''
+
+            Parameters
+            ----------
+
+            plan_funcs : list, optional
+                functions that run plans (call RE(plan()) etc)
+            prep_traj_plan : generator or None, optional
+                a plan that prepares the trajectories
+            RE : bluesky.RunEngine, optional
+                a RunEngine instance
+            db : databroker.Broker, optional
+                the database to save acquired data to
+            accelerator : 
+            hhm : ophyd.Device, optional
+                the monochromator. "hhm" stood for "high heatload monochromator" 
+                and has been kept from the legacy ISS code
+            shutters_dict : dict, optional
+                dictionary of available shutters
+            det_dict : dict, optional
+                dictionary of detectors
+            motors_dict : dict, optional
+                dictionary of motors
+            general_scan_func : generator or None, optional
+            receiving address: string, optinal
+                the address for where to subscribe the Kafka Consumer to
+        '''
+        self.window_title = window_title
 
         if 'write_html_log' in kwargs:
             self.html_log_func = kwargs['write_html_log']
@@ -90,6 +125,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         else:
             self.sender = None
 
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -104,6 +140,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         self.shutters_dict = shutters_dict
 
         self.RE = RE
+
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -133,10 +170,9 @@ class ScanGui(*uic.loadUiType(ui_path)):
 
         # Activating ZeroMQ Receiving Socket
         self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.connect("tcp://xf08id-srv2:5562")
         self.hostname_filter = socket.gethostname()
-        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, self.hostname_filter)
+        # Now using Kafka
+        self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
         self.run_mode = 'run'
 
@@ -170,7 +206,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
             self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
             self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
-        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, self.sender)
+        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, parent_gui=self,
+                                                                job_submitter=job_submitter)
         self.layout_processing.addWidget(self.widget_processing)
         self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
@@ -189,7 +226,8 @@ class ScanGui(*uic.loadUiType(ui_path)):
                                                                        self.widget_run.figure,
                                                                        self.widget_run.create_log_scan,
                                                                        sample_stages=self.sample_stages,
-                                                                       parent_gui = self)
+                                                                       parent_gui = self,
+                                                                       job_submitter=job_submitter)
                 self.layout_batch.addWidget(self.widget_batch_mode)
                 self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
 
@@ -218,6 +256,7 @@ class ScanGui(*uic.loadUiType(ui_path)):
         # Redirect terminal output to GUI
         sys.stdout = EmittingStream.EmittingStream(self.textEdit_terminal)
         sys.stderr = EmittingStream.EmittingStream(self.textEdit_terminal)
+        self.setWindowTitle(window_title)
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
@@ -264,16 +303,16 @@ class ReceivingThread(QThread):
         self.setParent(gui)
 
     def run(self):
-        while True:
-            message = self.parent().subscriber.recv()
-            message = message[len(self.parent().hostname_filter):]
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                data = pickle.loads(message)
+        consumer = self.parent().consumer
+        for message in consumer:
+            # bruno concatenates and extra message at beginning of this packet
+            # we need to take it off
+            message = message.value[len(self.parent().hostname_filter):]
+            data = pickle.loads(message)
 
             if 'data' in data['processing_ret']:
-                data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                #data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
+                data['processing_ret']['data'] = data['processing_ret']['data'].decode()
 
             if data['type'] == 'spectroscopy':
                 if data['processing_ret']['type'] == 'interpolate':

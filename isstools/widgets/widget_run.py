@@ -13,6 +13,8 @@ import numpy as np
 import datetime
 from timeit import default_timer as timer
 
+
+
 # Libs needed by the ZMQ communication
 import json
 import pandas as pd
@@ -22,6 +24,7 @@ timenow = datetime.datetime.now()
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 from isstools.xiaparser import xiaparser
+from isstools.xasdata.xasdata import XASdataGeneric
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -38,6 +41,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
+        # TODO : remove hhm dependency
+        self.gen_parser = XASdataGeneric(parent_gui.hhm.enc.pulses_per_deg, db)
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
@@ -84,6 +89,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
     def run_scan(self):
+        ignore_shutter=False
         if self.run_type.currentText() == 'get_offsets':
             for shutter in [self.shutters[shutter] for shutter in self.shutters if
                             self.shutters[shutter].shutter_type == 'PH' and
@@ -103,6 +109,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                     if not ret:
                         print('Aborted!')
                         return False
+                    ignore_shutter=True
                     break
 
         # Send sampling time to the pizzaboxes:
@@ -114,9 +121,11 @@ class UIRun(*uic.loadUiType(ui_path)):
         for enc in self.enc_list:
             enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
-        if self.xia.input_trigger is not None:
-            self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-            self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+        # not needed at QAS this is a detector
+        if self.xia is not None:
+            if self.xia.input_trigger is not None:
+                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         self.comment = self.params2[0].text()
         if (self.comment):
@@ -147,7 +156,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
-            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params, ax=self.figure.ax):
+            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params,
+                                                                     ax=self.figure.ax,
+                                                                     ignore_shutter=ignore_shutter):
                 self.run_mode_uids.append(uid)
 
             timenow = datetime.datetime.now()    
@@ -265,6 +276,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.toolbar._update_view()
 
             df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
@@ -275,5 +289,3 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.canvas.draw_idle()
 
             self.create_log_scan(data['uid'], self.figure)
-
-

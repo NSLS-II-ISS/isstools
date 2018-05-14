@@ -38,6 +38,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  create_log_scan,
                  sample_stages,
                  parent_gui,
+                 job_submitter,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -228,7 +229,11 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.toolbar_batch_average._update_view()
             self.canvas_batch_average.draw_idle()
 
-            df = pd.read_msgpack(data['processing_ret']['data'])
+            #df = pd.read_msgpack(data['processing_ret']['data'])
+            df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
@@ -742,9 +747,10 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                 for enc in self.enc_list:
                     enc.filter_dt.put(float(self.enc_samp_time) * 100000)
 
-                if self.xia.input_trigger is not None:
-                    self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                    self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+                if self.xia is not None:
+                    if self.xia.input_trigger is not None:
+                        self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+                        self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
                 self.batch_results = {}
 
@@ -1102,7 +1108,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
             if print_only == False:
                 self.batch_running = False
-                self.batch_processor.go = 0
                 self.label_batch_step.setText('Finished (Idle)')
 
         except Exception as e:
@@ -1112,7 +1117,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             item.setFont(font)
             item.setText(text)
             self.batch_running = False
-            self.batch_processor.go = 0
             self.label_batch_step.setText('Aborted! (Idle)')
             return
 

@@ -73,9 +73,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
-        self.settings = QSettings('ISS Beamline', 'Xview')
+        #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
-        self.settings = QSettings('ISS Beamline', 'XLive')
+        self.settings = QSettings(self.parent_gui.window_title, 'XLive')
 
         if self.auto_tune_dict is not None:
             self.auto_tune_elements = self.auto_tune_dict['elements']

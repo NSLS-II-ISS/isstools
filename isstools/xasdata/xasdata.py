@@ -12,10 +12,19 @@ import pandas as pd
 import h5py
 from pathlib import Path
 
+
 class XASdata:
     def __init__(self, db = None, **kwargs):
+        '''
+            This is the xas data parser
+
+            Parameters
+            ----------
+            db : Broker instance
+                the database to read from
+        '''
         self.energy = np.array([])
-        self.data = np.array([])
+        self.data = np.array
         self.encoder_file = ''
         self.i0_file = ''
         self.it_file = ''
@@ -119,12 +128,25 @@ class XASdata:
 
 
 class XASdataGeneric(XASdata):
-    def __init__(self, pulses_per_deg, db = None, db_analysis = None, *args, **kwargs):
+    '''
+            This is the xas data parser
+
+            Parameters
+            ----------
+            db : Broker instance
+                the database to read from
+            mono_name:
+                the monochromator to read the theta values from
+    '''
+    def __init__(self, pulses_per_deg, db = None, db_analysis = None,
+                 mono_name='mono1_enc', *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.mono_name = mono_name
         self.arrays = {}
         self.interp_arrays = {}
         self.db = db
         self.db_analysis = db_analysis
+
         self.pulses_per_deg = pulses_per_deg
         #if self.db is None:
         #    print('The databroker was not passed as argument to the parser.\nSome features will be disabled.')
@@ -145,11 +167,11 @@ class XASdataGeneric(XASdata):
         for i in self.db[uid]['descriptors']:
             if 'filename' in i['data_keys'][i['name']]:
                 name = i['name']
-                if name == 'pb9_enc1' or name == 'hhm_theta':
+                if name == self.mono_name:
                     has_encoder = name
                 if 'devname' in i['data_keys'][i['name']]:
                     name = i['data_keys'][i['name']]['devname']
-                    if name == 'hhm_theta':
+                    if name == self.mono_name:
                         has_encoder = name
 
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
@@ -157,19 +179,25 @@ class XASdataGeneric(XASdata):
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-adc-file':
                     data = self.loadADCtrace(i['data_keys'][i['name']]['filename'], '')
                     if i['name'] + ' offset' in self.db[uid]['start'] and type(data) == pd.core.frame.DataFrame:
+                        print("subtracting offset")
+                        print(self.db[uid]['start'][i['name'] + ' offset'])  
                         data.iloc[:, 1] = data.iloc[:, 1] - self.db[uid]['start'][i['name'] + ' offset']
+
                 if i['data_keys'][i['name']]['source'] == 'pizzabox-enc-file':
                     data = self.loadENCtrace(i['data_keys'][i['name']]['filename'], '')
                 #if type(data) == np.ndarray:
                 self.arrays[name] = data
 
         if has_encoder is not False:
+            print("Converting to energy, using key {}".format(has_encoder))
             energy = self.arrays.get(has_encoder).copy()
             if 'angle_offset' in self.db[uid]['start']:
                 energy.iloc[:, 1] = xray.encoder2energy(energy.iloc[:, 1], self.pulses_per_deg, -float(self.db[uid]['start']['angle_offset']))
                 energy.columns = ['timestamp', 'energy']
             del self.arrays[has_encoder]
             self.arrays['energy'] = energy
+        else:
+            print("Cannot convert to energy")
 
     def loadDB(self, uid):
         # if self.db is None:
@@ -181,11 +209,11 @@ class XASdataGeneric(XASdata):
         for i in self.db[uid]['descriptors']:
             stream_name = i['name']
             name = i['name']
-            if name == 'pb9_enc1' or name == 'hhm_theta':
+            if name == self.mono_name:
                 has_encoder = name
             if 'devname' in i['data_keys'][i['name']]:
                 name = i['data_keys'][i['name']]['devname']
-                if name == 'hhm_theta':
+                if name == self.mono_name:
                     has_encoder = name
 
             if i['data_keys'][i['name']]['source'] == 'pizzabox-di-file':
@@ -229,6 +257,7 @@ class XASdataGeneric(XASdata):
             return header
 
     def loadInterpFile(self, filename):
+        ''' Load interp file and save to self.interp_df'''
         self.arrays = {}
         self.interp_arrays = {}
 
@@ -247,11 +276,36 @@ class XASdataGeneric(XASdata):
 
         df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
         df['1'] = pd.Series(np.ones(len(df.iloc[:, 0])), index=df.index)
+
+
         self.interp_df = df
         for index, key in enumerate(df.keys()):
             if index != timestamp_index:
                 self.interp_arrays[key] = np.array([df.iloc[:, timestamp_index].values, df.iloc[:, index]]).transpose()
         self.interp_arrays['1'] = np.array([df.iloc[:, timestamp_index].values, np.ones(len(df.iloc[:, 0]))]).transpose()
+
+
+    def getInterpFromFile(self, filename):
+        ''' Load interp file and return'''
+        self.arrays = {}
+        self.interp_arrays = {}
+
+        if not op.exists(filename):
+            raise IOError(f'The requested file {filename} does not exist.')
+
+        header = self.read_header(filename)
+        self.uid = header[header.find('UID') + 5: header.find('\n', header.find('UID'))]
+        keys = header[header.rfind('#'):][1:-1].split()
+
+        timestamp_index = -1
+        if 'Timestamp (s)' in keys:
+            timestamp_index = keys.index('Timestamp (s)')
+        elif 'timestamp' in keys:
+            timestamp_index = keys.index('timestamp')
+
+        df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
+        df['1'] = pd.Series(np.ones(len(df.iloc[:, 0])), index=df.index)
+        return df
 
     def loadInterpFileHDF5(self, filename):
         self.arrays = {}
@@ -455,8 +509,10 @@ class XASdataGeneric(XASdata):
                                                                human_stop_time,
                                                                human_duration))
 
-        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-        call(['chmod', '770', fn])
+        print("changing permissions to 774")
+        call(['chmod', '774', fn])
+
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         return fn
 
     def export_trace_hdf5(self, filename, filepath = '/GPFS/xf08id/Sandbox/', overwrite = False):
@@ -528,10 +584,17 @@ class XASdataGeneric(XASdata):
         self.interp_df = self.interp_df[cols]
 
         f = h5py.File(fn, mode='w')
+        #from celery.contrib import rdb
+        #rdb.set_trace()
         for key in self.interp_df.keys():
             dset = f.create_dataset(key, data=self.interp_df[key], compression='gzip')
         for data in md:
-            f.attrs[data] = md[data]
+            try:
+                f.attrs[data] = md[data]
+            except TypeError:
+                # ignore impossible attributes
+                f.attrs[data] = str(md[data])
+                pass
         f.close()
 
         # opening a file:
@@ -543,8 +606,10 @@ class XASdataGeneric(XASdata):
         #     print(attr, f.attrs[attr]) 
         # f.close()
 
-        call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-        call(['chmod', '770', fn])
+        print("changing permissions to 774")
+        call(['chmod', '774', fn])
+
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
         return fn
 
     def get_energy_string(self, possibilities = ['energy', 'En. (eV)']):
@@ -803,7 +868,7 @@ class XASDataManager:
                 filename = filename + extension
                 break
 
-        comments = XASdataGeneric.read_header(None, filename)
+        comments = XASdataGeneric.read_header("", filename)
         comments = comments[0: comments.rfind('#')] + '# '
         comments = comments[:comments.rfind('#', 0, -2)] + f'# e0_bin: {e0_bin}\n#\n#'
 
@@ -838,8 +903,9 @@ class XASDataManager:
                    delimiter=" ",
                    header = header,
                    comments = comments)
-        call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
-        call(['chmod', '770', filename])
+        #call(['setfacl', '-m', 'g:iss-staff:rwX', filename])
+        print("changing permissions to 774")
+        call(['chmod', '774', filename])
         return filename
 
     def get_new_filename(filename):

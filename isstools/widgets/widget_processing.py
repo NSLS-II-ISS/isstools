@@ -20,28 +20,46 @@ from isstools.conversions import xray
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
 
+# Things for the ZMQ communication
+import socket
+
+
+from bluesky.callbacks import CallbackBase
+
+
 class UIProcessing(*uic.loadUiType(ui_path)):
     def __init__(self,
                  hhm,
                  db,
-                 det_dict,
-                 sender,
+                 det_dict, parent_gui,
+                 job_submitter,
                  *args, **kwargs):
-
+        '''
+            hhm:
+                the monochromator
+            db : the data database
+            det_dict:
+                detector dictionary
+            parent_gui:
+                the parent gui
+            job_submitter: function
+                the function that submits jobs for processing
+                takes uid as argument only (pass the rest through functools.partial)
+        '''
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
+        self.job_submitter = job_submitter
 
         self.hhm = hhm
         self.db = db
         self.det_dict = det_dict
         self.gen_parser = xasdata.XASdataGeneric(self.hhm.enc.pulses_per_deg, self.db)
-        self.sender = sender
 
-        self.settings = QSettings('ISS Beamline', 'XLive')
+        self.settings = QSettings(parent_gui.window_title, 'XLive')
         self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
-        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/User Data/', type = str)
+        self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/users/', type = str)
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.selectFile)
@@ -56,7 +74,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.push_replot_file.setDisabled(True)
         self.active_threads = 0
         self.total_threads = 0
-        self.progressBar_processing.setValue(int(np.round(0)))
         self.plotting_list = []
         self.last_num = ''
         self.last_den = ''
@@ -68,14 +85,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.handles_bin = []
 
     def addCanvas(self):
-        self.figure_old_scans = Figure()
-        self.figure_old_scans.set_facecolor(color='#FcF9F6')
-        self.canvas_old_scans = FigureCanvas(self.figure_old_scans)
-        self.figure_old_scans.ax = self.figure_old_scans.add_subplot(111)
-        self.toolbar_old_scans = NavigationToolbar(self.canvas_old_scans, self, coordinates=True)
-        self.plot_old_scans.addWidget(self.toolbar_old_scans)
-        self.plot_old_scans.addWidget(self.canvas_old_scans)
-        self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2 = Figure()
         self.figure_old_scans_2.set_facecolor(color='#FcF9F6')
@@ -121,8 +130,12 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if self.checkBox_process_bin.checkState() > 0:
             self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir, filter = '*.txt', parent = self)[0]
         else:
-            self.selected_filename_bin = [QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]]
-        if len(self.selected_filename_bin[0]):
+            self.selected_filename_bin = QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir, filter = '*.txt', parent = self)[0]
+            if len(self.selected_filename_bin)>0:
+                self.selected_filename_bin=[self.selected_filename_bin]
+            else:
+                self.selected_filename_bin=[]
+        if len(self.selected_filename_bin):
             self.handles_interp = []
             self.handles_bin = []
             self.interp_data_sets = []
@@ -195,7 +208,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                    'exafs_spacing': exafs_spacing,
                 }
                }
-        self.sender.send_string(json.dumps(req))
+        self.job_submitter(req)
+
+
 
 
     def send_data_request(self):
@@ -203,12 +218,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.old_scans_control = 1
         self.old_scans_2_control = 1
         self.old_scans_3_control = 1
-
-        self.figure_old_scans.ax.clear()
-        self.toolbar_old_scans._views.clear()
-        self.toolbar_old_scans._positions.clear()
-        self.toolbar_old_scans._update_view()
-        self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
@@ -243,7 +252,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                        'filepath': self.selected_filename_bin[index],
                    }
                   }
-            self.sender.send_string(json.dumps(req))
+            self.job_submitter(req)
 
             if self.checkBox_process_bin.checkState() > 0:
                 self.send_bin_request(uid, self.selected_filename_bin[index])
@@ -264,39 +273,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             return
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
 
-    def update_k_view(self, df):
-        e0 = int(self.edit_E0_2.text())
-        edge_start = int(self.edit_edge_start.text())
-        edge_end = int(self.edit_edge_end.text())
-        preedge_spacing = float(self.edit_preedge_spacing.text())
-        xanes_spacing = float(self.edit_xanes_spacing.text())
-        exafs_spacing = float(self.edit_exafs_spacing.text())
-        k_power = float(self.edit_y_power.text())
 
-        energy_string = 'energy'
-
-        result_orig = df[self.listWidget_numerator.currentItem().text()] / \
-                      df[self.listWidget_denominator.currentItem().text()]
-
-        if self.checkBox_log.checkState() > 0:
-            result_orig = np.log(result_orig)
-
-        k_data = self.gen_parser.data_manager.get_k_data(e0,
-                                                         edge_end,
-                                                         exafs_spacing,
-                                                         df,
-                                                         df[energy_string],
-                                                         result_orig,
-                                                         k_power)
-
-        self.figure_old_scans.ax.plot(k_data[0], k_data[1])
-        self.figure_old_scans.ax.set_xlabel('k')
-        self.figure_old_scans.ax.set_ylabel(r'$\kappa$ * k ^ {}'.format(k_power))  # 'ϰ * k ^ {}'.format(k_power))
-        self.figure_old_scans.ax.grid(True)
-
-        self.figure_old_scans.ax.legend(handles=self.handles_bin)
-        self.figure_old_scans.tight_layout()
-        self.canvas_old_scans.draw_idle()
 
     def replot_data(self):
         self.replot(self.bin_data_sets, self.handles_bin, self.figure_old_scans_3, self.toolbar_old_scans_3)
@@ -304,15 +281,15 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.replot_y()
 
     def replot_y(self):
-        self.figure_old_scans.ax.clear()
-        self.figure_old_scans.canvas.draw_idle()
-        self.toolbar_old_scans._views.clear()
-        self.toolbar_old_scans._positions.clear()
-        self.toolbar_old_scans._update_view()
+        #self.figure_old_scans.ax.clear()
+        #self.figure_old_scans.canvas.draw_idle()
+        #self.toolbar_old_scans._views.clear()
+        #self.toolbar_old_scans._positions.clear()
+        #self.toolbar_old_scans._update_view()
 
         for data in self.bin_data_sets:
             df = data['processing_ret']['data']
-            self.update_k_view(df)
+            #self.update_k_view(df)
 
     def replot(self, list_data_set, handles, figure, toolbar):
         figure.ax.clear()
@@ -332,6 +309,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         for data in list_data_set:
             df = data['processing_ret']['data']
+            if isinstance(df, str):
+                # load data, it's  astring
+                df = self.gen_parser.getInterpFromFile(df)
             df = df.sort_values('energy')
             result = df[self.last_num_text] / df[self.last_den_text]
             ylabel = '{} / {}'.format(self.last_num_text, self.last_den_text)
@@ -367,6 +347,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
     def plot_data(self, data):
         df = data['processing_ret']['data']
+        if isinstance(df, str):
+            # load data, it's  astring
+            df = self.gen_parser.getInterpFromFile(df)
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
@@ -394,10 +377,18 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3.tight_layout()
         self.canvas_old_scans_3.draw_idle()
 
-        self.update_k_view(df)
+        #self.update_k_view(df)
 
     def plot_interp_data(self, data):
+        ''' Plot the interpolated data.
+            This will check if the data is a string.
+        '''
         df = data['processing_ret']['data']
+        # TODO : implement this
+        if isinstance(df, str):
+            # load data, it's  astring
+            df = self.gen_parser.getInterpFromFile(df)
+
         #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
         df = df.sort_values('energy')
         self.df = df
@@ -426,11 +417,11 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
     def erase_plots(self):
-        self.figure_old_scans.ax.clear()
-        self.toolbar_old_scans._views.clear()
-        self.toolbar_old_scans._positions.clear()
-        self.toolbar_old_scans._update_view()
-        self.canvas_old_scans.draw_idle()
+        #self.figure_old_scans.ax.clear()
+        #self.toolbar_old_scans._views.clear()
+        #self.toolbar_old_scans._positions.clear()
+        #self.toolbar_old_scans._update_view()
+        #self.canvas_old_scans.draw_idle()
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
