@@ -36,7 +36,8 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
 
         self.xia = self.xia_list[0]
-        self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
+        self.xia_channels = [int(mca.split('mca')[1]) for mca in
+                             set(self.xia.read_attrs) & set(self.xia.component_names)]
         self.xia_tog_channels = []
 
         self.xia.mca_max_energy.subscribe(self.update_xia_params)
