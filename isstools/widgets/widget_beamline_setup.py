@@ -1,5 +1,6 @@
 import pkg_resources
 import json
+import time
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -15,19 +16,18 @@ from subprocess import call
 import re
 import pandas as pd
 import math
+from timeit import default_timer as timer
 
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
-
+from scipy.optimize import curve_fit
+import math
 import signal
-import bluesky.plan_stubs as bps
 
 from isstools.pid import PID
-from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog,
-                              MoveMotorDialog)
+from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog, MoveMotorDialog)
 
-ui_path = pkg_resources.resource_filename('isstools',
-                                          'ui/ui_beamline_setup.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
@@ -73,7 +73,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
-        # self.settings = QSettings(self.parent_gui.window_title, 'Xview')
+        #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
 
@@ -84,9 +84,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.auto_tune_elements = None
 
-        # self.mot_list = self.motors_dict.keys()
-        self.mot_list = [self.motors_dict[motor]['description']
-                         for motor in self.motors_dict]
+        #self.mot_list = self.motors_dict.keys()
+        self.mot_list = [self.motors_dict[motor]['description'] for motor in self.motors_dict]
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
 
@@ -124,17 +123,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
-            self.piezo_thread = piezo_fb_thread(self)
+            self.piezo_thread = piezo_fb_thread(self) 
             self.update_piezo.clicked.connect(self.update_piezo_params)
-            self.push_update_piezo_center.clicked.connect(
-                self.update_piezo_center)
+            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
-        with open(pkg_resources.resource_filename(
-                'isstools', 'beamline_preparation.json')) as fin:
-            json_data = fin.read()
-        self.json_blprep = json.loads(json_data)
-        self.beamline_prep = self.json_blprep[0]
-        self.fb_positions = self.json_blprep[1]['FB Positions']
+
+
 
         # Populate analog detectors setup section with adcs:
         self.adc_checkboxes = []
@@ -679,6 +673,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
         for adc in self.adc_list:
             adc.averaging_points.put(str(value))
+            adc.averaging_points.put(str(value))
         for enc in self.enc_list:
             enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
@@ -927,38 +922,38 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             nmeasures = self.piezo_nmeasures
             if nmeasures == 0:
                 nmeasures = 1
-            self.piezo_thread.adjust_center_point(line=self.piezo_line,
+            self.piezo_thread.adjust_center_point(line=self.piezo_line, 
                                                   center_point=self.piezo_center,
-                                                  n_lines=self.piezo_nlines,
+                                                  n_lines=self.piezo_nlines, 
                                                   n_measures=nmeasures)
 
         elif self.radioButton_fb_remote.isChecked():
             nmeasures = self.piezo_nmeasures
             if nmeasures == 0:
                 nmeasures = 1
-
+    
             # getting center:
             centers = []
             for i in range(nmeasures):
                 image = self.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-
+    
                 image = image.astype(np.int16)
                 sum_lines = sum(image[:, [i for i in range(self.piezo_line - math.floor(self.piezo_nlines / 2),
                                                            self.piezo_line + math.ceil(
                                                                self.piezo_nlines / 2))]].transpose())
-
+    
                 if len(sum_lines) > 0:
                     sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
-
+    
                 index_max = sum_lines.argmax()
                 max_value = sum_lines.max()
                 min_value = sum_lines.min()
-
+    
                 if max_value >= 10 and max_value <= self.piezo_nlines * 100 and (
                     (max_value - min_value) / self.piezo_nlines) > 5:
                     coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
                     centers.append(960 - coeff[1])
-
+    
             if len(centers) > 0:
                 self.piezo_center = float(sum(centers) / len(centers))
                 self.settings.setValue('piezo_center', self.piezo_center)
