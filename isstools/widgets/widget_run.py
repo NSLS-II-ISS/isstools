@@ -147,9 +147,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             # Erase last graph
             self.figure.ax.clear()
-            self.toolbar._views.clear()
-            self.toolbar._positions.clear()
-            self.toolbar._update_view()
+            self.toolbar.update()
             self.canvas.draw_idle()
             self.figure.ax.grid(alpha = 0.4)
             
