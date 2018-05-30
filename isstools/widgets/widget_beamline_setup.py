@@ -858,7 +858,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def toggle_piezo_fb(self, value):
         if value == 0:
-            self.piezo_thread.go = 0
+            if hasattr(self, 'piezo_thread'):
+                self.piezo_thread.go = 0
             self.hhm.fb_status.put(0)
             self.fb_master = 0
             self.pushEnableHHMFeedback.setChecked(False)

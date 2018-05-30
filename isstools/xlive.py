@@ -19,6 +19,7 @@ import zmq
 import pickle
 import pandas as pd
 
+
 import kafka
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')

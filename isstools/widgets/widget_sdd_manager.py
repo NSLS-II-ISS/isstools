@@ -269,10 +269,12 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.figure_xia_all_graphs.ax.relim()
         self.figure_xia_all_graphs.ax.autoscale(True, True, True)
         y_interval = self.figure_xia_all_graphs.ax.get_yaxis().get_data_interval()
+        '''
         if len(y_interval):
             if y_interval[0] != 0 or y_interval[1] != 0:
                 self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05,
                                                         y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
+        '''
         self.canvas_xia_all_graphs.draw_idle()
 
     def run_gain_matching(self):
