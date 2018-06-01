@@ -80,12 +80,15 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
         self.canvas = FigureCanvas(self.figure)
-        self.figure.ax = self.figure.add_subplot(111)
+        self.figure.ax1 = self.figure.add_subplot(111)
+
+        self.figure.ax2 = self.figure.ax1.twinx()
+        self.figure.ax3 = self.figure.ax1.twinx()
         self.toolbar = NavigationToolbar(self.canvas, self, coordinates=True)
         self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
         self.plots.addWidget(self.canvas)
-        self.figure.ax.grid(alpha = 0.4)
+        self.figure.ax3.grid(alpha = 0.4)
         self.canvas.draw_idle()
 
     def run_scan(self):
@@ -146,16 +149,18 @@ class UIRun(*uic.loadUiType(ui_path)):
                     run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
 
             # Erase last graph
-            self.figure.ax.clear()
+            self.figure.ax1.clear()
+            self.figure.ax2.clear()
+            self.figure.ax3.clear()
             self.toolbar.update()
             self.canvas.draw_idle()
-            self.figure.ax.grid(alpha = 0.4)
+            self.figure.ax3.grid(alpha = 0.4)
             
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params,
-                                                                     ax=self.figure.ax,
+                                                                     ax=self.figure.ax1,
                                                                      ignore_shutter=ignore_shutter):
                 self.run_mode_uids.append(uid)
 
@@ -267,8 +272,10 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def plot_scan(self, data):
         if self.parent_gui.run_mode == 'run':
-            self.figure.ax.clear()
-            self.figure.ax.grid(alpha = 0.4)
+            self.figure.ax1.clear()
+            self.figure.ax2.clear()
+            self.figure.ax3.clear()
+            self.figure.ax3.grid(alpha = 0.4)
             #self.toolbar._views.clear()
             #self.toolbar._positions.clear()
             #self.toolbar._update_view()
@@ -281,9 +288,22 @@ class UIRun(*uic.loadUiType(ui_path)):
             df = df.sort_values('energy')
             self.df = df
 
-            division = df['i0']/df['it']
-            division[division < 0] = 1
-            self.figure.ax.plot(df['energy'], np.log(division))
+            # TODO : this should plot depending on options set in a GUI
+            if 'i0' in df and 'it' in df and 'energy' in df:
+                transmission = np.log(df['i0']/df['it'])
+                self.figure.ax1.plot(df['energy'], transmission, color='r')
+            else:
+                print("Warning, could not find 'i0', 'it', or 'energy' (are devices present?)")
+
+            if 'i0' in df and 'iff' in df and 'energy' in df:
+                fluorescence = (df['iff']/df['i0'])
+                self.figure.ax2.plot(df['energy'], fluorescence, color='g')
+
+            
+            if 'it' in df and 'ir' in df and 'energy' in df:
+                reference = np.log(df['it']/df['ir'])
+                self.figure.ax3.plot(df['energy'], reference, color='b')
+
             self.canvas.draw_idle()
 
             self.create_log_scan(data['uid'], self.figure)
