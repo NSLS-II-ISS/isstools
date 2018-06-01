@@ -999,7 +999,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
 
-        list(get_offsets(20, *adcs))
+        list(get_offsets(20, *adcs, stdout = self.parent_gui.emitstream_out))
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,

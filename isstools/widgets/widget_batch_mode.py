@@ -838,7 +838,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                             else:
                                 self.label_batch_step.setText('Execute {}'.format(scan_name))
                                 self.check_pause_abort_batch()
-                            uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                            uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan], stdout=self.parent_gui.emitstream_out)
                             if uid:
                                 self.batch_mode_uids.extend(uid)
                         ### Uncomment (previous line)
@@ -1006,7 +1006,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                             self.label_batch_step.setText(
                                                 'Execute {} | Loop step number: {}'.format(scan_name, step_number + 1))
                                             self.check_pause_abort_batch()
-                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan], stdout=self.parent_gui.emitstream_out)
                                         if uid:
                                             self.batch_mode_uids.extend(uid)
                                     ### Uncomment (previous line)
@@ -1094,7 +1094,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                                                                                      step_number + 1,
                                                                                                      len(repetitions)))
                                         self.check_pause_abort_batch()
-                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
+                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan], stdout=self.parent_gui.emitstream_out)
                                         if uid:
                                             self.batch_mode_uids.extend(uid)
                                     ### Uncomment (previous line)

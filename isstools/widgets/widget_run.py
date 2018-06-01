@@ -161,7 +161,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.parent_gui.run_mode = 'run'
             for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params,
                                                                      ax=self.figure.ax1,
-                                                                     ignore_shutter=ignore_shutter):
+                                                                     ignore_shutter=ignore_shutter,
+                                                                     stdout=self.parent_gui.emitstream_out):
                 self.run_mode_uids.append(uid)
 
             timenow = datetime.datetime.now()    

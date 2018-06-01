@@ -40,7 +40,7 @@ class EmittingStream(QtCore.QObject):
         self.textWritten.connect(self.normalOutputWritten)
 
     def write(self, text):
-        self.textWritten.emit(str(text))
+        self.textWritten.emit((text))
         # Comment next line if the output should be printed only in the GUI
         sys.__stdout__.write(text)
 
@@ -49,8 +49,6 @@ class EmittingStream(QtCore.QObject):
         cursor = self.text_field.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
 
-        # offending piece that doesn't work. to be investigated later why
-        '''
         if text.find('0;3') >= 0:
             text = text.replace('<', '(')
             text = text.replace('>', ')')
@@ -87,13 +85,6 @@ class EmittingStream(QtCore.QObject):
             fmt.setFontWeight(QtGui.QFont.Normal)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
-        '''
-
-        fmt = cursor.charFormat()
-        fmt.setForeground(QtCore.Qt.black)
-        fmt.setFontWeight(QtGui.QFont.Normal)
-        cursor.setCharFormat(fmt)
-        cursor.insertText(text)
 
         self.text_field.setTextCursor(cursor)
         self.text_field.ensureCursorVisible()
