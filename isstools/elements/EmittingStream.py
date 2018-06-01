@@ -5,6 +5,10 @@ import sys
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
 
+    # Julien Lhermitte: It appears that this piece of code is writing a QTextEdit from
+    # scratch. I think this might be because it's not available in Qt5 (was in Qt4)
+    # We should look into what object we should inherit rather than writing something like this
+    # from scratch. I think...
     def __init__(self, text_field, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
@@ -45,6 +49,8 @@ class EmittingStream(QtCore.QObject):
         cursor = self.text_field.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
 
+        # offending piece that doesn't work. to be investigated later why
+        '''
         if text.find('0;3') >= 0:
             text = text.replace('<', '(')
             text = text.replace('>', ')')
@@ -81,5 +87,13 @@ class EmittingStream(QtCore.QObject):
             fmt.setFontWeight(QtGui.QFont.Normal)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
+        '''
+
+        fmt = cursor.charFormat()
+        fmt.setForeground(QtCore.Qt.black)
+        fmt.setFontWeight(QtGui.QFont.Normal)
+        cursor.setCharFormat(fmt)
+        cursor.insertText(text)
+
         self.text_field.setTextCursor(cursor)
         self.text_field.ensureCursorVisible()
