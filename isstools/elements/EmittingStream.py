@@ -38,7 +38,7 @@ class EmittingStream(QtCore.QObject):
         self.textWritten.connect(self.normalOutputWritten)
 
     def write(self, text):
-        self.textWritten.emit((text))
+        self.textWritten.emit(str(text))
         # Comment next line if the output should be printed only in the GUI
         sys.__stdout__.write(text)
 
