@@ -5,10 +5,8 @@ import sys
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
 
-    # Julien Lhermitte: It appears that this piece of code is writing a QTextEdit from
-    # scratch. I think this might be because it's not available in Qt5 (was in Qt4)
-    # We should look into what object we should inherit rather than writing something like this
-    # from scratch. I think...
+    # I think this code is writing a new subclass of stdout
+    # (julien)
     def __init__(self, text_field, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
