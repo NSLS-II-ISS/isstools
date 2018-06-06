@@ -963,12 +963,17 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             if len(amp):
                 amp = amp[0]
                 gain = amp.get_gain()
-                if gain[1]:
-                    gain[1] = 'High Speed'
+                if isinstance(gain,int):
+                    #QAS
+                    print('[Read Gains] {} amp: 10^{}'.format(amp.par.dev_name.value, gain))
                 else:
-                    gain[1] = 'Low Noise'
+                    #ISS
+                    if gain[1]:
+                        gain[1] = 'High Speed'
+                    else:
+                        gain[1] = 'Low Noise'
 
-                print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
+                    print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
         print('[Read Gains] Done!\n')
 
     def run_get_offsets(self):
