@@ -5,6 +5,8 @@ import sys
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
 
+    # I think this code is writing a new subclass of stdout
+    # (julien)
     def __init__(self, text_field, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
@@ -81,5 +83,6 @@ class EmittingStream(QtCore.QObject):
             fmt.setFontWeight(QtGui.QFont.Normal)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
+
         self.text_field.setTextCursor(cursor)
         self.text_field.ensureCursorVisible()

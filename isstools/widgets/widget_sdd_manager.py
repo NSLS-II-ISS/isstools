@@ -36,7 +36,8 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
 
         self.xia = self.xia_list[0]
-        self.xia_channels = [int(mca.split('mca')[1]) for mca in self.xia.read_attrs]
+        self.xia_channels = [int(mca.split('mca')[1]) for mca in
+                             set(self.xia.read_attrs) & set(self.xia.component_names)]
         self.xia_tog_channels = []
 
         self.xia.mca_max_energy.subscribe(self.update_xia_params)
@@ -268,10 +269,12 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.figure_xia_all_graphs.ax.relim()
         self.figure_xia_all_graphs.ax.autoscale(True, True, True)
         y_interval = self.figure_xia_all_graphs.ax.get_yaxis().get_data_interval()
+        '''
         if len(y_interval):
             if y_interval[0] != 0 or y_interval[1] != 0:
                 self.figure_xia_all_graphs.ax.set_ylim([y_interval[0] - (y_interval[1] - y_interval[0]) * 0.05,
                                                         y_interval[1] + (y_interval[1] - y_interval[0]) * 0.05])
+        '''
         self.canvas_xia_all_graphs.draw_idle()
 
     def run_gain_matching(self):

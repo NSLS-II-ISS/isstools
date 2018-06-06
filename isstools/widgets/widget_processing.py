@@ -214,6 +214,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
 
     def send_data_request(self):
+        print("Submitting a data request")
         index = 1
         self.old_scans_control = 1
         self.old_scans_2_control = 1
@@ -221,16 +222,16 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
-        self.toolbar_old_scans_2._views.clear()
-        self.toolbar_old_scans_2._positions.clear()
-        self.toolbar_old_scans_2._update_view()
+        #self.toolbar_old_scans_2._views.clear()
+        #self.toolbar_old_scans_2._positions.clear()
+        #self.toolbar_old_scans_2._update_view()
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
         self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3._views.clear()
-        self.toolbar_old_scans_3._positions.clear()
-        self.toolbar_old_scans_3._update_view()
+        #self.toolbar_old_scans_3._views.clear()
+        #self.toolbar_old_scans_3._positions.clear()
+        #self.toolbar_old_scans_3._update_view()
         self.canvas_old_scans_3.draw_idle()
 
         # print('[Launching Threads]')

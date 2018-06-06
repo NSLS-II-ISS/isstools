@@ -128,10 +128,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
 
-        json_data = open(pkg_resources.resource_filename('isstools', 'beamline_preparation.json')).read()
-        self.json_blprep = json.loads(json_data)
-        self.beamline_prep = self.json_blprep[0]
-        self.fb_positions = self.json_blprep[1]['FB Positions']
+
 
         # Populate analog detectors setup section with adcs:
         self.adc_checkboxes = []
@@ -676,6 +673,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
         for adc in self.adc_list:
             adc.averaging_points.put(str(value))
+            adc.averaging_points.put(str(value))
         for enc in self.enc_list:
             enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
 
@@ -860,7 +858,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def toggle_piezo_fb(self, value):
         if value == 0:
-            self.piezo_thread.go = 0
+            if hasattr(self, 'piezo_thread'):
+                self.piezo_thread.go = 0
             self.hhm.fb_status.put(0)
             self.fb_master = 0
             self.pushEnableHHMFeedback.setChecked(False)
@@ -897,11 +896,27 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nlines = int(round(float(piezo_nlines)))
             self.piezo_nmeasures = int(round(float(piezo_nmeasures)))
             self.piezo_kp = float(piezo_kp)
-            self.hhm.fb_line.put(self.piezo_line)
-            self.hhm.fb_center.put(self.piezo_center)
-            self.hhm.fb_nlines.put(self.piezo_nlines)
-            self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
-            self.hhm.fb_pcoeff.put(self.piezo_kp)
+            # self.hhm.fb_line.put(self.piezo_line)
+            # self.hhm.fb_center.put(self.piezo_center)
+            # self.hhm.fb_nlines.put(self.piezo_nlines)
+            # self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
+            # self.hhm.fb_pcoeff.put(self.piezo_kp)
+
+            def update_piezo_params_plan(hhm, line, center, nlines,
+                                         nmeasures, pcoeff):
+                yield from bps.mv(hhm.fb_line, line,
+                                  hhm.fb_center, center,
+                                  hhm.fb_nlines, nlines,
+                                  hhm.fb_nmeasures, measures,
+                                  hhm.fb_pcoef, pcoeff)
+
+            self.RE(update_piezo_params_plan(self.hhm,
+                                             line=self.piezo_line,
+                                             center=self.piezo_center,
+                                             nlines=self.piezo_nlines,
+                                             measures=self.piezo_nmeasures,
+                                             pcoeff=self.piezo_kp))
+
 
     def update_piezo_center(self):
         if self.radioButton_fb_local.isChecked():
@@ -989,7 +1004,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
 
-        list(get_offsets(20, *adcs))
+        list(get_offsets(20, *adcs, stdout = self.parent_gui.emitstream_out))
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,

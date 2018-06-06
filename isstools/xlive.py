@@ -19,6 +19,7 @@ import zmq
 import pickle
 import pandas as pd
 
+
 import kafka
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
@@ -254,8 +255,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.receiving_thread.start()
 
         # Redirect terminal output to GUI
-        sys.stdout = EmittingStream.EmittingStream(self.textEdit_terminal)
-        sys.stderr = EmittingStream.EmittingStream(self.textEdit_terminal)
+        self.emitstream_out = EmittingStream.EmittingStream(self.textEdit_terminal)
+        self.emitstream_err = EmittingStream.EmittingStream(self.textEdit_terminal)
+
+        sys.stdout = self.emitstream_out
+        sys.stderr = self.emitstream_err
         self.setWindowTitle(window_title)
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
