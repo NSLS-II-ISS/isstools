@@ -17,6 +17,7 @@ class XASExperiment:
 class XASBatchExperiment:
     def __init__(self, excel_file='/nsls2/xf08id/Sandbox/ISS-Sample-Spreadsheet.xlsx', skiprows=1, hhm=None):
         self.excel_file = excel_file
+        self.name = os.path.basename(excel_file)
         self._skiprows = skiprows
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager(self.hhm)
@@ -33,32 +34,34 @@ class XASBatchExperiment:
         self.unique_trajectories = []
 
         self.trajectory_filenames = []
+        self.read_excel()
 
     def read_excel(self):
         self.experiment_table = pd.read_excel(self.excel_file, skiprows=self._skiprows)
-        d = self.experiment_table.iloc[1]
-        RE.md['PROPOSAL'] = str(d['proposal'])
-        RE.md['SAF'] = str(d['saf'])
-        RE.md['PI'] = str(d['pi'])
+        #d = self.experiment_table.iloc[1]
+        #RE.md['PROPOSAL'] = str(d['Proposal'])
+        #RE.md['SAF'] = str(d['SAF'])
+        #RE.md['PI'] = str(d['PI'])
 
     def batch_create_trajectories(self):
         for i in range(len(self.experiment_table)):
             d = self.experiment_table.iloc[i]
             traj = trajectory(self.hhm)
             kwargs = dict(
-                edge_energy=d['Position'],
+                edge_energy=d['Energy'],
                 offsets=([d['pre-edge start'], d['pre-edge stop'],
-                          d['post_edge stop'], xray.k2e(d['k-range'], d['Position']) - d['Position']]),
+                          d['post-edge stop'], xray.k2e(d['k-range'], d['Energy']) - d['Energy']]),
                 trajectory_type='Double Sine',
                 dsine_preedge_duration=d['time 1'],
                 dsine_postedge_duration=d['time 2'],
             )
+            print(kwargs)
             traj.define(**kwargs)
 
             # Add some more parameters manually:
             traj.elem = d['Element']
             traj.edge = d['Edge']
-            traj.e0 = d['Position']
+            traj.e0 = d['Energy']
 
             traj.interpolate()
             traj.revert()
@@ -98,10 +101,11 @@ class XASBatchExperiment:
         for i, traj_file in enumerate(self.trajectory_filenames):
             self.trajectory_manager.load(os.path.basename(traj_file),i+1,is_energy=True, offset=offset )
 
-    def basic_plan(self,filename, x,y, sample_stage=None, plan=None, **kwargs):
-        assert sample_stage, "Set sample stage"
+    def basic_plan(self,filename, x,y, sample_stage_x=None, sample_stage_y=None, plan=None, **kwargs):
+        assert sample_stage_x, "Set sample stage x"
+        assert sample_stage_y, "Set sample stage y"
         assert plan, "Set plan to be executed"
-        yield from mv(sample_stage.x, x, sample_stage.y, y)
+        yield from mv(sample_stage_x, x, sample_stage_y, y)
         yield from plan(filename, **kwargs)
 
     def sample_holder_positioner(self, fiducial_x, fiducial_y, dx, dy):
@@ -110,7 +114,7 @@ class XASBatchExperiment:
         return x,y
 
 
-    def plan_trajectory_priority(self, sample_stage=None, plan=None, **kwargs):
+    def plan_trajectory_priority(self, reference_x, reference_y, sample_stage_x=None, sample_stage_y=None, plan=None, **kwargs):
         for i,traj in enumerate(self.unique_trajectories):
             print('init traj{}'.format(i))
             t = self.trajectory_manager
@@ -119,11 +123,14 @@ class XASBatchExperiment:
                 if exp.trajectory_num == i:
                     print(exp.definition['dx'])
                     print(exp.definition['dy'])
-                    x,y = self.sample_holder_positioner(202.899,-163.720,exp.definition['dx'],exp.definition['dy'])
+                    x,y = self.sample_holder_positioner(reference_x,reference_y,exp.definition['dx'],exp.definition['dy'])
                     print(x)
                     print(y)
                     print('execute scan on sample{}'.format( j))
-                    yield from self.basic_plan(exp.definition['name'],x, y, sample_stage, plan, **kwargs)
+                    print(f'sample_stage_x: {sample_stage_x}')
+                    print(f'sample_stage_y: {sample_stage_y}')
+
+                    yield from self.basic_plan(exp.definition['Sample name'],x, y,  sample_stage_x, sample_stage_y, plan, **kwargs)
                
 
 
