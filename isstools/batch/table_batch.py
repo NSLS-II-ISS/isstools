@@ -5,7 +5,7 @@ import numpy as np
 from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from isstools.conversions import xray
 from subprocess import call
-from bluesky.plans import mv
+from bluesky.plan_stubs import mv
 
 
 class XASExperiment:

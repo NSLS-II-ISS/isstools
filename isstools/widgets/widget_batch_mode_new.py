@@ -21,8 +21,9 @@ from isstools.batch.batch import BatchManager
 from isstools.batch.table_batch import XASBatchExperiment
 import json
 import pandas as pd
+from bluesky.plan_stubs import mv
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode_new.ui')
 
 path_icon_experiment = pkg_resources.resource_filename('isstools', 'icons/experiment.png')
 icon_experiment = QtGui.QIcon()
@@ -44,7 +45,7 @@ class ItemSample(QtGui.QStandardItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class UIBatchMode(*uic.loadUiType(ui_path)):
+class UIBatchModeNew(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
                  service_plan_funcs,
@@ -60,8 +61,9 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  scan_figure,
                  create_log_scan,
                  sample_stages,
+
                  parent_gui,
-                 *args, test_motor=None, **kwargs):
+                 *args,test_motor = None, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -79,6 +81,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.traj_manager = trajectory_manager(hhm)
         self.create_log_scan = create_log_scan
+
         self.RE = RE
         self.db = db
         self.figure = scan_figure
@@ -95,7 +98,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         # self.treeView_samples = elements.TreeView(self, 'sample')
 
         self.push_batch_delete_all.clicked.connect(self.delete_all_batch)
-
         self.gridLayout_batch_definition.addWidget(self.treeView_batch, 0, 0)
 
 
@@ -769,399 +771,38 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                 QtCore.QCoreApplication.processEvents()
 
     def run_batch(self, print_only=False):
-        try:
-            self.last_lut = 0
-            current_index = 0
-            self.current_uid_list = []
-            if print_only is False:
-                self.parent_gui.run_mode = 'batch'
-                self.batch_running = True
-                self.batch_pause = False
-                self.batch_abort = False
+        print(self.test_motor)
+        batch = self.treeView_batch.model()
+        print(batch)
+        plans_dict = {x.__name__: x for x in  self.plan_funcs}
+        self.RE(self.batch_parse_and_run(self.hhm, self.test_motor, batch, plans_dict))
 
-                # Send sampling time to the pizzaboxes:
-                value = int(
-                    round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
-
-                for adc in self.adc_list:
-                    adc.averaging_points.put(str(value))
-
-                for enc in self.enc_list:
-                    enc.filter_dt.put(float(self.enc_samp_time) * 100000)
-
-                if self.xia.input_trigger is not None:
-                    self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                    self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
-
-                self.batch_results = {}
-
-            for batch_index in range(self.model_batch.rowCount()):
-                index = self.model_batch.index(batch_index, 0)
-                text = str(self.model_batch.data(index))
-                item = self.model_batch.item(batch_index)
-                font = QtGui.QFont()
-                font.setWeight(QtGui.QFont.Bold)
-                item.setFont(font)
-                item.setText(text)
-
-                if text.find('Move to ') == 0:
-                    name = text[text.find('"') + 1:text.rfind('"')]
-                    item_x = text[text.find('" X:') + 4:text.find(' Y:')]
-                    item_y = text[text.find(' Y:') + 3:]
-                    print('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
-                    ### Uncomment
-                    if print_only == False:
-                        self.label_batch_step.setText('Move to sample "{}" (X: {}, Y: {})'.format(name, item_x, item_y))
-                        self.check_pause_abort_batch()
-
-                        self.motors_dict[self.stage_x]['object'].move(item_x, wait=False)
-                        self.motors_dict[self.stage_y]['object'].move(item_y, wait=False)
-                        ttime.sleep(0.2)
-                        while (self.motors_dict[self.stage_x]['object'].moving or \
-                                       self.motors_dict[self.stage_y]['object'].moving):
-                            QtCore.QCoreApplication.processEvents()
-                            ### Uncomment
-
-                if text.find('Run ') == 0:
-                    scan_type = text.split()[0]
-
-                    scans = collections.OrderedDict({})
-                    scans_text = text[text.find(' ') + 1:]  # scans_tree.child(scans_index).text()
-                    scan_name = scans_text[:scans_text.find(' ')]
-                    scans_text = scans_text[scans_text.find(' ') + 1:]
-
-                    i = 2
-                    if scan_name in scans:
-                        sn = scan_name
-                        while sn in scans:
-                            sn = '{}-{}'.format(scan_name, i)
-                            i += 1
-                        scan_name = sn
-                    scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k, v in
-                                                               (item.split(':') for item in scans_text.split(' ') if
-                                                                len(item) > 1))
-                    # print(json.dumps(scans, indent=2))
-
-                    for scan in scans:
-                        if 'Traj' in scans[scan]:
-                            lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
-                            traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
-                            ### Uncomment
-                            if self.last_lut != lut:
-                                print('Init trajectory {} - {}'.format(lut, traj_name))
-                                if print_only == False:
-                                    self.label_batch_step.setText('Init trajectory {} - {}'.format(lut, traj_name))
-                                    self.check_pause_abort_batch()
-                                    self.traj_manager.init(int(lut))
-                                self.last_lut = lut
-                            print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                            if print_only == False:
-                                self.label_batch_step.setText('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                self.check_pause_abort_batch()
-                                self.run_prep_traj()
-
-                        if 'name' in scans[scan]:
-                            old_name = scans[scan]['name']
-                            scans[scan]['name'] = '{}-{}'.format(scans[scan]['name'],
-                                                                 traj_name[:traj_name.find('.txt')])
-
-                        if scan.find('-') != -1:
-                            scan_name = scan[:scan.find('-')]
-                        else:
-                            scan_name = scan
-
-                        ### Uncomment
-                        if print_only == False:
-                            if 'name' in scans[scan]:
-                                self.label_batch_step.setText(
-                                    'Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
-                                self.check_pause_abort_batch()
-                            else:
-                                self.label_batch_step.setText('Execute {}'.format(scan_name))
-                                self.check_pause_abort_batch()
-                            uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
-                            if uid:
-                                self.batch_mode_uids.extend(uid)
-                        ### Uncomment (previous line)
-
-                        if 'name' in scans[scan]:
-                            print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
-                            scans[scan]['name'] = old_name
-                        else:
-                            print('Execute {}'.format(scan_name))
-
-                if text == 'Sample Loop':
-                    print('Running Sample Loop...')
-
-                    repetitions = item.child(0).text()
-                    rep_type = repetitions[:repetitions.find(':')]
-                    if rep_type == 'Repetitions':
-                        repetitions = np.arange(int(repetitions[repetitions.find(':') + 1:]))
-                    elif rep_type == 'Motor':
-                        repetitions = repetitions.split(' ')
-                        rep_motor = repetitions[0][repetitions[0].find(':') + 1:]
-                        rep_motor = self.motors_dict[rep_motor]['object']
-                        rep_start = float(repetitions[1][repetitions[1].find(':') + 1:])
-                        rep_stop = float(repetitions[2][repetitions[2].find(':') + 1:])
-                        rep_step = float(repetitions[3][repetitions[3].find(':') + 1:])
-                        repetitions = np.arange(rep_start, rep_stop + rep_step, rep_step)
-
-                    primary = item.child(1).text()
-                    primary = primary[primary.find(':') + 1:]
-
-                    samples = collections.OrderedDict({})
-                    if item.child(2).text() != 'Samples':
-                        raise Exception('Where are the samples?')
-                    samples_tree = item.child(2)
-                    for sample_index in range(samples_tree.rowCount()):
-                        sample_text = samples_tree.child(sample_index).text()
-                        sample_name = sample_text[:sample_text.find(' X:')]
-                        sample_text = sample_text[sample_text.find(' X:') + 1:].split()
-                        samples[sample_name] = collections.OrderedDict({sample_text[0][
-                                                                        0:sample_text[0].find(':')]: float(
-                            sample_text[0][sample_text[0].find(':') + 1:]), sample_text[1][
-                                                                            0:sample_text[1].find(':')]: float(
-                            sample_text[1][sample_text[1].find(':') + 1:])})
-
-                    scans = collections.OrderedDict({})
-                    if item.child(3).text() != 'Scans':
-                        raise Exception('Where are the scans?')
-                    scans_tree = item.child(3)
-                    for scans_index in range(scans_tree.rowCount()):
-                        scans_text = scans_tree.child(scans_index).text()
-                        scan_name = scans_text[:scans_text.find(' ')]
-                        scans_text = scans_text[scans_text.find(' ') + 1:]
-
-                        i = 2
-                        if scan_name in scans:
-                            sn = scan_name
-                            while sn in scans:
-                                sn = '{}-{}'.format(scan_name, i)
-                                i += 1
-                            scan_name = sn
-                        scans[scan_name] = collections.OrderedDict((k.strip(), v.strip()) for k, v in
-                                                                   (item.split(':') for item in scans_text.split(' ') if
-                                                                    len(item) > 1))
-
-                    # print(json.dumps(samples, indent=2))
-                    # print(json.dumps(scans, indent=2))
-
-                    print('-' * 40)
-                    for step_number, rep in enumerate(repetitions):
-                        print('Step #{}'.format(step_number + 1))
-                        if rep_type == 'Motor':
-                            print('Move {} to {} {}'.format(rep_motor.name, rep, rep_motor.egu))
-                            ### Uncomment
-                            if print_only == False:
-                                self.label_batch_step.setText(
-                                    'Move {} to {} {}  |  Loop step number: {}/{}'.format(rep_motor.name, rep,
-                                                                                          rep_motor.egu,
-                                                                                          step_number + 1,
-                                                                                          len(repetitions)))
-                                self.check_pause_abort_batch()
-                                if hasattr(rep_motor, 'move'):
-                                    rep_motor.move(rep)
-                                elif hasattr(rep_motor, 'put'):
-                                    rep_motor.put(rep)
-                                    ### Uncomment
-
-                        if primary == 'Samples':
-                            for index, sample in enumerate(samples):
-                                print('-' * 40)
-                                print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'],
-                                                                                samples[sample]['Y']))
-                                ### Uncomment
-                                if print_only == False:
-                                    self.label_batch_step.setText(
-                                        'Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample,
-                                                                                                            samples[
-                                                                                                                sample][
-                                                                                                                'X'],
-                                                                                                            samples[
-                                                                                                                sample][
-                                                                                                                'Y'],
-                                                                                                            step_number + 1,
-                                                                                                            len(
-                                                                                                                repetitions)))
-                                    self.check_pause_abort_batch()
-                                    self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait=False)
-                                    self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait=False)
-                                    ttime.sleep(0.2)
-                                    while (self.motors_dict[self.stage_x]['object'].moving or \
-                                                   self.motors_dict[self.stage_y]['object'].moving):
-                                        QtCore.QCoreApplication.processEvents()
-                                ### Uncomment
-
-                                for scan in scans:
-                                    if 'Traj' in scans[scan]:
-                                        lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
-                                        traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
-                                        ### Uncomment
-                                        if self.last_lut != lut:
-                                            print('Init trajectory {} - {}'.format(lut, traj_name))
-                                            if print_only == False:
-                                                self.label_batch_step.setText(
-                                                    'Init trajectory {} - {} | Loop step number: {}/{}'.format(lut,
-                                                                                                               traj_name,
-                                                                                                               step_number + 1,
-                                                                                                               len(
-                                                                                                                   repetitions)))
-                                                self.check_pause_abort_batch()
-                                                self.traj_manager.init(int(lut))
-                                            self.last_lut = lut
-                                        print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                        if print_only == False:
-                                            self.label_batch_step.setText(
-                                                'Prepare trajectory {} - {} | Loop step number: {}/{}'.format(lut,
-                                                                                                              traj_name,
-                                                                                                              step_number + 1,
-                                                                                                              len(
-                                                                                                                  repetitions)))
-                                            self.check_pause_abort_batch()
-                                            self.run_prep_traj()
-
-                                    if 'name' in scans[scan]:
-                                        old_name = scans[scan]['name']
-                                        scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'],
-                                                                                         traj_name[
-                                                                                         :traj_name.find('.txt')],
-                                                                                         rep + 1)
-
-                                    if scan.find('-') != -1:
-                                        scan_name = scan[:scan.find('-')]
-                                    else:
-                                        scan_name = scan
-
-                                    ### Uncomment
-                                    if print_only == False:
-                                        if 'name' in scans[scan]:
-                                            self.label_batch_step.setText(
-                                                'Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name,
-                                                                                                         scans[scan][
-                                                                                                             'name'],
-                                                                                                         step_number + 1,
-                                                                                                         len(
-                                                                                                             repetitions)))
-                                            self.check_pause_abort_batch()
-                                        else:
-                                            self.label_batch_step.setText(
-                                                'Execute {} | Loop step number: {}'.format(scan_name, step_number + 1))
-                                            self.check_pause_abort_batch()
-                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
-                                        if uid:
-                                            self.batch_mode_uids.extend(uid)
-                                    ### Uncomment (previous line)
-                                    if 'name' in scans[scan]:
-                                        print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
-                                        scans[scan]['name'] = old_name
-                                    else:
-                                        print('Execute {}'.format(scan_name))
-
-
-
-
-
-
-                        elif primary == 'Scans':
-                            for index_scan, scan in enumerate(scans):
-                                for index, sample in enumerate(samples):
-                                    print('-' * 40)
-                                    print('Move to sample {} (X: {}, Y: {})'.format(sample, samples[sample]['X'],
-                                                                                    samples[sample]['Y']))
-                                    ### Uncomment
-                                    if print_only == False:
-                                        self.label_batch_step.setText(
-                                            'Move to sample {} (X: {}, Y: {}) | Loop step number: {}/{}'.format(sample,
-                                                                                                                samples[
-                                                                                                                    sample][
-                                                                                                                    'X'],
-                                                                                                                samples[
-                                                                                                                    sample][
-                                                                                                                    'Y'],
-                                                                                                                step_number + 1,
-                                                                                                                len(
-                                                                                                                    repetitions)))
-                                        self.check_pause_abort_batch()
-                                        self.motors_dict[self.stage_x]['object'].move(samples[sample]['X'], wait=False)
-                                        self.motors_dict[self.stage_y]['object'].move(samples[sample]['Y'], wait=False)
-                                        ttime.sleep(0.2)
-                                        while (self.motors_dict[self.stage_x]['object'].moving or \
-                                                       self.motors_dict[self.stage_y]['object'].moving):
-                                            QtCore.QCoreApplication.processEvents()
-                                    ### Uncomment
-
-                                    lut = scans[scan]['Traj'][:scans[scan]['Traj'].find('-')]
-                                    traj_name = scans[scan]['Traj'][scans[scan]['Traj'].find('-') + 1:]
-                                    if self.last_lut != lut:
-                                        print('Init trajectory {} - {}'.format(lut, traj_name))
-                                        if print_only == False:
-                                            self.label_batch_step.setText(
-                                                'Init trajectory {} - {} | Loop step number: {}/{}'.format(lut,
-                                                                                                           traj_name,
-                                                                                                           step_number + 1,
-                                                                                                           len(
-                                                                                                               repetitions)))
-                                            self.check_pause_abort_batch()
-                                            self.traj_manager.init(int(lut))
-                                        self.last_lut = lut
-                                    print('Prepare trajectory {} - {}'.format(lut, traj_name))
-                                    if print_only == False:
-                                        self.label_batch_step.setText(
-                                            'Prepare trajectory {} - {} | Loop step number: {}/{}'.format(lut,
-                                                                                                          traj_name,
-                                                                                                          step_number + 1,
-                                                                                                          len(
-                                                                                                              repetitions)))
-                                        self.check_pause_abort_batch()
-                                        self.run_prep_traj()
-
-                                    old_name = scans[scan]['name']
-                                    scans[scan]['name'] = '{} - {} - {} - {}'.format(sample, scans[scan]['name'],
-                                                                                     traj_name[:traj_name.find('.txt')],
-                                                                                     rep + 1)
-
-                                    if scan.find('-') != -1:
-                                        scan_name = scan[:scan.find('-')]
-                                    else:
-                                        scan_name = scan
-
-                                    print('Execute {} - name: {}'.format(scan_name, scans[scan]['name']))
-                                    ### Uncomment
-                                    if print_only == False:
-                                        self.label_batch_step.setText(
-                                            'Execute {} - name: {} | Loop step number: {}/{}'.format(scan_name,
-                                                                                                     scans[scan][
-                                                                                                         'name'],
-                                                                                                     step_number + 1,
-                                                                                                     len(repetitions)))
-                                        self.check_pause_abort_batch()
-                                        uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan])
-                                        if uid:
-                                            self.batch_mode_uids.extend(uid)
-                                    ### Uncomment (previous line)
-                                    scans[scan]['name'] = old_name
-
-                        print('-' * 40)
-
-                font = QtGui.QFont()
-                item.setFont(font)
-                item.setText(text)
-
-            if print_only == False:
-                self.batch_running = False
-                self.batch_processor.go = 0
-                self.label_batch_step.setText('Finished (Idle)')
-
-        except Exception as e:
-            print(e)
-            print('Batch run aborted!')
-            font = QtGui.QFont()
-            item.setFont(font)
-            item.setText(text)
-            self.batch_running = False
-            self.batch_processor.go = 0
-            self.label_batch_step.setText('Aborted! (Idle)')
-            return
+    def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict ):
+        tm = trajectory_manager(hhm)
+        print(tm)
+        for ii in range(batch.rowCount()):
+            experiment = batch.item(ii)
+            print(experiment.item_type)
+            repeat=experiment.repeat
+            print(repeat)
+            for jj in range(experiment.rowCount()):
+                print(experiment.rowCount())
+                sample = experiment.child(jj)
+                print('  ' + sample.name)
+                print('  ' + str(sample.x))
+                print('  ' + str(sample.y))
+                yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                for kk in range(sample.rowCount()):
+                    scan = sample.child(kk)
+                    traj_index= scan.trajectory
+                    print('      ' + scan.scan_type)
+                    plan = plans_dict[scan.scan_type]
+                    kwargs = {'name': sample.name,
+                              'comment': '',
+                              'delay': 0,
+                              'n_cycles': repeat}
+                    tm.init(traj_index+1)
+                    yield from plan(**kwargs)
 
     def setAnalogSampTime(self, text):
         self.analog_samp_time = text
