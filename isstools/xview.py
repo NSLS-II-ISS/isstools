@@ -165,8 +165,6 @@ class XviewGui(*uic.loadUiType(ui_path)):
     def close_app(self):
         self.close()
 
-    def reset_toolbar(self):
-
 
     def addCanvas(self):
         self.figureBinned = Figure()
