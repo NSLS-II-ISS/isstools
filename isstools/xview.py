@@ -240,7 +240,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
         self.figureBinned.ax.clear()
-        self.toolbar._nav_stack.clear()
+        #self.toolbar._nav_stack.clear()
+        self.toolbar.update()
         self.canvas.draw_idle()
 
         if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
@@ -747,7 +748,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def reset_figure(self,axis,toolbar,canvas):
         axis.clear()
-        self.toolbar._nav_stack.clear()
+        #self.toolbar._nav_stack.clear()
+        self.toolbar.update()
         canvas.draw_idle()
 
 
