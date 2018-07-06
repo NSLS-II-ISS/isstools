@@ -1,5 +1,5 @@
 from isstools.trajectory.trajectory import trajectory, trajectory_manager
-from bluesky.plans import mv
+from bluesky.plan_stubs import mv
 '''
 batch = xlive_gui.widget_batch_mode.treeView_batch.model()
 
@@ -7,7 +7,7 @@ plans = xlive_gui.plan_funcs
 plans_dict = {x.__name__: x for x in plans}
 '''
 
-def parse_and_execute(hhm,sample_stage,batch,plans_dict ):
+def batch_parse_and_execute(hhm,sample_stage,batch,plans_dict):
     tm = trajectory_manager(hhm)
     for ii in range(batch.rowCount()):
         experiment = batch.item(ii)

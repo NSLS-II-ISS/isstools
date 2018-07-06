@@ -29,6 +29,7 @@ from isstools.xasdata.xasdata import XASdataGeneric
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
+                 RE,
                  db,
                  shutters,
                  adc_list,
@@ -46,6 +47,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.RE = RE
         self.db = db
         if self.db is None:
             self.run_start.setEnabled(False)
@@ -159,13 +161,11 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
-            for uid in self.plan_funcs[self.run_type.currentIndex()](**run_params,
-                                                                     ax=self.figure.ax1,
-                                                                     ignore_shutter=ignore_shutter,
-                                                                     stdout=self.parent_gui.emitstream_out):
-                self.run_mode_uids.append(uid)
-
-            timenow = datetime.datetime.now()    
+            self.run_mode_uids = self.RE(self.plan_funcs[self.run_type.currentIndex()](**run_params,
+                                                                                  ax=self.figure.ax1,
+                                                                                  ignore_shutter=ignore_shutter,
+                                                                                  stdout=self.parent_gui.emitstream_out))
+            timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()  
             print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))

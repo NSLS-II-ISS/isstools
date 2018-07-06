@@ -8,8 +8,8 @@ import math
 from PyQt5 import uic, QtGui, QtCore
 from matplotlib.figure import Figure
 
-from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing, widget_batch_mode,
-                              widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
+from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing, widget_batch_mode,widget_batch_mode_new,
+widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements import EmittingStream
 #Libs for ZeroMQ communication
@@ -39,6 +39,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  plan_funcs=[],
+                 service_plan_funcs=[],
                  prep_traj_plan=None,
                  RE=None,
                  db=None,
@@ -47,7 +48,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
-                 general_scan_func = None, parent=None,
+                 general_scan_func = None,
+                 test_motor=None,
+                 parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
                  window_title="XLive @QAS/11-ID NSLS-II",
@@ -132,16 +135,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.det_dict = det_dict
         self.plan_funcs = plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
-
+        #self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.service_plan_funcs = service_plan_funcs
         self.prep_traj_plan = prep_traj_plan
 
         self.motors_dict = motors_dict
 
         self.shutters_dict = shutters_dict
-
+        self.db = db
         self.RE = RE
-
+        self.test_motor = test_motor
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -200,28 +203,28 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                       range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
             self.xia = None
 
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
+        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, self.RE, self.db)
         self.layout_general_info.addWidget(self.widget_general_info)
 
         if self.hhm is not None:
             self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
             self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
-        self.widget_processing = widget_processing.UIProcessing(hhm, db, det_dict, parent_gui=self,
+        self.widget_processing = widget_processing.UIProcessing(hhm, self.db, det_dict, parent_gui=self,
                                                                 job_submitter=job_submitter)
         self.layout_processing.addWidget(self.widget_processing)
         self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
         if self.RE is not None:
-            self.widget_run = widget_run.UIRun(self.plan_funcs, db, shutters_dict, self.adc_list, self.enc_list,
+            self.widget_run = widget_run.UIRun(self.plan_funcs, self.RE,self.db, shutters_dict, self.adc_list, self.enc_list,
                                                self.xia, self.html_log_func, self)
             self.layout_run.addWidget(self.widget_run)
             self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
             if self.hhm is not None:
                 self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
-                                                                       RE, db, self.widget_processing.gen_parser,
+                                                                       self.RE, self.db, self.widget_processing.gen_parser,
                                                                        self.adc_list, self.enc_list, self.xia,
                                                                        self.run_prep_traj,
                                                                        self.widget_run.figure,
@@ -232,9 +235,24 @@ class XliveGui(*uic.loadUiType(ui_path)):
                 self.layout_batch.addWidget(self.widget_batch_mode)
                 self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
 
+                self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(self.plan_funcs, self.service_plan_funcs,
+                                                                       self.motors_dict, hhm,
+                                                                       self.RE, self.db, self.widget_processing.gen_parser,
+                                                                       self.adc_list, self.enc_list, self.xia,
+                                                                       self.run_prep_traj,
+                                                                       self.widget_run.figure,
+                                                                       self.widget_run.create_log_scan,
+                                                                       sample_stages=self.sample_stages,
+                                                                       test_motor=self.test_motor,
+                                                                       parent_gui = self)
+
+                self.layout_batch_new.addWidget(self.widget_batch_mode_new)
+                self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
+
+
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
 
-            self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE, self.hhm, db, self.adc_list,
+            self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(self.RE, self.hhm, self.db, self.adc_list,
                                                                                self.enc_list, self.det_dict, self.xia,
                                                                                self.ic_amplifiers,
                                                                                self.prepare_bl_plan, self.plan_funcs,
