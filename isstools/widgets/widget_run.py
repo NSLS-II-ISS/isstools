@@ -152,7 +152,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.figure.ax1.clear()
             self.figure.ax2.clear()
             self.figure.ax3.clear()
-            self.toolbar.update()
+            reset_plot(toolbar=self.toolbar)
             self.canvas.draw_idle()
             self.figure.ax3.grid(alpha = 0.4)
             
@@ -277,9 +277,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.figure.ax2.clear()
             self.figure.ax3.clear()
             self.figure.ax3.grid(alpha = 0.4)
-            #self.toolbar._views.clear()
-            #self.toolbar._positions.clear()
-            #self.toolbar._update_view()
+            reset_plot(toolbar=self.toolbar)
 
             df = data['processing_ret']['data']
             if isinstance(df, str):

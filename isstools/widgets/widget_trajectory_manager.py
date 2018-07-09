@@ -21,6 +21,9 @@ from isstools.trajectory.trajectory import trajectory, trajectory_manager
 
 
 import isstools.widgets.widget_energy_selector
+from isstools.elements.plot_handler import reset_plot
+
+
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_trajectory_manager.ui')
 
@@ -160,11 +163,13 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
             self.traj_creator.revert()
 
         # Plot single trajectory motion
-        self.figure_single_trajectory.ax.clear()
-        self.figure_single_trajectory.ax2.clear()
-        self.toolbar_single_trajectory._views.clear()
-        self.toolbar_single_trajectory._positions.clear()
-        self.toolbar_single_trajectory._update_view()
+
+        reset_plot(axes=[self.figure_single_trajectory.ax,self.figure_single_trajectory.ax2], toolbar =
+                                                    self.toolbar_single_trajectory)
+
+        # self.figure_single_trajectory.ax.clear()
+        # self.figure_single_trajectory.ax2.clear()
+        reset_plot(toolbar=self.toolbar_single_trajectory)
         self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
         self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time (s)')
@@ -175,11 +180,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
 
         # Tile trajectory
-        self.figure_full_trajectory.ax.clear()
-        self.toolbar_full_trajectory._views.clear()
-        self.toolbar_full_trajectory._positions.clear()
-        self.toolbar_full_trajectory._update_view()
-        self.canvas_full_trajectory.draw_idle()
+        reset_plot(axes=[self.figure_full_trajectory.ax], toolbar=self.toolbar_full_trajectory)
+        # self.figure_full_trajectory.ax.clear()
+        reset_plot(toolbar=self.toolbar_full_trajectory)
         self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
                                single_direction=self.checkBox_traj_single_dir.isChecked())
 
@@ -229,13 +232,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
-        self.toolbar_single_trajectory._views.clear()
-        self.toolbar_single_trajectory._positions.clear()
-        self.toolbar_single_trajectory._update_view()
+        reset_plot(toolbar=self.toolbar_single_trajectory)
         self.figure_full_trajectory.ax.clear()
-        self.toolbar_full_trajectory._views.clear()
-        self.toolbar_full_trajectory._positions.clear()
-        self.toolbar_full_trajectory._update_view()
+        reset_plot(toolbar=self.toolbar_full_trajectory)
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 

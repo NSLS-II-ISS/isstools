@@ -12,6 +12,7 @@ from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+from isstools.elements.plot_handler import reset_plot
 
 from pathlib import Path
 import pandas as pd
@@ -239,9 +240,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
         self.figureBinned.ax.clear()
-        #self.toolbar._views.clear()
-        #self.toolbar._positions.clear()
-        #self.toolbar._update_view()
+        reset_plot(toolbar=self.toolbar)
+        
         self.canvas.draw_idle()
 
         if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
@@ -748,9 +748,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def reset_figure(self,axis,toolbar,canvas):
         axis.clear()
-        #toolbar._views.clear()
-        #toolbar._positions.clear()
-        #toolbar._update_view()
+        reset_plot(toolbar=toolbar)
         canvas.draw_idle()
 
 

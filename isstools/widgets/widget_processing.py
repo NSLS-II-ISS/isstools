@@ -18,6 +18,8 @@ import socket
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
 
+from isstools.elements.plot_handler import reset_plot
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
 
 # Things for the ZMQ communication
@@ -222,16 +224,12 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
-        #self.toolbar_old_scans_2._views.clear()
-        #self.toolbar_old_scans_2._positions.clear()
-        #self.toolbar_old_scans_2._update_view()
+        reset_plot(toolbar=self.toolbar_old_scans_2)
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
         self.figure_old_scans_3.ax2.clear()
-        #self.toolbar_old_scans_3._views.clear()
-        #self.toolbar_old_scans_3._positions.clear()
-        #self.toolbar_old_scans_3._update_view()
+        reset_plot(toolbar=self.toolbar_old_scans_3)
         self.canvas_old_scans_3.draw_idle()
 
         # print('[Launching Threads]')
@@ -284,9 +282,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     def replot_y(self):
         #self.figure_old_scans.ax.clear()
         #self.figure_old_scans.canvas.draw_idle()
-        #self.toolbar_old_scans._views.clear()
-        #self.toolbar_old_scans._positions.clear()
-        #self.toolbar_old_scans._update_view()
+        reset_plot(toolbar=self.toolbar_old_scans)
 
         for data in self.bin_data_sets:
             df = data['processing_ret']['data']
@@ -297,9 +293,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if hasattr(figure, 'ax2'):
             figure.ax2.clear()
         figure.canvas.draw_idle()
-        toolbar._views.clear()
-        toolbar._positions.clear()
-        toolbar._update_view()
+        reset_plot(toolbar=toolbar)
 
         if self.listWidget_numerator.currentRow() is not -1:
             self.last_num = self.listWidget_numerator.currentRow()
@@ -418,24 +412,16 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
     def erase_plots(self):
-        #self.figure_old_scans.ax.clear()
-        #self.toolbar_old_scans._views.clear()
-        #self.toolbar_old_scans._positions.clear()
-        #self.toolbar_old_scans._update_view()
-        #self.canvas_old_scans.draw_idle()
+        reset_plot(toolbar=self.toolbar_old_scans)
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
-        self.toolbar_old_scans_2._views.clear()
-        self.toolbar_old_scans_2._positions.clear()
-        self.toolbar_old_scans_2._update_view()
+        reset_plot(toolbar=self.toolbar_old_scans_2)
         self.canvas_old_scans_2.draw_idle()
 
         self.figure_old_scans_3.ax.clear()
         self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3._views.clear()
-        self.toolbar_old_scans_3._positions.clear()
-        self.toolbar_old_scans_3._update_view()
+        reset_plot(toolbar=self.toolbar_old_scans_3)
         self.canvas_old_scans_3.draw_idle()
 
     def reset_data_plots(self):
