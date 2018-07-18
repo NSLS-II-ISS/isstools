@@ -470,11 +470,12 @@ class trajectory_manager():
                 print('[Init Trajectory] Completed!')
                 self.hhm.trajectory_name.put(name)
             ftp.close()
+        return (yield None)
     
 
     ########## read_info ##########
     # Function that prints info about the trajectories currently stored in the controller
-    # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86'
+    # arg1 (optional) = ip    -> IP of the controller. Default = '10.8.2.86's
     def read_info(self, silent=False):
         ip = self.hhm.ip
         ftp = FTP(ip)
