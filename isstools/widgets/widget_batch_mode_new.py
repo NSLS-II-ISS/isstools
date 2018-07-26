@@ -14,6 +14,7 @@ from isstools.trajectory.trajectory import trajectory_manager
 from isstools.batch.batch import BatchManager
 from isstools.batch.table_batch import XASBatchExperiment
 from isstools.widgets import widget_batch_manual
+from bluesky.plan_stubs import mv
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode_new.ui')
@@ -269,7 +270,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
 
     def run_batch(self, print_only=False):
         print(self.sample_stage)
-        batch = self.treeView_batch.model()
+        batch = self.widget_batch_manual.treeView_batch.model()
         print(batch)
         plans_dict = {x.__name__: x for x in  self.plan_funcs}
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, plans_dict))
@@ -278,26 +279,50 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         tm = trajectory_manager(hhm)
         print(tm)
         for ii in range(batch.rowCount()):
+
             experiment = batch.item(ii)
-            print(experiment.item_type)
+
             repeat=experiment.repeat
             print(repeat)
-            for jj in range(experiment.rowCount()):
-                print(experiment.rowCount())
-                sample = experiment.child(jj)
-                print('  ' + sample.name)
-                print('  ' + str(sample.x))
-                print('  ' + str(sample.y))
-                yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
-                for kk in range(sample.rowCount()):
-                    scan = sample.child(kk)
-                    traj_index= scan.trajectory
-                    print('      ' + scan.scan_type)
-                    plan = plans_dict[scan.scan_type]
-                    kwargs = {'name': sample.name,
-                              'comment': '',
-                              'delay': 0,
-                              'n_cycles': repeat,
-                              'stdout': self.parent_gui.emitstream_out}
-                    tm.init(traj_index+1)
-                    yield from plan(**kwargs)
+            for indx in range(repeat):
+                exper_index = ''
+                if repeat>1:
+                    exper_index = f'{(indx+1):04d}'
+                for jj in range(experiment.rowCount()):
+                    print(experiment.rowCount())
+                    step = experiment.child(jj)
+                    if  step.item_type == 'sample':
+                        sample = step
+                        print('  ' + sample.name)
+                        print('  ' + str(sample.x))
+                        print('  ' + str(sample.y))
+                        yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                        for kk in range(sample.rowCount()):
+                            scan = sample.child(kk)
+                            traj_index= scan.trajectory
+                            print('      ' + scan.scan_type)
+                            plan = plans_dict[scan.scan_type]
+                            kwargs = {'name': sample.name,
+                                      'comment': '',
+                                      'delay': 0,
+                                      'n_cycles': repeat,
+                                      'stdout': self.parent_gui.emitstream_out}
+                            tm.init(traj_index+1)
+                            #yield from plan(**kwargs)
+                    elif step.item_type == 'scan':
+                        scan = step
+                        traj_index = scan.trajectory
+                        tm.init(traj_index + 1)
+                        for kk in range(step.rowCount()):
+                            sample = scan.child(kk)
+                            yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                            plan = plans_dict[scan.scan_type]
+                            kwargs = {'name': sample.name,
+                                      'comment': '',
+                                      'delay': 0,
+                                      'n_cycles': repeat,
+                                      'stdout': self.parent_gui.emitstream_out}
+
+                            # yield from plan(**kwargs)
+
+
