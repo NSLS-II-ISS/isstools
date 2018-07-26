@@ -13,6 +13,8 @@ import numpy as np
 import collections
 import time as ttime
 
+from isstools.elements.plot_handler import reset_plot
+
 from isstools.elements import elements
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.batch.batch import BatchManager
@@ -218,15 +220,11 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
     def plot_batches(self, data):
         if self.parent_gui.run_mode == 'batch':
             self.figure_batch_waterfall.ax.clear()
-            self.toolbar_batch_waterfall._views.clear()
-            self.toolbar_batch_waterfall._positions.clear()
-            self.toolbar_batch_waterfall._update_view()
+            reset_plot(toolbar=self.toolbar_batch_waterfall)
             self.canvas_batch_waterfall.draw_idle()
 
             self.figure_batch_average.ax.clear()
-            self.toolbar_batch_average._views.clear()
-            self.toolbar_batch_average._positions.clear()
-            self.toolbar_batch_average._update_view()
+            reset_plot(toolbar=self.toolbar_batch_average)
             self.canvas_batch_average.draw_idle()
 
             #df = pd.read_msgpack(data['processing_ret']['data'])

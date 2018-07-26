@@ -26,8 +26,10 @@ import signal
 
 from isstools.pid import PID
 from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog, MoveMotorDialog)
+from isstools.elements.plot_handler import reset_plot
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
+
 
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
@@ -321,10 +323,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
         if not repeat:
+            # reset_plot(axes=[self.figure_gen_scan.ax], toolbar=self.toolbar_gen_scan, canvas=self.canvas_gen_scan)
             self.figure_gen_scan.ax.clear()
-            self.toolbar_gen_scan._views.clear()
-            self.toolbar_gen_scan._positions.clear()
-            self.toolbar_gen_scan._update_view()
+            reset_plot(toolbar=self.toolbar_gen_scan)
             self.canvas_gen_scan.draw_idle()
             self.canvas_gen_scan.motor = curr_mot
 
