@@ -144,7 +144,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.shutters_dict = shutters_dict
         self.db = db
         self.RE = RE
-        self.test_motor = test_motor
+        self.sample_stage = test_motor
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -243,7 +243,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                        self.widget_run.figure,
                                                                        self.widget_run.create_log_scan,
                                                                        sample_stages=self.sample_stages,
-                                                                       test_motor=self.test_motor,
+                                                                       sample_stage=self.sample_stage,
                                                                        parent_gui = self)
 
                 self.layout_batch_new.addWidget(self.widget_batch_mode_new)
