@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1639</width>
-    <height>935</height>
+    <height>918</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>910</y>
+     <y>895</y>
      <width>971</width>
-     <height>17</height>
+     <height>19</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -45,58 +45,13 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="push_save_csv">
-   <property name="geometry">
-    <rect>
-     <x>1360</x>
-     <y>900</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save .csv</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_load_csv">
-   <property name="geometry">
-    <rect>
-     <x>1210</x>
-     <y>900</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Load .csv</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_batch_delete_all">
-   <property name="geometry">
-    <rect>
-     <x>1060</x>
-     <y>900</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Delete All</string>
-   </property>
-  </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
      <width>641</width>
-     <height>891</height>
+     <height>881</height>
     </rect>
    </property>
    <property name="title">
@@ -111,7 +66,7 @@
       <x>10</x>
       <y>390</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11">
@@ -358,7 +313,7 @@
       <x>220</x>
       <y>390</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_2">
@@ -595,7 +550,7 @@
       <x>430</x>
       <y>390</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_3">
@@ -832,7 +787,7 @@
       <x>10</x>
       <y>210</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_4">
@@ -1069,7 +1024,7 @@
       <x>10</x>
       <y>30</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_5">
@@ -1306,7 +1261,7 @@
       <x>220</x>
       <y>210</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_6">
@@ -1543,7 +1498,7 @@
       <x>220</x>
       <y>30</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_7">
@@ -1780,7 +1735,7 @@
       <x>430</x>
       <y>30</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_8">
@@ -2017,7 +1972,7 @@
       <x>430</x>
       <y>210</y>
       <width>201</width>
-      <height>171</height>
+      <height>182</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_cell11_9">
@@ -2284,8 +2239,8 @@
   <widget class="QPushButton" name="push_run_batch_manual">
    <property name="geometry">
     <rect>
-     <x>1415</x>
-     <y>835</y>
+     <x>1430</x>
+     <y>870</y>
      <width>196</width>
      <height>21</height>
     </rect>
@@ -2306,7 +2261,7 @@
      <x>670</x>
      <y>10</y>
      <width>961</width>
-     <height>811</height>
+     <height>856</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_batch_manual">
@@ -2318,8 +2273,8 @@
   <widget class="QPushButton" name="push_batch_pause">
    <property name="geometry">
     <rect>
-     <x>980</x>
-     <y>855</y>
+     <x>1070</x>
+     <y>895</y>
      <width>80</width>
      <height>22</height>
     </rect>
@@ -2337,8 +2292,8 @@
   <widget class="QPushButton" name="push_batch_abort">
    <property name="geometry">
     <rect>
-     <x>1066</x>
-     <y>855</y>
+     <x>985</x>
+     <y>895</y>
      <width>80</width>
      <height>22</height>
     </rect>

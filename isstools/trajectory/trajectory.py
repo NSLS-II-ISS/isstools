@@ -178,7 +178,7 @@ class trajectory():
 
         elif trajectory_type == 'Double Sine':
             total_time = float(dsine_preedge_duration) + float(dsine_postedge_duration)
-            half = float(dsine_preedgeduration) / total_time
+            half = float(dsine_preedge_duration) / total_time
             preedge_lo = edge_energy + offsets[0]
             postedge_hi = edge_energy + offsets[3]
             edge = edge_energy
@@ -469,7 +469,7 @@ class trajectory_manager():
                 print('[Init Trajectory] Completed!')
                 self.hhm.trajectory_name.put(name)
             ftp.close()
-        return (yield None)
+
     
 
     ########## read_info ##########

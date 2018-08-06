@@ -8,7 +8,7 @@ from PyQt5.QtCore import QThread
 from PyQt5.Qt import QSplashScreen, QObject
 
 import os
-
+import sys
 
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.batch.batch import BatchManager
@@ -175,20 +175,8 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         sender = QObject()
         sender_object = sender.sender().objectName()
         coord=sender_object[-2:]
-        #TODO
-        if self.stage_x not in self.mot_list:
-            raise Exception('Stage X was not passed to the GUI')
-        if self.stage_y not in self.mot_list:
-            raise Exception('Stage Y was not passed to the GUI')
-
-        if not self.motors_dict[self.stage_x]['object'].connected or \
-                not self.motors_dict[self.stage_y]['object'].connected:
-            raise Exception('Stage IOC not connected')
-
-        x_value = self.motors_dict[self.stage_x]['object'].position
-        y_value = self.motors_dict[self.stage_y]['object'].position
-
-
+        x_value = self.sample_stage.x.position
+        y_value = self.sample_stage.y.position
 
         setattr(self, 'reference_x_{}'.format(coord),x_value)
         setattr(self, 'reference_y_{}'.format(coord),y_value)
@@ -276,6 +264,8 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, plans_dict))
 
     def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict ):
+        sys.stdout =  self.parent_gui.emitstream_out
+
         tm = trajectory_manager(hhm)
         print(tm)
         for ii in range(batch.rowCount()):
@@ -302,27 +292,35 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                             traj_index= scan.trajectory
                             print('      ' + scan.scan_type)
                             plan = plans_dict[scan.scan_type]
-                            kwargs = {'name': sample.name,
+                            sample_name =  '{} {} {}'.format(sample.name, scan.name, exper_index)
+                            print(sample_name)
+                            kwargs = {'name': sample_name,
                                       'comment': '',
                                       'delay': 0,
                                       'n_cycles': repeat,
                                       'stdout': self.parent_gui.emitstream_out}
                             tm.init(traj_index+1)
-                            #yield from plan(**kwargs)
+                            yield from plan(**kwargs)
                     elif step.item_type == 'scan':
                         scan = step
                         traj_index = scan.trajectory
+                        print('  ' + scan.scan_type)
                         tm.init(traj_index + 1)
                         for kk in range(step.rowCount()):
                             sample = scan.child(kk)
                             yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
                             plan = plans_dict[scan.scan_type]
-                            kwargs = {'name': sample.name,
+                            print('     ' + sample.name)
+                            print('     ' + str(sample.x))
+                            print('     ' + str(sample.y))
+                            sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+                            print(sample_name)
+                            kwargs = {'name': sample_name,
                                       'comment': '',
                                       'delay': 0,
                                       'n_cycles': repeat,
                                       'stdout': self.parent_gui.emitstream_out}
 
-                            # yield from plan(**kwargs)
+                            yield from plan(**kwargs)
 
 

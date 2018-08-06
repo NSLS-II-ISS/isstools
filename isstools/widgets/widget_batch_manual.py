@@ -1,15 +1,8 @@
 import inspect
 import re
 import pkg_resources
-from PyQt5 import uic, QtWidgets, QtCore
-
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.QtCore import QThread
-from PyQt5.Qt import QSplashScreen, QObject
-import numpy as np
-import collections
-import time as ttime
-import os
+
 
 from isstools.elements import elements
 from isstools.trajectory.trajectory import trajectory_manager
@@ -30,13 +23,6 @@ path_icon_scan = pkg_resources.resource_filename('isstools', 'icons/scan.png')
 icon_scan = QtGui.QIcon()
 icon_scan.addPixmap(QtGui.QPixmap(path_icon_scan), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
-class ItemSample(QtGui.QStandardItem):
-    name = ''
-    x = 0
-    y = 0
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -59,32 +45,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.mot_list = self.motors_dict.keys()
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
-
         self.batch_mode_uids = []
         self.traj_manager = trajectory_manager(hhm)
-
         self.treeView_batch = elements.TreeView(self, 'all')
-
         self.gridLayout_batch_definition.addWidget(self.treeView_batch, 0, 0)
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
-
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
         self.treeView_batch.setModel(self.model_batch)
-
-
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_delete_sample.clicked.connect(self.delete_sample)
         self.push_get_sample.clicked.connect(self.get_sample_pos)
-
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
         self.push_delete_scan.clicked.connect(self.delete_scan)
-
-
         self.push_batch_delete.clicked.connect(self.delete_current_batch)
         self.push_create_measurement.clicked.connect(self.create_measurement)
 
@@ -99,23 +76,22 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         except OSError as err:
              print('Error loading:', err)
 
-
-
-        self.comboBox_sample_loop_motor.addItems(self.mot_sorted_list)
-        self.comboBox_sample_loop_motor.currentTextChanged.connect(self.update_loop_values)
-
-        spinBox_connects = [self.restore_add_loop,
-                            self.comboBox_sample_loop_motor.setDisabled,
-                            self.spinBox_motor_range_start.setDisabled,
-                            self.spinBox_motor_range_stop.setDisabled,
-                            self.spinBox_motor_range_step.setDisabled,
-                            self.radioButton_sample_rel.setDisabled,
-                            self.radioButton_sample_abs.setDisabled,
-                            ]
-        for changer in spinBox_connects:
-            self.spinBox_sample_loop_rep.valueChanged.connect(changer)
-
-        self.radioButton_sample_rel.toggled.connect(self.set_loop_values)
+       #  self.comboBox_map_motor1.addItems(self.mot_sorted_list)
+       #  self.comboBox_map_motor2.addItems(self.mot_sorted_list)
+       # # self.comboBox_sample_loop_motor.currentTextChanged.connect(self.update_loop_values)
+       #
+       #  # spinBox_connects = [self.restore_add_loop,
+       #  #                     self.comboBox_sample_loop_motor.setDisabled,
+       #  #                     self.spinBox_motor_range_start.setDisabled,
+       #  #                     self.spinBox_motor_range_stop.setDisabled,
+       #  #                     self.spinBox_motor_range_step.setDisabled,
+       #  #                     self.radioButton_sample_rel.setDisabled,
+       #  #                     self.radioButton_sample_abs.setDisabled,
+       #  #                     ]
+       #  # for changer in spinBox_connects:
+       #  #     self.spinBox_sample_loop_rep.valueChanged.connect(changer)
+       #  #
+       #  # self.radioButton_sample_rel.toggled.connect(self.set_loop_values)
         self.last_lut = 0
 
 
@@ -160,7 +136,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.listView_samples.setModel(self.model_samples)
 
     def get_sample_pos(self):
-
         x_value = self.sample_stage.x.position
         y_value = self.sample_stage.y.position
         self.spinBox_sample_x.setValue(x_value)
@@ -188,6 +163,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         traj = self.comboBox_lut.currentText()
         repeat =  self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
+        name = self.lineEdit_scan_name.text()
         item = QtGui.QStandardItem('Scan {} with trajectory {}, repeat {} times with {} s delay'.format(scan_type,
                                                                              traj, repeat, delay))
 
@@ -196,6 +172,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         item.scan_type = scan_type
         item.trajectory = self.comboBox_lut.currentIndex()
         item.repeat = repeat
+        item.name = name
         item.delay = delay
         item.setCheckable(True)
         item.setEditable(False)
@@ -284,6 +261,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         new_item_scan.scan_type = item_scan.scan_type
         new_item_scan.repeat = item_scan.repeat
         new_item_scan.delay = item_scan.delay
+        new_item_scan.name = item_scan.name
         return new_item_scan
 
 

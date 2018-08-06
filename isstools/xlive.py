@@ -49,7 +49,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  det_dict={},
                  motors_dict={},
                  general_scan_func = None,
-                 test_motor=None,
+                 sample_stage=None,
                  parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
@@ -144,7 +144,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.shutters_dict = shutters_dict
         self.db = db
         self.RE = RE
-        self.sample_stage = test_motor
+        self.sample_stage = sample_stage
 
         if self.RE is not None:
             self.RE.is_aborted = False
