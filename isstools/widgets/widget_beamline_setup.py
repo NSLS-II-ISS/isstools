@@ -42,6 +42,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  ic_amplifiers,
                  prepare_bl_plan,
                  plan_funcs,
+                 service_plan_funcs,
                  prepare_bl_list,
                  set_gains_offsets_scan,
                  motors_dict,
@@ -65,6 +66,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.ic_amplifiers = ic_amplifiers
         self.prepare_bl_plan = prepare_bl_plan
         self.plan_funcs = plan_funcs
+        self.service_plan_funcs = service_plan_funcs
         self.prepare_bl_list = prepare_bl_list
         self.set_gains_offsets_scan = set_gains_offsets_scan
         self.motors_dict = motors_dict
@@ -95,21 +97,21 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.prepare_bl_plan = None
 
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
-        if 'get_offsets' in self.plan_funcs_names:
+        self.service_plan_funcs_names = [plan.__name__ for plan in service_plan_funcs]
+        if 'get_offsets' in self.service_plan_funcs_names:
             self.push_get_offsets.clicked.connect(self.run_get_offsets)
         else:
             self.push_get_offsets.setEnabled(False)
 
         if self.prepare_bl_plan is not None:
-            self.plan_funcs.append(self.prepare_bl)
-            self.plan_funcs_names.append(self.prepare_bl.__name__)
+            self.service_plan_funcs.append(self.prepare_bl)
+            self.service_plan_funcs_names.append(self.prepare_bl.__name__)
 
-        self.plan_funcs.append(self.adjust_ic_gains)
-        self.plan_funcs_names.append(self.adjust_ic_gains.__name__)
+        self.service_plan_funcs.append(self.adjust_ic_gains)
+        self.service_plan_funcs_names.append(self.adjust_ic_gains.__name__)
         if self.set_gains_offsets_scan is not None:
-            self.plan_funcs.append(self.set_gains_offsets_scan)
-            self.plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
+            self.service_plan_funcs.append(self.set_gains_offsets_scan)
+            self.service_plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
 
         if self.hhm is None:
             self.pushEnableHHMFeedback.setEnabled(False)
@@ -999,7 +1001,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
                 QtWidgets.QApplication.processEvents()
                 ttime.sleep(0.1)
-        get_offsets = [func for func in self.plan_funcs if func.__name__ == 'get_offsets'][0]
+        get_offsets = [func for func in self.service_plan_funcs if func.__name__ == 'get_offsets'][0]
 
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]

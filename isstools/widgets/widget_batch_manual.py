@@ -76,26 +76,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         except OSError as err:
              print('Error loading:', err)
 
-       #  self.comboBox_map_motor1.addItems(self.mot_sorted_list)
-       #  self.comboBox_map_motor2.addItems(self.mot_sorted_list)
-       # # self.comboBox_sample_loop_motor.currentTextChanged.connect(self.update_loop_values)
-       #
-       #  # spinBox_connects = [self.restore_add_loop,
-       #  #                     self.comboBox_sample_loop_motor.setDisabled,
-       #  #                     self.spinBox_motor_range_start.setDisabled,
-       #  #                     self.spinBox_motor_range_stop.setDisabled,
-       #  #                     self.spinBox_motor_range_step.setDisabled,
-       #  #                     self.radioButton_sample_rel.setDisabled,
-       #  #                     self.radioButton_sample_abs.setDisabled,
-       #  #                     ]
-       #  # for changer in spinBox_connects:
-       #  #     self.spinBox_sample_loop_rep.valueChanged.connect(changer)
-       #  #
-       #  # self.radioButton_sample_rel.toggled.connect(self.set_loop_values)
         self.last_lut = 0
 
+        self.service_param1 = []
+        self.service_param2 = []
+        self.service_param3 = []
+        self.populate_service_parameters(0)
 
-
+        services = {'Get Offsets':{'times': 20},
+                    'Sleep':{'delay': 1}}
     '''
     Dealing with batch experiemnts
     '''
@@ -309,48 +298,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             motor_text = self.comboBox_sample_loop_motor.currentText()
             self.update_loop_values(motor_text)
 
-    def add_new_sample_loop(self, samples, scans):
-        parent = self.model_batch.invisibleRootItem()
-        new_item = QtGui.QStandardItem('Sample Loop')
-        new_item.setEditable(False)
 
-        if self.spinBox_sample_loop_rep.value():
-            repetitions_item = QtGui.QStandardItem('Repetitions:{}'.format(self.spinBox_sample_loop_rep.value()))
-        else:
-            repetitions_item = QtGui.QStandardItem(
-                'Motor:{} Start:{} Stop:{} Step:{}'.format(self.comboBox_sample_loop_motor.currentText(),
-                                                           self.spinBox_motor_range_start.value(),
-                                                           self.spinBox_motor_range_stop.value(),
-                                                           self.spinBox_motor_range_step.value()))
-        new_item.appendRow(repetitions_item)
-
-        if self.radioButton_sample_loop.isChecked():
-            primary = 'Samples'
-        else:
-            primary = 'Scans'
-        primary_item = QtGui.QStandardItem('Primary:{}'.format(primary))
-        new_item.appendRow(primary_item)
-
-        samples_item = QtGui.QStandardItem('Samples')
-        samples_item.setDropEnabled(False)
-        for index in range(len(samples)):
-            subitem = QtGui.QStandardItem(samples[index])
-            subitem.setDropEnabled(False)
-            samples_item.appendRow(subitem)
-        new_item.appendRow(samples_item)
-
-        scans_item = QtGui.QStandardItem('Scans')
-        scans_item.setDropEnabled(False)
-        for index in range(len(scans)):
-            subitem = QtGui.QStandardItem(scans[index])
-            subitem.setDropEnabled(False)
-            scans_item.appendRow(subitem)
-        new_item.appendRow(scans_item)
-
-        parent.appendRow(new_item)
-        self.treeView_batch.expand(self.model_batch.indexFromItem(new_item))
-        for index in range(new_item.rowCount()):
-            self.treeView_batch.expand(new_item.child(index).index())
 
 
     def populate_service_parameters(self, index):
@@ -360,70 +308,78 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         # else:
         #     self.comboBox_lut.setEnabled(True)
 
-        for i in range(len(self.widget_scan_param1)):
-            self.gridLayout_scans.removeWidget(self.widget_service_param1[i])
-            self.gridLayout_scans.removeWidget(self.widget_service_param2[i])
-            self.gridLayout_scans.removeWidget(self.widget_service_param3[i])
-            self.widget_service_param1[i].deleteLater()
-            self.widget_service_param2[i].deleteLater()
-            self.widget_service_param3[i].deleteLater()
-        self.widget_service_param1 = []
-        self.widget_service_param2 = []
-        self.widget_service_param3 = []
+        for i in range(len(self.service_param1)):
+            self.gridLayout_services.removeWidget(self.service_param1[i])
+            self.gridLayout_services.removeWidget(self.service_param2[i])
+
+            self.service_param1[i].deleteLater()
+            self.service_param2[i].deleteLater()
+
+        self.service_param1 = []
+        self.service_param2 = []
+
         self.param_types_batch = []
         plan_func = self.service_plan_funcs[index]
         signature = inspect.signature(plan_func)
+        print(signature)
         for i in range(0, len(signature.parameters)):
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
+            print(default)
             if default == str(signature.parameters[list(signature.parameters)[i]]):
                 default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
+                print(default)
+            print(signature.parameters[list(signature.parameters)[i]].annotation)
             self.add_parameters(list(signature.parameters)[i], default,
                                 signature.parameters[list(signature.parameters)[i]].annotation,
                                 grid=self.gridLayout_services,
-                                params=[self.widget_service_param1, self.widget_service_param2, self.widget_service_param3])
+                                params=[self.service_param1, self.service_param2])
             self.param_types_batch.append(signature.parameters[list(signature.parameters)[i]].annotation)
+
+
+
+
 
     def add_parameters(self, name, default, annotation, grid, params):
         rows = int((grid.count()) / 3)
-        param1 = QtWidgets.QLabel(str(rows + 1))
 
-        param2 = None
+
+        param1 = None
         def_val = ''
         if default.find('=') != -1:
             def_val = re.sub(r'.*=', '', default)
         if annotation == int:
-            param2 = QtWidgets.QSpinBox()
-            param2.setMaximum(100000)
-            param2.setMinimum(-100000)
+            param1 = QtWidgets.QSpinBox()
+            param1.setMaximum(100000)
+            param1.setMinimum(-100000)
             def_val = int(def_val)
-            param2.setValue(def_val)
+            param1.setValue(def_val)
         elif annotation == float:
-            param2 = QtWidgets.QDoubleSpinBox()
-            param2.setMaximum(100000)
-            param2.setMinimum(-100000)
+            param1 = QtWidgets.QDoubleSpinBox()
+            param1.setMaximum(100000)
+            param1.setMinimum(-100000)
             def_val = float(def_val)
-            param2.setValue(def_val)
+            param1.setValue(def_val)
         elif annotation == bool:
-            param2 = QtWidgets.QCheckBox()
+            param1 = QtWidgets.QCheckBox()
             if def_val == 'True':
                 def_val = True
             else:
                 def_val = False
-            param2.setCheckState(def_val)
-            param2.setTristate(False)
+            param1.setCheckState(def_val)
+            param1.setTristate(False)
         elif annotation == str:
-            param2 = QtWidgets.QLineEdit()
+            param1 = QtWidgets.QLineEdit()
             def_val = str(def_val)
-            param2.setText(def_val)
+            param1.setText(def_val)
 
-        if param2 is not None:
-            param3 = QtWidgets.QLabel(default)
-            grid.addWidget(param1, rows, 0, QtCore.Qt.AlignTop)
-            grid.addWidget(param2, rows, 1, QtCore.Qt.AlignTop)
-            grid.addWidget(param3, rows, 2, QtCore.Qt.AlignTop)
+        if param1 is not None:
+            param2 = QtWidgets.QLabel(default)
+
+            grid.addWidget(param1, rows, 1, QtCore.Qt.AlignTop)
+            grid.addWidget(param2, rows, 2, QtCore.Qt.AlignTop)
             params[0].append(param1)
             params[1].append(param2)
-            params[2].append(param3)
+
 
     def update_batch_traj(self):
         self.trajectories = self.traj_manager.read_info(silent=True)
@@ -431,31 +387,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
 
-    def load_csv(self):
-        user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
-                                                                  self.RE.md['cycle'],
-                                                                  self.RE.md['PROPOSAL'])
-        filename = QtWidgets.QFileDialog.getOpenFileName(caption='Select file to load',
-                                                         directory=user_filepath,
-                                                         filter='*.csv',
-                                                         parent=self)[0]
-        if filename:
-            batman = BatchManager(self)
-            batman.load_csv(filename)
 
-    def save_csv(self):
-        user_filepath = '/GPFS/xf08id/User Data/{}.{}.{}/'.format(self.RE.md['year'],
-                                                                  self.RE.md['cycle'],
-                                                                  self.RE.md['PROPOSAL'])
-        filename = QtWidgets.QFileDialog.getSaveFileName(caption='Select file to save',
-                                                         directory=user_filepath,
-                                                         filter='*.csv',
-                                                         parent=self)[0]
-        if filename:
-            if filename[-4:] != '.csv':
-                filename += '.csv'
-            batman = BatchManager(self)
-            batman.save_csv(filename)
 
     def check_pause_abort_batch(self):
         if self.batch_abort:
