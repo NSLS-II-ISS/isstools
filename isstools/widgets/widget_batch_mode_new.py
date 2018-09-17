@@ -788,7 +788,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
             for jj in range(experiment.rowCount()):
                 print(experiment.rowCount())
                 sample = experiment.child(jj)
-                print('  ' + sample.name)
+                print('  ' + sample.name) 
                 print('  ' + str(sample.x))
                 print('  ' + str(sample.y))
                 yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
