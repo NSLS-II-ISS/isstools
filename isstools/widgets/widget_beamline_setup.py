@@ -244,6 +244,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.plot_gen_scan.addWidget(self.canvas_gen_scan)
         self.canvas_gen_scan.draw_idle()
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
+        self.figure_gen_scan.ax.grid(alpha=0.4)
 
     def run_gen_scan(self, **kwargs):
         if 'ignore_shutter' in kwargs:
@@ -322,10 +323,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if not repeat:
             self.figure_gen_scan.ax.clear()
-            self.toolbar_gen_scan._views.clear()
-            self.toolbar_gen_scan._positions.clear()
-            self.toolbar_gen_scan._update_view()
+            self.toolbar_gen_scan.update()
             self.canvas_gen_scan.draw_idle()
+            self.figure_gen_scan.ax.grid(alpha=0.4)
             self.canvas_gen_scan.motor = curr_mot
 
         result_name = self.comboBox_gen_det.currentText()
