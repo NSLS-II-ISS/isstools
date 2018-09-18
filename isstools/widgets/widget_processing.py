@@ -282,11 +282,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.replot_y()
 
     def replot_y(self):
-        #self.figure_old_scans.ax.clear()
-        #self.figure_old_scans.canvas.draw_idle()
-        #self.toolbar_old_scans._views.clear()
-        #self.toolbar_old_scans._positions.clear()
-        #self.toolbar_old_scans._update_view()
+
 
         for data in self.bin_data_sets:
             df = data['processing_ret']['data']
@@ -297,9 +293,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if hasattr(figure, 'ax2'):
             figure.ax2.clear()
         figure.canvas.draw_idle()
-        toolbar._views.clear()
-        toolbar._positions.clear()
-        toolbar._update_view()
+        toolbar.update()
+
 
         if self.listWidget_numerator.currentRow() is not -1:
             self.last_num = self.listWidget_numerator.currentRow()
