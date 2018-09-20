@@ -1,6 +1,7 @@
 import pkg_resources
 import json
 import time
+import bluesky.plan_stubs as bps
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -903,7 +904,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             # self.hhm.fb_pcoeff.put(self.piezo_kp)
 
             def update_piezo_params_plan(hhm, line, center, nlines,
-                                         nmeasures, pcoeff):
+                                         measures, pcoeff):
                 yield from bps.mv(hhm.fb_line, line,
                                   hhm.fb_center, center,
                                   hhm.fb_nlines, nlines,
