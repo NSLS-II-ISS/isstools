@@ -292,7 +292,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             # TODO : this should plot depending on options set in a GUI
             if 'i0' in df and 'it' in df and 'energy' in df:
                 transmission = np.log(df['i0']/df['it'])
-                self.figure.ax1.plot(df['energy'], transmission, color='r')
+                self.figure.ax1.plot(df['energy'], transmission, color='r',label='Transmission')
+                self.figure.ax1.legend()
             else:
                 print("Warning, could not find 'i0', 'it', or 'energy' (are devices present?)")
 
@@ -303,7 +304,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             
             if 'it' in df and 'ir' in df and 'energy' in df:
                 reference = np.log(df['it']/df['ir'])
-                self.figure.ax3.plot(df['energy'], reference, color='b')
+                self.figure.ax3.plot(df['energy'], reference, color='b',label='Reference')
+                self.figure.ax3.legend(loc=3)
 
             self.canvas.draw_idle()
 
