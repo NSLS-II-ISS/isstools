@@ -1,6 +1,7 @@
 import pkg_resources
 import json
 import time
+import bluesky.plan_stubs as bps
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,

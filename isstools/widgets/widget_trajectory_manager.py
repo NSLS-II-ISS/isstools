@@ -162,9 +162,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         # Plot single trajectory motion
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
-        self.toolbar_single_trajectory._views.clear()
-        self.toolbar_single_trajectory._positions.clear()
-        self.toolbar_single_trajectory._update_view()
+        self.toolbar_single_trajectory.update()
+        #self.toolbar_single_trajectory._positions.clear()
+        #self.toolbar_single_trajectory._update_view()
         self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
         self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time (s)')
@@ -176,9 +176,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         # Tile trajectory
         self.figure_full_trajectory.ax.clear()
-        self.toolbar_full_trajectory._views.clear()
-        self.toolbar_full_trajectory._positions.clear()
-        self.toolbar_full_trajectory._update_view()
+        self.toolbar_full_trajectory.update()
+        #self.toolbar_full_trajectory._positions.clear()
+        #self.toolbar_full_trajectory._update_view()
         self.canvas_full_trajectory.draw_idle()
         self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
                                single_direction=self.checkBox_traj_single_dir.isChecked())
@@ -229,13 +229,13 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
-        self.toolbar_single_trajectory._views.clear()
-        self.toolbar_single_trajectory._positions.clear()
-        self.toolbar_single_trajectory._update_view()
+        self.toolbar_single_trajectory.update()
+        #self.toolbar_single_trajectory._positions.clear()
+        #self.toolbar_single_trajectory._update_view()
         self.figure_full_trajectory.ax.clear()
-        self.toolbar_full_trajectory._views.clear()
-        self.toolbar_full_trajectory._positions.clear()
-        self.toolbar_full_trajectory._update_view()
+        self.toolbar_full_trajectory.update()
+        #self.toolbar_full_trajectory._positions.clear()
+        #self.toolbar_full_trajectory._update_view()
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
