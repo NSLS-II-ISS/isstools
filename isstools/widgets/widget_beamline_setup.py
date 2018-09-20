@@ -909,7 +909,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                   hhm.fb_center, center,
                                   hhm.fb_nlines, nlines,
                                   hhm.fb_nmeasures, measures,
-                                  hhm.fb_pcoef, pcoeff)
+                                  hhm.fb_pcoeff, pcoeff)
 
             self.RE(update_piezo_params_plan(self.hhm,
                                              line=self.piezo_line,
