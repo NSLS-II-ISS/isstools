@@ -293,13 +293,14 @@ class UIRun(*uic.loadUiType(ui_path)):
             if 'i0' in df and 'it' in df and 'energy' in df:
                 transmission = np.log(df['i0']/df['it'])
                 self.figure.ax1.plot(df['energy'], transmission, color='r',label='Transmission')
-                self.figure.ax1.legend()
+                self.figure.ax1.legend(loc=1)
             else:
                 print("Warning, could not find 'i0', 'it', or 'energy' (are devices present?)")
 
             if 'i0' in df and 'iff' in df and 'energy' in df:
                 fluorescence = (df['iff']/df['i0'])
-                self.figure.ax2.plot(df['energy'], fluorescence, color='g')
+                self.figure.ax2.plot(df['energy'], fluorescence, color='g',label='Total fluorescence')
+                self.figure.ax2.legend(loc=2)
 
             
             if 'it' in df and 'ir' in df and 'energy' in df:
