@@ -47,6 +47,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  set_gains_offsets_scan,
                  motors_dict,
                  general_scan_func,
+                 reference_foil_plan,
                  create_log_scan,
                  auto_tune_dict,
                  shutters,
@@ -74,6 +75,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
+        self.reference_foil_plan = reference_foil_plan
         #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
@@ -129,6 +131,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_increase_center.clicked.connect(self.fb_center_increase)
             self.push_decrease_center.clicked.connect(self.fb_center_decrease)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+            self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
 
 
@@ -235,6 +238,29 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_read_amp_gains.setEnabled(False)
         else:
             self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+        reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe',
+                 'Co',
+                 'Ni',
+                 'Cu',
+                 'Zn',
+                 'Pt',
+                 'Au',
+                 'Se',
+                 'Pb',
+                 'Nb',
+                 'Mo',
+                 'Ru',
+                 'Rh',
+                 'Pd',
+                 'Ag',
+                 'Sn',
+                 'Sb']
+
+        for foil in reference_foils:
+            self.comboBox_reference_foils.addItem(foil)
+            
+
 
     def addCanvas(self):
         self.figure_gen_scan = Figure()
@@ -884,6 +910,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         elif self.radioButton_fb_remote.isChecked():
             self.pushEnableHHMFeedback.setChecked(value)
 
+    def set_reference_foil(self):
+        foil = self.comboBox_reference_foils.currentText()
+        print(foil)
+        self.RE(self.reference_foil_plan(foil))
+
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)
         self.piezo_center = float(self.hhm.fb_center.value)
@@ -1138,3 +1169,5 @@ class piezo_fb_thread(QThread):
             else:
                 #print("Here all the time? Not here!")
                 ttime.sleep(self.sampleTime)
+
+
