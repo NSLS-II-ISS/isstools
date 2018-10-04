@@ -125,7 +125,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
             self.piezo_thread = piezo_fb_thread(self) 
-            self.update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_increase_center.clicked.connect(self.fb_center_increase)
+            self.push_decrease_center.clicked.connect(self.fb_center_decrease)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
 
 
@@ -916,7 +918,22 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                              center=self.piezo_center,
                                              nlines=self.piezo_nlines,
                                              measures=self.piezo_nmeasures,
+
                                              pcoeff=self.piezo_kp))
+
+    def change_fb_center_plan(self,hhm, center):
+        yield from bps.mv(hhm.fb_center, center)
+
+    def fb_center_increase(self):
+        a = self.hhm.fb_center.get()
+        print(a)
+        self.RE(self.change_fb_center_plan(self.hhm,a + 1))
+
+
+    def fb_center_decrease(self):
+        a = self.hhm.fb_center.get()
+        print(a)
+        self.RE(self.change_fb_center_plan(self.hhm, a - 1))
 
 
     def update_piezo_center(self):
