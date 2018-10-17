@@ -18,6 +18,8 @@ from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
 
 from isstools.trajectory.trajectory import trajectory, trajectory_manager
+from isstools.elements.figure_update import update_figure
+
 
 
 import isstools.widgets.widget_energy_selector
@@ -160,11 +162,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
             self.traj_creator.revert()
 
         # Plot single trajectory motion
-        self.figure_single_trajectory.ax.clear()
-        self.figure_single_trajectory.ax2.clear()
-        self.toolbar_single_trajectory._views.clear()
-        self.toolbar_single_trajectory._positions.clear()
-        self.toolbar_single_trajectory._update_view()
+        update_figure([self.figure_single_trajectory.ax, self.figure_single_trajectory.ax2],
+                       self.toolbar_single_trajectory,self.canvas_single_trajectory)
+
         self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
         self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time (s)')
@@ -175,14 +175,11 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.canvas_single_trajectory.draw_idle()
 
         # Tile trajectory
-        self.figure_full_trajectory.ax.clear()
-        self.toolbar_full_trajectory._views.clear()
-        self.toolbar_full_trajectory._positions.clear()
-        self.toolbar_full_trajectory._update_view()
-        self.canvas_full_trajectory.draw_idle()
+        update_figure([self.figure_full_trajectory.ax],
+                      self.toolbar_full_trajectory, self.canvas_full_trajectory)
+
         self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
                                single_direction=self.checkBox_traj_single_dir.isChecked())
-
         # Convert to encoder counts
         self.traj_creator.e2encoder(float(self.label_angle_offset.text()))
 

@@ -322,15 +322,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if not repeat:
             self.figure_gen_scan.ax.clear()
-            self.toolbar_gen_scan._views.clear()
-            self.toolbar_gen_scan._positions.clear()
-            self.toolbar_gen_scan._update_view()
+
+            self.toolbar_gen_scan.update()
             self.canvas_gen_scan.draw_idle()
             self.canvas_gen_scan.motor = curr_mot
 
         result_name = self.comboBox_gen_det.currentText()
         if self.comboBox_gen_det_den.currentText() != '1':
             result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
+
+        print(self.comboBox_gen_detsig.currentText())
+        print(self.comboBox_gen_detsig_den.currentText())
+        print(result_name)
+        print(curr_mot)
 
         self.push_gen_scan.setEnabled(False)
         try:
