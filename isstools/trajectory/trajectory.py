@@ -206,7 +206,6 @@ class trajectory():
             time2 = np.linspace((half * total_time) + (time[1] - time[0]), total_time, 2 * len(x2))
             self.time = np.concatenate((time, time2))
 
-
     def interpolate(self):
         cs = interpolate.CubicSpline(self.time, self.energy, bc_type='clamped')
         self.time_grid = np.arange(self.time[0], self.time[-1], 1 / self.servocycle)
@@ -470,7 +469,7 @@ class trajectory_manager():
                 print('[Init Trajectory] Completed!')
                 self.hhm.trajectory_name.put(name)
             ftp.close()
-        return (yield None)
+
     
 
     ########## read_info ##########
