@@ -17,9 +17,7 @@ class UIEnergySelector(*uic.loadUiType(ui_path)):
         self.comboBox_element.currentIndexChanged.connect(self.update_combo_edge)
         self.comboBox_edge.currentIndexChanged.connect(self.update_e0_value)
 
-        elems = [item['name'] for item in self.elements_data]
-        for i in range(21, 96):
-            elems[i - 21] = '{} ({:3d})'.format(elems[i - 21],i)
+        elems = [item['symbol'] for item in self.elements_data]
         self.comboBox_element.addItems(elems)
 
     def update_combo_edge(self, index):
