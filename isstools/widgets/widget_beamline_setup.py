@@ -1,6 +1,7 @@
 import pkg_resources
 import json
 import time
+import bluesky.plan_stubs as bps
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -47,6 +48,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  set_gains_offsets_scan,
                  motors_dict,
                  general_scan_func,
+                 reference_foil_plan,
                  create_log_scan,
                  auto_tune_dict,
                  shutters,
@@ -75,6 +77,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
+        self.reference_foil_plan = reference_foil_plan
         #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
@@ -126,8 +129,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_kp = float(self.hhm.fb_pcoeff.value)
             self.hhm.fb_status.subscribe(self.update_fb_status)
             self.piezo_thread = piezo_fb_thread(self) 
-            self.update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_update_piezo.clicked.connect(self.update_piezo_params)
+            self.push_increase_center.clicked.connect(self.fb_center_increase)
+            self.push_decrease_center.clicked.connect(self.fb_center_decrease)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+            self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
 
 
@@ -235,6 +241,29 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
 
+        reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe',
+                 'Co',
+                 'Ni',
+                 'Cu',
+                 'Zn',
+                 'Pt',
+                 'Au',
+                 'Se',
+                 'Pb',
+                 'Nb',
+                 'Mo',
+                 'Ru',
+                 'Rh',
+                 'Pd',
+                 'Ag',
+                 'Sn',
+                 'Sb']
+
+        for foil in reference_foils:
+            self.comboBox_reference_foils.addItem(foil)
+            
+
+
     def addCanvas(self):
         self.figure_gen_scan = Figure()
         self.figure_gen_scan.set_facecolor(color='#FcF9F6')
@@ -246,6 +275,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.plot_gen_scan.addWidget(self.canvas_gen_scan)
         self.canvas_gen_scan.draw_idle()
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
+        self.figure_gen_scan.ax.grid(alpha=0.4)
 
     def run_gen_scan(self, **kwargs):
         if 'ignore_shutter' in kwargs:
@@ -324,9 +354,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if not repeat:
             self.figure_gen_scan.ax.clear()
-
             self.toolbar_gen_scan.update()
             self.canvas_gen_scan.draw_idle()
+            self.figure_gen_scan.ax.grid(alpha=0.4)
             self.canvas_gen_scan.motor = curr_mot
 
         result_name = self.comboBox_gen_det.currentText()
@@ -887,6 +917,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         elif self.radioButton_fb_remote.isChecked():
             self.pushEnableHHMFeedback.setChecked(value)
 
+    def set_reference_foil(self):
+        foil = self.comboBox_reference_foils.currentText()
+        print(foil)
+        self.RE(self.reference_foil_plan(foil))
+
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)
         self.piezo_center = float(self.hhm.fb_center.value)
@@ -909,19 +944,34 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             # self.hhm.fb_pcoeff.put(self.piezo_kp)
 
             def update_piezo_params_plan(hhm, line, center, nlines,
-                                         nmeasures, pcoeff):
+                                         measures, pcoeff):
                 yield from bps.mv(hhm.fb_line, line,
                                   hhm.fb_center, center,
                                   hhm.fb_nlines, nlines,
                                   hhm.fb_nmeasures, measures,
-                                  hhm.fb_pcoef, pcoeff)
+                                  hhm.fb_pcoeff, pcoeff)
 
             self.RE(update_piezo_params_plan(self.hhm,
                                              line=self.piezo_line,
                                              center=self.piezo_center,
                                              nlines=self.piezo_nlines,
                                              measures=self.piezo_nmeasures,
+
                                              pcoeff=self.piezo_kp))
+
+    def change_fb_center_plan(self,hhm, center):
+        yield from bps.mv(hhm.fb_center, center)
+
+    def fb_center_increase(self):
+        a = self.hhm.fb_center.get()
+        print(a)
+        self.RE(self.change_fb_center_plan(self.hhm,a + 1))
+
+
+    def fb_center_decrease(self):
+        a = self.hhm.fb_center.get()
+        print(a)
+        self.RE(self.change_fb_center_plan(self.hhm, a - 1))
 
 
     def update_piezo_center(self):
@@ -1126,3 +1176,5 @@ class piezo_fb_thread(QThread):
             else:
                 #print("Here all the time? Not here!")
                 ttime.sleep(self.sampleTime)
+
+

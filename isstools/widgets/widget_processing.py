@@ -95,6 +95,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.plot_old_scans_2.addWidget(self.toolbar_old_scans_2)
         self.plot_old_scans_2.addWidget(self.canvas_old_scans_2)
         self.canvas_old_scans_2.draw_idle()
+        self.figure_old_scans_2.ax.grid(alpha = 0.4)
 
         self.figure_old_scans_3 = Figure()
         self.figure_old_scans_3.set_facecolor(color='#FcF9F6')
@@ -105,6 +106,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
         self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
         self.canvas_old_scans_3.draw_idle()
+        self.figure_old_scans_3.ax.grid(alpha=0.4)
 
     def getX(self, event):
         if event.button == 3:
@@ -222,16 +224,15 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
-        #self.toolbar_old_scans_2._views.clear()
-        #self.toolbar_old_scans_2._positions.clear()
-        #self.toolbar_old_scans_2._update_view()
+        self.toolbar_old_scans_2.update()
         self.canvas_old_scans_2.draw_idle()
+        self.figure_old_scans_2.ax.grid(alpha=0.4)
 
         self.figure_old_scans_3.ax.clear()
         self.figure_old_scans_3.ax2.clear()
-        #self.toolbar_old_scans_3._views.clear()
-        #self.toolbar_old_scans_3._positions.clear()
-        #self.toolbar_old_scans_3._update_view()
+        self.toolbar_old_scans_3.update()
+        self.figure_old_scans_3.ax.grid(alpha=0.4)
+
         self.canvas_old_scans_3.draw_idle()
 
         # print('[Launching Threads]')
@@ -282,24 +283,18 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.replot_y()
 
     def replot_y(self):
-        #self.figure_old_scans.ax.clear()
-        #self.figure_old_scans.canvas.draw_idle()
-        #self.toolbar_old_scans._views.clear()
-        #self.toolbar_old_scans._positions.clear()
-        #self.toolbar_old_scans._update_view()
+
 
         for data in self.bin_data_sets:
             df = data['processing_ret']['data']
-            #self.update_k_view(df)
 
     def replot(self, list_data_set, handles, figure, toolbar):
         figure.ax.clear()
         if hasattr(figure, 'ax2'):
             figure.ax2.clear()
         figure.canvas.draw_idle()
-        toolbar._views.clear()
-        toolbar._positions.clear()
-        toolbar._update_view()
+        toolbar.update()
+
 
         if self.listWidget_numerator.currentRow() is not -1:
             self.last_num = self.listWidget_numerator.currentRow()
@@ -378,7 +373,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.figure_old_scans_3.tight_layout()
         self.canvas_old_scans_3.draw_idle()
 
-        #self.update_k_view(df)
 
     def plot_interp_data(self, data):
         ''' Plot the interpolated data.
@@ -418,25 +412,17 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.canvas_old_scans_2.draw_idle()
 
     def erase_plots(self):
-        #self.figure_old_scans.ax.clear()
-        #self.toolbar_old_scans._views.clear()
-        #self.toolbar_old_scans._positions.clear()
-        #self.toolbar_old_scans._update_view()
-        #self.canvas_old_scans.draw_idle()
-
         self.figure_old_scans_2.ax.clear()
         self.figure_old_scans_2.ax2.clear()
-        self.toolbar_old_scans_2._views.clear()
-        self.toolbar_old_scans_2._positions.clear()
-        self.toolbar_old_scans_2._update_view()
+        self.toolbar_old_scans_2.update()
         self.canvas_old_scans_2.draw_idle()
+        self.figure_old_scans_2.ax.grid(alpha=0.4)
 
         self.figure_old_scans_3.ax.clear()
         self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3._views.clear()
-        self.toolbar_old_scans_3._positions.clear()
-        self.toolbar_old_scans_3._update_view()
+        self.toolbar_old_scans_3.update()
         self.canvas_old_scans_3.draw_idle()
+        self.figure_old_scans_3.ax.grid(alpha=0.4)
 
     def reset_data_plots(self):
         self.push_replot_file.setEnabled(False)

@@ -50,6 +50,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  motors_dict={},
                  general_scan_func = None,
                  sample_stage=None,
+                 reference_foil_plan = None,
                  parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
@@ -135,8 +136,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.det_dict = det_dict
         self.plan_funcs = plan_funcs
-        #self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.service_plan_funcs = service_plan_funcs
+        self.reference_foil_plan = reference_foil_plan
         self.prep_traj_plan = prep_traj_plan
 
         self.motors_dict = motors_dict
@@ -261,6 +263,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                                self.prepare_bl_list,
                                                                                self.set_gains_offsets_scan,
                                                                                self.motors_dict, general_scan_func,
+                                                                               self.reference_foil_plan,
                                                                                self.widget_run.create_log_scan,
                                                                                self.auto_tune_dict, shutters_dict, self)
             self.layout_beamline_setup.addWidget(self.widget_beamline_setup)

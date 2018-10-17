@@ -1,4 +1,5 @@
 import inspect
+
 import re
 import pkg_resources
 from PyQt5 import uic, QtWidgets, QtCore
