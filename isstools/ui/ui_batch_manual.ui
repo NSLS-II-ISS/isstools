@@ -31,7 +31,7 @@
       <x>540</x>
       <y>40</y>
       <width>381</width>
-      <height>336</height>
+      <height>671</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_batch_definition"/>
@@ -39,9 +39,9 @@
    <widget class="QGroupBox" name="groupBox_8">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>20</y>
-      <width>511</width>
+      <width>521</width>
       <height>61</height>
      </rect>
     </property>
@@ -148,9 +148,9 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>600</x>
-      <y>455</y>
-      <width>261</width>
+      <x>250</x>
+      <y>550</y>
+      <width>201</width>
       <height>171</height>
      </rect>
     </property>
@@ -176,7 +176,7 @@
        <x>10</x>
        <y>30</y>
        <width>231</width>
-       <height>142</height>
+       <height>152</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_30">
@@ -308,9 +308,9 @@
    <widget class="QGroupBox" name="groupBox_9">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>85</y>
-      <width>511</width>
+      <width>521</width>
       <height>186</height>
      </rect>
     </property>
@@ -515,9 +515,9 @@
    <widget class="QGroupBox" name="groupBox_10">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>5</x>
       <y>275</y>
-      <width>516</width>
+      <width>531</width>
       <height>221</height>
      </rect>
     </property>
@@ -807,156 +807,11 @@
      <string>Create measurement</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="groupBox_11">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>555</y>
-      <width>511</width>
-      <height>191</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Services</string>
-    </property>
-    <widget class="QPushButton" name="push_delete_service">
-     <property name="geometry">
-      <rect>
-       <x>180</x>
-       <y>160</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Delete</string>
-     </property>
-    </widget>
-    <widget class="QListView" name="listView_services">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>241</width>
-       <height>126</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_12">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>20</y>
-       <width>241</width>
-       <height>136</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="title">
-      <string>Create new service</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_28" columnstretch="0,0,0">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_130">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Type</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QComboBox" name="comboBox_services">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="3">
-       <layout class="QGridLayout" name="gridLayout_services"/>
-      </item>
-      <item row="2" column="1">
-       <spacer name="verticalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QPushButton" name="push_create_service">
-     <property name="geometry">
-      <rect>
-       <x>420</x>
-       <y>160</y>
-       <width>80</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>80</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Create</string>
-     </property>
-    </widget>
-   </widget>
    <widget class="QPushButton" name="push_batch_delete">
     <property name="geometry">
      <rect>
       <x>840</x>
-      <y>385</y>
+      <y>720</y>
       <width>80</width>
       <height>23</height>
      </rect>
@@ -1019,16 +874,103 @@
      <string>priority to</string>
     </property>
    </widget>
-   <zorder>gridLayoutWidget_20</zorder>
-   <zorder>groupBox_8</zorder>
-   <zorder>groupBox_4</zorder>
-   <zorder>groupBox_9</zorder>
-   <zorder>groupBox_10</zorder>
-   <zorder>groupBox_11</zorder>
-   <zorder>push_create_measurement</zorder>
-   <zorder>push_batch_delete</zorder>
-   <zorder>horizontalLayoutWidget</zorder>
-   <zorder>label_136</zorder>
+   <widget class="QGroupBox" name="groupBox_12">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>550</y>
+      <width>201</width>
+      <height>181</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="title">
+     <string>Services</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_28" columnstretch="0,0,0,0">
+     <item row="2" column="1">
+      <spacer name="verticalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_130">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBox_services">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <layout class="QGridLayout" name="gridLayout_services"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="push_create_service">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Create</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
  </widget>
  <resources/>

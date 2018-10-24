@@ -23,6 +23,11 @@ path_icon_scan = pkg_resources.resource_filename('isstools', 'icons/scan.png')
 icon_scan = QtGui.QIcon()
 icon_scan.addPixmap(QtGui.QPixmap(path_icon_scan), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
+path_icon_service = pkg_resources.resource_filename('isstools', 'icons/service.png')
+icon_service = QtGui.QIcon()
+icon_service.addPixmap(QtGui.QPixmap(path_icon_service), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -64,6 +69,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_delete_scan.clicked.connect(self.delete_scan)
         self.push_batch_delete.clicked.connect(self.delete_current_batch)
         self.push_create_measurement.clicked.connect(self.create_measurement)
+        self.push_create_service.clicked.connect(self.create_service)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_services.addItems(self.service_plan_funcs_names)
@@ -83,8 +89,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_param3 = []
         self.populate_service_parameters(0)
 
-        services = {'Get Offsets':{'times': 20},
-                    'Sleep':{'delay': 1}}
     '''
     Dealing with batch experiemnts
     '''
@@ -154,7 +158,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         print(repeat)
         delay = self.spinBox_scan_delay.value()
         name = self.lineEdit_scan_name.text()
-        item = QtGui.QStandardItem('Scan {} with trajectory {}, repeat {} times with {} s delay'.format(scan_type,
+        item = QtGui.QStandardItem('Scan {} with trajectory {}, {} times with {} s delay'.format(scan_type,
                                                                              traj, repeat, delay))
         item.setDropEnabled(False)
         item.item_type = 'scan'
@@ -254,6 +258,30 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         return new_item_scan
 
 
+    '''
+    Dealing with services
+    '''
+    def create_service(self):
+        new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
+        new_item_service.setIcon(icon_service)
+        if self.treeView_batch.model().rowCount():
+            if self.treeView_batch.selectedIndexes():
+                selected_index = self.treeView_batch.selectedIndexes()[0]
+                parent = self.model_batch.itemFromIndex(selected_index)
+                if parent.item_type == 'experiment':
+                    parent.appendRow(new_item_service)
+                    new_item_service.setCheckable(False)
+                    new_item_service.setEditable(False)
+                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+                elif parent.item_type == 'sample':
+                    parent.insertRow(0,new_item_service)
+                    new_item_service.setCheckable(False)
+                    new_item_service.setEditable(False)
+                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+
+
+
+
     def update_loop_values(self, text):
         for motor in self.motors_dict:
             if self.comboBox_sample_loop_motor.currentText() == self.motors_dict[motor]['name']:
@@ -321,6 +349,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.param_types_batch = []
         plan_func = self.service_plan_funcs[index]
         signature = inspect.signature(plan_func)
+        print(signature)
 
         for i in range(0, len(signature.parameters)):
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
