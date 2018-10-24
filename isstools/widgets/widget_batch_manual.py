@@ -109,24 +109,27 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with samples
     '''
     def create_new_sample(self):
-        x = self.spinBox_sample_x.value()
-        y = self.spinBox_sample_y.value()
-        name = self.lineEdit_sample_name.text()
-        comment = self.lineEdit_sample_comment.text()
-        item = QtGui.QStandardItem('Sample {} at X {} Y {}'.format(name, x, y))
-        item.setDropEnabled(False)
-        item.item_type = 'sample'
-        item.setCheckable(True)
-        item.setEditable(False)
-        item.x = x
-        item.y = y
-        item.name = name
-        item.comment = comment
-        item.setIcon(icon_sample)
+        if self.lineEdit_sample_name.text():
+            x = self.spinBox_sample_x.value()
+            y = self.spinBox_sample_y.value()
+            name = self.lineEdit_sample_name.text()
+            comment = self.lineEdit_sample_comment.text()
+            item = QtGui.QStandardItem('Sample {} at X {} Y {}'.format(name, x, y))
+            item.setDropEnabled(False)
+            item.item_type = 'sample'
+            item.setCheckable(True)
+            item.setEditable(False)
+            item.x = x
+            item.y = y
+            item.name = name
+            item.comment = comment
+            item.setIcon(icon_sample)
 
-        parent = self.model_samples.invisibleRootItem()
-        parent.appendRow(item)
-        self.listView_samples.setModel(self.model_samples)
+            parent = self.model_samples.invisibleRootItem()
+            parent.appendRow(item)
+            self.listView_samples.setModel(self.model_samples)
+        else:
+            self.message_box_name_empty('Sample name is empty')
 
     def get_sample_pos(self):
         x_value = self.sample_stage.x.position
@@ -152,28 +155,32 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             view.model().removeRows(index.row(), 1)
 
     def create_new_scan(self):
-        scan_type= self.comboBox_scans.currentText()
-        traj = self.comboBox_lut.currentText()
-        repeat =  self.spinBox_scan_repeat.value()
-        print(repeat)
-        delay = self.spinBox_scan_delay.value()
-        name = self.lineEdit_scan_name.text()
-        item = QtGui.QStandardItem('Scan {} with trajectory {}, {} times with {} s delay'.format(scan_type,
-                                                                             traj, repeat, delay))
-        item.setDropEnabled(False)
-        item.item_type = 'scan'
-        item.scan_type = scan_type
-        item.trajectory = self.comboBox_lut.currentIndex()
-        item.repeat = repeat
-        item.name = name
-        item.delay = delay
-        item.setCheckable(True)
-        item.setEditable(False)
-        item.setIcon(icon_scan)
+        if self.lineEdit_scan_name.text():
+            scan_type= self.comboBox_scans.currentText()
+            traj = self.comboBox_lut.currentText()
+            repeat =  self.spinBox_scan_repeat.value()
+            print(repeat)
+            delay = self.spinBox_scan_delay.value()
+            name = self.lineEdit_scan_name.text()
+            item = QtGui.QStandardItem('Scan {} with trajectory {}, {} times with {} s delay'.format(scan_type,
+                                                                                 traj, repeat, delay))
+            item.setDropEnabled(False)
+            item.item_type = 'scan'
+            item.scan_type = scan_type
+            item.trajectory = self.comboBox_lut.currentIndex()
+            item.repeat = repeat
+            item.name = name
+            item.delay = delay
+            item.setCheckable(True)
+            item.setEditable(False)
+            item.setIcon(icon_scan)
 
-        parent = self.model_scans.invisibleRootItem()
-        parent.appendRow(item)
-        self.listView_scans.setModel(self.model_scans)
+            parent = self.model_scans.invisibleRootItem()
+            parent.appendRow(item)
+            self.listView_scans.setModel(self.model_scans)
+        else:
+            self.message_box_name_empty('Scan name is empty')
+
 
     def delete_current_batch(self):
         view = self.treeView_batch
@@ -263,6 +270,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     '''
     def create_service(self):
         new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
+        new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
@@ -330,13 +338,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def populate_service_parameters(self, index):
-        # DEPRECATED
-        # if self.comboBox_scans.currentText()[: 5] != 'tscan':
-        #     self.comboBox_lut.setEnabled(False)
-        # else:
-        #     self.comboBox_lut.setEnabled(True)
+
 
         for i in range(len(self.service_param1)):
+            print(i)
+            print(self.service_param1[i])
+            print(self.service_param2[i])
             self.gridLayout_services.removeWidget(self.service_param1[i])
             self.gridLayout_services.removeWidget(self.service_param2[i])
 
@@ -349,14 +356,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.param_types_batch = []
         plan_func = self.service_plan_funcs[index]
         signature = inspect.signature(plan_func)
-        print(signature)
+
 
         for i in range(0, len(signature.parameters)):
+            print(i)
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
 
             if default == str(signature.parameters[list(signature.parameters)[i]]):
                 default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
-
 
             self.add_parameters(list(signature.parameters)[i], default,
                                 signature.parameters[list(signature.parameters)[i]].annotation,
@@ -369,9 +376,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def add_parameters(self, name, default, annotation, grid, params):
-        rows = int((grid.count()) / 3)
-
-
+        print(f'Grid {grid.count()}')
+        rows = int(grid.count() / 2)
         param1 = None
         def_val = ''
         if default.find('=') != -1:
@@ -426,6 +432,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
             while self.batch_pause:
                 QtCore.QCoreApplication.processEvents()
+
+
+
+    def message_box_name_empty(self, message):
+        messageBox = QtWidgets.QMessageBox()
+        messageBox.setText(message)
+        messageBox.addButton(QtWidgets.QPushButton('OK'), QtWidgets.QMessageBox.YesRole)
+        messageBox.setWindowTitle("Warning")
+        ret = messageBox.exec_()
+        return ret
 
 
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>943</width>
-    <height>773</height>
+    <height>918</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>5</x>
      <y>10</y>
      <width>931</width>
-     <height>756</height>
+     <height>901</height>
     </rect>
    </property>
    <property name="title">
@@ -880,7 +880,7 @@
       <x>10</x>
       <y>550</y>
       <width>201</width>
-      <height>181</height>
+      <height>301</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -904,7 +904,7 @@
     <property name="title">
      <string>Services</string>
     </property>
-    <layout class="QGridLayout" name="gridLayout_28" columnstretch="0,0,0,0">
+    <layout class="QGridLayout" name="gridLayout_28" columnstretch="0,0,0">
      <item row="2" column="1">
       <spacer name="verticalSpacer_4">
        <property name="orientation">
