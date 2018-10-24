@@ -298,7 +298,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                             kwargs = {'name': sample_name,
                                       'comment': '',
                                       'delay': 0,
-                                      'n_cycles': repeat,
+                                      'n_cycles': scan.repeat,
                                       'stdout': self.parent_gui.emitstream_out}
                             tm.init(traj_index+1)
                             yield from plan(**kwargs)

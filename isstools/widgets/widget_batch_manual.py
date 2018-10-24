@@ -151,11 +151,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         scan_type= self.comboBox_scans.currentText()
         traj = self.comboBox_lut.currentText()
         repeat =  self.spinBox_scan_repeat.value()
+        print(repeat)
         delay = self.spinBox_scan_delay.value()
         name = self.lineEdit_scan_name.text()
         item = QtGui.QStandardItem('Scan {} with trajectory {}, repeat {} times with {} s delay'.format(scan_type,
                                                                              traj, repeat, delay))
-
         item.setDropEnabled(False)
         item.item_type = 'scan'
         item.scan_type = scan_type
@@ -202,9 +202,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
                                                 new_item_scan.setIcon(icon_scan)
-                                parent.appendRow(new_item_sample)
-                                new_item_sample.setCheckable(False)
-                                new_item_sample.setEditable(False)
+                                                parent.appendRow(new_item_sample)
+                                                new_item_sample.setCheckable(False)
+                                                new_item_sample.setEditable(False)
                     else:
                         if self.listView_scans.model() is not None:
                             for index in range(self.listView_scans.model().rowCount()):
@@ -222,9 +222,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
                                                 new_item_scan.setIcon(icon_scan)
-                                parent.appendRow(new_item_scan)
-                                new_item_scan.setCheckable(False)
-                                new_item_scan.setEditable(False)
+                                                parent.appendRow(new_item_scan)
+                                                new_item_scan.setCheckable(False)
+                                                new_item_scan.setEditable(False)
 
                     self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
 
@@ -321,14 +321,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.param_types_batch = []
         plan_func = self.service_plan_funcs[index]
         signature = inspect.signature(plan_func)
-        print(signature)
+
         for i in range(0, len(signature.parameters)):
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
-            print(default)
+
             if default == str(signature.parameters[list(signature.parameters)[i]]):
                 default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
-                print(default)
-            print(signature.parameters[list(signature.parameters)[i]].annotation)
+
+
             self.add_parameters(list(signature.parameters)[i], default,
                                 signature.parameters[list(signature.parameters)[i]].annotation,
                                 grid=self.gridLayout_services,

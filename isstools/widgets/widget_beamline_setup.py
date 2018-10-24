@@ -257,7 +257,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  'Pd',
                  'Ag',
                  'Sn',
-                 'Sb']
+                 'Sb',
+                 '--']
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
@@ -919,7 +920,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def set_reference_foil(self):
         foil = self.comboBox_reference_foils.currentText()
-        print(foil)
         self.RE(self.reference_foil_plan(foil))
 
     def update_piezo_params(self):
