@@ -31,7 +31,7 @@
       <x>540</x>
       <y>40</y>
       <width>381</width>
-      <height>671</height>
+      <height>821</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_batch_definition"/>
@@ -811,7 +811,7 @@
     <property name="geometry">
      <rect>
       <x>840</x>
-      <y>720</y>
+      <y>870</y>
       <width>80</width>
       <height>23</height>
      </rect>
