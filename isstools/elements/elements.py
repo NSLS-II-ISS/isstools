@@ -9,7 +9,7 @@ class TreeView(QtWidgets.QTreeView):
         self.unique_elements = unique_elements
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
     def startDrag(self, dropAction):
         mime = QtCore.QMimeData()

@@ -53,21 +53,33 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.batch_mode_uids = []
         self.traj_manager = trajectory_manager(hhm)
         self.treeView_batch = elements.TreeView(self, 'all')
+        self.treeView_batch.acceptDrops()
         self.gridLayout_batch_definition.addWidget(self.treeView_batch, 0, 0)
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
+        
+        '''
+        WIP add horizontal scrollbar
+        self.treeView_batch.header().horizontalScrollBar()
+        '''
+        
         self.treeView_batch.setModel(self.model_batch)
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_delete_sample.clicked.connect(self.delete_sample)
         self.push_get_sample.clicked.connect(self.get_sample_pos)
+        self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+
+
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
         self.push_delete_scan.clicked.connect(self.delete_scan)
-        self.push_batch_delete.clicked.connect(self.delete_current_batch)
+        self.listView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+
+        self.push_batch_delete.clicked.connect(self.delete_batch_element)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
 
@@ -76,6 +88,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.comboBox_services.currentIndexChanged.connect(self.populate_service_parameters)
         self.push_update_traj_list.clicked.connect(self.update_batch_traj)
+
 
         try:
             self.update_batch_traj()
@@ -86,7 +99,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.service_param1 = []
         self.service_param2 = []
-        self.service_param3 = []
         self.populate_service_parameters(0)
 
     '''
@@ -95,8 +107,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def create_batch_experiment(self):
         parent = self.model_batch.invisibleRootItem()
-        batch_experiment = 'Batch experiment "{}" repeat {} times'.format(self.lineEdit_batch_experiment_name.text(),
-                                                                        self.spinBox_sample_loop_rep.value())
+        batch_experiment = 'Batch experiment "{}" repeat {} times                                      '\
+            .format(self.lineEdit_batch_experiment_name.text(), self.spinBox_sample_loop_rep.value())
         new_item = QtGui.QStandardItem(batch_experiment)
         new_item.setEditable(False)
         new_item.item_type = 'experiment'
@@ -114,7 +126,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             y = self.spinBox_sample_y.value()
             name = self.lineEdit_sample_name.text()
             comment = self.lineEdit_sample_comment.text()
-            item = QtGui.QStandardItem('Sample {} at X {} Y {}'.format(name, x, y))
+            item = QtGui.QStandardItem(f'{name} at X {x} Y {y}')
             item.setDropEnabled(False)
             item.item_type = 'sample'
             item.setCheckable(True)
@@ -159,11 +171,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             scan_type= self.comboBox_scans.currentText()
             traj = self.comboBox_lut.currentText()
             repeat =  self.spinBox_scan_repeat.value()
-            print(repeat)
             delay = self.spinBox_scan_delay.value()
             name = self.lineEdit_scan_name.text()
-            item = QtGui.QStandardItem('Scan {} with trajectory {}, {} times with {} s delay'.format(scan_type,
-                                                                                 traj, repeat, delay))
+            item = QtGui.QStandardItem(f'{scan_type} with {traj}, {repeat} times with {delay} s delay')
             item.setDropEnabled(False)
             item.item_type = 'scan'
             item.scan_type = scan_type
@@ -182,14 +192,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.message_box_name_empty('Scan name is empty')
 
 
-    def delete_current_batch(self):
+    def delete_batch_element(self):
         if self.treeView_batch.selectedIndexes():
             selected_index = self.treeView_batch.selectedIndexes()[0]
-            print(selected_index)
             item = self.model_batch.itemFromIndex(selected_index)
-            print(item.row())
-            item.parent().removeRow(item.row())
+            if item.item_type == 'experiment':
+                self.treeView_batch.model().removeRows(item.row(), 1)
+            else:
+                item.parent().removeRow(item.row())
             # TODO fix experiemnt level items removal
+
 
 
     '''
@@ -209,37 +221,41 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                 if item_sample.checkState():
                                     new_item_sample = self.clone_sample_item(item_sample)
                                     if self.listView_scans.model() is not None:
+                                        scans_selected = 0
                                         for index in range(self.listView_scans.model().rowCount()):
                                             item_scan = self.listView_scans.model().item(index)
                                             if item_scan.checkState():
+                                                scans_selected = 1
                                                 new_item_scan = self.clone_scan_item(item_scan)
                                                 new_item_sample.appendRow(new_item_scan)
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
                                                 new_item_scan.setIcon(icon_scan)
-                                                parent.appendRow(new_item_sample)
-                                                new_item_sample.setCheckable(False)
-                                                new_item_sample.setEditable(False)
+                                    if scans_selected:
+                                        parent.appendRow(new_item_sample)
+                                        new_item_sample.setCheckable(False)
+                                        new_item_sample.setEditable(False)
                     else:
                         if self.listView_scans.model() is not None:
                             for index in range(self.listView_scans.model().rowCount()):
                                 item_scan = self.listView_scans.model().item(index)
-
                                 if item_scan.checkState():
                                     new_item_scan = self.clone_scan_item(item_scan)
-
                                     if self.listView_samples.model() is not None:
+                                        samples_selected=0
                                         for index in range(self.listView_samples.model().rowCount()):
                                             item_sample = self.listView_samples.model().item(index)
                                             if item_scan.checkState():
+                                                samples_selected = 1
                                                 new_item_sample = self.clone_sample_item(item_sample)
                                                 new_item_scan.appendRow(new_item_sample)
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
                                                 new_item_scan.setIcon(icon_scan)
-                                                parent.appendRow(new_item_scan)
-                                                new_item_scan.setCheckable(False)
-                                                new_item_scan.setEditable(False)
+                                        if samples_selected:
+                                            parent.appendRow(new_item_scan)
+                                            new_item_scan.setCheckable(False)
+                                            new_item_scan.setEditable(False)
 
                     self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
 
@@ -342,8 +358,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def populate_service_parameters(self, index):
-
-
         for i in range(len(self.service_param1)):
             self.gridLayout_services.removeWidget(self.service_param1[i])
             self.gridLayout_services.removeWidget(self.service_param2[i])

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>943</width>
-    <height>839</height>
+    <width>962</width>
+    <height>953</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>5</x>
      <y>10</y>
      <width>931</width>
-     <height>826</height>
+     <height>851</height>
     </rect>
    </property>
    <property name="title">
@@ -31,7 +31,7 @@
       <x>540</x>
       <y>40</y>
       <width>381</width>
-      <height>821</height>
+      <height>771</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_batch_definition"/>
@@ -811,7 +811,7 @@
     <property name="geometry">
      <rect>
       <x>840</x>
-      <y>870</y>
+      <y>820</y>
       <width>80</width>
       <height>23</height>
      </rect>
