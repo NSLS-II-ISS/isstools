@@ -183,10 +183,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def delete_current_batch(self):
-        view = self.treeView_batch
-        index = view.currentIndex()
-        if index.row() < view.model().rowCount():
-            view.model().removeRows(index.row(), 1)
+        if self.treeView_batch.selectedIndexes():
+            selected_index = self.treeView_batch.selectedIndexes()[0]
+            print(selected_index)
+            item = self.model_batch.itemFromIndex(selected_index)
+            print(item.row())
+            item.parent().removeRow(item.row())
+            # TODO fix experiemnt level items removal
+
 
     '''
     Dealing with measurements
@@ -341,9 +345,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
         for i in range(len(self.service_param1)):
-            print(i)
-            print(self.service_param1[i])
-            print(self.service_param2[i])
             self.gridLayout_services.removeWidget(self.service_param1[i])
             self.gridLayout_services.removeWidget(self.service_param2[i])
 
@@ -359,7 +360,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
         for i in range(0, len(signature.parameters)):
-            print(i)
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
 
             if default == str(signature.parameters[list(signature.parameters)[i]]):
@@ -376,7 +376,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def add_parameters(self, name, default, annotation, grid, params):
-        print(f'Grid {grid.count()}')
         rows = int(grid.count() / 2)
         param1 = None
         def_val = ''
