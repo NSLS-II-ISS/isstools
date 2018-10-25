@@ -235,7 +235,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                        parent_gui = self,
                                                                        job_submitter=job_submitter)
                 self.layout_batch.addWidget(self.widget_batch_mode)
-                self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
+
 
                 self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(self.plan_funcs, self.service_plan_funcs,
                                                                        self.motors_dict, hhm,
@@ -249,7 +249,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                        parent_gui = self)
 
                 self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-                self.receiving_thread.received_bin_data.connect(self.widget_batch_mode.plot_batches)
+
 
 
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)

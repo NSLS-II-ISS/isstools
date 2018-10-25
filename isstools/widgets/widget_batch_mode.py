@@ -43,7 +43,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.addCanvas()
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
@@ -88,7 +87,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         self.batch_results = {}
         self.push_batch_pause.clicked.connect(self.pause_unpause_batch)
         self.push_batch_abort.clicked.connect(self.abort_batch)
-        self.push_replot_batch.clicked.connect(self.plot_batches)
+
         self.last_num_batch_text = 'i0'
         self.last_den_batch_text = 'it'
 
@@ -175,29 +174,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         if self.stage_x == '' or self.stage_y == '':
             print('No stage set! Batch mode will not work!')
 
-    def addCanvas(self):
-        self.figure_batch_waterfall = Figure()
-        self.figure_batch_waterfall.set_facecolor(color='#FcF9F6')
-        self.canvas_batch_waterfall = FigureCanvas(self.figure_batch_waterfall)
-        self.canvas_batch_waterfall.motor = ''
-        self.figure_batch_waterfall.ax = self.figure_batch_waterfall.add_subplot(111)
-        self.toolbar_batch_waterfall = NavigationToolbar(self.canvas_batch_waterfall, self, coordinates=True)
-        self.plot_batch_waterfall.addWidget(self.toolbar_batch_waterfall)
-        self.plot_batch_waterfall.addWidget(self.canvas_batch_waterfall)
-        self.canvas_batch_waterfall.draw_idle()
-        self.cursor_batch_waterfall = Cursor(self.figure_batch_waterfall.ax, useblit=True, color='green',
-                                             linewidth=0.75)
-
-        self.figure_batch_average = Figure()
-        self.figure_batch_average.set_facecolor(color='#FcF9F6')
-        self.canvas_batch_average = FigureCanvas(self.figure_batch_average)
-        self.canvas_batch_average.motor = ''
-        self.figure_batch_average.ax = self.figure_batch_average.add_subplot(111)
-        self.toolbar_batch_average = NavigationToolbar(self.canvas_batch_average, self, coordinates=True)
-        self.plot_batch_average.addWidget(self.toolbar_batch_average)
-        self.plot_batch_average.addWidget(self.canvas_batch_average)
-        self.canvas_batch_average.draw_idle()
-        self.cursor_batch_average = Cursor(self.figure_batch_average.ax, useblit=True, color='green', linewidth=0.75)
 
     def pause_unpause_batch(self):
         if self.batch_running == True:
@@ -215,124 +191,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
             self.batch_abort = True
             self.re_abort()
 
-    def plot_batches(self, data):
-        if self.parent_gui.run_mode == 'batch':
-            self.figure_batch_waterfall.ax.clear()
-            self.toolbar_batch_waterfall._views.clear()
-            self.toolbar_batch_waterfall._positions.clear()
-            self.toolbar_batch_waterfall._update_view()
-            self.canvas_batch_waterfall.draw_idle()
 
-            self.figure_batch_average.ax.clear()
-            self.toolbar_batch_average._views.clear()
-            self.toolbar_batch_average._positions.clear()
-            self.toolbar_batch_average._update_view()
-            self.canvas_batch_average.draw_idle()
-
-            #df = pd.read_msgpack(data['processing_ret']['data'])
-            df = data['processing_ret']['data']
-            if isinstance(df, str):
-                # load data, it's  astring
-                df = self.gen_parser.getInterpFromFile(df)
-            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
-            df = df.sort_values('energy')
-            self.df = df
-
-            md = data['processing_ret']['metadata']
-            trajectory_name = md['trajectory_name']
-            scan_name = md['name']
-            sample_name = scan_name.split(' - ')[0]
-            e0 = int(md['e0'])
-
-            if sample_name in self.batch_results:
-                self.batch_results[sample_name]['data'].append(df)
-                self.batch_results[sample_name]['orig_all'] = self.batch_results[sample_name]['orig_all'].append(df,
-                                                                                                                 ignore_index=True)
-                self.gen_parser.interp_arrays = self.batch_results[sample_name]['orig_all']
-                binned = self.gen_parser.bin(e0,
-                                             e0 - 30,
-                                             e0 + 50,
-                                             10,
-                                             0.2,
-                                             0.04)
-                self.batch_results[sample_name]['data_all'] = binned
-
-            else:
-                self.batch_results[sample_name] = {'data': [df]}
-                self.batch_results[sample_name]['orig_all'] = df
-                self.gen_parser.interp_df = self.batch_results[sample_name]['orig_all']
-                binned = self.gen_parser.bin(e0,
-                                             e0 - 30,
-                                             e0 + 50,
-                                             10,
-                                             0.2,
-                                             0.04)
-                self.batch_results[sample_name]['data_all'] = binned
-
-            largest_range = 0
-            for sample_index, sample in enumerate(self.batch_results):
-                for data_index, data_set in enumerate(self.batch_results[sample]['data']):
-                    if self.listWidget_numerator_batch.count() == 0:
-                        self.listWidget_numerator_batch.insertItems(0, list(data_set.keys()))
-                        self.listWidget_denominator_batch.insertItems(0, list(data_set.keys()))
-                        if len(data_set.keys()):
-                            while self.listWidget_numerator_batch.count() == 0 or self.listWidget_denominator_batch.count() == 0:
-                                QtCore.QCoreApplication.processEvents()
-                        index_num = [index for index, item in enumerate(
-                            [self.listWidget_numerator_batch.item(index) for index in
-                             range(self.listWidget_numerator_batch.count())]) if item.text() == self.last_num_batch_text]
-                        if len(index_num):
-                            self.listWidget_numerator_batch.setCurrentRow(index_num[0])
-                        index_den = [index for index, item in enumerate(
-                            [self.listWidget_denominator_batch.item(index) for index in
-                             range(self.listWidget_denominator_batch.count())]) if item.text() == self.last_den_batch_text]
-                        if len(index_den):
-                            self.listWidget_denominator_batch.setCurrentRow(index_den[0])
-
-                    else:
-                        if self.listWidget_numerator_batch.currentRow() != -1:
-                            self.last_num_batch_text = self.listWidget_numerator_batch.currentItem().text()
-                        if self.listWidget_denominator_batch.currentRow() != -1:
-                            self.last_den_batch_text = self.listWidget_denominator_batch.currentItem().text()
-
-                    energy_string = 'energy'
-                    result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
-
-                    if self.checkBox_log_batch.checkState() > 0:
-                        result = np.log(result)
-
-                    if result.max() - result.min() > largest_range:
-                        largest_range = result.max() - result.min()
-
-            for sample_index, sample in enumerate(self.batch_results):
-                for data_index, data_set in enumerate(self.batch_results[sample]['data']):
-
-                    energy_string = 'energy'
-                    result = data_set[self.last_num_batch_text] / data_set[self.last_den_batch_text]
-                    data_set_all = self.batch_results[sample]['data_all']
-                    result_all = data_set_all[self.last_num_batch_text] / data_set_all[self.last_den_batch_text]
-                    # print('data_set', len(data_set['i0']))
-
-                    if self.checkBox_log_batch.checkState() > 0:
-                        result = np.log(result)
-                        result_all = np.log(result_all)
-
-                    distance_multiplier = 1.25
-
-                    if data_index == 0:
-                        text_y = (sample_index * largest_range * distance_multiplier) + (result.max() + result.min()) / 2
-                        bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=1.3)
-                        self.figure_batch_waterfall.ax.text(data_set[energy_string].iloc[-1], text_y, sample, size=11,
-                                                            horizontalalignment='right', clip_on=True, bbox=bbox_props)
-                        self.figure_batch_average.ax.text(data_set_all[energy_string].iloc[-1], text_y, sample, size=11,
-                                                          horizontalalignment='right', clip_on=True, bbox=bbox_props)
-
-                    self.figure_batch_waterfall.ax.plot(data_set[energy_string].iloc[:len(result)],
-                                                        (sample_index * largest_range * distance_multiplier) + result)
-                    self.figure_batch_average.ax.plot(data_set_all[energy_string].iloc[:len(result_all)],
-                                                      (sample_index * largest_range * distance_multiplier) + result_all)
-            self.canvas_batch_waterfall.draw_idle()
-            self.canvas_batch_average.draw_idle()
 
     def create_new_sample_func(self):
         self.create_new_sample(self.lineEdit_sample_name.text(), self.doubleSpinBox_sample_x.value(),
@@ -409,12 +268,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
 
     def start_batch(self):
         print('[Launching Threads]')
-        self.listWidget_numerator_batch.clear()
-        self.listWidget_denominator_batch.clear()
-        self.figure_batch_waterfall.ax.clear()
-        self.canvas_batch_waterfall.draw_idle()
-        self.figure_batch_average.ax.clear()
-        self.canvas_batch_average.draw_idle()
+
         self.run_batch()
 
     def print_batch(self):
@@ -838,7 +692,7 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                             else:
                                 self.label_batch_step.setText('Execute {}'.format(scan_name))
                                 self.check_pause_abort_batch()
-                            uid = self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan], stdout=self.parent_gui.emitstream_out)
+                            uid = self.RE(self.plan_funcs[self.plan_funcs_names.index(scan_name)](**scans[scan], stdout=self.parent_gui.emitstream_out))
                             if uid:
                                 self.batch_mode_uids.extend(uid)
                         ### Uncomment (previous line)
