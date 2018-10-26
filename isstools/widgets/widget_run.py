@@ -292,6 +292,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             # TODO : this should plot depending on options set in a GUI
             if 'i0' in df and 'it' in df and 'energy' in df:
                 transmission = np.log(df['i0']/df['it'])
+                print(transmission)
                 self.figure.ax1.plot(df['energy'], transmission, color='r',label='Transmission')
                 self.figure.ax1.legend(loc=1)
             else:
