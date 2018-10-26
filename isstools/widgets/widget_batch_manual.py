@@ -99,6 +99,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.service_param1 = []
         self.service_param2 = []
+        self.service_params_types = []
         self.populate_service_parameters(0)
 
     '''
@@ -115,7 +116,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         new_item.repeat=self.spinBox_sample_loop_rep.value()
         new_item.setIcon(icon_experiment)
         parent.appendRow(new_item)
-
 
     '''
     Dealing with samples
@@ -154,7 +154,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         index = view.currentIndex()
         if index.row() < view.model().rowCount():
             view.model().removeRows(index.row(), 1)
-
 
     '''
     Dealing with scans
@@ -200,9 +199,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 self.treeView_batch.model().removeRows(item.row(), 1)
             else:
                 item.parent().removeRow(item.row())
-            # TODO fix experiemnt level items removal
-
-
 
     '''
     Dealing with measurements
@@ -263,8 +259,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                         self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
                     self.treeView_batch.setModel(self.model_batch)
 
-
-
     def clone_sample_item(self, item_sample):
         new_item_sample = QtGui.QStandardItem(item_sample.text())
         new_item_sample.item_type = 'sample'
@@ -284,14 +278,33 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         new_item_scan.name = item_scan.name
         return new_item_scan
 
-
     '''
     Dealing with services
     '''
     def create_service(self):
+        #parse parameters
+        service_params = []
+        print(service_params)
+        print(len(self.service_param1))
+        for i in range(len(self.service_param1)):
+            print(f'Cycle {i}')
+            variable = self.service_param2[i].text().split('=')[0]
+            if (self.service_params_types[i] == int) or (self.service_params_types[i] == float):
+                service_params.append(f'{variable} = {self.service_param1[i].value()}')
+                print('int')
+            elif (self.service_params_types[i] == bool):
+                service_params.append(f'{variable} = {bool(self.service_param1[i].checkState())}')
+                print('bool')
+            elif (self.service_params_types[i] == str):
+                service_params.append(f'{variable} = {self.service_param1[i].text()}')
+                print('str')
+        print(service_params)
+
+
         new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
         new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
+
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
                 selected_index = self.treeView_batch.selectedIndexes()[0]
@@ -306,6 +319,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     new_item_service.setCheckable(False)
                     new_item_service.setEditable(False)
                     self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+
+
+
 
 
 
@@ -368,7 +384,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_param1 = []
         self.service_param2 = []
 
-        self.param_types_batch = []
+        self.service_params_types = []
         plan_func = self.service_plan_funcs[index]
         signature = inspect.signature(plan_func)
 
@@ -383,10 +399,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                 signature.parameters[list(signature.parameters)[i]].annotation,
                                 grid=self.gridLayout_services,
                                 params=[self.service_param1, self.service_param2])
-            self.param_types_batch.append(signature.parameters[list(signature.parameters)[i]].annotation)
-
-
-
+            self.service_params_types.append(signature.parameters[list(signature.parameters)[i]].annotation)
 
 
     def add_parameters(self, name, default, annotation, grid, params):

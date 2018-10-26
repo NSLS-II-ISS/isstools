@@ -150,6 +150,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                 elif (self.param_types[i] == str):
                     run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
 
+
             # Erase last graph
             self.figure.ax1.clear()
             self.figure.ax2.clear()
