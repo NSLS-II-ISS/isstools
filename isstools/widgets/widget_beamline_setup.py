@@ -69,6 +69,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.prepare_bl_plan = prepare_bl_plan
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
+        self.get_offsets=self.service_plan_funcs[0]
         self.prepare_bl_list = prepare_bl_list
         self.set_gains_offsets_scan = set_gains_offsets_scan
         self.motors_dict = motors_dict
@@ -937,11 +938,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nlines = int(round(float(piezo_nlines)))
             self.piezo_nmeasures = int(round(float(piezo_nmeasures)))
             self.piezo_kp = float(piezo_kp)
-            # self.hhm.fb_line.put(self.piezo_line)
-            # self.hhm.fb_center.put(self.piezo_center)
-            # self.hhm.fb_nlines.put(self.piezo_nlines)
-            # self.hhm.fb_nmeasures.put(self.piezo_nmeasures)
-            # self.hhm.fb_pcoeff.put(self.piezo_kp)
+
 
             def update_piezo_params_plan(hhm, line, center, nlines,
                                          measures, pcoeff):
@@ -1048,19 +1045,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         print('[Read Gains] Done!\n')
 
     def run_get_offsets(self):
-        for shutter in [self.shutters[shutter] for shutter in self.shutters
-                        if self.shutters[shutter].shutter_type == 'PH' and
-                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 1]:
-            shutter.close()
-            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
-                QtWidgets.QApplication.processEvents()
-                ttime.sleep(0.1)
-        get_offsets = [func for func in self.service_plan_funcs if func.__name__ == 'get_offsets'][0]
-
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
-
-        list(get_offsets(20, *adcs, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.get_offsets(20, *adcs, stdout = self.parent_gui.emitstream_out))
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,

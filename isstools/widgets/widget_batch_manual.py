@@ -5,6 +5,7 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 
 
 from isstools.elements import elements
+from isstools.elements.dialogs import message_box
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.batch.batch import BatchManager
 
@@ -80,6 +81,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.listView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
 
         self.push_batch_delete.clicked.connect(self.delete_batch_element)
+        self.push_batch_info.clicked.\
+            connect(self.batch_info)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
 
@@ -141,7 +144,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             parent.appendRow(item)
             self.listView_samples.setModel(self.model_samples)
         else:
-            self.message_box_name_empty('Sample name is empty')
+            self.message_box('Warning','Sample name is empty')
 
     def get_sample_pos(self):
         x_value = self.sample_stage.x.position
@@ -188,7 +191,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             parent.appendRow(item)
             self.listView_scans.setModel(self.model_scans)
         else:
-            self.message_box_name_empty('Scan name is empty')
+            self.message_box('Warning','Scan name is empty')
 
 
     def delete_batch_element(self):
@@ -284,26 +287,25 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def create_service(self):
         #parse parameters
         service_params = []
-        print(service_params)
-        print(len(self.service_param1))
         for i in range(len(self.service_param1)):
-            print(f'Cycle {i}')
             variable = self.service_param2[i].text().split('=')[0]
             if (self.service_params_types[i] == int) or (self.service_params_types[i] == float):
                 service_params.append(f'{variable} = {self.service_param1[i].value()}')
-                print('int')
             elif (self.service_params_types[i] == bool):
                 service_params.append(f'{variable} = {bool(self.service_param1[i].checkState())}')
-                print('bool')
             elif (self.service_params_types[i] == str):
                 service_params.append(f'{variable} = {self.service_param1[i].text()}')
-                print('str')
-        print(service_params)
+
+        service_param_line =  ', '.join(service_params)
+        print(service_param_line)
+        service_plan=f'{self.comboBox_services.currentText()}({service_param_line})'
+        print(service_plan)
 
 
         new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
         new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
+        new_item_service.service_plan = service_plan
 
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
@@ -320,6 +322,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     new_item_service.setEditable(False)
                     self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
 
+    def batch_info(self):
+        if self.treeView_batch.model().rowCount():
+            if self.treeView_batch.selectedIndexes():
+                selected_index = self.treeView_batch.selectedIndexes()[0]
+                item = self.model_batch.itemFromIndex(selected_index)
+                if item.item_type == 'service':
+                    message_box(f'Batch element: {item.item_type}',item.service_plan )
 
 
 
@@ -369,9 +378,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         else:
             motor_text = self.comboBox_sample_loop_motor.currentText()
             self.update_loop_values(motor_text)
-
-
-
 
     def populate_service_parameters(self, index):
         for i in range(len(self.service_param1)):
@@ -461,13 +467,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
 
-    def message_box_name_empty(self, message):
-        messageBox = QtWidgets.QMessageBox()
-        messageBox.setText(message)
-        messageBox.addButton(QtWidgets.QPushButton('OK'), QtWidgets.QMessageBox.YesRole)
-        messageBox.setWindowTitle("Warning")
-        ret = messageBox.exec_()
-        return ret
 
 
 

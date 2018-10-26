@@ -5,3 +5,5 @@ def update_figure(axes, toolbar, canvas):
         axis.grid(alpha=0.4)
     toolbar.update()
     canvas.draw_idle()
+
+
