@@ -17,6 +17,7 @@ import socket
 
 from isstools.xasdata import xasdata
 from isstools.conversions import xray
+from isstools.elements.figure_update import update_figure
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
 
@@ -57,8 +58,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.gen_parser = xasdata.XASdataGeneric(self.hhm.enc.pulses_per_deg, self.db)
 
         self.settings = QSettings(parent_gui.window_title, 'XLive')
-        self.edit_E0_2.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
-        self.edit_E0_2.textChanged.connect(self.save_e0_processing_value)
+        self.edit_E0.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
+        self.edit_E0.textChanged.connect(self.save_e0_processing_value)
         self.user_dir = self.settings.value('user_dir', defaultValue = '/GPFS/xf08id/users/', type = str)
 
         # Initialize 'processing' tab
@@ -67,7 +68,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.push_calibrate.clicked.connect(self.calibrate_offset)
         self.push_replot_file.clicked.connect(self.replot_data)
         self.push_reset_data.clicked.connect(self.reset_data_plots)
-        self.cid = self.canvas_old_scans_2.mpl_connect('button_press_event', self.getX)
+        self.cid = self.canvas_interpolated_scans.mpl_connect('button_press_event', self.getX)
         self.edge_found = -1
         # Disable buttons
         self.push_bin_save.setDisabled(True)
@@ -86,33 +87,31 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
 
-        self.figure_old_scans_2 = Figure()
-        self.figure_old_scans_2.set_facecolor(color='#FcF9F6')
-        self.canvas_old_scans_2 = FigureCanvas(self.figure_old_scans_2)
-        self.figure_old_scans_2.ax = self.figure_old_scans_2.add_subplot(111)
-        self.figure_old_scans_2.ax2 = self.figure_old_scans_2.ax.twinx()
-        self.toolbar_old_scans_2 = NavigationToolbar(self.canvas_old_scans_2, self, coordinates=True)
-        self.plot_old_scans_2.addWidget(self.toolbar_old_scans_2)
-        self.plot_old_scans_2.addWidget(self.canvas_old_scans_2)
-        self.canvas_old_scans_2.draw_idle()
-        self.figure_old_scans_2.ax.grid(alpha = 0.4)
+        self.figure_interpolated_scans = Figure()
+        self.figure_interpolated_scans.set_facecolor(color='#FcF9F6')
+        self.canvas_interpolated_scans = FigureCanvas(self.figure_interpolated_scans)
+        self.figure_interpolated_scans.ax = self.figure_interpolated_scans.add_subplot(111)
+        self.toolbar_interpolated_scans = NavigationToolbar(self.canvas_interpolated_scans, self, coordinates=True)
+        self.plot_interpolated_scans.addWidget(self.toolbar_interpolated_scans)
+        self.plot_interpolated_scans.addWidget(self.canvas_interpolated_scans)
+        self.canvas_interpolated_scans.draw_idle()
+        self.figure_interpolated_scans.ax.grid(alpha = 0.4)
 
-        self.figure_old_scans_3 = Figure()
-        self.figure_old_scans_3.set_facecolor(color='#FcF9F6')
-        self.canvas_old_scans_3 = FigureCanvas(self.figure_old_scans_3)
-        self.figure_old_scans_3.ax = self.figure_old_scans_3.add_subplot(111)
-        self.figure_old_scans_3.ax2 = self.figure_old_scans_3.ax.twinx()
-        self.toolbar_old_scans_3 = NavigationToolbar(self.canvas_old_scans_3, self, coordinates=True)
-        self.plot_old_scans_3.addWidget(self.toolbar_old_scans_3)
-        self.plot_old_scans_3.addWidget(self.canvas_old_scans_3)
-        self.canvas_old_scans_3.draw_idle()
-        self.figure_old_scans_3.ax.grid(alpha=0.4)
+        self.figure_binned_scans = Figure()
+        self.figure_binned_scans.set_facecolor(color='#FcF9F6')
+        self.canvas_binned_scans = FigureCanvas(self.figure_binned_scans)
+        self.figure_binned_scans.ax = self.figure_binned_scans.add_subplot(111)
+        self.toolbar_binned_scans = NavigationToolbar(self.canvas_binned_scans, self, coordinates=True)
+        self.plot_binned_scans.addWidget(self.toolbar_binned_scans)
+        self.plot_binned_scans.addWidget(self.canvas_binned_scans)
+        self.canvas_binned_scans.draw_idle()
+        self.figure_binned_scans.ax.grid(alpha=0.4)
 
     def getX(self, event):
         if event.button == 3:
             ret = self.questionMessage('Setting Edge', 'Would like to set the edge to {:.0f}?'.format(event.xdata))
             if ret:
-                self.edit_E0_2.setText(str(int(np.round(event.xdata))))
+                self.edit_E0.setText(str(int(np.round(event.xdata))))
 
     def set_new_angle_offset(self, value):
         try:
@@ -190,7 +189,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.send_bin_request(uid, filepath=self.selected_filename_bin[index])
 
     def send_bin_request(self, uid, filepath):
-        e0 = int(self.edit_E0_2.text())
+        e0 = int(self.edit_E0.text())
         edge_start = int(self.edit_edge_start.text())
         edge_end = int(self.edit_edge_end.text())
         preedge_spacing = float(self.edit_preedge_spacing.text())
@@ -216,24 +215,11 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
 
     def send_data_request(self):
-        print("Submitting a data request")
-        index = 1
-        self.old_scans_control = 1
-        self.old_scans_2_control = 1
-        self.old_scans_3_control = 1
 
-        self.figure_old_scans_2.ax.clear()
-        self.figure_old_scans_2.ax2.clear()
-        self.toolbar_old_scans_2.update()
-        self.canvas_old_scans_2.draw_idle()
-        self.figure_old_scans_2.ax.grid(alpha=0.4)
-
-        self.figure_old_scans_3.ax.clear()
-        self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3.update()
-        self.figure_old_scans_3.ax.grid(alpha=0.4)
-
-        self.canvas_old_scans_3.draw_idle()
+        update_figure([self.figure_interpolated_scans.ax], self.toolbar_interpolated_scans,
+                      self.canvas_interpolated_scans)
+        update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
+                      self.canvas_binned_scans)
 
         # print('[Launching Threads]')
         if self.listWidget_numerator.currentRow() is not -1:
@@ -270,7 +256,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             print('[E0 Calibration] Aborted!')
             return False
 
-        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0_2.text()), self.hhm.pulses_per_deg) - xray.energy2encoder(float(self.edit_ECal.text()), self.hhm.pulses_per_deg))/self.hhm.pulses_per_deg)
+        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0.text()),
+                   self.hhm.pulses_per_deg) - xray.energy2encoder(float(self.edit_ECal.text()), self.hhm.pulses_per_deg))/self.hhm.pulses_per_deg)
         if self.set_new_angle_offset(new_value):
             return
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
@@ -278,22 +265,17 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
 
     def replot_data(self):
-        self.replot(self.bin_data_sets, self.handles_bin, self.figure_old_scans_3, self.toolbar_old_scans_3)
-        self.replot(self.interp_data_sets, self.handles_interp, self.figure_old_scans_2, self.toolbar_old_scans_2)
+        self.replot(self.bin_data_sets, self.handles_bin, self.figure_binned_scans, self.toolbar_binned_scans)
+        self.replot(self.interp_data_sets, self.handles_interp, self.figure_interpolated_scans, self.toolbar_interpolated_scans)
         self.replot_y()
 
     def replot_y(self):
-
-
         for data in self.bin_data_sets:
             df = data['processing_ret']['data']
 
     def replot(self, list_data_set, handles, figure, toolbar):
-        figure.ax.clear()
-        if hasattr(figure, 'ax2'):
-            figure.ax2.clear()
-        figure.canvas.draw_idle()
-        toolbar.update()
+        update_figure([figure.ax], toolbar,
+                      figure.canvas)
 
 
         if self.listWidget_numerator.currentRow() is not -1:
@@ -333,8 +315,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
             figure.ax.plot(df['energy'].iloc[:len(result)], result)
             figure.ax.set_ylabel(ylabel)
-            figure.ax.set_xlabel('energy')
-            figure.tight_layout()
+            figure.ax.set_xlabel('Energy /eV')
+            
 
         figure.ax.legend(handles=handles)
         figure.tight_layout()
@@ -363,15 +345,15 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if self.checkBox_neg.checkState() > 0:
             division = -division
 
-        self.figure_old_scans_3.ax.plot(df['energy'], division)
+        self.figure_binned_scans.ax.plot(df['energy'], division)
 
-        last_trace = self.figure_old_scans_3.ax.get_lines()[len(self.figure_old_scans_3.ax.get_lines()) - 1]
+        last_trace = self.figure_binned_scans.ax.get_lines()[len(self.figure_binned_scans.ax.get_lines()) - 1]
         patch = mpatches.Patch(color=last_trace.get_color(), label=data['processing_ret']['metadata']['name'])
         self.handles_bin.append(patch)
 
-        self.figure_old_scans_3.ax.legend(handles=self.handles_bin)
-        self.figure_old_scans_3.tight_layout()
-        self.canvas_old_scans_3.draw_idle()
+        self.figure_binned_scans.ax.legend(handles=self.handles_bin)
+        self.figure_binned_scans.tight_layout()
+        self.canvas_binned_scans.draw_idle()
 
 
     def plot_interp_data(self, data):
@@ -401,28 +383,21 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if self.checkBox_neg.checkState() > 0:
             division = -division
 
-        self.figure_old_scans_2.ax.plot(df['energy'], division)
+        self.figure_interpolated_scans.ax.plot(df['energy'], division)
 
-        last_trace = self.figure_old_scans_2.ax.get_lines()[len(self.figure_old_scans_2.ax.get_lines()) - 1]
+        last_trace = self.figure_interpolated_scans.ax.get_lines()[len(self.figure_interpolated_scans.ax.get_lines()) - 1]
         patch = mpatches.Patch(color=last_trace.get_color(), label=data['processing_ret']['metadata']['name'])
         self.handles_interp.append(patch)
 
-        self.figure_old_scans_2.ax.legend(handles=self.handles_interp)
-        self.figure_old_scans_2.tight_layout()
-        self.canvas_old_scans_2.draw_idle()
+        self.figure_interpolated_scans.ax.legend(handles=self.handles_interp)
+        self.figure_interpolated_scans.tight_layout()
+        self.canvas_interpolated_scans.draw_idle()
 
     def erase_plots(self):
-        self.figure_old_scans_2.ax.clear()
-        self.figure_old_scans_2.ax2.clear()
-        self.toolbar_old_scans_2.update()
-        self.canvas_old_scans_2.draw_idle()
-        self.figure_old_scans_2.ax.grid(alpha=0.4)
-
-        self.figure_old_scans_3.ax.clear()
-        self.figure_old_scans_3.ax2.clear()
-        self.toolbar_old_scans_3.update()
-        self.canvas_old_scans_3.draw_idle()
-        self.figure_old_scans_3.ax.grid(alpha=0.4)
+        update_figure([self.figure_interpolated_scans.ax], self.toolbar_interpolated_scans,
+                      self.canvas_interpolated_scans)
+        update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
+                      self.canvas_binned_scans)
 
     def reset_data_plots(self):
         self.push_replot_file.setEnabled(False)

@@ -172,7 +172,7 @@ b</string>
      <height>731</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_old_scans_2"/>
+   <layout class="QVBoxLayout" name="plot_interpolated_scans"/>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget_14">
    <property name="geometry">
@@ -286,7 +286,7 @@ b</string>
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QLineEdit" name="edit_E0_2">
+     <widget class="QLineEdit" name="edit_E0">
       <property name="text">
        <string>11470</string>
       </property>
@@ -337,7 +337,7 @@ b</string>
      <height>731</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_old_scans_3"/>
+   <layout class="QVBoxLayout" name="plot_binned_scans"/>
   </widget>
   <widget class="QPushButton" name="push_calibrate">
    <property name="geometry">
