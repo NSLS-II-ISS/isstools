@@ -328,11 +328,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 selected_index = self.treeView_batch.selectedIndexes()[0]
                 item = self.model_batch.itemFromIndex(selected_index)
                 if item.item_type == 'service':
-                    message_box(f'Batch element: {item.item_type}',item.service_plan )
-
-
-
-
+                    message_box(f'Batch element: {item.item_type}')
 
 
     def update_loop_values(self, text):
@@ -453,8 +449,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.comboBox_lut.clear()
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
-
-
 
     def check_pause_abort_batch(self):
         if self.batch_abort:

@@ -12,7 +12,10 @@ import time as ttime
 import numpy as np
 import datetime
 from timeit import default_timer as timer
-
+from isstools.xiaparser import xiaparser
+from isstools.xasdata.xasdata import XASdataGeneric
+from isstools.elements.dialogs import question_message_box, message_box
+from isstools.elements.figure_update import update_figure
 
 
 # Libs needed by the ZMQ communication
@@ -23,8 +26,7 @@ timenow = datetime.datetime.now()
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
-from isstools.xiaparser import xiaparser
-from isstools.xasdata.xasdata import XASdataGeneric
+
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -109,7 +111,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             for shutter in [self.shutters[shutter] for shutter in self.shutters if
                             self.shutters[shutter].shutter_type != 'SP']:
                 if shutter.state.value:
-                    ret = self.questionMessage('Shutter closed',
+                    ret = question_message_box(self,'Shutter closed',
                                                'Would you like to run the scan with the shutter closed?')
                     if not ret:
                         print('Aborted!')
@@ -151,14 +153,6 @@ class UIRun(*uic.loadUiType(ui_path)):
                     run_params[self.params3[i].text().split('=')[0]] = self.params2[i].text()
 
 
-            # Erase last graph
-            self.figure.ax1.clear()
-            self.figure.ax2.clear()
-            self.figure.ax3.clear()
-            self.toolbar.update()
-            self.canvas.draw_idle()
-            self.figure.ax3.grid(alpha = 0.4)
-            
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
@@ -177,10 +171,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def show_scan_help(self):
         title = self.run_type.currentText()
         message = self.plan_funcs[self.run_type.currentIndex()].__doc__
-        QtWidgets.QMessageBox.question(self,
-                                       'Help! - {}'.format(title),
-                                       message,
-                                       QtWidgets.QMessageBox.Ok)
+        message_box(title, message)
 
     def create_log_scan(self, uid, figure):
         self.canvas.draw_idle()
@@ -252,16 +243,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             params[1].append(param2)
             params[2].append(param3)
 
-    def questionMessage(self, title, question):
-        reply = QtWidgets.QMessageBox.question(self, title,
-                                               question,
-                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        if reply == QtWidgets.QMessageBox.Yes:
-            return True
-        elif reply == QtWidgets.QMessageBox.No:
-            return False
-        else:
-            return False
+
 
     def setAnalogSampTime(self, text):
         self.analog_samp_time = text
@@ -274,13 +256,8 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def plot_scan(self, data):
         if self.parent_gui.run_mode == 'run':
-            self.figure.ax1.clear()
-            self.figure.ax2.clear()
-            self.figure.ax3.clear()
-            self.figure.ax3.grid(alpha = 0.4)
-            #self.toolbar._views.clear()
-            #self.toolbar._positions.clear()
-            #self.toolbar._update_view()
+
+            update_figure([self.figure.ax2,self.figure.ax1, self.figure.ax3],self.toolbar,self.canvas)
 
             df = data['processing_ret']['data']
             if isinstance(df, str):
@@ -290,25 +267,30 @@ class UIRun(*uic.loadUiType(ui_path)):
             df = df.sort_values('energy')
             self.df = df
 
+
+
             # TODO : this should plot depending on options set in a GUI
             if 'i0' in df and 'it' in df and 'energy' in df:
-                self.transmission = transmission = np.log(df['i0']/df['it'])
-                self.figure.ax1.plot(df['energy'], transmission, color='r',label='Transmission')
-                self.figure.ax1.legend(loc=1)
+                self.transmission = transmission = np.array(np.log(df['i0']/df['it']))
             else:
                 print("Warning, could not find 'i0', 'it', or 'energy' (are devices present?)")
 
             if 'i0' in df and 'iff' in df and 'energy' in df:
-                fluorescence = (df['iff']/df['i0'])
-                self.figure.ax2.plot(df['energy'], fluorescence, color='g',label='Total fluorescence')
-                self.figure.ax2.legend(loc=2)
+                fluorescence = np.array(df['iff']/df['i0'])
 
-            
             if 'it' in df and 'ir' in df and 'energy' in df:
-                reference = np.log(df['it']/df['ir'])
-                self.figure.ax3.plot(df['energy'], reference, color='b',label='Reference')
-                self.figure.ax3.legend(loc=3)
+                reference = np.array(np.log(df['it']/df['ir']))
 
+            energy =  np.array(df['energy'])
+
+            edge=int(len(energy)*0.02)
+
+            self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
+            self.figure.ax1.legend(loc=1)
+            self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g',label='Total fluorescence')
+            self.figure.ax2.legend(loc=2)
+            self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b',label='Reference')
+            self.figure.ax3.legend(loc=3)
             self.canvas.draw_idle()
 
             self.create_log_scan(data['uid'], self.figure)

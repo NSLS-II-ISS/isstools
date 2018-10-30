@@ -48,7 +48,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  set_gains_offsets_scan,
                  motors_dict,
                  general_scan_func,
-                 reference_foil_plan,
+                 reference_foil_func,
+                 adjust_ic_gains_func,
                  create_log_scan,
                  auto_tune_dict,
                  shutters,
@@ -78,7 +79,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
-        self.reference_foil_plan = reference_foil_plan
+        self.reference_foil_func = reference_foil_func
+        self.adjust_ic_gains_func = adjust_ic_gains_func
         #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
@@ -242,29 +244,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
 
-        reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe',
-                 'Co',
-                 'Ni',
-                 'Cu',
-                 'Zn',
-                 'Pt',
-                 'Au',
-                 'Se',
-                 'Pb',
-                 'Nb',
-                 'Mo',
-                 'Ru',
-                 'Rh',
-                 'Pd',
-                 'Ag',
-                 'Sn',
-                 'Sb',
-                 '--']
+        reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe','Co', 'Ni','Cu', 'Zn','Pt', 'Au', 'Se', 'Pb', 'Nb','Mo','Ru',
+                           'Rh', 'Pd','Ag','Sn','Sb', '--']
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
-            
-
 
     def addCanvas(self):
         self.figure_gen_scan = Figure()
@@ -647,62 +631,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             shutter.close()
         print('Done!')
 
-    def adjust_ic_gains(self, trajectory: int = -1):
-
-        trajectory = int(trajectory)
-        if trajectory < 1 or trajectory > 8:
-            current_lut = int(self.hhm.lut_number_rbv.value)
-        else:
-            current_lut = trajectory
-
-        def handler(signum, frame):
-            print("Could not open shutters")
-            raise Exception("Timeout! Aborted!")
-
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(6)
-
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type != 'SP' and
-                                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
-
-            try:
-                shutter.open()
-            except Exception as exc:
-                print('Timeout! Aborting!')
-                return
-
-        # while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
-        #        QtWidgets.QApplication.processEvents()
-        #        ttime.sleep(0.1)
-
-        signal.alarm(0)
-
-        current_adc_index = self.comboBox_samp_time.currentIndex()
-        current_enc_value = self.lineEdit_samp_time.text()
-
-        info = self.parent_gui.widget_trajectory_manager.traj_manager.read_info(silent=True)
-
-        if 'max' not in info[str(current_lut)] or 'min' not in info[str(current_lut)]:
-            raise Exception(
-                'Could not find max or min information in the trajectory. Try sending it again to the controller.')
-
-        min_en = int(info[str(current_lut)]['min'])
-        max_en = int(info[str(current_lut)]['max'])
-
-        edge_energy = int(round((max_en + min_en) / 2))
-        preedge_lo = min_en - edge_energy
-        postedge_hi = max_en - edge_energy
-
-        self.parent_gui.widget_trajectory_manager.traj_creator.define(edge_energy=edge_energy, offsets=[preedge_lo, 0, 0, postedge_hi], sine_duration=2.5,
-                                 trajectory_type='Sine')
-        self.parent_gui.widget_trajectory_manager.traj_creator.interpolate()
-        self.parent_gui.widget_trajectory_manager.traj_creator.tile(reps=1)
-        self.parent_gui.widget_trajectory_manager.traj_creator.e2encoder(0)  # float(self.RE.md['angle_offset']))
-        # Don't need the offset since we're getting the data already with the offset
-
-        if not len(self.parent_gui.widget_trajectory_manager.traj_creator.energy_grid):
-            raise Exception('Trajectory creation failed. Try again.')
+    def adjust_ic_gains(self):
+        detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
+    '''
 
         # Everything ready, send the new daq sampling times:
         self.comboBox_samp_time.setCurrentIndex(3)
@@ -863,7 +795,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.parent_gui.widget_trajectory_manager.traj_manager.init(current_lut)
 
         print('[Gain set scan] Complete\n')
-
+    '''
     def prepare_bl(self, energy: int = -1):
         self.RE(self.prepare_bl_plan(energy=energy, print_messages=True, debug=False))
 
@@ -921,7 +853,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def set_reference_foil(self):
         foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.reference_foil_plan(foil))
+        self.RE(self.reference_foil_func(foil))
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)

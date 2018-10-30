@@ -40,7 +40,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs=[],
                  service_plan_funcs=[],
-                 prep_traj_plan=None,
+                 prep_traj_func=None,
                  RE=None,
                  db=None,
                  accelerator=None,
@@ -50,7 +50,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  motors_dict={},
                  general_scan_func = None,
                  sample_stage=None,
-                 reference_foil_plan = None,
+                 reference_foil_func = None,
+                 adjust_ic_gains_func = None,
                  parent=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
@@ -138,8 +139,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.service_plan_funcs = service_plan_funcs
-        self.reference_foil_plan = reference_foil_plan
-        self.prep_traj_plan = prep_traj_plan
+        self.reference_foil_func = reference_foil_func
+        self.adjust_ic_gains_func = adjust_ic_gains_func
+        self.prep_traj_func = prep_traj_func
+
 
         self.motors_dict = motors_dict
 
@@ -263,7 +266,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                                self.prepare_bl_list,
                                                                                self.set_gains_offsets_scan,
                                                                                self.motors_dict, general_scan_func,
-                                                                               self.reference_foil_plan,
+                                                                               self.reference_foil_func,
+                                                                               self.adjust_ic_gains_func,
                                                                                self.widget_run.create_log_scan,
                                                                                self.auto_tune_dict, shutters_dict, self)
             self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
@@ -300,7 +304,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         sys.stderr = sys.__stderr__
 
     def run_prep_traj(self):
-        self.RE(self.prep_traj_plan())
+        self.RE(self.prep_traj_func())
 
     def re_abort(self):
         if self.RE.state != 'idle':
