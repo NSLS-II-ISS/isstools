@@ -352,7 +352,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.handles_bin.append(patch)
 
         self.figure_binned_scans.ax.legend(handles=self.handles_bin)
-        self.figure_binned_scans.tight_layout()
         self.canvas_binned_scans.draw_idle()
 
 
@@ -390,7 +389,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.handles_interp.append(patch)
 
         self.figure_interpolated_scans.ax.legend(handles=self.handles_interp)
-        self.figure_interpolated_scans.tight_layout()
         self.canvas_interpolated_scans.draw_idle()
 
     def erase_plots(self):
