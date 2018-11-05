@@ -32,7 +32,7 @@
    <property name="title">
     <string notr="true">Analog detector setup</string>
    </property>
-   <widget class="QPushButton" name="push_read_amp_gains">
+   <widget class="QPushButton" name="push_get_gains">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -42,8 +42,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Read  Amplifier
-Gains</string>
+     <string>Get Gains</string>
     </property>
    </widget>
    <widget class="QPushButton" name="run_check_gains">
@@ -59,7 +58,7 @@ Gains</string>
      <string>Check Gains</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="run_check_gains_scan">
+   <widget class="QPushButton" name="push_adjust_gains">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -69,7 +68,7 @@ Gains</string>
      </rect>
     </property>
     <property name="text">
-     <string>Check Gains Scan</string>
+     <string>Adjust Gains</string>
     </property>
    </widget>
    <widget class="QPushButton" name="push_get_offsets">
