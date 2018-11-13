@@ -41,15 +41,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  det_dict,
                  xia,
                  ic_amplifiers,
-                 prepare_bl_plan,
                  plan_funcs,
                  service_plan_funcs,
+                 aux_plan_funcs,
                  prepare_bl_list,
-                 set_gains_offsets_scan,
+                 prepare_bl_plan,
                  motors_dict,
-                 general_scan_func,
-                 reference_foil_func,
-                 adjust_ic_gains_func,
                  create_log_scan,
                  auto_tune_dict,
                  shutters,
@@ -70,17 +67,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.prepare_bl_plan = prepare_bl_plan
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
-        self.get_offsets=self.service_plan_funcs[0]
+
         self.prepare_bl_list = prepare_bl_list
-        self.set_gains_offsets_scan = set_gains_offsets_scan
+        #self.set_gains_offsets_scan = set_gains_offsets_scan
         self.motors_dict = motors_dict
-        self.gen_scan_func = general_scan_func
-        self.create_log_scan = create_log_scan
+
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
-        self.reference_foil_func = reference_foil_func
-        self.adjust_ic_gains_func = adjust_ic_gains_func
+
+
         #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
@@ -103,21 +99,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.prepare_bl_plan = None
 
-        self.service_plan_funcs_names = [plan.__name__ for plan in service_plan_funcs]
-        if 'get_offsets' in self.service_plan_funcs_names:
-            self.push_get_offsets.clicked.connect(self.run_get_offsets)
-        else:
-            self.push_get_offsets.setEnabled(False)
 
-        if self.prepare_bl_plan is not None:
-            self.service_plan_funcs.append(self.prepare_bl)
-            self.service_plan_funcs_names.append(self.prepare_bl.__name__)
+        self.push_get_offsets.clicked.connect(self.run_get_offsets)
 
-        self.service_plan_funcs.append(self.adjust_ic_gains)
-        self.service_plan_funcs_names.append(self.adjust_ic_gains.__name__)
-        if self.set_gains_offsets_scan is not None:
-            self.service_plan_funcs.append(self.set_gains_offsets_scan)
-            self.service_plan_funcs_names.append(self.set_gains_offsets_scan.__name__)
+
+
 
         if self.hhm is None:
             self.pushEnableHHMFeedback.setEnabled(False)
@@ -179,8 +165,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.pushEnableHHMFeedback.setEnabled(False)
             self.update_piezo.setEnabled(False)
 
-        if len(self.mot_sorted_list) == 0 or len(self.det_sorted_list) == 0 or self.gen_scan_func == None:
-            self.push_gen_scan.setEnabled(0)
+
 
         if self.auto_tune_elements is not None:
             tune_elements = ' | '.join([element['name'] for element in self.auto_tune_elements])
@@ -221,19 +206,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.value / 100000)
             times_arr = [str(elem) for elem in times_arr]
             self.comboBox_samp_time.addItems(times_arr)
-            self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_batch_mode.setAnalogSampTime)
+            #   self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_batch_mode.setAnalogSampTime)
             self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_run.setAnalogSampTime)
             self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.value)
 
         if len(self.enc_list):
-            self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_batch_mode.setEncSampTime)
+            #self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_batch_mode.setEncSampTime)
             self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_run.setEncSampTime)
             self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
 
         if hasattr(self.xia, 'input_trigger'):
             if self.xia.input_trigger is not None:
                 self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_batch_mode.setXiaSampTime)
+                #self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_batch_mode.setXiaSampTime)
                 self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
                 self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
@@ -356,7 +341,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.push_gen_scan.setEnabled(False)
         try:
-            uid_list = list(self.gen_scan_func(detectors, self.comboBox_gen_detsig.currentText(),
+            uid_list = list(self.aux_paln_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
                                                self.comboBox_gen_detsig_den.currentText(),
                                                result_name, curr_mot, rel_start, rel_stop,
                                                num_steps, self.checkBox_tune.isChecked(),
@@ -634,168 +619,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def adjust_ic_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
-    '''
 
-        # Everything ready, send the new daq sampling times:
-        self.comboBox_samp_time.setCurrentIndex(3)
-        self.current_enc_value = self.lineEdit_samp_time.setText('0.028')
-        # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
-        for adc in self.adc_list:
-            adc.averaging_points.put(str(value))
-            adc.averaging_points.put(str(value))
-        for enc in self.enc_list:
-            enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
-
-        filename = '/GPFS/xf08id/trajectory/gain_aux.txt'
-        np.savetxt(filename,
-                   self.parent_gui.widget_trajectory_manager.traj_creator.energy_grid, fmt='%.6f')
-        call(['chmod', '666', filename])
-
-        self.parent_gui.widget_trajectory_manager.traj_manager.load(orig_file_name=filename[filename.rfind('/') + 1:],
-                               new_file_path='9', is_energy=True,
-                               offset=float(self.hhm.angle_offset.value))
-
-        ttime.sleep(1)
-
-        self.parent_gui.widget_trajectory_manager.traj_manager.init(9)
-
-        not_done = 1
-        max_tries = 1
-        while not_done and max_tries:
-            not_done = 0
-            max_tries -= 1
-
-            for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
-                shutter.open()
-
-            for func in self.plan_funcs:
-                if func.__name__ == 'tscan':
-                    tscan_func = func
-                    break
-            self.current_uid_list = list(tscan_func('Check gains', ''))
-
-            for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
-                shutter.close()
-
-            # Send sampling time to the pizzaboxes:
-            self.comboBox_samp_time.setCurrentIndex(current_adc_index)
-            self.current_enc_value = self.lineEdit_samp_time.setText(current_enc_value)
-            value = int(
-                round(float(self.comboBox_samp_time.currentText()) / self.adc_list[0].sample_rate.value * 100000))
-            for adc in self.adc_list:
-                adc.averaging_points.put(str(value))
-            for enc in self.enc_list:
-                enc.filter_dt.put(float(self.lineEdit_samp_time.text()) * 100000)
-
-            adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-
-            run = self.db[-1]
-            keys = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors'])]
-            regex = re.compile('pba\d{1}.*')
-            matches = [string for string in keys if re.match(regex, string)]
-            devnames = [run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname']
-                        for i, desc in enumerate(run['descriptors']) if run['descriptors'][i]['name'] in matches
-                        and run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
-            matches = [run['descriptors'][i]['name'] for i, desc in enumerate(run['descriptors']) if
-                       run['descriptors'][i]['name'] in matches and
-                       run['descriptors'][i]['data_keys'][run['descriptors'][i]['name']]['devname'] in adc_names]
-
-            print_message = ''
-            for index, adc in enumerate(matches):
-                data = []
-                dd = [_['data'] for _ in self.db.get_events(run, stream_name=adc, fill=True)]
-                for chunk in dd:
-                    data.extend(chunk[adc])
-                data = pd.DataFrame(np.array(data)[25:-25, 3])[0].apply(lambda x: (x >> 8) - 0x40000
-                if (x >> 8) > 0x1FFFF else x >> 8) * 7.62939453125e-05
-
-                try:
-                    if '{}_amp'.format(devnames[index]) in self.ic_amplifiers:
-                        curr_amp = self.ic_amplifiers['{}_amp'.format(devnames[index])]
-                        saturation = curr_amp.par.dev_saturation.value
-
-                        curr_gain = self.ic_amplifiers['{}_amp'.format(devnames[index])].get_gain()
-                        exp = int(curr_gain[0][-1])
-                        curr_hs = curr_gain[1]
-                        if curr_amp.par.polarity == 'neg':
-                            if (data < saturation).sum() < len(data) * 0.01:
-                                data[data < saturation] = data.mean()
-                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
-
-                            if data.max() > 0 and data.min() > 0:
-                                print_message += '{} is always positive. Perhaps it\'s floating.\n'.format(
-                                    devnames[index])
-                            elif data.min() > saturation / 100:
-                                exp += 2
-                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            elif data.min() > saturation / 10:
-                                exp += 1
-                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            elif data.max() < 0.5 and data.min() > saturation:
-                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(
-                                    devnames[index], exp)
-                            elif data.min() <= saturation:
-                                exp -= 1
-                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            else:
-                                print_message += '{} got a case that the programmer wasn\'t expecting. Sorry.\n'.format(
-                                    devnames[index])
-
-                            if (data.min() > saturation / 10 or data.min() < saturation) and not (
-                                    data.max() > 0 and data.min() > 0):
-                                not_done = 1
-                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed=curr_hs)
-
-                        elif curr_amp.par.polarity == 'pos':
-                            if (data > saturation).sum() < len(data) * 0.01:
-                                data[data > saturation] = data.mean()
-                            print('{}:   Max = {}   Min = {}'.format(devnames[index], data.max(), data.min()))
-
-                            if data.max() < 0 and data.min() < 0:
-                                print_message += '{} is always negative. Perhaps it\'s floating.\n'.format(
-                                    devnames[index])
-                            elif data.max() < saturation / 100:
-                                exp += 2
-                                print_message += 'Increasing {} gain by 10^2. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            elif data.max() < saturation / 10:
-                                exp += 1
-                                print_message += 'Increasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            elif data.min() > -0.5 and data.max() < saturation:
-                                print_message += '{} seems to be configured properly. Current gain: 10^{}\n'.format(
-                                    devnames[index], exp)
-                            elif data.max() >= saturation:
-                                exp -= 1
-                                print_message += 'Decreasing {} gain by 10^1. New gain: 10^{}\n'.format(devnames[index],
-                                                                                                        exp)
-                            else:
-                                print_message += '{} got a case that the programmer wasn\'t expecting. Sorry.\n'.format(
-                                    devnames[index])
-
-                            if (data.max() < saturation / 10 or data.max() > saturation) and not (
-                                    data.min() < 0 and data.max() < 0):
-                                not_done = 1
-                                self.ic_amplifiers['{}_amp'.format(devnames[index])].set_gain(exp, high_speed=curr_hs)
-
-                except Exception as exc:
-                    print('Exception: {}'.format(exc))
-
-            print('-' * 30)
-            if print_message:
-                print(print_message[:-1])
-            print('-' * 30)
-
-        self.parent_gui.widget_trajectory_manager.traj_manager.init(current_lut)
-
-        print('[Gain set scan] Complete\n')
-    '''
     def prepare_bl(self, energy: int = -1):
         self.RE(self.prepare_bl_plan(energy=energy, print_messages=True, debug=False))
 
@@ -979,7 +803,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def run_get_offsets(self):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
-        self.RE(self.get_offsets(20, *adcs, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.service_plan_funcs['get_offsets'](20, *adcs, stdout = self.parent_gui.emitstream_out))
 
     def questionMessage(self, title, question):
         reply = QtWidgets.QMessageBox.question(self, title,

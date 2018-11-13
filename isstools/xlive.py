@@ -38,8 +38,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
-                 plan_funcs=[],
-                 service_plan_funcs=[],
+                 plan_funcs={},
+                 service_plan_funcs={},
+                 aux_plan_funcs={},
                  prep_traj_func=None,
                  RE=None,
                  db=None,
@@ -48,15 +49,17 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
-                 general_scan_func = None,
                  sample_stage=None,
                  reference_foil_func = None,
+                 auto_tune_elements=None,
+                 ic_amplifiers={},
                  adjust_ic_gains_func = None,
-                 parent=None,
+                 processing_sender=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
                  window_title="XLive @QAS/11-ID NSLS-II",
                  job_submitter=None,
+                 prepare_bl=None,
                  *args, **kwargs):
         '''
 
@@ -87,31 +90,13 @@ class XliveGui(*uic.loadUiType(ui_path)):
         '''
         self.window_title = window_title
 
-        if 'write_html_log' in kwargs:
-            self.html_log_func = kwargs['write_html_log']
-            del kwargs['write_html_log']
-        else:
-            self.html_log_func = None
 
-        if 'ic_amplifiers' in kwargs:
-            self.ic_amplifiers = kwargs['ic_amplifiers']
-            del kwargs['ic_amplifiers']
-        else:
-            self.ic_amplifiers = None
 
-        if 'auto_tune_elements' in kwargs:
-            self.auto_tune_dict = kwargs['auto_tune_elements']
-            del kwargs['auto_tune_elements']
-        else:
-            self.auto_tune_dict = None
 
-        if 'prepare_bl' in kwargs:
-            self.prepare_bl_list = kwargs['prepare_bl']
-            self.prepare_bl_plan = kwargs['prepare_bl'][0]
-            del kwargs['prepare_bl']
-        else:
-            self.prepare_bl_list = []
-            self.prepare_bl_plan = None
+
+        self.prepare_bl_list = prepare_bl
+        self.prepare_bl_plan = prepare_bl[0]
+
 
         if 'set_gains_offsets' in kwargs:
             self.set_gains_offsets_scan = kwargs['set_gains_offsets']
@@ -137,12 +122,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.det_dict = det_dict
         self.plan_funcs = plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
         self.service_plan_funcs = service_plan_funcs
-        self.reference_foil_func = reference_foil_func
-        self.adjust_ic_gains_func = adjust_ic_gains_func
-        self.prep_traj_func = prep_traj_func
-
+        self.aux_plan_funcs = aux_plan_funcs
+        self.ic_amplifiers = ic_amplifiers
 
         self.motors_dict = motors_dict
 
@@ -165,21 +147,13 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.run_check_gains.setEnabled(False)
 
         self.hhm = hhm
-        if self.hhm is None:
-            self.tabWidget.removeTab([self.tabWidget.tabText(index)
-                                      for index in range(self.tabWidget.count())].index('Trajectory setup'))
-            self.tabWidget.removeTab([self.tabWidget.tabText(index)
-                                      for index in range(self.tabWidget.count())].index('Run'))
-            self.tabWidget.removeTab([self.tabWidget.tabText(index)
-                                      for index in range(self.tabWidget.count())].index('Run Batch'))
-        else:
-            self.hhm.trajectory_progress.subscribe(self.update_progress)
-            self.progress_sig.connect(self.update_progressbar)
-            self.progressBar.setValue(0)
+        self.hhm.trajectory_progress.subscribe(self.update_progress)
+        self.progress_sig.connect(self.update_progressbar)
+        self.progressBar.setValue(0)
 
         # Activating ZeroMQ Receiving Socket
-        self.context = zmq.Context()
-        self.hostname_filter = socket.gethostname()
+        #self.context = zmq.Context()
+        #self.hostname_filter = socket.gethostname()
         # Now using Kafka
         self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
@@ -222,11 +196,18 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
         if self.RE is not None:
-            self.widget_run = widget_run.UIRun(self.plan_funcs, self.RE,self.db, shutters_dict, self.adc_list, self.enc_list,
-                                               self.xia, self.html_log_func, self)
+            self.widget_run = widget_run.UIRun(self.plan_funcs,
+                                               self.aux_plan_funcs,
+                                               self.RE,
+                                               self.db,
+                                               shutters_dict,
+                                               self.adc_list,
+                                               self.enc_list,
+                                               self.xia,
+                                               self)
             self.layout_run.addWidget(self.widget_run)
             self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
-
+            '''
             if self.hhm is not None:
                 self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
                                                                        self.RE, self.db, self.widget_processing.gen_parser,
@@ -256,22 +237,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
                 self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
-
+          '''
             self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(self.RE, self.hhm, self.db, self.adc_list,
                                                                                self.enc_list, self.det_dict, self.xia,
                                                                                self.ic_amplifiers,
-                                                                               self.prepare_bl_plan,
                                                                                self.plan_funcs,
                                                                                self.service_plan_funcs,
+                                                                               self.aux_plan_funcs,
                                                                                self.prepare_bl_list,
-                                                                               self.set_gains_offsets_scan,
-                                                                               self.motors_dict, general_scan_func,
-                                                                               self.reference_foil_func,
-                                                                               self.adjust_ic_gains_func,
+                                                                               self.prepare_bl_plan,
+                                                                               self.motors_dict,
+
                                                                                self.widget_run.create_log_scan,
-                                                                               self.auto_tune_dict, shutters_dict, self)
+                                                                               auto_tune_elements, shutters_dict, self)
             self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
-   
+
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(self.shutters_dict))
 
         self.filepaths = []

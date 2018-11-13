@@ -31,13 +31,13 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
+                 aux_plan_funcs,
                  RE,
                  db,
                  shutters,
                  adc_list,
                  enc_list,
                  xia,
-                 html_log_func,
                  parent_gui,
                  *args, **kwargs):
 
@@ -48,7 +48,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.gen_parser = XASdataGeneric(parent_gui.hhm.enc.pulses_per_deg, db)
 
         self.plan_funcs = plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
+        self.plan_funcs_names = plan_funcs.keys()
+        self.aux_plan_funcs = aux_plan_funcs
         self.RE = RE
         self.db = db
         if self.db is None:
@@ -58,7 +59,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.adc_list = adc_list
         self.enc_list = enc_list
         self.xia = xia
-        self.html_log_func = html_log_func
+
         self.parent_gui = parent_gui
 
         self.filepaths = []
@@ -77,7 +78,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.params1 = []
         self.params2 = []
         self.params3 = []
-        if len(self.plan_funcs) != 0:
+        if self.plan_funcs:
             self.populateParams(0)
 
     def addCanvas(self):
@@ -97,27 +98,17 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def run_scan(self):
         ignore_shutter=False
-        if self.run_type.currentText() == 'get_offsets':
-            for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type == 'PH' and
-                                            self.shutters[shutter].state.read()['{}_state'.format(shutter)][
-                                                'value'] != 1]:
-                shutter.close()
-                while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 1:
-                    QtWidgets.QApplication.processEvents()
-                    ttime.sleep(0.1)
 
-        else:
-            for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type != 'SP']:
-                if shutter.state.value:
-                    ret = question_message_box(self,'Shutter closed',
-                                               'Would you like to run the scan with the shutter closed?')
-                    if not ret:
-                        print('Aborted!')
-                        return False
-                    ignore_shutter=True
-                    break
+        for shutter in [self.shutters[shutter] for shutter in self.shutters if
+                        self.shutters[shutter].shutter_type != 'SP']:
+            if shutter.state.value:
+                ret = question_message_box(self,'Shutter closed',
+                                           'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print('Aborted!')
+                    return False
+                ignore_shutter=True
+                break
 
         # Send sampling time to the pizzaboxes:
         value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
@@ -156,10 +147,12 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
-            self.run_mode_uids = self.RE(self.plan_funcs[self.run_type.currentIndex()](**run_params,
-                                                                                  ax=self.figure.ax1,
-                                                                                  ignore_shutter=ignore_shutter,
-                                                                                  stdout=self.parent_gui.emitstream_out))
+            plan_key = self.run_type.currentText()
+            plan_func = self.plan_funcs[plan_key]
+            self.run_mode_uids = self.RE(plan_func(**run_params,
+                                                  ax=self.figure.ax1,
+                                                  ignore_shutter=ignore_shutter,
+                                                  stdout=self.parent_gui.emitstream_out))
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()  
@@ -170,15 +163,17 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def show_scan_help(self):
         title = self.run_type.currentText()
-        message = self.plan_funcs[self.run_type.currentIndex()].__doc__
+        message = self.plan_funcs[title].__doc__
         message_box(title, message)
 
     def create_log_scan(self, uid, figure):
         self.canvas.draw_idle()
-        if self.html_log_func is not None:
-            self.html_log_func(uid, figure)
+        if self.aux_plan_funcs['write_html_log'] is not None:
+            self.aux_plan_funcs['write_html_log'](uid, figure)
 
     def populateParams(self, index):
+        plan_key = self.run_type.currentText()
+        plan_func = self.plan_funcs[plan_key]
         for i in range(len(self.params1)):
             self.gridLayout_13.removeWidget(self.params1[i])
             self.gridLayout_13.removeWidget(self.params2[i])
@@ -190,7 +185,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.params2 = []
         self.params3 = []
         self.param_types = []
-        plan_func = self.plan_funcs[index]
+
         signature = inspect.signature(plan_func)
         for i in range(0, len(signature.parameters)):
             default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
