@@ -34,6 +34,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                  aux_plan_funcs,
                  RE,
                  db,
+                 hhm,
                  shutters,
                  adc_list,
                  enc_list,
@@ -45,7 +46,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.addCanvas()
         # TODO : remove hhm dependency
-        self.gen_parser = XASdataGeneric(parent_gui.hhm.enc.pulses_per_deg, db)
+
 
         self.plan_funcs = plan_funcs
         self.plan_funcs_names = plan_funcs.keys()
@@ -59,7 +60,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.adc_list = adc_list
         self.enc_list = enc_list
         self.xia = xia
-
+        self.gen_parser = XASdataGeneric(hhm.enc.pulses_per_deg, db)
         self.parent_gui = parent_gui
 
         self.filepaths = []

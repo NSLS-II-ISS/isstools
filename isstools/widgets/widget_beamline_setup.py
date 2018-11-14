@@ -27,6 +27,8 @@ import signal
 
 from isstools.pid import PID
 from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog, MoveMotorDialog)
+from isstools.elements.dialogs import question_message_box
+from isstools.elements.math import gauss
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -67,6 +69,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.prepare_bl_plan = prepare_bl_plan
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
+        self.aux_plan_funcs = aux_plan_funcs
 
         self.prepare_bl_list = prepare_bl_list
         #self.set_gains_offsets_scan = set_gains_offsets_scan
@@ -100,14 +103,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.prepare_bl_plan = None
 
 
-        self.push_get_offsets.clicked.connect(self.run_get_offsets)
+        self.push_get_offsets.clicked.connect(self.get_offsets)
+        self.push_get_readouts.clicked.connect(self.get_readouts)
 
-
-
-
-        if self.hhm is None:
-            self.pushEnableHHMFeedback.setEnabled(False)
-            self.update_piezo.setEnabled(False)
+        self.push_adjust_gains.clicked.connect(self.adjust_gains)
 
         if hasattr(hhm, 'fb_line'):
             self.fb_master = 0
@@ -176,29 +175,23 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_prepare_autotune.setEnabled(False)
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
-        self.run_check_gains.clicked.connect(self.run_gains_test)
-        self.run_check_gains_scan.clicked.connect(self.adjust_ic_gains)
 
-        if self.prepare_bl_plan is not None:
-            self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
-            self.push_prepare_bl.setEnabled(True)
-        else:
-            self.push_prepare_bl.setEnabled(False)
 
-        if hasattr(self.hhm, 'fb_status'):
-            self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
-            self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
-            self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
-            self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-            self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
-            self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
-        else:
-            self.pushEnableHHMFeedback.setEnabled(False)
-            self.radioButton_fb_local.setEnabled(False)
-            self.radioButton_fb_remote.setEnabled(False)
 
-        if self.ic_amplifiers is None:
-            self.run_check_gains_scan.setEnabled(False)
+        self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
+        self.push_prepare_bl.setEnabled(True)
+
+
+
+        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
+        self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
+        self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
+        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
+        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
+
+
+
 
         if len(self.adc_list):
             times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
@@ -224,10 +217,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.dets_with_amp = [self.det_dict[det]['obj'] for det in self.det_dict
                              if self.det_dict[det]['obj'].name[:3] == 'pba' and hasattr(self.det_dict[det]['obj'], 'amp')]
-        if self.dets_with_amp == []:
-            self.push_read_amp_gains.setEnabled(False)
-        else:
-            self.push_read_amp_gains.clicked.connect(self.read_amp_gains)
+
+
 
         reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe','Co', 'Ni','Cu', 'Zn','Pt', 'Au', 'Se', 'Pb', 'Nb','Mo','Ru',
                            'Rh', 'Pd','Ag','Sn','Sb', '--']
@@ -268,7 +259,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             for shutter in [self.shutters[shutter] for shutter in self.shutters if
                             self.shutters[shutter].shutter_type != 'SP']:
                 if shutter.state.value:
-                    ret = self.questionMessage('Photon shutter closed', 'Proceed with the shutter closed?')
+                    ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
                     if not ret:
                         print('Aborted!')
                         return False
@@ -573,50 +564,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.checkBox_tune.setChecked(False)
             self.checkBox_tune.setEnabled(False)
 
-    def run_gains_test(self):
 
-        def handler(signum, frame):
-            print("Could not open shutters")
-            raise Exception("Timeout! Aborted!")
-
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(6)
-
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type != 'SP' and
-                                        self.shutters[shutter].state.read()['{}_state'.format(shutter)]['value'] != 0]:
-            try:
-                shutter.open()
-            except Exception as exc:
-                print('Timeout! Aborting!')
-                return
-
-            while shutter.state.read()['{}_state'.format(shutter.name)]['value'] != 0:
-                QtWidgets.QApplication.processEvents()
-                ttime.sleep(0.1)
-
-        signal.alarm(0)
-
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'closed']:
-            shutter.open()
-
-        for func in self.plan_funcs:
-            if func.__name__ == 'get_offsets':
-                getoffsets_func = func
-                break
-
-        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
-
-        self.current_uid_list = list(getoffsets_func(20, *adcs, dummy_read=True))
-
-        for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                        self.shutters[shutter].shutter_type == 'SP' and self.shutters[shutter].state == 'open']:
-            shutter.close()
-        print('Done!')
-
-    def adjust_ic_gains(self):
+    def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
 
@@ -773,48 +722,17 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         A, mu, sigma = p
         return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
 
-    def read_amp_gains(self):
-        adcs = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        if not len(adcs):
-            print('[Read Gains] Please select one or more Analog detectors')
-            return
 
-        print('[Read Gains] Starting...')
-
-        det_dict_with_amp = [self.det_dict[det]['obj'] for det in self.det_dict if hasattr(self.det_dict[det]['obj'], 'dev_name')]
-        for detec in adcs:
-            amp = [det.amp for det in det_dict_with_amp if det.dev_name.value == detec]
-            if len(amp):
-                amp = amp[0]
-                gain = amp.get_gain()
-                if isinstance(gain,int):
-                    #QAS
-                    print('[Read Gains] {} amp: 10^{}'.format(amp.par.dev_name.value, gain))
-                else:
-                    #ISS
-                    if gain[1]:
-                        gain[1] = 'High Speed'
-                    else:
-                        gain[1] = 'Low Noise'
-
-                    print('[Read Gains] {} amp: {} - {}'.format(amp.par.dev_name.value, gain[0], gain[1]))
-        print('[Read Gains] Done!\n')
-
-    def run_get_offsets(self):
+    def get_offsets(self):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
-        self.RE(self.service_plan_funcs['get_offsets'](20, *adcs, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.service_plan_funcs['get_adc_offsets'](20, *adcs, stdout = self.parent_gui.emitstream_out))
 
-    def questionMessage(self, title, question):
-        reply = QtWidgets.QMessageBox.question(self, title,
-                                               question,
-                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        if reply == QtWidgets.QMessageBox.Yes:
-            return True
-        elif reply == QtWidgets.QMessageBox.No:
-            return False
-        else:
-            return False
+    def get_readouts(self):
+        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+        self.RE(self.aux_plan_funcs['get_adc_readouts'](20, *adcs, stdout = self.parent_gui.emitstream_out))
+
 
 
 class piezo_fb_thread(QThread):
@@ -831,9 +749,7 @@ class piezo_fb_thread(QThread):
         self.pid.windup_guard = 3
         self.go = 0
 
-    def gauss(self, x, *p):
-        A, mu, sigma = p
-        return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
+
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
         # Eli's comment - that's where the check for the intensity should go.
@@ -857,7 +773,7 @@ class piezo_fb_thread(QThread):
 
         #print("Here all the time? 3")
         if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-            coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+            coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
             self.pid.SetPoint = 960 - center_point
             self.pid.update(coeff[1])
             deviation = self.pid.output
@@ -890,7 +806,7 @@ class piezo_fb_thread(QThread):
             min_value = sum_lines.min()
             # print('n_lines * 100: {} | max_value: {} | ((max_value - min_value) / n_lines): {}'.format(n_lines, max_value, ((max_value - min_value) / n_lines)))
             if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-                coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+                coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
                 centers.append(960 - coeff[1])
         # print('Centers: {}'.format(centers))
         # print('Old Center Point: {}'.format(center_point))

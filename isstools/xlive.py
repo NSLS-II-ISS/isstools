@@ -35,6 +35,7 @@ def auto_redraw_factory(fnc):
 
 
 class XliveGui(*uic.loadUiType(ui_path)):
+
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
@@ -90,64 +91,26 @@ class XliveGui(*uic.loadUiType(ui_path)):
         '''
         self.window_title = window_title
 
-
-
-
-
-        self.prepare_bl_list = prepare_bl
-        self.prepare_bl_plan = prepare_bl[0]
-
-
-        if 'set_gains_offsets' in kwargs:
-            self.set_gains_offsets_scan = kwargs['set_gains_offsets']
-            del kwargs['set_gains_offsets']
-        else:
-            self.set_gains_offsets_scan = None
-
-        if 'sample_stages' in kwargs:
-            self.sample_stages = kwargs['sample_stages']
-            del kwargs['sample_stages']
-        else:
-            self.sample_stages = []
-
-        if 'processing_sender' in kwargs:
-            self.sender = kwargs['processing_sender']
-            del kwargs['processing_sender']
-        else:
-            self.sender = None
-
+        self.sender = processing_sender
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.det_dict = det_dict
-        self.plan_funcs = plan_funcs
-        self.service_plan_funcs = service_plan_funcs
-        self.aux_plan_funcs = aux_plan_funcs
-        self.ic_amplifiers = ic_amplifiers
+        prepare_bl_list = prepare_bl
+        prepare_bl_plan = prepare_bl[0]
 
-        self.motors_dict = motors_dict
-
-        self.shutters_dict = shutters_dict
-        self.db = db
         self.RE = RE
-        self.sample_stage = sample_stage
 
-        if self.RE is not None:
-            self.RE.is_aborted = False
+
+        if RE is not None:
+            RE.is_aborted = False
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_re_state)
             self.timer.start(1000)
-        else:
-            self.tabWidget.removeTab(
-                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run'))
-            self.tabWidget.removeTab(
-                [self.tabWidget.tabText(index) for index in range(self.tabWidget.count())].index('Run Batch'))
-            self.push_re_abort.setEnabled(False)
-            self.run_check_gains.setEnabled(False)
 
-        self.hhm = hhm
-        self.hhm.trajectory_progress.subscribe(self.update_progress)
+
+
+        hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
 
@@ -161,98 +124,104 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
-        matches = [det for det in self.det_dict if re.match(regex, det)]
-        self.adc_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
+        matches = [det for det in det_dict if re.match(regex, det)]
+        adc_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
 
         # Looking for encoder pizzaboxes:
         regex = re.compile('pb\d{1}_enc.*')
-        matches = [det for det in self.det_dict if re.match(regex, det)]
-        self.enc_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
+        matches = [det for det in det_dict if re.match(regex, det)]
+        enc_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
 
         # Looking for xias:
         regex = re.compile('xia\d{1}')
-        matches = [det for det in self.det_dict if re.match(regex, det)]
-        self.xia_list = [self.det_dict[x]['obj'] for x in self.det_dict if x in matches]
-        if len(self.xia_list):
-            self.xia = self.xia_list[0]
-            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(self.xia_list)
+        matches = [det for det in det_dict if re.match(regex, det)]
+        xia_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
+        if len(xia_list):
+            xia = xia_list[0]
+            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
-        else:
-            self.tabWidget.removeTab([self.tabWidget.tabText(index) for index in
-                                      range(self.tabWidget.count())].index('Silicon Drift Detector setup'))
-            self.xia = None
 
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, self.RE, self.db)
+
+        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
         self.layout_general_info.addWidget(self.widget_general_info)
 
-        if self.hhm is not None:
-            self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
-            self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
-        self.widget_processing = widget_processing.UIProcessing(hhm, self.db, det_dict, parent_gui=self,
-                                                                job_submitter=job_submitter)
+        self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
+        self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+
+        self.widget_processing = widget_processing.UIProcessing(hhm,
+                                                                db,
+                                                                det_dict,
+                                                                parent_gui=self,
+                                                                job_submitter=job_submitter
+                                                                )
         self.layout_processing.addWidget(self.widget_processing)
+
         self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
         self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
-        if self.RE is not None:
-            self.widget_run = widget_run.UIRun(self.plan_funcs,
-                                               self.aux_plan_funcs,
-                                               self.RE,
-                                               self.db,
-                                               shutters_dict,
-                                               self.adc_list,
-                                               self.enc_list,
-                                               self.xia,
-                                               self)
-            self.layout_run.addWidget(self.widget_run)
-            self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
-            '''
-            if self.hhm is not None:
-                self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
-                                                                       self.RE, self.db, self.widget_processing.gen_parser,
-                                                                       self.adc_list, self.enc_list, self.xia,
-                                                                       self.run_prep_traj,
-                                                                       self.widget_run.figure,
-                                                                       self.widget_run.create_log_scan,
-                                                                       sample_stages=self.sample_stages,
-                                                                       parent_gui = self,
-                                                                       job_submitter=job_submitter)
-                self.layout_batch.addWidget(self.widget_batch_mode)
+        self.widget_run = widget_run.UIRun(plan_funcs,
+                                            aux_plan_funcs,
+                                            RE,
+                                            db,
+                                            hhm,
+                                            shutters_dict,
+                                            adc_list,
+                                            enc_list,
+                                            xia,
+                                            self)
+        self.layout_run.addWidget(self.widget_run)
+        self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
+        # if self.hhm is not None:
+        #     self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
+        #                                                            self.RE, self.db, self.widget_processing.gen_parser,
+        #                                                            self.adc_list, self.enc_list, self.xia,
+        #                                                            self.run_prep_traj,
+        #                                                            self.widget_run.figure,
+        #                                                            self.widget_run.create_log_scan,
+        #                                                            sample_stage=sample_stage,
+        #                                                            parent_gui = self,
+        #                                                            job_submitter=job_submitter)
+        #     self.layout_batch.addWidget(self.widget_batch_mode)
+        #
+        #
+        #     self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(self.plan_funcs, self.service_plan_funcs,
+        #                                                            self.motors_dict, hhm,
+        #                                                            self.RE, self.db, self.widget_processing.gen_parser,
+        #                                                            self.adc_list, self.enc_list, self.xia,
+        #                                                            self.run_prep_traj,
+        #                                                            self.widget_run.figure,
+        #                                                            self.widget_run.create_log_scan,
+        #
+        #                                                            sample_stage=self.sample_stage,
+        #                                                            parent_gui = self)
+        #
+        #     self.layout_batch_new.addWidget(self.widget_batch_mode_new)
+        #
+        #
+        #
+        #     self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
 
-                self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(self.plan_funcs, self.service_plan_funcs,
-                                                                       self.motors_dict, hhm,
-                                                                       self.RE, self.db, self.widget_processing.gen_parser,
-                                                                       self.adc_list, self.enc_list, self.xia,
-                                                                       self.run_prep_traj,
-                                                                       self.widget_run.figure,
-                                                                       self.widget_run.create_log_scan,
-                                                                       sample_stages=self.sample_stages,
-                                                                       sample_stage=self.sample_stage,
-                                                                       parent_gui = self)
+        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
+                                                                           hhm,
+                                                                           db,
+                                                                           adc_list,
+                                                                           enc_list,
+                                                                           det_dict,
+                                                                           xia,
+                                                                           ic_amplifiers,
+                                                                           plan_funcs,
+                                                                           service_plan_funcs,
+                                                                           aux_plan_funcs,
+                                                                           prepare_bl_list,
+                                                                           prepare_bl_plan,
+                                                                           motors_dict,
+                                                                           self.widget_run.create_log_scan,
+                                                                           auto_tune_elements, shutters_dict, self)
+        self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
 
-                self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-
-
-
-                self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
-          '''
-            self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(self.RE, self.hhm, self.db, self.adc_list,
-                                                                               self.enc_list, self.det_dict, self.xia,
-                                                                               self.ic_amplifiers,
-                                                                               self.plan_funcs,
-                                                                               self.service_plan_funcs,
-                                                                               self.aux_plan_funcs,
-                                                                               self.prepare_bl_list,
-                                                                               self.prepare_bl_plan,
-                                                                               self.motors_dict,
-
-                                                                               self.widget_run.create_log_scan,
-                                                                               auto_tune_elements, shutters_dict, self)
-            self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
-
-        self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(self.shutters_dict))
+        self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
 
         self.filepaths = []
 
