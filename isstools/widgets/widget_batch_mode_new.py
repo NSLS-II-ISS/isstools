@@ -234,8 +234,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
             self.batch_abort = True
             self.re_abort()
 
-
-
     def check_pause_abort_batch(self):
         if self.batch_abort:
             print('**** Aborting Batch! ****')
@@ -244,8 +242,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
             self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
             while self.batch_pause:
                 QtCore.QCoreApplication.processEvents()
-
-
 
     def re_abort(self):
         if self.RE.state != 'idle':
@@ -256,25 +252,17 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         print('[Launching Threads]')
         self.run_batch()
 
-
     def run_batch(self, print_only=False):
-        print(self.sample_stage)
         batch = self.widget_batch_manual.treeView_batch.model()
-        print(batch)
         plans_dict = {x.__name__: x for x in  self.plan_funcs}
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, plans_dict))
 
     def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict ):
         sys.stdout =  self.parent_gui.emitstream_out
-
         tm = trajectory_manager(hhm)
-        print(tm)
         for ii in range(batch.rowCount()):
-
             experiment = batch.item(ii)
-
             repeat=experiment.repeat
-            print(repeat)
             for indx in range(repeat):
                 exper_index = ''
                 if repeat>1:
@@ -323,5 +311,8 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                                       'stdout': self.parent_gui.emitstream_out}
 
                             yield from plan(**kwargs)
+                    elif step.item_type == 'service':
+                        yield from step.service_plan(**step.service_params)
+
 
 

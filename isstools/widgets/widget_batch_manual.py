@@ -286,19 +286,20 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     '''
     def create_service(self):
         #parse parameters
-        service_params = []
+        service_params = dict()
         for i in range(len(self.service_param1)):
             variable = self.service_param2[i].text().split('=')[0]
             if (self.service_params_types[i] == int) or (self.service_params_types[i] == float):
-                service_params.append(f'{variable} = {self.service_param1[i].value()}')
+                service_params[f'{variable}'] = f'{self.service_param1[i].value()}'
             elif (self.service_params_types[i] == bool):
-                service_params.append(f'{variable} = {bool(self.service_param1[i].checkState())}')
+                service_params[f'{variable}'] = f'{bool(self.service_param1[i].checkState())}'
             elif (self.service_params_types[i] == str):
-                service_params.append(f'{variable} = {self.service_param1[i].text()}')
+                service_params[f'{variable}'] = f'{self.service_param1[i].text()}'
 
-        service_param_line =  ', '.join(service_params)
-        print(service_param_line)
-        service_plan=f'{self.comboBox_services.currentText()}({service_param_line})'
+        print(service_params)
+
+        service_plan=self.service_plan_funcs[self.comboBox_services.currentIndex()]
+
         print(service_plan)
 
 
@@ -306,6 +307,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
         new_item_service.service_plan = service_plan
+        new_item_service.service_params = service_params
 
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
