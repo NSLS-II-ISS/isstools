@@ -169,8 +169,8 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def create_log_scan(self, uid, figure):
         self.canvas.draw_idle()
-        if self.aux_plan_funcs['write_html_log'] is not None:
-            self.aux_plan_funcs['write_html_log'](uid, figure)
+        self.aux_plan_funcs['write_html_log'](uid, figure)
+
 
     def populateParams(self, index):
         plan_key = self.run_type.currentText()
@@ -240,7 +240,6 @@ class UIRun(*uic.loadUiType(ui_path)):
             params[2].append(param3)
 
 
-
     def setAnalogSampTime(self, text):
         self.analog_samp_time = text
 
@@ -257,15 +256,10 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             df = data['processing_ret']['data']
             if isinstance(df, str):
-                # load data, it's  astring
                 df = self.gen_parser.getInterpFromFile(df)
-            #df = pd.DataFrame.from_dict(json.loads(data['processing_ret']['data']))
             df = df.sort_values('energy')
             self.df = df
 
-
-
-            # TODO : this should plot depending on options set in a GUI
             if 'i0' in df and 'it' in df and 'energy' in df:
                 self.transmission = transmission = np.array(np.log(df['i0']/df['it']))
             else:

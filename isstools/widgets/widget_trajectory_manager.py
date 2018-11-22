@@ -31,7 +31,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  hhm=None,
-                 run_prep_traj=None,
+                 aux_plan_funcs = {},
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -45,11 +45,12 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.widget_energy_selector = isstools.widgets.widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector_trajectory.addWidget(self.widget_energy_selector)
         #communication between the Energy Selector widget and Trajectory Manager
+
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
 
-        self.run_prep_traj = run_prep_traj
+        self.run_prep_traj = aux_plan_funcs['prepare_traj_plan']
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
         self.traj_manager = trajectory_manager(hhm)

@@ -46,8 +46,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  plan_funcs,
                  service_plan_funcs,
                  aux_plan_funcs,
-                 prepare_bl_list,
-                 prepare_bl_plan,
                  motors_dict,
                  create_log_scan,
                  auto_tune_dict,
@@ -66,15 +64,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.det_dict = det_dict
         self.xia = xia
         self.ic_amplifiers = ic_amplifiers
-        self.prepare_bl_plan = prepare_bl_plan
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
 
-        self.prepare_bl_list = prepare_bl_list
         #self.set_gains_offsets_scan = set_gains_offsets_scan
         self.motors_dict = motors_dict
-
         self.auto_tune_dict = auto_tune_dict
         self.shutters = shutters
         self.parent_gui = parent_gui
@@ -96,11 +91,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
 
-        if len(self.prepare_bl_list) == 2:
-            self.prepare_bl_plan = self.prepare_bl_list[0]
-            self.prepare_bl_def = self.prepare_bl_list[1]
-        else:
-            self.prepare_bl_plan = None
 
 
         self.push_get_offsets.clicked.connect(self.get_offsets)
@@ -332,7 +322,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.push_gen_scan.setEnabled(False)
         try:
-            uid_list = list(self.aux_paln_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
+            uid_list = list(self.aux_plan_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
                                                self.comboBox_gen_detsig_den.currentText(),
                                                result_name, curr_mot, rel_start, rel_stop,
                                                num_steps, self.checkBox_tune.isChecked(),

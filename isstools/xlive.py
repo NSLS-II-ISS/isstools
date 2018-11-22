@@ -42,7 +42,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  plan_funcs={},
                  service_plan_funcs={},
                  aux_plan_funcs={},
-                 prep_traj_func=None,
                  RE=None,
                  db=None,
                  accelerator=None,
@@ -51,10 +50,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  det_dict={},
                  motors_dict={},
                  sample_stage=None,
-                 reference_foil_func = None,
                  auto_tune_elements=None,
                  ic_amplifiers={},
-                 adjust_ic_gains_func = None,
                  processing_sender=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                  kafka_topic="qas-analysis", 
@@ -96,8 +93,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        prepare_bl_list = prepare_bl
-        prepare_bl_plan = prepare_bl[0]
 
         self.RE = RE
 
@@ -115,8 +110,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
 
         # Activating ZeroMQ Receiving Socket
-        #self.context = zmq.Context()
-        #self.hostname_filter = socket.gethostname()
+        self.context = zmq.Context()
+        self.hostname_filter = socket.gethostname()
         # Now using Kafka
         self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
@@ -146,7 +141,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_general_info.addWidget(self.widget_general_info)
 
 
-        self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm, self.run_prep_traj)
+        self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
+                                                                                       aux_plan_funcs= aux_plan_funcs
+                                                                                       )
         self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
         self.widget_processing = widget_processing.UIProcessing(hhm,
@@ -171,7 +168,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             xia,
                                             self)
         self.layout_run.addWidget(self.widget_run)
-        self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
+        #self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
         # if self.hhm is not None:
         #     self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
@@ -214,16 +211,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            plan_funcs,
                                                                            service_plan_funcs,
                                                                            aux_plan_funcs,
-                                                                           prepare_bl_list,
-                                                                           prepare_bl_plan,
                                                                            motors_dict,
                                                                            self.widget_run.create_log_scan,
                                                                            auto_tune_elements, shutters_dict, self)
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
-
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
-
-        self.filepaths = []
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
@@ -252,8 +244,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
-    def run_prep_traj(self):
-        self.RE(self.prep_traj_func())
 
     def re_abort(self):
         if self.RE.state != 'idle':
@@ -273,7 +263,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
 
-
+#
 class ReceivingThread(QThread):
     received_interp_data = QtCore.pyqtSignal(object)
     received_bin_data = QtCore.pyqtSignal(object)
