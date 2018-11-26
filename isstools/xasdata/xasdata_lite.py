@@ -11,10 +11,10 @@ import collections
 import pandas as pd
 import h5py
 from pathlib import Path
+import numexpr as ne
 
 
 def xasdata_load_dataset_from_files(db,uid):
-
 
     def load_adc_trace(filename=''):
         df=pd.DataFrame()
@@ -126,7 +126,43 @@ def xasdata_interpolate_dataset(dataset,key_base = 'i0'):
 
 def xasdata_bin_dataset(interpolated_dataset, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_k_spacing):
 
-    def energy_grid(energy_range, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_k_spacing):
+    # Constants for converting from hwhm -> gaussian parameters
+    GAUSS_SIGMA_FACTOR = 1 / (2 * (2 * np.log(2)) ** .5)
+
+    def _generate_sampled_gauss_window(x, fwhm, x0):
+        sigma = fwhm * GAUSS_SIGMA_FACTOR
+        a = 1 / (sigma * (2 * np.pi) ** .5)
+        data_y = ne.evaluate('a * exp(-.5 * ((x - x0) / sigma) ** 2)')
+        return data_y
+
+    def _compute_window_width(sample_points):
+        '''Given smaple points compute windows via approx 1D voronoi
+
+        Parameters
+        ----------
+        sample_points : array
+            Assumed to be monotonic
+
+        Returns
+        -------
+        windows : array
+            Average of distances to neighbors
+        '''
+        d = np.diff(sample_points)
+        fw = (d[1:] + d[:-1]) / 2
+        return np.concatenate((fw[0:1], fw, fw[-1:]))
+
+    def _generate_convolution_bin_matrix(sample_points, data_x):
+        fwhm = _compute_window_width(sample_points)
+        delta_en = _compute_window_width(data_x)
+
+        mat = _generate_sampled_gauss_window(data_x.reshape(1, -1),
+                                            fwhm.reshape(-1, 1),
+                                            sample_points.reshape(-1, 1))
+        mat *= delta_en.reshape(1, -1)
+        return mat
+
+    def xas_energy_grid(energy_range, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_k_spacing):
         energy_range_lo= np.min(energy_range)
         energy_range_hi = np.max(energy_range)
 
@@ -149,14 +185,16 @@ def xasdata_bin_dataset(interpolated_dataset, e0, edge_start, edge_end, preedge_
             post_edge = np.append(post_edge, eenergy)
         return  np.concatenate((preedge, before_edge, edge, after_edge, post_edge))
 
-
-
-        #return np.append(np.append(preedge,before_edge, edge, after_edge), postedge)
-
-
-    en_grid = energy_grid(interpolated_dataset['energy'].values, e0, edge_start, edge_end,
+    interpolated_energy_grid = interpolated_dataset['energy'].values
+    binned_energy_grid = xas_energy_grid(interpolated_energy_grid, e0, edge_start, edge_end,
                           preedge_spacing, xanes_spacing, exafs_k_spacing)
-    return en_grid
+
+
+    convo_mat = _generate_convolution_bin_matrix(binned_energy_grid, interpolated_energy_grid)
+    ret = {k: convo_mat @ v.values for k, v in interpolated_dataset.items() if k != 'energy'}
+    ret['energy'] = binned_energy_grid
+    binned_df = pd.DataFrame(ret)
+    return binned_df
 
 
 
