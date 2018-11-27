@@ -68,6 +68,11 @@ def xasdata_load_dataset_from_files(db,uid):
             if stream_offset in db[uid]['start']:
                 print("subtracting offset")
                 data.iloc[:, 1] = data.iloc[:, 1] - record['start'][stream_offset]
+            stream_gain =  f'{stream_device} gain'
+            if stream_gain in db[uid]['start']:
+                print("correcting for gain")
+                data.iloc[:, 1] = data.iloc[:, 1]/(10**record['start'][stream_gain])
+
 
         if stream_source == 'pizzabox-enc-file':
             data = load_enc_trace(stream_file)
@@ -194,6 +199,8 @@ def xasdata_bin_dataset(interpolated_dataset, e0, edge_start, edge_end, preedge_
     ret = {k: convo_mat @ v.values for k, v in interpolated_dataset.items() if k != 'energy'}
     ret['energy'] = binned_energy_grid
     binned_df = pd.DataFrame(ret)
+    binned_df = binned_df.drop('timestamp', 1)
+
     return binned_df
 
 

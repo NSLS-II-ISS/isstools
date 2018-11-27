@@ -464,7 +464,7 @@
       <x>10</x>
       <y>30</y>
       <width>301</width>
-      <height>103</height>
+      <height>109</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_19">
@@ -681,7 +681,7 @@ sampling time</string>
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_prepare_autotune">
+   <widget class="QPushButton" name="push_tune_beamline">
     <property name="geometry">
      <rect>
       <x>530</x>

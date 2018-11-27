@@ -29,6 +29,8 @@ from isstools.pid import PID
 from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog, MoveMotorDialog)
 from isstools.elements.dialogs import question_message_box
 from isstools.elements.math import gauss
+from bluesky.callbacks import LivePlot
+from isstools.elements.figure_update import update_figure
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -127,7 +129,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
-        self.push_prepare_autotune.clicked.connect(self.autotune_function)
+        self.push_tune_beamline.clicked.connect(self.tune_beamline)
 
         self.last_text = '0'
         self.tune_dialog = None
@@ -158,11 +160,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if self.auto_tune_elements is not None:
             tune_elements = ' | '.join([element['name'] for element in self.auto_tune_elements])
-            self.push_prepare_autotune.setToolTip(
+            self.push_tune_beamline.setToolTip(
                 'Elements: ({})\nIf the parameters are not defined, it will use parameters from General Scans boxes (Scan Range, Step Size and Max Retries)'.format(
                     tune_elements))
         else:
-            self.push_prepare_autotune.setEnabled(False)
+            self.push_tune_beamline.setEnabled(False)
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
@@ -305,11 +307,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
         if not repeat:
-            self.figure_gen_scan.ax.clear()
-            self.toolbar_gen_scan.update()
-            self.canvas_gen_scan.draw_idle()
-            self.figure_gen_scan.ax.grid(alpha=0.4)
-            self.canvas_gen_scan.motor = curr_mot
+            update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
+
 
         result_name = self.comboBox_gen_det.currentText()
         if self.comboBox_gen_det_den.currentText() != '1':
@@ -448,9 +447,39 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     pass
 
-    def autotune_function(self):
-        print('[Autotune procedure] Starting...')
+    def tune_beamline(self):
+        print('[Beamline tuning] Starting...')
         self.pushEnableHHMFeedback.setChecked(False)
+
+        #Tuninig pitch
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+        detector = self.det_dict['bpm_fm']['obj']
+        detector_channel_short = self.det_dict['bpm_fm']['channels'][0]
+        detector_channel_full = f'{detector.name}_{detector_channel_short}'
+        motor = self.motors_dict['hhm_pitch']['object']
+        self.RE(self.aux_plan_funcs['tuning_scan'](motor,detector,detector_channel_short,5,0.2,n_tries=10,
+                                                   stdout=self.parent_gui.emitstream_out
+                                                   ),
+                       LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+
+        self.RE(self.aux_plan_funcs['tuning_scan'](motor,detector,detector_channel_short,1,0.025,n_tries=3,
+                                                   stdout=self.parent_gui.emitstream_out
+                                                   ),
+                       LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+
+        # Tuninig roll
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+        motor = self.motors_dict['hhm_y']['object']
+        self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector, detector_channel_short, 1, 0.025, n_tries=3,
+                                                   stdout=self.parent_gui.emitstream_out
+                                                   ),
+                LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+
+
+
+        '''
+
+
         first_run = True
 
         for pre_element in self.auto_tune_pre_elements:
@@ -512,14 +541,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             if post_element['read_back'].value != post_element['value']:
                 if hasattr(post_element['motor'], 'move'):
                     move_function = post_element['motor'].move
-                elif hasattr(post_element['motor'], 'put'):
+                elif hasattr(post_element['motor'], 'put'):f
                     move_function = post_element['motor'].put
                 for repeat in range(post_element['tries']):
                     move_function(post_element['value'])
                     ttime.sleep(0.1)
 
         print('[Autotune procedure] Complete')
-
+        '''
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
