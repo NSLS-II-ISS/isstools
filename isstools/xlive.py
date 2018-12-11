@@ -50,7 +50,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  det_dict={},
                  motors_dict={},
                  sample_stage=None,
-                 auto_tune_elements=None,
+                 tune_elements=None,
                  ic_amplifiers={},
                  processing_sender=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
@@ -213,7 +213,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            aux_plan_funcs,
                                                                            motors_dict,
                                                                            self.widget_run.create_log_scan,
-                                                                           auto_tune_elements, shutters_dict, self)
+                                                                           tune_elements,
+                                                                           shutters_dict,
+                                                                           self)
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
 

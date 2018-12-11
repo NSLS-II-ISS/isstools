@@ -26,7 +26,7 @@ import math
 import signal
 
 from isstools.pid import PID
-from isstools.dialogs import (UpdatePiezoDialog, Prepare_BL_Dialog, MoveMotorDialog)
+from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from isstools.elements.dialogs import question_message_box
 from isstools.elements.math import gauss
 from bluesky.callbacks import LivePlot
@@ -42,16 +42,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                  db,
                  adc_list,
                  enc_list,
-                 det_dict,
+                 detector_dictionary,
                  xia,
                  ic_amplifiers,
                  plan_funcs,
                  service_plan_funcs,
                  aux_plan_funcs,
-                 motors_dict,
+                 motor_dictionary,
                  create_log_scan,
-                 auto_tune_dict,
-                 shutters,
+                 tune_elements,
+                 shutter_dictionary,
                  parent_gui,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -63,41 +63,29 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.db = db
         self.adc_list = adc_list
         self.enc_list = enc_list
-        self.det_dict = det_dict
+        self.detector_dictionary = detector_dictionary
         self.xia = xia
         self.ic_amplifiers = ic_amplifiers
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
-
-        #self.set_gains_offsets_scan = set_gains_offsets_scan
-        self.motors_dict = motors_dict
-        self.auto_tune_dict = auto_tune_dict
-        self.shutters = shutters
+        self.motor_dictionary = motor_dictionary
+        self.shutter_dictionary = shutter_dictionary
         self.parent_gui = parent_gui
-
-
-        #self.settings = QSettings(self.parent_gui.window_title, 'Xview')
 
         self.settings = QSettings(self.parent_gui.window_title, 'XLive')
 
-        if self.auto_tune_dict is not None:
-            self.auto_tune_elements = self.auto_tune_dict['elements']
-            self.auto_tune_pre_elements = self.auto_tune_dict['pre_elements']
-            self.auto_tune_post_elements = self.auto_tune_dict['post_elements']
-        else:
-            self.auto_tune_elements = None
+        self.tune_elements = tune_elements
 
-        #self.mot_list = self.motors_dict.keys()
-        self.mot_list = [self.motors_dict[motor]['description'] for motor in self.motors_dict]
+        #self.mot_list = self.motor_dictionary.keys()
+        self.mot_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary]
         self.mot_sorted_list = list(self.mot_list)
         self.mot_sorted_list.sort()
 
 
-
+        self.push_prepare_beamline.clicked.connect(self.prepare_beamline)
         self.push_get_offsets.clicked.connect(self.get_offsets)
         self.push_get_readouts.clicked.connect(self.get_readouts)
-
         self.push_adjust_gains.clicked.connect(self.adjust_gains)
 
         if hasattr(hhm, 'fb_line'):
@@ -134,10 +122,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_text = '0'
         self.tune_dialog = None
         self.last_gen_scan_uid = ''
-        self.det_list = [det_dict[det]['obj'].dev_name.value if hasattr(det_dict[det]['obj'], 'dev_name') else det_dict[det]['obj'].name for det in det_dict]
+        self.det_list = [detector_dictionary[det]['obj'].dev_name.value if hasattr(detector_dictionary[det]['obj'], 'dev_name') else detector_dictionary[det]['obj'].name for det in detector_dictionary]
         self.det_sorted_list = self.det_list
         self.det_sorted_list.sort()
-        self.checkBox_tune.stateChanged.connect(self.spinBox_gen_scan_retries.setEnabled)
+
         self.comboBox_gen_det.addItems(self.det_sorted_list)
         self.comboBox_gen_det_den.addItem('1')
         self.comboBox_gen_det_den.addItems(self.det_sorted_list)
@@ -147,33 +135,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.process_detsig()
         self.process_detsig_den()
 
-        found_bpm = 0
-        if 'bpm_es' in self.det_dict:
-            self.bpm_es = self.det_dict['bpm_es']['obj']
-            found_bpm = 1
-
-        if found_bpm == 0 or self.hhm is None:
-            self.pushEnableHHMFeedback.setEnabled(False)
-            self.update_piezo.setEnabled(False)
-
-
-
-        if self.auto_tune_elements is not None:
-            tune_elements = ' | '.join([element['name'] for element in self.auto_tune_elements])
-            self.push_tune_beamline.setToolTip(
-                'Elements: ({})\nIf the parameters are not defined, it will use parameters from General Scans boxes (Scan Range, Step Size and Max Retries)'.format(
-                    tune_elements))
-        else:
-            self.push_tune_beamline.setEnabled(False)
-
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
-
-
-
-        self.push_prepare_bl.clicked.connect(self.prepare_bl_dialog)
-        self.push_prepare_bl.setEnabled(True)
-
-
 
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
         self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
@@ -182,6 +144,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
         self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
 
+
+        if 'bpm_es' in self.detector_dictionary:
+            self.bpm_es = self.detector_dictionary['bpm_es']['obj']
 
 
 
@@ -207,8 +172,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
                 self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
-        self.dets_with_amp = [self.det_dict[det]['obj'] for det in self.det_dict
-                             if self.det_dict[det]['obj'].name[:3] == 'pba' and hasattr(self.det_dict[det]['obj'], 'amp')]
+        self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
+                             if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
 
 
 
@@ -248,8 +213,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             repeat = False
 
         if not ignore_shutter:
-            for shutter in [self.shutters[shutter] for shutter in self.shutters if
-                            self.shutters[shutter].shutter_type != 'SP']:
+            for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
+                            self.shutter_dictionary[shutter].shutter_type != 'SP']:
                 if shutter.state.value:
                     ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
                     if not ret:
@@ -261,11 +226,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.comboBox_gen_det.setCurrentText(curr_element['det_name'])
             self.comboBox_gen_detsig.setCurrentText(curr_element['det_sig'])
             self.comboBox_gen_det_den.setCurrentText('1')
-            self.comboBox_gen_mot.setCurrentText(self.motors_dict[curr_element['motor_name']]['description'])
+            self.comboBox_gen_mot.setCurrentText(self.motor_dictionary[curr_element['motor_name']]['description'])
             self.edit_gen_range.setText(str(curr_element['scan_range']))
             self.edit_gen_step.setText(str(curr_element['step_size']))
-            self.checkBox_tune.setChecked(curr_element['autotune'])
-            self.spinBox_gen_scan_retries.setValue(curr_element['retries'])
+
 
         curr_det = ''
         detectors = []
@@ -273,25 +237,25 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
         for i in range(self.comboBox_gen_det.count()):
-            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
             else:
-                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
 
-        #curr_mot = self.motors_dict[self.comboBox_gen_mot.currentText()]['object']
-        for motor in self.motors_dict:
-            if self.comboBox_gen_mot.currentText() == self.motors_dict[motor]['description']:
-                curr_mot = self.motors_dict[motor]['object']
+        #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
+        for motor in self.motor_dictionary:
+            if self.comboBox_gen_mot.currentText() == self.motor_dictionary[motor]['description']:
+                curr_mot = self.motor_dictionary[motor]['object']
                 break
 
         if curr_det == '':
@@ -324,8 +288,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             uid_list = list(self.aux_plan_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
                                                self.comboBox_gen_detsig_den.currentText(),
                                                result_name, curr_mot, rel_start, rel_stop,
-                                               num_steps, self.checkBox_tune.isChecked(),
-                                               retries=self.spinBox_gen_scan_retries.value(),
+                                               num_steps, False,
+                                               retries=1,
                                                ax=self.figure_gen_scan.ax))
         except Exception as exc:
             print('[General Scan] Aborted! Exception: {}'.format(exc))
@@ -450,159 +414,74 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def tune_beamline(self):
         print('[Beamline tuning] Starting...')
         self.pushEnableHHMFeedback.setChecked(False)
+        #insert bpm fm
+        self.detector_dictionary['bpm_fm']['obj'].insert()
+        previous_detector = None
+        self.RE(bps.sleep(1))
 
-        #Tuninig pitch
-        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-        detector = self.det_dict['bpm_fm']['obj']
-        detector_channel_short = self.det_dict['bpm_fm']['channels'][0]
-        detector_channel_full = f'{detector.name}_{detector_channel_short}'
-        motor = self.motors_dict['hhm_pitch']['object']
-        self.RE(self.aux_plan_funcs['tuning_scan'](motor,detector,detector_channel_short,5,0.2,n_tries=10,
-                                                   stdout=self.parent_gui.emitstream_out
-                                                   ),
-                       LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+        for element in self.tune_elements:
+            print('[Beamline tuning] '+ element['comment'])
+            detector = self.detector_dictionary[element['detector']]['obj']
+            if detector != previous_detector:
+                update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+            detector_channel_short = self.detector_dictionary[element['detector']]['channels'][0]
+            detector_channel_full = f'{detector.name}_{detector_channel_short}'
+            motor = self.motor_dictionary[element['motor']]['object']
+            self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector, detector_channel_short,
+                                                       element['range'],
+                                                       element['step'],
+                                                       retries=element['retries'],
+                                                       stdout=self.parent_gui.emitstream_out
+                                                       ),
+                    LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+            # turn camera into continuous mode
+            if hasattr(detector, 'image_mode'):
+                self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
+                self.RE(bps.mv(getattr(detector, 'acquire'), 1))
+            previous_detector = detector
 
-        self.RE(self.aux_plan_funcs['tuning_scan'](motor,detector,detector_channel_short,1,0.025,n_tries=3,
-                                                   stdout=self.parent_gui.emitstream_out
-                                                   ),
-                       LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
-
-        # Tuninig roll
-        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-        motor = self.motors_dict['hhm_y']['object']
-        self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector, detector_channel_short, 1, 0.025, n_tries=3,
-                                                   stdout=self.parent_gui.emitstream_out
-                                                   ),
-                LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
-
-
-
-        '''
+        self.detector_dictionary['bpm_fm']['obj'].retract()
+        print('[Beamline tuning] Beamline tuning complete')
 
 
-        first_run = True
-
-        for pre_element in self.auto_tune_pre_elements:
-            if pre_element['read_back'].value != pre_element['value']:
-                if hasattr(pre_element['motor'], 'move'):
-                    move_function = pre_element['motor'].move
-                elif hasattr(pre_element['motor'], 'put'):
-                    move_function = pre_element['motor'].put
-                for repeat in range(pre_element['tries']):
-                    move_function(pre_element['value'])
-                    ttime.sleep(0.1)
-
-        for element in self.auto_tune_elements:
-            if element['max_retries'] != -1 and element['scan_range'] != -1 and element['step_size'] != -1:
-                retries = element['max_retries']
-                scan_range = element['scan_range']
-                step_size = element['step_size']
-            else:
-                retries = self.spinBox_gen_scan_retries.value()
-                scan_range = float(self.edit_gen_range.text())
-                step_size = float(self.edit_gen_step.text())
-            curr_element = {'retries': retries, 'scan_range': scan_range, 'step_size': step_size,
-                            'det_name': element['detector_name'], 'det_sig': element['detector_signame'],
-                            'motor_name': element['name']}
-            curr_element['autotune'] = not self.checkBox_autotune_manual.isChecked()
-
-            button = None
-            repeat = True
-            first_try = True
-            while repeat:
-                repeat = False
-                self.run_gen_scan(curr_element=curr_element, ignore_shutter=not first_run, repeat=not first_try)
-                if first_run:
-                    first_run = False
-
-                if self.checkBox_autotune_manual.isChecked():
-                    self.tune_dialog = QtWidgets.QMessageBox(
-                        text='Please, select {} position and click OK or Retry'.format(curr_element['motor_name']),
-                        standardButtons=QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Retry | QtWidgets.QMessageBox.Cancel,
-                        parent=self)
-                    self.tune_dialog.setModal(False)
-                    self.tune_dialog.show()
-                    while self.tune_dialog.isVisible():
-                        QtWidgets.QApplication.processEvents()
-                    button = self.tune_dialog.clickedButton()
-                    if button.text() == '&Cancel':
-                        break
-                    elif button.text() == '&OK':
-                        self.create_log_scan(self.last_gen_scan_uid, self.figure_gen_scan)
-                        continue
-                    elif button.text() == 'Retry':
-                        repeat = True
-                        first_try = False
-            if button is not None:
-                if button.text() == '&Cancel':
-                    break
-
-        for post_element in self.auto_tune_post_elements:
-            if post_element['read_back'].value != post_element['value']:
-                if hasattr(post_element['motor'], 'move'):
-                    move_function = post_element['motor'].move
-                elif hasattr(post_element['motor'], 'put'):f
-                    move_function = post_element['motor'].put
-                for repeat in range(post_element['tries']):
-                    move_function(post_element['value'])
-                    ttime.sleep(0.1)
-
-        print('[Autotune procedure] Complete')
-        '''
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
-            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.det_dict.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
-                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
             else:
-                if self.comboBox_gen_det.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
-                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
 
     def process_detsig_den(self):
         self.comboBox_gen_detsig_den.clear()
         for i in range(self.comboBox_gen_det_den.count() - 1):
-            if hasattr(self.det_dict[list(self.det_dict.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.det_dict.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].dev_name.value:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
-                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
             else:
-                if self.comboBox_gen_det_den.currentText() == self.det_dict[list(self.det_dict.keys())[i]]['obj'].name:
-                    curr_det = self.det_dict[list(self.det_dict.keys())[i]]['obj']
-                    detsig = self.det_dict[list(self.det_dict.keys())[i]]['elements']
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
         if self.comboBox_gen_det_den.currentText() == '1':
             self.comboBox_gen_detsig_den.addItem('1')
-            self.checkBox_tune.setEnabled(True)
-        else:
-            self.checkBox_tune.setChecked(False)
-            self.checkBox_tune.setEnabled(False)
 
 
     def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
 
-    def prepare_bl(self, energy: int = -1):
-        self.RE(self.prepare_bl_plan(energy=energy, print_messages=True, debug=False))
+    def prepare_beamline(self):
+        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text())))
 
-    def prepare_bl_dialog(self):
-        curr_energy = float(self.edit_pb_energy.text())
-
-        curr_range = [ran for ran in self.prepare_bl_def[0] if
-                      ran['energy_end'] > curr_energy and ran['energy_start'] <= curr_energy]
-        if not len(curr_range):
-            print('Current energy is not valid. :( Aborted.')
-            return
-
-        dlg = Prepare_BL_Dialog.PrepareBLDialog(curr_energy, self.prepare_bl_def, parent=self)
-        if dlg.exec_():
-            self.prepare_bl(curr_energy)
 
     def enable_fb(self, value):
         if self.radioButton_fb_local.isChecked():

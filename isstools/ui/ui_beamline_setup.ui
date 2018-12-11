@@ -229,37 +229,6 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_109">
-       <property name="font">
-        <font>
-         <pointsize>9</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Motor</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox_gen_mot">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>9</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="3">
       <widget class="QLabel" name="label_110">
        <property name="font">
@@ -271,6 +240,20 @@
        </property>
        <property name="text">
         <string>Scan Range</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_109">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Motor</string>
        </property>
       </widget>
      </item>
@@ -288,32 +271,20 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="4">
-      <widget class="QSpinBox" name="spinBox_gen_scan_retries">
-       <property name="enabled">
-        <bool>false</bool>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox_gen_mot">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="font">
-        <font>
-         <pointsize>9</pointsize>
-        </font>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QLabel" name="label_145">
        <property name="font">
         <font>
          <pointsize>9</pointsize>
          <weight>50</weight>
          <bold>false</bold>
         </font>
-       </property>
-       <property name="text">
-        <string>Max Retries</string>
        </property>
       </widget>
      </item>
@@ -342,34 +313,6 @@
        </property>
        <property name="text">
         <string>1</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="3">
-      <widget class="QLabel" name="label_146">
-       <property name="font">
-        <font>
-         <pointsize>9</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tune</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="4">
-      <widget class="QCheckBox" name="checkBox_tune">
-       <property name="font">
-        <font>
-         <pointsize>9</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
        </property>
       </widget>
      </item>
@@ -607,7 +550,7 @@ sampling time</string>
      <string>Select energy</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="edit_pb_energy">
+   <widget class="QLineEdit" name="lineEdit_energy">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -650,7 +593,7 @@ sampling time</string>
      <string>eV</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_prepare_bl">
+   <widget class="QPushButton" name="push_prepare_beamline">
     <property name="geometry">
      <rect>
       <x>270</x>
@@ -695,22 +638,6 @@ sampling time</string>
     </property>
     <property name="text">
      <string>Tune beamline</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_autotune_manual">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>80</y>
-      <width>91</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>If checked, after each scan, it will ask the user to select optimal position before going to the next step</string>
-    </property>
-    <property name="text">
-     <string>supervised</string>
     </property>
    </widget>
    <widget class="QPushButton" name="push_update_piezo_center">
