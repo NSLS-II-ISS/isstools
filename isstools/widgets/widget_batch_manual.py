@@ -1,14 +1,12 @@
 import inspect
 import re
+
 import pkg_resources
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 
-
+from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
-from isstools.elements.dialogs import message_box
 from isstools.trajectory.trajectory import trajectory_manager
-from isstools.batch.batch import BatchManager
-
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 

@@ -1,19 +1,18 @@
-import pkg_resources
+import datetime
+from timeit import default_timer as timer
 
+import numpy as np
+import pkg_resources
 from PyQt5 import uic, QtCore
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
-import time as ttime
-import numpy as np
-import datetime
-from timeit import default_timer as timer
 
-from isstools.xasdata.xasdata import XASdataGeneric
-from isstools.elements.dialogs import question_message_box, message_box
+from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters
+from isstools.xasdata.xasdata import XASdataGeneric
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
@@ -135,12 +134,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         else:
             message_box('No name provided', 'Please provide the name for the scan')
 
-
-
     def create_log_scan(self, uid, figure):
         self.canvas.draw_idle()
         self.aux_plan_funcs['write_html_log'](uid, figure)
-
 
     def populate_parameter_grid(self, index):
         for i in range(len(self.parameter_values)):
@@ -155,7 +151,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         for i in range(len(self.parameter_values)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_parameters.addWidget(self.parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
-
 
     def setAnalogSampTime(self, text):
         self.analog_samp_time = text

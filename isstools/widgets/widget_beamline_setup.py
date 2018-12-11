@@ -1,8 +1,13 @@
-import pkg_resources
-import json
-import time
-import bluesky.plan_stubs as bps
+import math
+import time as ttime
+from datetime import datetime
 
+import bluesky.plan_stubs as bps
+import numpy as np
+import pkg_resources
+from PyQt5 import uic, QtWidgets
+from PyQt5.QtCore import QThread, QSettings
+from bluesky.callbacks import LivePlot
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -10,27 +15,11 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 from scipy.optimize import curve_fit
 
-from datetime import datetime
-import numpy as np
-import time as ttime
-from subprocess import call
-import re
-import pandas as pd
-import math
-from timeit import default_timer as timer
-
-from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QThread, QSettings
-from scipy.optimize import curve_fit
-import math
-import signal
-
-from isstools.pid import PID
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
-from isstools.elements.dialogs import question_message_box
-from isstools.elements.math import gauss
-from bluesky.callbacks import LivePlot
+from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure
+from isstools.elements.math import gauss
+from isstools.pid import PID
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
