@@ -27,7 +27,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QGridLayout" name="gridLayout_13">
+     <layout class="QGridLayout" name="gridLayout_parameters">
       <property name="sizeConstraint">
        <enum>QLayout::SetNoConstraint</enum>
       </property>
@@ -48,28 +48,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QCheckBox" name="checkBox_parse_after_scan">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>390</y>
-     <width>151</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>The data will be parsed  immediately after acquisition repeating scans</string>
-   </property>
-   <property name="text">
-    <string>Run and parse</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="tristate">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
@@ -81,36 +59,12 @@
    </property>
    <layout class="QVBoxLayout" name="plots"/>
   </widget>
-  <widget class="QCheckBox" name="checkBox_auto_process">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>410</y>
-     <width>131</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Automatically select
-file and switch to
-&quot;Processing&quot; tab</string>
-   </property>
-   <property name="text">
-    <string>Auto-processing</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="tristate">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QWidget" name="formLayoutWidget_3">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>351</width>
+     <width>246</width>
      <height>31</height>
     </rect>
    </property>
@@ -123,7 +77,7 @@ file and switch to
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QComboBox" name="run_type">
+     <widget class="QComboBox" name="comboBox_scan_type">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -135,19 +89,6 @@ file and switch to
         <width>150</width>
         <height>21</height>
        </size>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="pushButton_scantype_help">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>21</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Help</string>
       </property>
      </widget>
     </item>
