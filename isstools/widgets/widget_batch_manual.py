@@ -7,6 +7,7 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
 from isstools.trajectory.trajectory import trajectory_manager
+from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
@@ -42,8 +43,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
-        self.service_plan_funcs_names = [plan.__name__ for plan in service_plan_funcs]
+        self.plan_funcs_names = plan_funcs.keys()
+        self.service_plan_funcs_names = service_plan_funcs.keys()
         self.sample_stage = sample_stage
         self.motors_dict = motors_dict
         self.mot_list = self.motors_dict.keys()
@@ -59,6 +60,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
+        self.service_parameter_values = []
+        self.service_parameter_descriptions = []
         
         '''
         WIP add horizontal scrollbar
@@ -79,29 +82,21 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.listView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
 
         self.push_batch_delete.clicked.connect(self.delete_batch_element)
-        self.push_batch_info.clicked.\
-            connect(self.batch_info)
+        self.push_batch_info.clicked.connect(self.batch_info)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
-        self.comboBox_services.addItems(self.service_plan_funcs_names)
+        self.comboBox_service_scan.addItems(self.service_plan_funcs_names)
 
-        self.comboBox_services.currentIndexChanged.connect(self.populate_service_parameters)
+        self.comboBox_service_scan.currentIndexChanged.connect(self.populate_parameter_grid)
         self.push_update_traj_list.clicked.connect(self.update_batch_traj)
-
-
-        try:
-            self.update_batch_traj()
-        except OSError as err:
-             print('Error loading:', err)
 
         self.last_lut = 0
 
-        self.service_param1 = []
-        self.service_param2 = []
-        self.service_params_types = []
-        self.populate_service_parameters(0)
+        self.parameter_service_values = []
+        self.parameter_service_descriptions = []
+        self.populate_parameter_grid(0)
 
     '''
     Dealing with batch experiemnts
@@ -375,73 +370,22 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             motor_text = self.comboBox_sample_loop_motor.currentText()
             self.update_loop_values(motor_text)
 
-    def populate_service_parameters(self, index):
-        for i in range(len(self.service_param1)):
-            self.gridLayout_services.removeWidget(self.service_param1[i])
-            self.gridLayout_services.removeWidget(self.service_param2[i])
+    def populate_parameter_grid(self, index):
+        for i in range(len(self.service_parameter_values)):
+            self.gridLayout_service_parameters.removeWidget(self.parameter_values[i])
+            self.gridLayout_service_parameters.removeWidget(self.parameter_descriptions[i])
+            self.service_parameter_values[i].deleteLater()
+            self.service_parameter_descriptions[i].deleteLater()
 
-            self.service_param1[i].deleteLater()
-            self.service_param2[i].deleteLater()
-
-        self.service_param1 = []
-        self.service_param2 = []
-
-        self.service_params_types = []
-        plan_func = self.service_plan_funcs[index]
-        signature = inspect.signature(plan_func)
+        service_plan_func = self.service_plan_funcs[self.comboBox_service_scan.currentText()]
 
 
-        for i in range(0, len(signature.parameters)):
-            default = re.sub(r':.*?=', '=', str(signature.parameters[list(signature.parameters)[i]]))
+        [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
+            = parse_plan_parameters(service_plan_func)
 
-            if default == str(signature.parameters[list(signature.parameters)[i]]):
-                default = re.sub(r':.*', '', str(signature.parameters[list(signature.parameters)[i]]))
-
-            self.add_parameters(list(signature.parameters)[i], default,
-                                signature.parameters[list(signature.parameters)[i]].annotation,
-                                grid=self.gridLayout_services,
-                                params=[self.service_param1, self.service_param2])
-            self.service_params_types.append(signature.parameters[list(signature.parameters)[i]].annotation)
-
-
-    def add_parameters(self, name, default, annotation, grid, params):
-        rows = int(grid.count() / 2)
-        param1 = None
-        def_val = ''
-        if default.find('=') != -1:
-            def_val = re.sub(r'.*=', '', default)
-        if annotation == int:
-            param1 = QtWidgets.QSpinBox()
-            param1.setMaximum(100000)
-            param1.setMinimum(-100000)
-            def_val = int(def_val)
-            param1.setValue(def_val)
-        elif annotation == float:
-            param1 = QtWidgets.QDoubleSpinBox()
-            param1.setMaximum(100000)
-            param1.setMinimum(-100000)
-            def_val = float(def_val)
-            param1.setValue(def_val)
-        elif annotation == bool:
-            param1 = QtWidgets.QCheckBox()
-            if def_val == 'True':
-                def_val = True
-            else:
-                def_val = False
-            param1.setCheckState(def_val)
-            param1.setTristate(False)
-        elif annotation == str:
-            param1 = QtWidgets.QLineEdit()
-            def_val = str(def_val)
-            param1.setText(def_val)
-
-        if param1 is not None:
-            param2 = QtWidgets.QLabel(default)
-
-            grid.addWidget(param1, rows, 1, QtCore.Qt.AlignTop)
-            grid.addWidget(param2, rows, 2, QtCore.Qt.AlignTop)
-            params[0].append(param1)
-            params[1].append(param2)
+        for i in range(len(self.parameter_service_values)):
+            self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
+            self.gridLayout_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
 
 
     def update_batch_traj(self):

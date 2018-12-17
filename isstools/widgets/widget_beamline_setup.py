@@ -26,23 +26,21 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 RE,
-                 hhm,
-                 db,
-                 adc_list,
-                 enc_list,
-                 detector_dictionary,
-                 xia,
-                 ic_amplifiers,
-                 plan_funcs,
-                 service_plan_funcs,
-                 aux_plan_funcs,
-                 motor_dictionary,
-                 create_log_scan,
-                 tune_elements,
-                 shutter_dictionary,
-                 parent_gui,
-                 *args, **kwargs):
+                     RE,
+                     hhm,
+                     db,
+                     adc_list,
+                     enc_list,
+                     detector_dictionary,
+                     xia,
+                     ic_amplifiers,
+`                    service_plan_funcs,
+                     aux_plan_funcs,
+                     motor_dictionary,
+                     tune_elements,
+                     shutter_dictionary,
+                     parent_gui,
+                     *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
@@ -55,7 +53,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.detector_dictionary = detector_dictionary
         self.xia = xia
         self.ic_amplifiers = ic_amplifiers
-        self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -411,7 +408,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         for element in self.tune_elements:
             print('[Beamline tuning] '+ element['comment'])
             detector = self.detector_dictionary[element['detector']]['obj']
-            if detector != previous_detector:
+            if detector != previous_detector or motor != previous_motor:
                 update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
             detector_channel_short = self.detector_dictionary[element['detector']]['channels'][0]
             detector_channel_full = f'{detector.name}_{detector_channel_short}'
@@ -428,6 +425,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
                 self.RE(bps.mv(getattr(detector, 'acquire'), 1))
             previous_detector = detector
+            previous_motor = motor
 
         self.detector_dictionary['bpm_fm']['obj'].retract()
         print('[Beamline tuning] Beamline tuning complete')

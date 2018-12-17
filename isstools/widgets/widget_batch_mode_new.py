@@ -29,17 +29,12 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                  hhm,
                  RE,
                  db,
-                 gen_parser,
                  adc_list,
                  enc_list,
                  xia,
-                 run_prep_traj,
-                 scan_figure,
-                 create_log_scan,
-                 sample_stages,
-
                  parent_gui,
-                 *args,sample_stage = None, **kwargs):
+                 sample_stage = None,
+                 *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -47,8 +42,8 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
 
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
-        self.plan_funcs_names = [plan.__name__ for plan in plan_funcs]
-        self.service_plan_funcs_names = [plan.__name__ for plan in service_plan_funcs]
+        self.plan_funcs_names = plan_funcs.keys()
+        self.service_plan_funcs_names = service_plan_funcs.keys()
 
         self.motors_dict = motors_dict
         self.mot_list = self.motors_dict.keys()
@@ -56,14 +51,11 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         self.mot_sorted_list.sort()
         self.hhm = hhm
         self.traj_manager = trajectory_manager(hhm)
-        self.create_log_scan = create_log_scan
 
         self.RE = RE
         self.db = db
-        self.figure = scan_figure
-        self.run_prep_traj = run_prep_traj
 
-        self.sample_stages = sample_stages
+        self.sample_stage = sample_stage
         self.parent_gui = parent_gui
 
         self.batch_mode_uids = []

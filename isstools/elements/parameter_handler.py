@@ -61,15 +61,15 @@ def parse_plan_parameters(plan_func):
     return parameter_values, parameter_descriptions, parameter_types
 
 
-def  parse_grid_parameters(parameter_descriptions, parameter_values, parameter_types):
-    run_params = {}
+def  return_parameters_from_widget(parameter_descriptions, parameter_values, parameter_types):
+    parameters = {}
     for i in range(len(parameter_values)):
-        if (parameter_types[i] == int):
-            run_params[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].value()
-        elif (parameter_types[i] == float):
-            run_params[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].value()
-        elif (parameter_types[i] == bool):
-            run_params[parameter_descriptions[i].text().split('=')[0]] = bool(parameter_values[i].checkState())
-        elif (parameter_types[i] == str):
-            run_params[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].text()
-
+        if parameter_types[i] == int:
+            parameters[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].value()
+        elif parameter_types[i] == float:
+            parameters[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].value()
+        elif parameter_types[i] == bool:
+            parameters[parameter_descriptions[i].text().split('=')[0]] = bool(parameter_values[i].checkState())
+        elif parameter_types[i] == str:
+            parameters[parameter_descriptions[i].text().split('=')[0]] = parameter_values[i].text()
+    return parameters

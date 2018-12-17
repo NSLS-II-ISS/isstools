@@ -57,7 +57,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  kafka_topic="qas-analysis", 
                  window_title="XLive @QAS/11-ID NSLS-II",
                  job_submitter=None,
-                 prepare_bl=None,
                  *args, **kwargs):
         '''
 
@@ -87,7 +86,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                 the address for where to subscribe the Kafka Consumer to
         '''
         self.window_title = window_title
-
+        print(f'Titel {self.window_title}')
         self.sender = processing_sender
 
         super().__init__(*args, **kwargs)
@@ -116,6 +115,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
         self.receiving_thread = ReceivingThread(self)
         self.run_mode = 'run'
+        self.window_title = window_title
 
         # Looking for analog pizzaboxes:
         regex = re.compile('pba\d{1}.*')
@@ -139,8 +139,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
         self.layout_general_info.addWidget(self.widget_general_info)
-
-
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs
                                                                                        )
@@ -183,21 +181,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
         #     self.layout_batch.addWidget(self.widget_batch_mode)
         #
         #
-        #     self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(self.plan_funcs, self.service_plan_funcs,
-        #                                                            self.motors_dict, hhm,
-        #                                                            self.RE, self.db, self.widget_processing.gen_parser,
-        #                                                            self.adc_list, self.enc_list, self.xia,
-        #                                                            self.run_prep_traj,
-        #                                                            self.widget_run.figure,
-        #                                                            self.widget_run.create_log_scan,
-        #
-        #                                                            sample_stage=self.sample_stage,
-        #                                                            parent_gui = self)
-        #
-        #     self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-        #
-        #
-        #
+        self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(plan_funcs,
+                                                                        service_plan_funcs,
+                                                                        motors_dict, hhm,
+                                                                        RE,
+                                                                        db,
+                                                                        adc_list,
+                                                                        enc_list,
+                                                                        xia,
+                                                                        self,
+                                                                        sample_stage=sample_stage)
+
+        self.layout_batch_new.addWidget(self.widget_batch_mode_new)
+
+
+
         #     self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
 
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
@@ -208,15 +206,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            det_dict,
                                                                            xia,
                                                                            ic_amplifiers,
-                                                                           plan_funcs,
                                                                            service_plan_funcs,
                                                                            aux_plan_funcs,
                                                                            motors_dict,
-                                                                           self.widget_run.create_log_scan,
                                                                            tune_elements,
                                                                            shutters_dict,
                                                                            self)
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
+
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
 
         self.push_re_abort.clicked.connect(self.re_abort)

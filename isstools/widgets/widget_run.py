@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
-from isstools.elements.parameter_handler import parse_plan_parameters
+from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.xasdata.xasdata import XASdataGeneric
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
@@ -105,38 +105,25 @@ class UIRun(*uic.loadUiType(ui_path)):
             start_scan_timer=timer()
             
             # Get parameters from the widgets and organize them in a dictionary (run_params)
-            run_params = {}
-            for i in range(len(self.parameter_values)):
-                if (self.param_types[i] == int):
-                    run_params[self.parameter_descriptions[i].text().split('=')[0]] = self.parameter_values[i].value()
-                elif (self.param_types[i] == float):
-                    run_params[self.parameter_descriptions[i].text().split('=')[0]] = self.parameter_values[i].value()
-                elif (self.param_types[i] == bool):
-                    run_params[self.parameter_descriptions[i].text().split('=')[0]] = bool(self.parameter_values[i].checkState())
-                elif (self.param_types[i] == str):
-                    run_params[self.parameter_descriptions[i].text().split('=')[0]] = self.parameter_values[i].text()
-
-
-            # Run the scan using the dict created before
-            self.run_mode_uids = []
-            self.parent_gui.run_mode = 'run'
-            plan_key = self.comboBox_scan_type.currentText()
-            plan_func = self.plan_funcs[plan_key]
-            self.run_mode_uids = self.RE(plan_func(**run_params,
-                                                  ax=self.figure.ax1,
-                                                  ignore_shutter=ignore_shutter,
-                                                  stdout=self.parent_gui.emitstream_out))
-            timenow = datetime.datetime.now()
-            print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
-            stop_scan_timer=timer()  
-            print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
+            run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
+                                                            self.parameter_types)
+            print(run_parameters)
+            # # Run the scan using the dict created before
+            # self.run_mode_uids = []
+            # self.parent_gui.run_mode = 'run'
+            # plan_key = self.comboBox_scan_type.currentText()
+            # plan_func = self.plan_funcs[plan_key]
+            # self.run_mode_uids = self.RE(plan_func(**run_parameters,
+            #                                       ax=self.figure.ax1,
+            #                                       ignore_shutter=ignore_shutter,
+            #                                       stdout=self.parent_gui.emitstream_out))
+            # timenow = datetime.datetime.now()
+            # print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
+            # stop_scan_timer=timer()
+            # print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
 
         else:
-            message_box('No name provided', 'Please provide the name for the scan')
-
-    def create_log_scan(self, uid, figure):
-        self.canvas.draw_idle()
-        self.aux_plan_funcs['write_html_log'](uid, figure)
+            message_box('Error', 'Please provide the name for the scan')
 
     def populate_parameter_grid(self, index):
         for i in range(len(self.parameter_values)):
@@ -146,7 +133,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.parameter_descriptions[i].deleteLater()
 
         plan_func = self.plan_funcs[self.comboBox_scan_type.currentText()]
-        [self.parameter_values, self.parameter_descriptions, self.list_param_types] = parse_plan_parameters(plan_func)
+        [self.parameter_values, self.parameter_descriptions, self.parameter_types] = parse_plan_parameters(plan_func)
 
         for i in range(len(self.parameter_values)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
@@ -163,7 +150,6 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def plot_scan(self, data):
         if self.parent_gui.run_mode == 'run':
-
             update_figure([self.figure.ax2,self.figure.ax1, self.figure.ax3],self.toolbar,self.canvas)
 
             df = data['processing_ret']['data']
@@ -195,4 +181,5 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.figure.ax3.legend(loc=3)
             self.canvas.draw_idle()
 
-            self.create_log_scan(data['uid'], self.figure)
+            self.canvas.draw_idle()
+            self.aux_plan_funcs['write_html_log'](uid, figure)
