@@ -148,9 +148,9 @@
    <widget class="QGroupBox" name="groupBox_sample_map">
     <property name="geometry">
      <rect>
-      <x>235</x>
+      <x>265</x>
       <y>555</y>
-      <width>291</width>
+      <width>256</width>
       <height>236</height>
      </rect>
     </property>
@@ -162,8 +162,8 @@
       <rect>
        <x>15</x>
        <y>85</y>
-       <width>266</width>
-       <height>21</height>
+       <width>176</width>
+       <height>23</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -186,24 +186,11 @@
       </item>
      </layout>
     </widget>
-    <widget class="QLabel" name="label_139">
-     <property name="geometry">
-      <rect>
-       <x>245</x>
-       <y>195</y>
-       <width>41</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>steps</string>
-     </property>
-    </widget>
     <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_end">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>205</y>
+       <x>105</x>
+       <y>155</y>
        <width>81</width>
        <height>24</height>
       </rect>
@@ -224,8 +211,8 @@
     <widget class="QLabel" name="label_128">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>195</y>
+       <x>125</x>
+       <y>110</y>
        <width>31</width>
        <height>16</height>
       </rect>
@@ -237,8 +224,8 @@
     <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_end">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>180</y>
+       <x>105</x>
+       <y>130</y>
        <width>81</width>
        <height>24</height>
       </rect>
@@ -256,37 +243,11 @@
       <double>0.000000000000000</double>
      </property>
     </widget>
-    <widget class="QLabel" name="label_129">
-     <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>210</y>
-       <width>16</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Y</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_137">
-     <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>185</y>
-       <width>16</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>X</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="push_get_sample_position_map_end">
      <property name="geometry">
       <rect>
-       <x>155</x>
-       <y>190</y>
+       <x>125</x>
+       <y>180</y>
        <width>26</width>
        <height>26</height>
       </rect>
@@ -295,11 +256,11 @@
       <string>*</string>
      </property>
     </widget>
-    <widget class="QDoubleSpinBox" name="spinBox_sample_map_end_steps">
+    <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_steps">
      <property name="geometry">
       <rect>
        <x>190</x>
-       <y>190</y>
+       <y>155</y>
        <width>51</width>
        <height>24</height>
       </rect>
@@ -335,7 +296,7 @@
       <rect>
        <x>90</x>
        <y>25</y>
-       <width>196</width>
+       <width>161</width>
        <height>23</height>
       </rect>
      </property>
@@ -343,21 +304,21 @@
     <widget class="QLabel" name="label_138">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>140</y>
+       <x>40</x>
+       <y>115</y>
        <width>31</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>start</string>
+      <string>Start</string>
      </property>
     </widget>
     <widget class="QPushButton" name="push_get_sample_position_map_start">
      <property name="geometry">
       <rect>
-       <x>155</x>
-       <y>135</y>
+       <x>40</x>
+       <y>180</y>
        <width>26</width>
        <height>26</height>
       </rect>
@@ -369,8 +330,8 @@
     <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_start">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>125</y>
+       <x>20</x>
+       <y>130</y>
        <width>81</width>
        <height>24</height>
       </rect>
@@ -391,8 +352,8 @@
     <widget class="QLabel" name="label_141">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>155</y>
+       <x>10</x>
+       <y>160</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -404,8 +365,8 @@
     <widget class="QLabel" name="label_142">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>130</y>
+       <x>10</x>
+       <y>135</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -417,8 +378,8 @@
     <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_start">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>150</y>
+       <x>20</x>
+       <y>155</y>
        <width>81</width>
        <height>24</height>
       </rect>
@@ -436,11 +397,11 @@
       <double>0.000000000000000</double>
      </property>
     </widget>
-    <widget class="QDoubleSpinBox" name="spinBox_sample_map_start_steps">
+    <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_steps">
      <property name="geometry">
       <rect>
        <x>190</x>
-       <y>135</y>
+       <y>130</y>
        <width>51</width>
        <height>24</height>
       </rect>
@@ -461,14 +422,14 @@
     <widget class="QLabel" name="label_143">
      <property name="geometry">
       <rect>
-       <x>245</x>
-       <y>140</y>
+       <x>190</x>
+       <y>110</y>
        <width>41</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>steps</string>
+      <string>Steps</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_144">
@@ -489,7 +450,7 @@
       <rect>
        <x>90</x>
        <y>50</y>
-       <width>196</width>
+       <width>161</width>
        <height>23</height>
       </rect>
      </property>
@@ -1069,7 +1030,7 @@
    <widget class="QGroupBox" name="groupBox_12">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>15</x>
       <y>550</y>
       <width>201</width>
       <height>286</height>

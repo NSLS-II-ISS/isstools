@@ -2,13 +2,15 @@ import inspect
 import re
 
 import pkg_resources
+import numpy as np
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 
 from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
-from PyQt5.Qt import QSplashScreen, QObject
+from PyQt5.Qt import QObject
+
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
@@ -82,13 +84,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_batch_info.clicked.connect(self.batch_info)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
+        self.push_create_map.clicked.connect(self.create_map)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_service_scan.addItems(self.service_plan_funcs_names)
-
         self.comboBox_service_scan.currentIndexChanged.connect(self.populate_parameter_grid)
         self.push_update_traj_list.clicked.connect(self.update_batch_traj)
-
         self.last_lut = 0
 
         self.service_parameter_values = []
@@ -136,10 +137,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
         y_widget.setValue(y_value)
 
-
-
-
-    '''
+    ''' 
     Dealing with samples
     '''
     def create_new_sample(self):
@@ -310,14 +308,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 service_params[f'{variable}'] = f'{bool(self.service_param1[i].checkState())}'
             elif (self.service_params_types[i] == str):
                 service_params[f'{variable}'] = f'{self.service_param1[i].text()}'
-
-        print(service_params)
-
         service_plan=self.service_plan_funcs[self.comboBox_services.currentIndex()]
-
-        print(service_plan)
-
-
         new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
         new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
@@ -353,9 +344,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.gridLayout_service_parameters_service.removeWidget(self.service_parameter_descriptions[i])
             self.service_parameter_values[i].deleteLater()
             self.service_parameter_descriptions[i].deleteLater()
-
         service_plan_func = self.service_plan_funcs[self.comboBox_service_scan.currentText()]
-
 
         [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
             = parse_plan_parameters(service_plan_func)
@@ -364,21 +353,43 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.gridLayout_service_parameters.addWidget(self.service_parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_service_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
 
-
     def update_batch_traj(self):
         self.trajectories = self.traj_manager.read_info(silent=True)
         self.comboBox_lut.clear()
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
 
-    def check_pause_abort_batch(self):
-        if self.batch_abort:
-            print('**** Aborting Batch! ****')
-            raise Exception('Abort button pressed by user')
-        elif self.batch_pause:
-            self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
-            while self.batch_pause:
-                QtCore.QCoreApplication.processEvents()
+
+    def create_map(self):
+        if self.radioButton_sample_map_1D.isChecked():
+            x_coord = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
+                                self.spinBox_sample_x_map_steps.value())
+            y_coord = np.linspace(self.spinBox_sample_y_map_start.value(),self.spinBox_sample_y_map_end.value(),
+                                self.spinBox_sample_x_map_steps.value())
+            xy_coord = np.column_stack((x_coord,y_coord))
+
+        elif self.radioButton_sample_map_2D.isChecked():
+            x_coord = np.ndarray(0)
+            y_coord = np.ndarray(0)
+            y_points = np.linspace(self.spinBox_sample_y_map_start.value(), self.spinBox_sample_y_map_end.value(),
+                                  self.spinBox_sample_y_map_steps.value())
+            print(f' Y-points {y_points}')
+            for i in range(int(self.spinBox_sample_y_map_steps.value())):
+                print(i)
+                x_line = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
+                                self.spinBox_sample_x_map_steps.value())
+                y_line = np.ones(len(x_line))*(y_points[i])
+                print(f'Y-line {y_line}')
+
+                x_coord = np.append(x_coord, x_line)
+                y_coord = np.append(y_coord, y_line)
+
+        xy_coord = np.column_stack((x_coord, y_coord))
+        print(xy_coord)
+
+
+
+
 
 
 
