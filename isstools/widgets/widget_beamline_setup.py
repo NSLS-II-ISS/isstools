@@ -34,7 +34,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      detector_dictionary,
                      xia,
                      ic_amplifiers,
-`                    service_plan_funcs,
+                     service_plan_funcs,
                      aux_plan_funcs,
                      motor_dictionary,
                      tune_elements,

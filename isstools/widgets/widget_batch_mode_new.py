@@ -1,16 +1,8 @@
-import inspect
-
-import re
-import pkg_resources
-from PyQt5 import uic, QtWidgets, QtCore
-
-from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.QtCore import QThread
-from PyQt5.Qt import QSplashScreen, QObject
-
 import os
 import sys
-
+import pkg_resources
+from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5.Qt import QObject
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.batch.batch import BatchManager
 from isstools.batch.table_batch import XASBatchExperiment
@@ -29,11 +21,9 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                  hhm,
                  RE,
                  db,
-                 adc_list,
-                 enc_list,
-                 xia,
+                 sample_stage,
                  parent_gui,
-                 sample_stage = None,
+
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -54,7 +44,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.db = db
-
         self.sample_stage = sample_stage
         self.parent_gui = parent_gui
 
@@ -80,8 +69,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         self.batch_pause = False
         self.batch_abort = False
         self.batch_results = {}
-        self.push_batch_pause.clicked.connect(self.pause_unpause_batch)
-        self.push_batch_abort.clicked.connect(self.abort_batch)
 
 
 
@@ -142,9 +129,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         #doen setting table
 
 
-
-
-
     def run_spreadsheet_batch(self):
         for coord in self.coordinates:
             if getattr(self, 'checkBox_run_cell_{}'.format(coord)).isChecked():
@@ -173,7 +157,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
 
         setattr(self, 'reference_x_{}'.format(coord),x_value)
         setattr(self, 'reference_y_{}'.format(coord),y_value)
-
         getattr(self, 'lineEdit_reference_x_{}'.format(coord)).setText('{:.3f}'.format(x_value))
         getattr(self, 'lineEdit_reference_y_{}'.format(coord)).setText('{:.3f}'.format(y_value))
 
@@ -209,18 +192,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
             self.label_database_status.setText('Please load Experimental Definition first')
 
 
-
-    def pause_unpause_batch(self):
-        if self.batch_running == True:
-            self.batch_pause = not self.batch_pause
-            if self.batch_pause:
-                print('Pausing batch run... It will pause in the next step.')
-                self.push_batch_pause.setText('Unpause')
-            else:
-                print('Unpausing batch run...')
-                self.push_batch_pause.setText('Pause')
-                self.label_batch_step.setText(self.label_batch_step.text()[9:])
-
     def abort_batch(self):
         if self.batch_running == True:
             self.batch_abort = True
@@ -234,11 +205,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
             self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
             while self.batch_pause:
                 QtCore.QCoreApplication.processEvents()
-
-    def re_abort(self):
-        if self.RE.state != 'idle':
-            self.RE.abort()
-            self.RE.is_aborted = True
 
     def start_batch(self):
         print('[Launching Threads]')

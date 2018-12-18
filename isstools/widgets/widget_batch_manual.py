@@ -8,6 +8,7 @@ from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
 from isstools.trajectory.trajectory import trajectory_manager
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
+from PyQt5.Qt import QSplashScreen, QObject
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
@@ -39,17 +40,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        #self.addCanvas()
-
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.plan_funcs_names = plan_funcs.keys()
         self.service_plan_funcs_names = service_plan_funcs.keys()
         self.sample_stage = sample_stage
-        self.motors_dict = motors_dict
-        self.mot_list = self.motors_dict.keys()
-        self.mot_sorted_list = list(self.mot_list)
-        self.mot_sorted_list.sort()
         self.batch_mode_uids = []
         self.traj_manager = trajectory_manager(hhm)
         self.treeView_batch = elements.TreeView(self, 'all')
@@ -60,8 +55,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
-        self.service_parameter_values = []
-        self.service_parameter_descriptions = []
+
         
         '''
         WIP add horizontal scrollbar
@@ -72,7 +66,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_delete_sample.clicked.connect(self.delete_sample)
-        self.push_get_sample.clicked.connect(self.get_sample_pos)
+        self.push_get_sample_position.clicked.connect(self.get_sample_position)
+        self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
+        self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
+
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
 
 
@@ -94,8 +91,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.last_lut = 0
 
-        self.parameter_service_values = []
-        self.parameter_service_descriptions = []
+        self.service_parameter_values = []
+        self.service_parameter_descriptions = []
         self.populate_parameter_grid(0)
 
     '''
@@ -112,6 +109,35 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         new_item.repeat=self.spinBox_sample_loop_rep.value()
         new_item.setIcon(icon_experiment)
         parent.appendRow(new_item)
+
+    '''
+    General methods used more than once
+    '''
+
+    def get_sample_position(self):
+        sample_position_widget_dict = {
+            'push_get_sample_position':
+                {'x_widget': 'spinBox_sample_x',
+                 'y_widget': 'spinBox_sample_y'},
+            'push_get_sample_position_map_start':
+                {'x_widget': 'spinBox_sample_x_map_start',
+                 'y_widget': 'spinBox_sample_y_map_start'},
+            'push_get_sample_position_map_end':
+                {'x_widget': 'spinBox_sample_x_map_end',
+                 'y_widget': 'spinBox_sample_y_map_end'}
+
+        }
+
+        sender_object = QObject().sender().objectName()
+        x_value = self.sample_stage.x.position
+        x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
+        x_widget.setValue(x_value)
+        y_value = self.sample_stage.y.position
+        y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
+        y_widget.setValue(y_value)
+
+
+
 
     '''
     Dealing with samples
@@ -139,11 +165,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         else:
             self.message_box('Warning','Sample name is empty')
 
-    def get_sample_pos(self):
-        x_value = self.sample_stage.x.position
-        y_value = self.sample_stage.y.position
-        self.spinBox_sample_x.setValue(x_value)
-        self.spinBox_sample_y.setValue(y_value)
+
 
     def delete_sample(self):
         view = self.listView_samples
@@ -325,55 +347,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if item.item_type == 'service':
                     message_box(f'Batch element: {item.item_type}')
 
-
-    def update_loop_values(self, text):
-        for motor in self.motors_dict:
-            if self.comboBox_sample_loop_motor.currentText() == self.motors_dict[motor]['name']:
-                curr_mot = self.motors_dict[motor]['object']
-                break
-        if self.radioButton_sample_rel.isChecked():
-            if curr_mot.connected == True:
-                self.push_add_sample_loop.setEnabled(True)
-                self.spinBox_motor_range_start.setValue(-0.5)
-                self.spinBox_motor_range_stop.setValue(0.5)
-                self.spinBox_motor_range_step.setValue(0.25)
-                self.push_add_sample_loop.setEnabled(True)
-            else:
-                self.push_add_sample_loop.setEnabled(False)
-                self.spinBox_motor_range_start.setValue(0)
-                self.spinBox_motor_range_stop.setValue(0)
-                self.spinBox_motor_range_step.setValue(0.025)
-        else:
-            if curr_mot.connected == True:
-                self.push_add_sample_loop.setEnabled(True)
-                curr_pos = curr_mot.read()[curr_mot.name]['value']
-                self.spinBox_motor_range_start.setValue(curr_pos - 0.1)
-                self.spinBox_motor_range_stop.setValue(curr_pos + 0.1)
-                self.spinBox_motor_range_step.setValue(0.025)
-            else:
-                self.push_add_sample_loop.setEnabled(False)
-                self.spinBox_motor_range_start.setValue(0)
-                self.spinBox_motor_range_stop.setValue(0)
-                self.spinBox_motor_range_step.setValue(0.025)
-
-    def restore_add_loop(self, value):
-        if value:
-            self.push_add_sample_loop.setEnabled(True)
-
-    def set_loop_values(self, checked):
-        if checked:
-            self.spinBox_motor_range_start.setValue(-0.5)
-            self.spinBox_motor_range_stop.setValue(0.5)
-            self.spinBox_motor_range_step.setValue(0.25)
-            self.push_add_sample_loop.setEnabled(True)
-        else:
-            motor_text = self.comboBox_sample_loop_motor.currentText()
-            self.update_loop_values(motor_text)
-
     def populate_parameter_grid(self, index):
         for i in range(len(self.service_parameter_values)):
-            self.gridLayout_service_parameters.removeWidget(self.parameter_values[i])
-            self.gridLayout_service_parameters.removeWidget(self.parameter_descriptions[i])
+            self.gridLayout_service_parameters_service.removeWidget(self.service_parameter_values[i])
+            self.gridLayout_service_parameters_service.removeWidget(self.service_parameter_descriptions[i])
             self.service_parameter_values[i].deleteLater()
             self.service_parameter_descriptions[i].deleteLater()
 
@@ -383,9 +360,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
             = parse_plan_parameters(service_plan_func)
 
-        for i in range(len(self.parameter_service_values)):
-            self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
-            self.gridLayout_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
+        for i in range(len(self.service_parameter_values)):
+            self.gridLayout_service_parameters.addWidget(self.service_parameter_values[i], i, 0, QtCore.Qt.AlignTop)
+            self.gridLayout_service_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
 
 
     def update_batch_traj(self):

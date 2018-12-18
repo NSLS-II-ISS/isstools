@@ -54,7 +54,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  ic_amplifiers={},
                  processing_sender=None,
                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
-                 kafka_topic="qas-analysis", 
+                 kafka_topic="qas-analysis",
                  window_title="XLive @QAS/11-ID NSLS-II",
                  job_submitter=None,
                  *args, **kwargs):
@@ -71,9 +71,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                 a RunEngine instance
             db : databroker.Broker, optional
                 the database to save acquired data to
-            accelerator : 
+            accelerator :
             hhm : ophyd.Device, optional
-                the monochromator. "hhm" stood for "high heatload monochromator" 
+                the monochromator. "hhm" stood for "high heatload monochromator"
                 and has been kept from the legacy ISS code
             shutters_dict : dict, optional
                 dictionary of available shutters
@@ -86,7 +86,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                 the address for where to subscribe the Kafka Consumer to
         '''
         self.window_title = window_title
-        print(f'Titel {self.window_title}')
         self.sender = processing_sender
 
         super().__init__(*args, **kwargs)
@@ -186,11 +185,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                         motors_dict, hhm,
                                                                         RE,
                                                                         db,
-                                                                        adc_list,
-                                                                        enc_list,
-                                                                        xia,
+                                                                        sample_stage,
                                                                         self,
-                                                                        sample_stage=sample_stage)
+                                                                        )
 
         self.layout_batch_new.addWidget(self.widget_batch_mode_new)
 

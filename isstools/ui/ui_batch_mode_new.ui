@@ -2270,44 +2270,6 @@
     </property>
    </layout>
   </widget>
-  <widget class="QPushButton" name="push_batch_pause">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>895</y>
-     <width>80</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Pause</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_batch_abort">
-   <property name="geometry">
-    <rect>
-     <x>985</x>
-     <y>895</y>
-     <width>80</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Abort</string>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections/>

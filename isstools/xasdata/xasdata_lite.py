@@ -129,7 +129,8 @@ def xasdata_interpolate_dataset(dataset,key_base = 'i0'):
 
 
 
-def xasdata_bin_dataset(interpolated_dataset, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_k_spacing):
+def xasdata_bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, preedge_spacing=5,
+                        xanes_spacing=0.2, exafs_k_spacing = 0.04 ):
 
     # Constants for converting from hwhm -> gaussian parameters
     GAUSS_SIGMA_FACTOR = 1 / (2 * (2 * np.log(2)) ** .5)
@@ -177,7 +178,7 @@ def xasdata_bin_dataset(interpolated_dataset, e0, edge_start, edge_end, preedge_
 
         edge = np.arange(e0+edge_start+7, e0+edge_end-7, xanes_spacing)
 
-        after_edge = np.arange( e0 + edge_end-7,e0 + edge_end, 0.7)
+        after_edge = np.arange( e0 + edge_end-7,e0 + edg
 
 
         eenergy = xray.k2e(xray.e2k(e0+edge_end, e0), e0)

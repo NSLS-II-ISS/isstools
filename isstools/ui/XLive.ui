@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -127,29 +127,9 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_9">
-     <attribute name="title">
-      <string>Run Batch</string>
-     </attribute>
-     <widget class="QWidget" name="horizontalLayoutWidget_8">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1631</width>
-        <height>931</height>
-       </rect>
-      </property>
-      <layout class="QHBoxLayout" name="layout_batch">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetNoConstraint</enum>
-       </property>
-      </layout>
-     </widget>
-    </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>New Batch Mode</string>
+      <string>Run Batch</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
       <property name="geometry">

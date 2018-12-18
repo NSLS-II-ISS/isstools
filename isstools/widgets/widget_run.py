@@ -108,19 +108,20 @@ class UIRun(*uic.loadUiType(ui_path)):
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
             print(run_parameters)
-            # # Run the scan using the dict created before
-            # self.run_mode_uids = []
-            # self.parent_gui.run_mode = 'run'
-            # plan_key = self.comboBox_scan_type.currentText()
-            # plan_func = self.plan_funcs[plan_key]
-            # self.run_mode_uids = self.RE(plan_func(**run_parameters,
-            #                                       ax=self.figure.ax1,
-            #                                       ignore_shutter=ignore_shutter,
-            #                                       stdout=self.parent_gui.emitstream_out))
-            # timenow = datetime.datetime.now()
-            # print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
-            # stop_scan_timer=timer()
-            # print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
+            # Run the scan using the dict created before
+            self.run_mode_uids = []
+            self.parent_gui.run_mode = 'run'
+            plan_key = self.comboBox_scan_type.currentText()
+            plan_func = self.plan_funcs[plan_key]
+            self.run_mode_uids = self.RE(plan_func(**run_parameters,
+                                                   ax=self.figure.ax1,
+                                                   ignore_shutter=ignore_shutter,
+                                                   stdout=self.parent_gui.emitstream_out))
+            timenow = datetime.datetime.now()
+            print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
+            stop_scan_timer=timer()
+            print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
+
 
         else:
             message_box('Error', 'Please provide the name for the scan')
