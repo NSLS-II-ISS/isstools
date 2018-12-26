@@ -95,6 +95,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_parameter_values = []
         self.service_parameter_descriptions = []
         self.populate_parameter_grid(0)
+        self.update_batch_traj()
 
     '''
     Dealing with batch experiemnts

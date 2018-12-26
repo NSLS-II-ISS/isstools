@@ -160,7 +160,6 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         getattr(self, 'lineEdit_reference_x_{}'.format(coord)).setText('{:.3f}'.format(x_value))
         getattr(self, 'lineEdit_reference_y_{}'.format(coord)).setText('{:.3f}'.format(y_value))
 
-
     def load_sample_definition(self):
         sender = QObject()
         sender_object = sender.sender().objectName()
@@ -208,14 +207,10 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
 
     def start_batch(self):
         print('[Launching Threads]')
-        self.run_batch()
-
-    def run_batch(self, print_only=False):
         batch = self.widget_batch_manual.treeView_batch.model()
-        plans_dict = {x.__name__: x for x in  self.plan_funcs}
-        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, plans_dict))
+        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
 
-    def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict ):
+    def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict):
         sys.stdout =  self.parent_gui.emitstream_out
         tm = trajectory_manager(hhm)
         for ii in range(batch.rowCount()):
@@ -234,6 +229,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                         print('  ' + str(sample.x))
                         print('  ' + str(sample.y))
                         yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                        #print(f'moving to {sample.x}, {sample y}')
                         for kk in range(sample.rowCount()):
                             scan = sample.child(kk)
                             traj_index= scan.trajectory
