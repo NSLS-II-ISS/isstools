@@ -37,7 +37,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  plan_funcs,
                  service_plan_funcs,
                  hhm,
-                 motors_dict,
                  sample_stage = None, *args, **kwargs):
 
         super().__init__(*args, **kwargs)

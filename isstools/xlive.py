@@ -167,24 +167,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_run.addWidget(self.widget_run)
         #self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
 
-        # if self.hhm is not None:
-        #     self.widget_batch_mode = widget_batch_mode.UIBatchMode(self.plan_funcs, self.motors_dict, hhm,
-        #                                                            self.RE, self.db, self.widget_processing.gen_parser,
-        #                                                            self.adc_list, self.enc_list, self.xia,
-        #                                                            self.run_prep_traj,
-        #                                                            self.widget_run.figure,
-        #                                                            self.widget_run.create_log_scan,
-        #                                                            sample_stage=sample_stage,
-        #                                                            parent_gui = self,
-        #                                                            job_submitter=job_submitter)
-        #     self.layout_batch.addWidget(self.widget_batch_mode)
-        #
-        #
+
         self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(plan_funcs,
                                                                         service_plan_funcs,
-                                                                        motors_dict, hhm,
+                                                                        hhm,
                                                                         RE,
-                                                                        db,
                                                                         sample_stage,
                                                                         self,
                                                                         )
