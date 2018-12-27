@@ -178,7 +178,7 @@ def xasdata_bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, p
 
         edge = np.arange(e0+edge_start+7, e0+edge_end-7, xanes_spacing)
 
-        after_edge = np.arange( e0 + edge_end-7,e0 + edg
+        after_edge = np.arange(e0 + edge_end - 7, e0 + edge_end, 0.7)
 
 
         eenergy = xray.k2e(xray.e2k(e0+edge_end, e0), e0)

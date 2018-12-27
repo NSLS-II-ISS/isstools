@@ -19,9 +19,10 @@ import pandas as pd
 from matplotlib.figure import Figure
 
 
-from isstools.xasdata import xasdata
+from isstools.xasdata import xasdata, xasdata_callback
 from isstools.xasproject import xasproject
 from isstools.conversions.xray import k2e, e2k
+
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 #gui_form = uic.loadUiType(ui_path)[0]  # Load the UI

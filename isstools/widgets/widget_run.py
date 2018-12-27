@@ -181,6 +181,4 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b',label='Reference')
             self.figure.ax3.legend(loc=3)
             self.canvas.draw_idle()
-
-            self.canvas.draw_idle()
             self.aux_plan_funcs['write_html_log'](uid, figure)

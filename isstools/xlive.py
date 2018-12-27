@@ -17,7 +17,7 @@ import socket
 from PyQt5.QtCore import QThread
 import zmq
 import pickle
-import pandas as pd
+from isstools.xasdata import xasdata_callback
 
 
 import kafka
@@ -93,13 +93,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         self.RE = RE
-
+        self.db = db
+        self.token = None
 
         if RE is not None:
             RE.is_aborted = False
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_re_state)
             self.timer.start(1000)
+
 
 
 
@@ -204,6 +206,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         # After connecting signals to slots, start receiving thread
         self.receiving_thread.start()
+
+        pc = xasdata_callback.ProcessingCallback(db=self.db, axis=self.widget_run.figure.ax1,
+                                                 canvas=self.widget_run.canvas)
+        self.token = self.RE.subscribe(pc,'stop')
 
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream.EmittingStream(self.textEdit_terminal)

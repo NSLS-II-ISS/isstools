@@ -23,6 +23,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
+        self.hhm = hhm
         self.sample_stage = sample_stage
         self.parent_gui = parent_gui
 
@@ -56,18 +57,18 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                     step = experiment.child(jj)
                     if step.item_type == 'sample':
                         sample = step
-                        print('  ' + sample.name)
-                        print('  ' + str(sample.x))
-                        print('  ' + str(sample.y))
+                        #self.label_batch_step.setText (sample.name)
+                        #print('  ' + str(sample.x))
+                        #print('  ' + str(sample.y))
                         yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
                         # print(f'moving to {sample.x}, {sample y}')
                         for kk in range(sample.rowCount()):
                             scan = sample.child(kk)
                             traj_index = scan.trajectory
-                            print('      ' + scan.scan_type)
+                            #print('      ' + scan.scan_type)
                             plan = plans_dict[scan.scan_type]
                             sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            print(sample_name)
+                            self.label_batch_step.setText(sample_name)
                             kwargs = {'name': sample_name,
                                       'comment': '',
                                       'delay': 0,
@@ -88,7 +89,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                             print('     ' + str(sample.x))
                             print('     ' + str(sample.y))
                             sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            print(sample_name)
+                            self.label_batch_step.setText(sample_name)
                             kwargs = {'name': sample_name,
                                       'comment': '',
                                       'delay': 0,
@@ -98,3 +99,4 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                             yield from plan(**kwargs)
                     elif step.item_type == 'service':
                         yield from step.service_plan(**step.service_params)
+        self.label_batch_step.setText('idle')
