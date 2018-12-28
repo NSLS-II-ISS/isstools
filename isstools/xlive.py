@@ -52,11 +52,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  sample_stage=None,
                  tune_elements=None,
                  ic_amplifiers={},
-                 processing_sender=None,
-                 bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
-                 kafka_topic="qas-analysis",
                  window_title="XLive @QAS/11-ID NSLS-II",
-                 job_submitter=None,
                  *args, **kwargs):
         '''
 
@@ -85,36 +81,25 @@ class XliveGui(*uic.loadUiType(ui_path)):
             receiving address: string, optinal
                 the address for where to subscribe the Kafka Consumer to
         '''
-        self.window_title = window_title
-        self.sender = processing_sender
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-
         self.RE = RE
         self.db = db
         self.token = None
-
+        self.window_title = window_title
         if RE is not None:
             RE.is_aborted = False
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_re_state)
             self.timer.start(1000)
 
-
-
-
         hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
 
-        # Activating ZeroMQ Receiving Socket
-        self.context = zmq.Context()
-        self.hostname_filter = socket.gethostname()
-        # Now using Kafka
-        self.consumer = kafka.KafkaConsumer(kafka_topic, bootstrap_servers=bootstrap_servers)
-        self.receiving_thread = ReceivingThread(self)
+
         self.run_mode = 'run'
         self.window_title = window_title
 
@@ -149,12 +134,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                 db,
                                                                 det_dict,
                                                                 parent_gui=self,
-                                                                job_submitter=job_submitter
                                                                 )
         self.layout_processing.addWidget(self.widget_processing)
-
-        self.receiving_thread.received_bin_data.connect(self.widget_processing.plot_data)
-        self.receiving_thread.received_req_interp_data.connect(self.widget_processing.plot_interp_data)
 
         self.widget_run = widget_run.UIRun(plan_funcs,
                                             aux_plan_funcs,
@@ -167,8 +148,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             xia,
                                             self)
         self.layout_run.addWidget(self.widget_run)
-        #self.receiving_thread.received_interp_data.connect(self.widget_run.plot_scan)
-
 
         self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(plan_funcs,
                                                                         service_plan_funcs,
@@ -179,8 +158,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                         )
 
         self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-
-
 
         #     self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
 
@@ -199,16 +176,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            shutters_dict,
                                                                            self)
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
-
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
         # After connecting signals to slots, start receiving thread
-        self.receiving_thread.start()
 
-        pc = xasdata_callback.ProcessingCallback(db=self.db, axis=self.widget_run.figure.ax1,
-                                                 canvas=self.widget_run.canvas)
+
+        pc = xasdata_callback.ProcessingCallback(db=self.db, draw_func=self.widget_run.draw_func)
         self.token = self.RE.subscribe(pc,'stop')
 
         # Redirect terminal output to GUI
@@ -252,31 +227,4 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.label_11.setPalette(palette)
         self.label_11.setText(self.RE.state)
 
-#
-class ReceivingThread(QThread):
-    received_interp_data = QtCore.pyqtSignal(object)
-    received_bin_data = QtCore.pyqtSignal(object)
-    received_req_interp_data = QtCore.pyqtSignal(object)
-    def __init__(self, gui):
-        QThread.__init__(self)
-        self.setParent(gui)
 
-    def run(self):
-        consumer = self.parent().consumer
-        for message in consumer:
-            # bruno concatenates and extra message at beginning of this packet
-            # we need to take it off
-            message = message.value[len(self.parent().hostname_filter):]
-            data = pickle.loads(message)
-
-            if 'data' in data['processing_ret']:
-                #data['processing_ret']['data'] = pd.read_msgpack(data['processing_ret']['data'])
-                data['processing_ret']['data'] = data['processing_ret']['data'].decode()
-
-            if data['type'] == 'spectroscopy':
-                if data['processing_ret']['type'] == 'interpolate':
-                    self.received_interp_data.emit(data)
-                if data['processing_ret']['type'] == 'bin':
-                    self.received_bin_data.emit(data)
-                if data['processing_ret']['type'] == 'request_interpolated_data':
-                    self.received_req_interp_data.emit(data)

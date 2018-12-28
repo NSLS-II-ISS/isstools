@@ -32,8 +32,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     def __init__(self,
                  hhm,
                  db,
-                 det_dict, parent_gui,
-                 job_submitter,
+                 det_dict,
+                 parent_gui,
                  *args, **kwargs):
         '''
             hhm:
@@ -50,7 +50,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
-        self.job_submitter = job_submitter
+
 
         self.hhm = hhm
         self.db = db

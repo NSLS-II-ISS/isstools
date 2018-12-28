@@ -63,7 +63,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax2 = self.figure.ax1.twinx()
         self.figure.ax3 = self.figure.ax1.twinx()
         self.toolbar = NavigationToolbar(self.canvas, self, coordinates=True)
-        self.toolbar.setMaximumHeight(25)
         self.plots.addWidget(self.toolbar)
         self.plots.addWidget(self.canvas)
         self.figure.ax3.grid(alpha = 0.4)
@@ -148,6 +147,19 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def setXiaSampTime(self, text):
         self.xia_samp_time = text
+
+    def draw_func(self, df):
+        if 'i0' in df and 'it' in df and 'energy' in df:
+            transmission = np.array(df['i0'] / df['it'])
+
+        energy = np.array(df['energy'])
+        edge = int(len(energy) * 0.02)
+
+        self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
+        self.figure.ax1.legend(loc=1)
+        self.canvas.draw_idle()
+
+
 
     def plot_scan(self, data):
         if self.parent_gui.run_mode == 'run':
