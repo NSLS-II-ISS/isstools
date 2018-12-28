@@ -100,13 +100,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         name_provided = self.parameter_values[0].text()
         if name_provided:
             timenow = datetime.datetime.now()
-            print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S")))
+            print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S"),flush='true'))
             start_scan_timer=timer()
             
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
-            print(run_parameters)
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
@@ -119,7 +118,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()
-            print('Scan duration {}'.format(stop_scan_timer-start_scan_timer))
+            print('Scan duration {} s'.format(stop_scan_timer-start_scan_timer))
 
 
         else:
@@ -149,48 +148,22 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.xia_samp_time = text
 
     def draw_func(self, df):
+        update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
         if 'i0' in df and 'it' in df and 'energy' in df:
             transmission = np.array(df['i0'] / df['it'])
+        if 'i0' in df and 'iff' in df and 'energy' in df:
+            fluorescence = np.array(df['iff'] / df['i0'])
+        if 'it' in df and 'ir' in df and 'energy' in df:
+            reference = np.array(np.log(df['it'] / df['ir']))
 
         energy = np.array(df['energy'])
         edge = int(len(energy) * 0.02)
 
         self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
         self.figure.ax1.legend(loc=1)
+        self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g', label='Total fluorescence')
+        self.figure.ax2.legend(loc=2)
+        self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b', label='Reference')
+        self.figure.ax3.legend(loc=3)
         self.canvas.draw_idle()
 
-
-
-    def plot_scan(self, data):
-        if self.parent_gui.run_mode == 'run':
-            update_figure([self.figure.ax2,self.figure.ax1, self.figure.ax3],self.toolbar,self.canvas)
-
-            df = data['processing_ret']['data']
-            if isinstance(df, str):
-                df = self.gen_parser.getInterpFromFile(df)
-            df = df.sort_values('energy')
-            self.df = df
-
-            if 'i0' in df and 'it' in df and 'energy' in df:
-                self.transmission = transmission = np.array(np.log(df['i0']/df['it']))
-            else:
-                print("Warning, could not find 'i0', 'it', or 'energy' (are devices present?)")
-
-            if 'i0' in df and 'iff' in df and 'energy' in df:
-                fluorescence = np.array(df['iff']/df['i0'])
-
-            if 'it' in df and 'ir' in df and 'energy' in df:
-                reference = np.array(np.log(df['it']/df['ir']))
-
-            energy =  np.array(df['energy'])
-
-            edge=int(len(energy)*0.02)
-
-            self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
-            self.figure.ax1.legend(loc=1)
-            self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g',label='Total fluorescence')
-            self.figure.ax2.legend(loc=2)
-            self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b',label='Reference')
-            self.figure.ax3.legend(loc=3)
-            self.canvas.draw_idle()
-            self.aux_plan_funcs['write_html_log'](uid, figure)
