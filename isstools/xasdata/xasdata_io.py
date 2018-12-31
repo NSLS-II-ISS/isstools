@@ -2,21 +2,20 @@ from datetime import datetime
 import os
 from subprocess import call
 import numpy as np
+import pandas as pd
 
 
 
 def validate_file_exists(path_to_file):
     if os.path.isfile(path_to_file):
         (path, extension) = os.path.splitext(path_to_file)
-    if op.exists(Path(filename + extension)):
         iterator = 2
 
         while True:
-            new_filename = f'{filename}-{iterator}{extension}'
-            if not op.isfile(new_filename):
+            new_filename = '{}-r{:04d}{}'.format(path, iterator,extension)
+            if not os.path.isfile(new_filename):
                 return new_filename
             iterator += 1
-    return filename + extension
 
 def validate_path_exists(path):
     if not os.path.isdir(path):
@@ -29,7 +28,7 @@ def save_interpolated_df_as_file(db, uid, df):
     path_to_file = db[uid].start['interp_filename']
     (path, filename) = os.path.split(path_to_file)
     validate_path_exists(path)
-    #path_to_file = validate_file_exists(path_to_file)
+    path_to_file = validate_file_exists(path_to_file)
 
     pi = db[uid]['start']['PI']
     proposal = db[uid]['start']['PROPOSAL']
@@ -69,12 +68,13 @@ def save_interpolated_df_as_file(db, uid, df):
     cols = df.columns.tolist()
     print(cols)
     fmt = '%17.6f ' + '%12.6f ' + (' '.join(['%12.6e' for i in range(len(cols)-2)]))
+
     header = '  '.join(cols)
 
     print(f'Format {fmt}')
 
     df = df[cols]
-
+    comments =
     np.savetxt(path_to_file,
                df.values,
                fmt=fmt,
@@ -84,7 +84,7 @@ def save_interpolated_df_as_file(db, uid, df):
                         '# Cycle: {}\n' \
                         '# SAF: {}\n' \
                         '# PI: {}\n' \
-                        '# PROPOSAL: {}\n' \
+                        '# Proposal: {}\n' \
                         '# Scan ID: {}\n' \
                         '# UID: {}\n' \
                         '# Comment: {}\n' \
@@ -114,4 +114,28 @@ def save_interpolated_df_as_file(db, uid, df):
     call(['chmod', '774', path_to_file])
 
     # call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-    return path_to_file
+    return path_to_file,
+
+def load_interpolated_df_from_file(filename):
+    ''' Load interp file and return'''
+
+    if not os.path.exists(filename):
+        raise IOError(f'The file {filename} does not exist.')
+    header = read_header(filename)
+    keys = header[header.rfind('#'):][1:-1].split()
+    df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
+    return df,header
+
+
+def read_header(filename):
+    header = ''
+    line = '#'
+    with open(filename) as myfile:
+        while line[0] == '#':
+            line = next(myfile)
+            header += line
+    return header[:-len(line)]
+
+
+def save_binned_df_to_file(interpolated_df, path_to_file, header):
+    pass

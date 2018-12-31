@@ -12,10 +12,33 @@ import pandas as pd
 import h5py
 from pathlib import Path
 import numexpr as ne
+from isstools.xasdata.xasdata_io import save_interpolated_df_as_file
 
 
-def xasdata_load_dataset_from_files(db,uid):
+def process(doc, db, draw_func = None):
+    if 'experiment' in db[doc['run_start']].start.keys():
+        if db[doc['run_start']].start['experiment'] == 'fly_energy_scan':
+            if 'e0' in db[doc['run_start']].start:
+                e0=db[doc['run_start']].start['e0']
+            else:
+                e0=-1
+            raw_df = load_dataset_from_files(db, doc['run_start'])
+            interpolated_df = interpolate_dataset(raw_df)
+            save_interpolated_df_as_file(db, doc['run_start'], interpolated_df)
+            binned_df = bin_dataset(interpolated_df,e0)
+            if draw_func is not None:
+                draw_func(interpolated_df)
 
+
+def interpolate(doc, db, draw_func = None):
+    if 'experiment' in db[doc['run_start']].start.keys():
+        if db[doc['run_start']].start['experiment'] == 'fly_energy_scan':
+            raw_df = xasdata_load_dataset_from_files(db, doc['run_start'])
+            interpolated_df = interpolate_dataset(raw_df)
+            return interpolated_df
+
+
+def load_dataset_from_files(db,uid):
     def load_adc_trace(filename=''):
         df=pd.DataFrame()
         keys = ['times', 'timens', 'counter', 'adc']
@@ -88,7 +111,7 @@ def xasdata_load_dataset_from_files(db,uid):
     return arrays
 
 
-def xasdata_interpolate_dataset(dataset,key_base = 'i0'):
+def interpolate_dataset(dataset,key_base = 'i0'):
     interpolated_dataset = {}
     min_timestamp = max([dataset.get(key).iloc[0, 0] for key in dataset])
     max_timestamp = min([dataset.get(key).iloc[len(dataset.get(key)) - 1, 0] for key in
@@ -129,7 +152,7 @@ def xasdata_interpolate_dataset(dataset,key_base = 'i0'):
 
 
 
-def xasdata_bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, preedge_spacing=5,
+def bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, preedge_spacing=5,
                         xanes_spacing=0.2, exafs_k_spacing = 0.04 ):
 
     # Constants for converting from hwhm -> gaussian parameters
@@ -203,6 +226,19 @@ def xasdata_bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, p
     binned_df = binned_df.drop('timestamp', 1)
 
     return binned_df
+
+
+'''from isstools.xasdata.xasdata_io import save_interpolated_df_as_file, load_interpolated_df_from_file
+
+from isstools.xasdata.xasdata_lite import load_dataset_from_files, interpolate_dataset
+
+uid = db[-1].start['uid']
+
+a=load_dataset_from_files(db, uid)
+
+
+b= interpolate_dataset(a)
+'''
 
 
 

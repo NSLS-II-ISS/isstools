@@ -509,7 +509,7 @@ class XASdataGeneric(XASdata):
                                                                human_stop_time,
                                                                human_duration))
 
-        print("changing permissions to 774")
+        #print("changing permissions to 774")
         call(['chmod', '774', fn])
 
         #call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
