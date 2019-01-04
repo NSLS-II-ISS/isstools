@@ -12,12 +12,8 @@ from isstools.widgets import (widget_general_info, widget_trajectory_manager, wi
 widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements import EmittingStream
-#Libs for ZeroMQ communication
-import socket
-from PyQt5.QtCore import QThread
-import zmq
-import pickle
-from isstools.xasdata import xasdata_callback
+
+from isstools.process import process_callback
 
 
 import kafka

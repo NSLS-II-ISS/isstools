@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
-from isstools.xasdata.xasdata import XASdataGeneric
+from isstools.process.xasdata import XASdataGeneric
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 

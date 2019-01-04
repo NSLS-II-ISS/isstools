@@ -4,9 +4,8 @@ from subprocess import call
 import numpy as np
 import pandas as pd
 
-
-
-def validate_file_exists(path_to_file):
+def validate_file_exists(db,uid):
+    path_to_file = db[uid].start['interp_filename']
     if os.path.isfile(path_to_file):
         (path, extension) = os.path.splitext(path_to_file)
         iterator = 2
@@ -16,20 +15,19 @@ def validate_file_exists(path_to_file):
             if not os.path.isfile(new_filename):
                 return new_filename
             iterator += 1
+    else:
+        return path_to_file
 
-def validate_path_exists(path):
+
+def validate_path_exists(db, uid):
+    path_to_file = db[uid].start['interp_filename']
+    (path, filename) = os.path.split(path_to_file)
     if not os.path.isdir(path):
         os.mkdir(path)
     else:
         print('...........Path exists')
 
-
-def save_interpolated_df_as_file(db, uid, df):
-    path_to_file = db[uid].start['interp_filename']
-    (path, filename) = os.path.split(path_to_file)
-    validate_path_exists(path)
-    path_to_file = validate_file_exists(path_to_file)
-
+def create_file_header(db,uid):
     pi = db[uid]['start']['PI']
     proposal = db[uid]['start']['PROPOSAL']
     saf = db[uid]['start']['SAF']
@@ -65,56 +63,80 @@ def save_interpolated_df_as_file(db, uid, df):
     else:
         e0 = ''
 
-    cols = df.columns.tolist()
-    print(cols)
-    fmt = '%17.6f ' + '%12.6f ' + (' '.join(['%12.6e' for i in range(len(cols)-2)]))
+    comments ='# Year: {}\n' \
+         '# Cycle: {}\n' \
+         '# SAF: {}\n' \
+         '# PI: {}\n' \
+         '# Proposal: {}\n' \
+         '# Scan ID: {}\n' \
+         '# UID: {}\n' \
+         '# Comment: {}\n' \
+         '# Trajectory name: {}\n' \
+         '# Element: {}\n' \
+         '# Edge: {}\n' \
+         '# E0: {}\n' \
+         '# Start time: {}\n' \
+         '# Stop time: {}\n' \
+         '# Total time: {}\n#\n# '.format(year,
+                                          cycle,
+                                          saf,
+                                          pi,
+                                          proposal,
+                                          scan_id,
+                                          real_uid,
+                                          comment,
+                                          trajectory_name,
+                                          element,
+                                          edge,
+                                          e0,
+                                          human_start_time,
+                                          human_stop_time,
+                                          human_duration)
+    return  comments
 
+def find_e0(db, uid):
+    e0 = -1
+    if 'e0' in db[uid]['start']:
+        e0 = float(db[uid]['start']['e0'])
+    return e0
+
+
+def save_interpolated_df_as_file(path_to_file, df, comments):
+    cols = df.columns.tolist()
+    fmt = '%17.6f ' + '%12.6f ' + (' '.join(['%12.6e' for i in range(len(cols)-2)]))
     header = '  '.join(cols)
 
-    print(f'Format {fmt}')
-
     df = df[cols]
-    comments =
     np.savetxt(path_to_file,
                df.values,
                fmt=fmt,
                delimiter=" ",
                header=header,
-               comments='# Year: {}\n' \
-                        '# Cycle: {}\n' \
-                        '# SAF: {}\n' \
-                        '# PI: {}\n' \
-                        '# Proposal: {}\n' \
-                        '# Scan ID: {}\n' \
-                        '# UID: {}\n' \
-                        '# Comment: {}\n' \
-                        '# Trajectory name: {}\n' \
-                        '# Element: {}\n' \
-                        '# Edge: {}\n' \
-                        '# E0: {}\n' \
-                        '# Start time: {}\n' \
-                        '# Stop time: {}\n' \
-                        '# Total time: {}\n#\n# '.format(year,
-                                                         cycle,
-                                                         saf,
-                                                         pi,
-                                                         proposal,
-                                                         scan_id,
-                                                         real_uid,
-                                                         comment,
-                                                         trajectory_name,
-                                                         element,
-                                                         edge,
-                                                         e0,
-                                                         human_start_time,
-                                                         human_stop_time,
-                                                         human_duration))
+               comments= comments)
 
-    print("changing permissions to 774")
+    #print("changing permissions to 774")
     call(['chmod', '774', path_to_file])
 
-    # call(['setfacl', '-m', 'g:iss-staff:rwX', fn])
-    return path_to_file,
+
+def save_binned_df_as_file(path_to_file, df, comments):
+    (path, extension) = os.path.splitext(path_to_file)
+    path_to_file = path + '.dat'
+    cols = df.columns.tolist()
+    fmt = '%12.6f ' + (' '.join(['%12.6e' for i in range(len(cols) - 1)]))
+    header = '  '.join(cols)
+    df = df[cols]
+    np.savetxt(path_to_file,
+               df.values,
+               fmt=fmt,
+               delimiter=" ",
+               header=header,
+               comments=comments)
+
+    #print("changing permissions to 774")
+    call(['chmod', '774', path_to_file])
+
+
+
 
 def load_interpolated_df_from_file(filename):
     ''' Load interp file and return'''
@@ -124,7 +146,7 @@ def load_interpolated_df_from_file(filename):
     header = read_header(filename)
     keys = header[header.rfind('#'):][1:-1].split()
     df = pd.read_table(filename, delim_whitespace=True, comment='#', names=keys, index_col=False).sort_values(keys[1])
-    return df,header
+    return df, header
 
 
 def read_header(filename):
@@ -137,5 +159,3 @@ def read_header(filename):
     return header[:-len(line)]
 
 
-def save_binned_df_to_file(interpolated_df, path_to_file, header):
-    pass

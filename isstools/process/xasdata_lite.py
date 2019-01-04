@@ -1,39 +1,39 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import math
 import os
-import os.path as op
-from datetime import datetime
 from isstools.conversions import xray
-from subprocess import call
-import re
-import collections
 import pandas as pd
-import h5py
-from pathlib import Path
 import numexpr as ne
-from isstools.xasdata.xasdata_io import save_interpolated_df_as_file
+from isstools.process.xasdata_io import (save_interpolated_df_as_file, save_binned_df_as_file,
+                                         validate_path_exists,
+                                         create_file_header, find_e0, validate_file_exists)
 
 
 def process(doc, db, draw_func = None):
     if 'experiment' in db[doc['run_start']].start.keys():
-        if db[doc['run_start']].start['experiment'] == 'fly_energy_scan':
-            if 'e0' in db[doc['run_start']].start:
-                e0=db[doc['run_start']].start['e0']
-            else:
-                e0=-1
-            raw_df = load_dataset_from_files(db, doc['run_start'])
+        uid = doc['run_start']
+        if db[uid].start['experiment'] == 'fly_energy_scan':
+            raw_df = load_dataset_from_files(db, uid)
             interpolated_df = interpolate_dataset(raw_df)
-            save_interpolated_df_as_file(db, doc['run_start'], interpolated_df)
-            binned_df = bin_dataset(interpolated_df,e0)
+            e0 = find_e0(db,uid)
+            comments = create_file_header(db,uid)
+            validate_path_exists(db,uid)
+            path_to_file = validate_file_exists(db, uid )
+            print(f'>>>Path to file {path_to_file}')
+            save_interpolated_df_as_file(path_to_file, interpolated_df, comments)
+            if e0 >0:
+                binned_df = bin_dataset(interpolated_df,e0)
+                save_binned_df_as_file(path_to_file, binned_df, comments)
+            else:
+                print('Energy E0 is not defined')
+
             if draw_func is not None:
                 draw_func(interpolated_df)
 
 
-def interpolate(doc, db, draw_func = None):
+def interpolate(doc, db):
     if 'experiment' in db[doc['run_start']].start.keys():
         if db[doc['run_start']].start['experiment'] == 'fly_energy_scan':
-            raw_df = xasdata_load_dataset_from_files(db, doc['run_start'])
+            raw_df = load_dataset_from_files(db, doc['run_start'])
             interpolated_df = interpolate_dataset(raw_df)
             return interpolated_df
 
@@ -228,9 +228,9 @@ def bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, preedge_s
     return binned_df
 
 
-'''from isstools.xasdata.xasdata_io import save_interpolated_df_as_file, load_interpolated_df_from_file
+'''from isstools.process.xasdata_io import save_interpolated_df_as_file, load_interpolated_df_from_file
 
-from isstools.xasdata.xasdata_lite import load_dataset_from_files, interpolate_dataset
+from isstools.process.xasdata_lite import load_dataset_from_files, interpolate_dataset
 
 uid = db[-1].start['uid']
 
