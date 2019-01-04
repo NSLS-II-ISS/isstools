@@ -1,5 +1,5 @@
 from bluesky.callbacks import CallbackBase
-from xasdata import process
+from isstools.xasdata.xasdata_lite import process
 
 
 class ProcessingCallback(CallbackBase):

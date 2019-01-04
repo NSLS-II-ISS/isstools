@@ -149,7 +149,7 @@ def process(uid, factor=1):
     # is not something is *very* wrong.)
     name, start_doc = next(gen)
     assert name == 'start'
-    # Check whether this process is applicable to this run.
+    # Check whether this xasdata is applicable to this run.
     if not is_applicable(start_doc):
         logger.info("Run %r is not applicable.", uid)
         return
@@ -182,8 +182,8 @@ uid, = RE(scan([img], motor, -1, 1, 3))
 
 # # RE-PROCESSING
 #
-# process(uid, factor=10)
-# process(uid, factor=100)
+# xasdata(uid, factor=10)
+# xasdata(uid, factor=100)
 #
 # # ACCESS
 #

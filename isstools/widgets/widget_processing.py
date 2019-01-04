@@ -17,8 +17,8 @@ from isstools.conversions import xray
 from isstools.elements.figure_update import update_figure
 from isstools.dialogs.BasicDialogs import question_message_box
 
-from isstools.process.xasdata_io import load_interpolated_df_from_file
-from isstools.process.xasdata_lite import bin_dataset
+from isstools.xasdata.xasdata_io import load_interpolated_df_from_file
+from isstools.xasdata.xasdata_lite import bin_dataset
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
@@ -178,7 +178,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             self.figure_interpolated_scans.ax.set_ylabel(ylabel)
             self.figure_interpolated_scans.ax.set_xlabel('Energy /eV')
             self.figure_interpolated_scans.tight_layout()
-            self.figure_interpolated_scans.ax.legend(self.filenames)
             self.canvas_interpolated_scans.draw_idle()
         self.push_replot_file.setEnabled(True)
 

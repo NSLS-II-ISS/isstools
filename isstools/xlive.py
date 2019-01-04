@@ -13,7 +13,7 @@ widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements import EmittingStream
 
-from isstools.process import process_callback
+from isstools.xasdata import xasdata_callback
 
 
 import kafka

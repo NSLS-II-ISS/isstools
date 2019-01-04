@@ -20,7 +20,7 @@ The Versioneer
 
 This is a tool for managing a recorded version number in distutils-based
 python projects. The goal is to remove the tedious and error-prone "update
-the embedded version string" step from your release process. Making a new
+the embedded version string" step from your release xasdata. Making a new
 release should be as easy as recording a new tag in your version-control
 system, and maybe making new tarballs.
 
@@ -75,7 +75,7 @@ tree, where your `__init__.py` can import it. This `_version.py` knows how to
 dynamically ask the VCS tool for version information at import time.
 
 `_version.py` also contains `$Revision$` markers, and the installation
-process marks `_version.py` to have this marker rewritten with a tag name
+xasdata marks `_version.py` to have this marker rewritten with a tag name
 during the `git archive` command. As a result, generated tarballs will
 contain enough information to get the proper version.
 
@@ -195,14 +195,14 @@ Once established, all uses of your tree from a VCS checkout should get the
 current version string. All generated tarballs should include an embedded
 version string (so users who unpack them will not need a VCS tool installed).
 
-If you distribute your project through PyPI, then the release process should
+If you distribute your project through PyPI, then the release xasdata should
 boil down to two steps:
 
 * 1: git tag 1.0
 * 2: python setup.py register sdist upload
 
 If you distribute it through github (i.e. users use github to generate
-tarballs with `git archive`), the process is:
+tarballs with `git archive`), the xasdata is:
 
 * 1: git tag 1.0
 * 2: git push; git push --tags
@@ -302,7 +302,7 @@ version will refuse to run (raising an exception during import) until you
 have provided the necessary `setup.cfg` section.
 
 In addition, the Versioneer package provides an executable named
-`versioneer`, and the installation process is driven by running `versioneer
+`versioneer`, and the installation xasdata is driven by running `versioneer
 install`. In 0.14 and earlier, the executable was named
 `versioneer-installer` and was run without an argument.
 
@@ -388,7 +388,7 @@ def get_root():
         raise VersioneerBadRootError(err)
     try:
         # Certain runtime workflows (setup.py install/develop in a setuptools
-        # tree) execute all dependencies in a single python process, so
+        # tree) execute all dependencies in a single python xasdata, so
         # "versioneer" may be imported multiple times, and python's shared
         # module-import table will cache the first one. So we can't use
         # os.path.dirname(__file__), as that will find whichever
@@ -1479,7 +1479,7 @@ def get_cmdclass():
         del sys.modules["versioneer"]
         # this fixes the "python setup.py develop" case (also 'install' and
         # 'easy_install .'), in which subdependencies of the main project are
-        # built (using setup.py bdist_egg) in the same python process. Assume
+        # built (using setup.py bdist_egg) in the same python xasdata. Assume
         # a main project A and a dependency B, which use different versions
         # of Versioneer. A's setup.py imports A's Versioneer, leaving it in
         # sys.modules by the time B's setup.py is executed, causing B to run

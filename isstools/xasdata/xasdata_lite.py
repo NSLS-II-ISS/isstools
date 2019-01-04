@@ -3,7 +3,7 @@ import os
 from isstools.conversions import xray
 import pandas as pd
 import numexpr as ne
-from isstools.process.xasdata_io import (save_interpolated_df_as_file, save_binned_df_as_file,
+from isstools.xasdata.xasdata_io import (save_interpolated_df_as_file, save_binned_df_as_file,
                                          validate_path_exists,
                                          create_file_header, find_e0, validate_file_exists)
 
@@ -228,9 +228,9 @@ def bin_dataset(interpolated_dataset, e0, edge_start=-30, edge_end=40, preedge_s
     return binned_df
 
 
-'''from isstools.process.xasdata_io import save_interpolated_df_as_file, load_interpolated_df_from_file
+'''from isstools.xasdata.xasdata_io import save_interpolated_df_as_file, load_interpolated_df_from_file
 
-from isstools.process.xasdata_lite import load_dataset_from_files, interpolate_dataset
+from isstools.xasdata.xasdata_lite import load_dataset_from_files, interpolate_dataset
 
 uid = db[-1].start['uid']
 
