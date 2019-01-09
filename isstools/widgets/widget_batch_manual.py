@@ -1,15 +1,11 @@
-import inspect
-import re
-
-import pkg_resources
 import numpy as np
+import pkg_resources
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-
+from PyQt5.Qt import QObject
 from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
-from isstools.trajectory.trajectory import trajectory_manager
-from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
-from PyQt5.Qt import QObject
+from isstools.elements.parameter_handler import parse_plan_parameters
+from xas.trajectory import trajectory_manager
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')

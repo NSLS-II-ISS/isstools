@@ -1,5 +1,5 @@
-from isstools.trajectory.trajectory import trajectory, trajectory_manager
 from bluesky.plan_stubs import mv
+from xas.trajectory import trajectory_manager
 '''
 batch = xlive_gui.widget_batch_mode.treeView_batch.model()
 

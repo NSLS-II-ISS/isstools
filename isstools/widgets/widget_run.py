@@ -12,7 +12,6 @@ from matplotlib.figure import Figure
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
-from isstools.xasdata.xasdata import XASdataGeneric
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
@@ -43,7 +42,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.adc_list = adc_list
         self.enc_list = enc_list
         self.xia = xia
-        self.gen_parser = XASdataGeneric(hhm.enc.pulses_per_deg, db)
         self.parent_gui = parent_gui
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
@@ -147,7 +145,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def setXiaSampTime(self, text):
         self.xia_samp_time = text
 
-    def draw_func(self, df):
+    def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
         if 'i0' in df and 'it' in df and 'energy' in df:
             transmission = np.array(df['i0'] / df['it'])
@@ -160,9 +158,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         edge = int(len(energy) * 0.02)
 
         self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
-        self.figure.ax1.legend(loc=1)
+        self.figure.ax1.legend(loc=2)
         self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g', label='Total fluorescence')
-        self.figure.ax2.legend(loc=2)
+        self.figure.ax2.legend(loc=1)
         self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b', label='Reference')
         self.figure.ax3.legend(loc=3)
         self.canvas.draw_idle()

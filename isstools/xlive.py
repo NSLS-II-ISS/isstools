@@ -1,22 +1,17 @@
 import re
 import sys
-
 import numpy as np
 import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore
-from matplotlib.figure import Figure
 
-from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing, widget_batch_mode,widget_batch_mode_new,
-widget_run, widget_beamline_setup, widget_sdd_manager, widget_beamline_status)
+from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
+                              widget_batch_mode_new,widget_run, widget_beamline_setup,
+                              widget_sdd_manager, widget_beamline_status)
 
-from isstools.elements import EmittingStream
-
-from isstools.xasdata import xasdata_callback
-
-
-import kafka
+from isstools.elements.emitting_stream import EmittingStream
+from isstools.process_callbacks.callback import ProcessingCallback
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -85,6 +80,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.db = db
         self.token = None
         self.window_title = window_title
+        
         if RE is not None:
             RE.is_aborted = False
             self.timer = QtCore.QTimer()
@@ -128,7 +124,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.widget_processing = widget_processing.UIProcessing(hhm,
                                                                 db,
-                                                                det_dict,
                                                                 parent_gui=self,
                                                                 )
         self.layout_processing.addWidget(self.widget_processing)
@@ -142,7 +137,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             adc_list,
                                             enc_list,
                                             xia,
-                                            self)
+                                            self,
+                                           )
         self.layout_run.addWidget(self.widget_run)
 
         self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(plan_funcs,
@@ -152,10 +148,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                         sample_stage,
                                                                         self,
                                                                         )
-
         self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-
-        #     self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.update_batch_traj)
+        self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode_new.widget_batch_manual.update_batch_traj())
 
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
                                                                            hhm,
@@ -173,18 +167,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            self)
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
-
         self.push_re_abort.clicked.connect(self.re_abort)
 
-        # After connecting signals to slots, start receiving thread
 
-
-        pc = xasdata_callback.ProcessingCallback(db=self.db, draw_func=self.widget_run.draw_func)
+        pc = ProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.token = self.RE.subscribe(pc,'stop')
 
         # Redirect terminal output to GUI
-        self.emitstream_out = EmittingStream.EmittingStream(self.textEdit_terminal)
-        self.emitstream_err = EmittingStream.EmittingStream(self.textEdit_terminal)
+        self.emitstream_out = EmittingStream(self.textEdit_terminal)
+        self.emitstream_err = EmittingStream(self.textEdit_terminal)
 
         sys.stdout = self.emitstream_out
         sys.stderr = self.emitstream_err
@@ -211,16 +202,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.RE.is_aborted = True
 
     def update_re_state(self):
-        palette = self.label_11.palette()
+        palette = self.laber_RE_state.palette()
         if (self.RE.state == 'idle'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(193, 140, 15))
+            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(193, 140, 15))
         elif (self.RE.state == 'running'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(0, 165, 0))
+            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(0, 165, 0))
         elif (self.RE.state == 'paused'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
+            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
         elif (self.RE.state == 'abort'):
-            palette.setColor(self.label_11.foregroundRole(), QtGui.QColor(255, 0, 0))
-        self.label_11.setPalette(palette)
-        self.label_11.setText(self.RE.state)
+            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
+        self.laber_RE_state.setPalette(palette)
+        self.laber_RE_state.setText(self.RE.state)
 
 

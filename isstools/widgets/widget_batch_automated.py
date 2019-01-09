@@ -1,13 +1,13 @@
 import os
 import sys
+
 import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.Qt import QObject
-from isstools.trajectory.trajectory import trajectory_manager
-from isstools.batch.batch import BatchManager
-from isstools.batch.table_batch import XASBatchExperiment
-from isstools.widgets import widget_batch_manual
 from bluesky.plan_stubs import mv
+from isstools.batch.table_batch import XASBatchExperiment
+from xas.trajectory import trajectory_manager
+from isstools.widgets import widget_batch_manual
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode_new.ui')

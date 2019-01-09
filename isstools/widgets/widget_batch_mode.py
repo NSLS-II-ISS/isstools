@@ -1,26 +1,16 @@
+import collections
 import inspect
 import re
-import pkg_resources
-from PyQt5 import uic, QtWidgets, QtCore
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
-from matplotlib.figure import Figure
-from matplotlib.widgets import Cursor
-from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.QtCore import QThread
-import numpy as np
-import collections
 import time as ttime
 
-from isstools.elements import elements
-from isstools.trajectory.trajectory import trajectory_manager
+import numpy as np
+import pkg_resources
+from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from isstools.batch.batch import BatchManager
+from isstools.elements import elements
+from xas.trajectory import trajectory_manager
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
-
-import json
-import pandas as pd
 
 class UIBatchMode(*uic.loadUiType(ui_path)):
     def __init__(self,

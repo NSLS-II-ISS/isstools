@@ -19,7 +19,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 
 
-from isstools.xasdata import xasdata, xasdata_callback
+from isstools.process_callbacks import xasdata_old, callback
 from isstools.xasproject import xasproject
 from isstools.conversions.xray import k2e, e2k
 
@@ -40,7 +40,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.sender = processing_sender
         self.db = db
         self.db_analysis = db_analysis
-        self.gen_parser = xasdata.XASdataGeneric(hhm_pulses_per_deg, db=db)
+        self.gen_parser = xasdata_old.XASdataGeneric(hhm_pulses_per_deg, db=db)
 
         self.xasproject = xasproject.XASProject()
         self.xasproject.datasets_changed.connect(self.update_xas_project_list)
@@ -62,7 +62,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
 
         self.binned_data = []
-        self.gen = xasdata.XASdataGeneric(self.hhm_pulses_per_deg, db=None)
+        self.gen = xasdata_old.XASdataGeneric(self.hhm_pulses_per_deg, db=None)
 
         self.last_num = ''
         self.last_den = ''
@@ -218,8 +218,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
             self.listFiles_bin.addItems(files_bin)
 
     def selectBinnedDataFilesToPlot(self):
-        header = xasdata.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
-                                                                         self.listFiles_bin.currentItem().text()))
+        header = xasdata_old.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
+                                                                             self.listFiles_bin.currentItem().text()))
         self.keys = header[header.rfind('#'):][1:-1].split()
         self.keys.insert(0, '1')
         if 'timestamp' in self.keys:

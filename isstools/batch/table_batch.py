@@ -1,11 +1,12 @@
 import os
 import uuid
-import pandas as pd
-import numpy as np
-from isstools.trajectory.trajectory import trajectory, trajectory_manager
-from isstools.conversions import xray
 from subprocess import call
+
+import numpy as np
+import pandas as pd
 from bluesky.plan_stubs import mv
+from isstools.conversions import xray
+from xas.trajectory import trajectory, trajectory_manager
 
 
 class XASExperiment:

@@ -1,28 +1,20 @@
-import collections
 import os
 from subprocess import call
 
+import isstools.widgets.widget_energy_selector
+
 import numpy as np
 import pkg_resources
-
 from PyQt5 import uic, QtWidgets, QtCore
+from isstools.conversions import xray
+from isstools.dialogs import UpdateAngleOffset
+from isstools.elements.figure_update import update_figure
+from xas.trajectory import trajectory, trajectory_manager
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
-
 from ophyd import utils as ophyd_utils
-
-import isstools.widgets.widget_general_info
-from isstools.conversions import xray
-from isstools.dialogs import UpdateAngleOffset
-
-from isstools.trajectory.trajectory import trajectory, trajectory_manager
-from isstools.elements.figure_update import update_figure
-
-
-
-import isstools.widgets.widget_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_trajectory_manager.ui')
 
@@ -196,9 +188,6 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         if filename[-4:] == '.txt':
             filename = filename[:-4]
-        if filename[filename.find(self.e0):] == self.e0:
-            filename = filename[:filename.find(self.e0) - 1]
-        filename += '-{}'.format(self.e0)
         print(filename)
         if len(filename):
             fileName, fileExtension = os.path.splitext(filename)

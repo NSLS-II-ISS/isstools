@@ -8,18 +8,18 @@ import pkg_resources
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
 from bluesky.callbacks import LivePlot
+from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
+from isstools.dialogs.BasicDialogs import question_message_box
+from isstools.elements.figure_update import update_figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 from scipy.optimize import curve_fit
+from xas.pid import PID
+from xas.math import gauss
 
-from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
-from isstools.dialogs.BasicDialogs import question_message_box
-from isstools.elements.figure_update import update_figure
-from isstools.elements.math import gauss
-from isstools.pid import PID
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -628,7 +628,7 @@ class piezo_fb_thread(QThread):
         P = 0.004 * self.gui.piezo_kp
         I = 0  # 0.02
         D = 0  # 0.01
-        self.pid = PID.PID(P, I, D)
+        self.pid = PID(P, I, D)
         self.sampleTime = 0.00025
         self.pid.setSampleTime(self.sampleTime)
         self.pid.windup_guard = 3

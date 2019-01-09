@@ -212,7 +212,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_11">
+      <widget class="QLabel" name="label_RE_state">
        <property name="font">
         <font>
          <weight>75</weight>
@@ -304,7 +304,7 @@
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

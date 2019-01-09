@@ -9,7 +9,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 import warnings
 from ophyd import utils as ophyd_utils
-import pandas as pd
+
 
 import os
 
@@ -17,24 +17,17 @@ from isstools.conversions import xray
 from isstools.elements.figure_update import update_figure
 from isstools.dialogs.BasicDialogs import question_message_box
 
-from isstools.xasdata.xasdata_io import load_interpolated_df_from_file
-from isstools.xasdata.xasdata_lite import bin_dataset
-
+from xas.file_io import load_interpolated_df_from_file
+from xas.bin import bin
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
 
-# Things for the ZMQ communication
-import socket
-
-
-from bluesky.callbacks import CallbackBase
 
 
 class UIProcessing(*uic.loadUiType(ui_path)):
     def __init__(self,
                  hhm,
                  db,
-                 det_dict,
                  parent_gui,
                  *args, **kwargs):
         '''
@@ -54,7 +47,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         self.hhm = hhm
         self.db = db
-        self.det_dict = det_dict
+
         self.settings = QSettings(parent_gui.window_title, 'XLive')
         self.edit_E0.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0.textChanged.connect(self.save_e0_processing_value)
@@ -62,7 +55,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.select_files_to_bin)
-        self.push_bin.clicked.connect(self.bin)
+        self.push_bin.clicked.connect(self.bin_selected_files)
         self.push_save_binned.clicked.connect(self.save_binned)
         self.push_calibrate.clicked.connect(self.calibrate_offset)
         self.push_replot_file.clicked.connect(self.replot)
@@ -213,10 +206,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.listWidget_numerator.insertItems(0, list_num)
         self.listWidget_denominator.insertItems(0, list_den)
 
-    def bin(self):
+    def bin_selected_files(self):
         self.binned_datasets = []
         if len(self.interpolated_datasets) > 0:
-            print('a')
             e0 = int(self.edit_E0.text())
             edge_start = int(self.edit_edge_start.text())
             edge_end = int(self.edit_edge_end.text())
@@ -224,7 +216,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             xanes_spacing = float(self.edit_xanes_spacing.text())
             exafs_spacing = float(self.edit_exafs_spacing.text())
             for dataset in self.interpolated_datasets:
-                binned_dataset = bin_dataset(dataset, e0=e0, edge_start=edge_start,
+                binned_dataset = bin(dataset, e0=e0, edge_start=edge_start,
                                       edge_end=edge_end, preedge_spacing=preedge_spacing,
                                       xanes_spacing=xanes_spacing, exafs_k_spacing=exafs_spacing)
 
