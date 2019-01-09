@@ -294,7 +294,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def save_gen_scan(self):
         run = self.db[self.last_gen_scan_uid]
-        self.user_directory = '/GPFS/xf08id/User Data/{}.{}.{}/' \
+        self.user_directory = '/nlsl2/xf08id/users/{}/{}/{}/' \
             .format(run['start']['year'],
                     run['start']['cycle'],
                     run['start']['PROPOSAL'])

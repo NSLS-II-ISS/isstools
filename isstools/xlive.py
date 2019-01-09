@@ -7,7 +7,7 @@ import math
 from PyQt5 import uic, QtGui, QtCore
 
 from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
-                              widget_batch_mode_new,widget_run, widget_beamline_setup,
+                              widget_batch_mode, widget_run, widget_beamline_setup,
                               widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements.emitting_stream import EmittingStream
@@ -141,15 +141,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                            )
         self.layout_run.addWidget(self.widget_run)
 
-        self.widget_batch_mode_new = widget_batch_mode_new.UIBatchModeNew(plan_funcs,
-                                                                        service_plan_funcs,
-                                                                        hhm,
-                                                                        RE,
-                                                                        sample_stage,
-                                                                        self,
-                                                                        )
+        self.widget_batch_mode_new = widget_batch_mode.UIBatchModeNew(plan_funcs,
+                                                                      service_plan_funcs,
+                                                                      hhm,
+                                                                      RE,
+                                                                      sample_stage,
+                                                                      self,
+                                                                      )
         self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-        self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode_new.widget_batch_manual.update_batch_traj())
+        self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode_new.widget_batch_manual.update_batch_traj)
 
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
                                                                            hhm,
@@ -168,7 +168,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
         self.push_re_abort.clicked.connect(self.re_abort)
-
 
         pc = ProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.token = self.RE.subscribe(pc,'stop')
@@ -202,16 +201,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.RE.is_aborted = True
 
     def update_re_state(self):
-        palette = self.laber_RE_state.palette()
+        palette = self.label_RE_state.palette()
         if (self.RE.state == 'idle'):
-            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(193, 140, 15))
+            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(193, 140, 15))
         elif (self.RE.state == 'running'):
-            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(0, 165, 0))
+            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(0, 165, 0))
         elif (self.RE.state == 'paused'):
-            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
+            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
         elif (self.RE.state == 'abort'):
-            palette.setColor(self.laber_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
-        self.laber_RE_state.setPalette(palette)
-        self.laber_RE_state.setText(self.RE.state)
+            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
+        self.label_RE_state.setPalette(palette)
+        self.label_RE_state.setText(self.RE.state)
 
 
