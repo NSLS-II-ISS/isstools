@@ -400,32 +400,37 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def tune_beamline(self):
         print('[Beamline tuning] Starting...')
         self.pushEnableHHMFeedback.setChecked(False)
-        #insert bpm fm
         self.detector_dictionary['bpm_fm']['obj'].insert()
-        previous_detector = None
+        previous_detector = ''
+        previous_motor = ''
         self.RE(bps.sleep(1))
 
         for element in self.tune_elements:
             print('[Beamline tuning] '+ element['comment'])
             detector = self.detector_dictionary[element['detector']]['obj']
-            if detector != previous_detector or motor != previous_motor:
-                update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-            detector_channel_short = self.detector_dictionary[element['detector']]['channels'][0]
-            detector_channel_full = f'{detector.name}_{detector_channel_short}'
             motor = self.motor_dictionary[element['motor']]['object']
-            self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector, detector_channel_short,
+
+            print(f'Detector {detector.name}')
+            print(f' >>>> Previous detector {previous_detector}')
+            print(f'Motor {motor.name}')
+            print(f' >>>> Previous motor {previous_motor}')
+
+            if (detector.name != previous_detector) or (motor.name != previous_motor):
+                update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+
+            self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
                                                        element['range'],
                                                        element['step'],
                                                        retries=element['retries'],
                                                        stdout=self.parent_gui.emitstream_out
                                                        ),
-                    LivePlot(detector_channel_full, x=motor.name, ax=self.figure_gen_scan.ax))
+                    LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
             # turn camera into continuous mode
             if hasattr(detector, 'image_mode'):
                 self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
                 self.RE(bps.mv(getattr(detector, 'acquire'), 1))
-            previous_detector = detector
-            previous_motor = motor
+            previous_detector = detector.name
+            previous_motor = motor.name
 
         self.detector_dictionary['bpm_fm']['obj'].retract()
         print('[Beamline tuning] Beamline tuning complete')
