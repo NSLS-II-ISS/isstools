@@ -133,6 +133,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 self.plot_interpolated_datasets()
             else:
                 self.plot_interpolated_datasets()
+                self.bin_selected_files()
+                self.save_binned()
 
 
     def bin_selected_files(self):
@@ -161,9 +163,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
             for index,filename in enumerate(self.filenames):
                 save_binned_df_as_file(filename,self.binned_datasets_to_save[index],self.comments[index])
                 print(f'>>>> saving {filename}')
-
-
-
 
     def new_bin_df_arrived(self,df):
         self.binned_datasets.append(df)

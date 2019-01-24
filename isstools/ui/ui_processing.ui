@@ -121,31 +121,12 @@
     <string>Select File</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_find_edge">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>30</y>
-     <width>161</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Find edge position</string>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="tristate">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QCheckBox" name="checkBox_process_bin">
    <property name="geometry">
     <rect>
      <x>580</x>
-     <y>0</y>
-     <width>161</width>
+     <y>10</y>
+     <width>211</width>
      <height>31</height>
     </rect>
    </property>
@@ -154,7 +135,7 @@
 b</string>
    </property>
    <property name="text">
-    <string>Process multiple files</string>
+    <string>Auto-process multiple files</string>
    </property>
    <property name="checked">
     <bool>false</bool>
