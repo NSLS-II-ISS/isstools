@@ -115,10 +115,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             start = timer()
             self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md[
                 'PI'] = dlg.getValues()
-            print('2')
             stop1 = timer()
             self.update_user_info()
-            print('3')
-            stop2 = timer()
-            print(stop1 - start)
-            print(stop2 - start)
+
+
