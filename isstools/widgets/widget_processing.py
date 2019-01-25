@@ -167,6 +167,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     def new_bin_df_arrived(self,df):
         self.binned_datasets.append(df)
         if not self.last_den:
+            keys = df.keys()
             refined_keys = []
             for key in keys:
                 if not (('timestamp' in key) or ('energy'  in key)):
