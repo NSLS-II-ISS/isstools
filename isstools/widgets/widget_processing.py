@@ -166,7 +166,11 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.binned_datasets.append(df)
         if not self.last_den:
             keys = df.keys()
-            self.create_lists(keys, keys)
+            refined_keys = []
+            for key in keys:
+                if not (('timestamp' in key) or ('energy'  in key)):
+                    refined_keys.append(key)
+            self.create_lists(refined_keys, refined_keys)
             self.update_list_widgets()
         self.plot_binned_datasets()
 
@@ -174,7 +178,11 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
     def plot_interpolated_datasets(self):
         keys = self.interpolated_datasets[0].keys()
-        self.create_lists(keys, keys)
+        refined_keys = []
+        for key in keys:
+            if not (('timestamp' in key) or ('energy' in key)):
+                refined_keys.append(key)
+        self.create_lists(refined_keys, refined_keys)
         self.update_list_widgets()
         self.erase_plots()
         for dataset in self.interpolated_datasets:
