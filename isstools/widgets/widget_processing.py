@@ -136,7 +136,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 self.bin_selected_files()
                 self.save_binned()
 
-
     def bin_selected_files(self):
         e0 = int(self.edit_E0.text())
         edge_start = int(self.edit_edge_start.text())
@@ -156,7 +155,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 self.binned_datasets.append(binned_dataset)
                 self.binned_datasets_to_save.append(binned_dataset)
             self.plot_binned_datasets()
-
 
     def save_binned(self):
         if self.filenames:
