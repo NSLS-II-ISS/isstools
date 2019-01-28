@@ -137,7 +137,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 self.save_binned()
 
     def bin_selected_files(self):
-        e0 = int(self.edit_E0.text())
+        e0 = float(self.edit_E0.text())
         edge_start = int(self.edit_edge_start.text())
         edge_end = int(self.edit_edge_end.text())
         preedge_spacing = float(self.edit_preedge_spacing.text())
@@ -162,8 +162,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 save_binned_df_as_file(filename,self.binned_datasets_to_save[index],self.comments[index])
                 print(f'>>>> saving {filename}')
 
-    def new_bin_df_arrived(self,df):
+    def new_bin_df_arrived(self,df,filepath):
         self.binned_datasets.append(df)
+        self.labels.append(os.path.splitext(os.path.basename(filepath))[0])
         if not self.last_den:
             keys = df.keys()
             refined_keys = []
@@ -206,7 +207,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     def plot_binned_datasets(self):
         update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
                       self.canvas_binned_scans)
-        for dataset in self.binned_datasets:
+        for dataset, label  in zip(self.binned_datasets, self.labels):
             if self.checkBox_ratio.isChecked():
                 result = dataset[self.last_num_text] / dataset[self.last_den_text]
                 ylabel = f'{self.last_num_text} / {self.last_den_text}'
@@ -217,9 +218,10 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 result = np.log(result)
             if self.checkBox_neg.checkState():
                 result = -result
-            self.figure_binned_scans.ax.plot(dataset['energy'], result)
+            self.figure_binned_scans.ax.plot(dataset['energy'], result,label = label)
             self.figure_binned_scans.ax.set_ylabel(ylabel)
             self.figure_binned_scans.ax.set_xlabel('Energy /eV')
+            self.figure_binned_scans.ax.legend()
             self.figure_binned_scans.tight_layout()
             self.canvas_binned_scans.draw_idle()
         self.push_replot_file.setEnabled(True)
@@ -285,10 +287,8 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.push_save_binned.setEnabled(False)
         self.listWidget_numerator.clear()
         self.listWidget_denominator.clear()
-        self.bin_data_sets = []
-        self.interp_data_sets = []
-        self.handles_interp = []
-        self.handles_bin = []
+        self.binned_datasets = []
+        self.interpolated_datasets = []
         self.erase_plots()
 
     def update_list_widgets(self):

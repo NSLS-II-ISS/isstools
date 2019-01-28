@@ -19,7 +19,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 
 
-from isstools.process_callbacks import xasdata_old, callback
+
 from isstools.xasproject import xasproject
 from isstools.conversions.xray import k2e, e2k
 
