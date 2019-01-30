@@ -240,7 +240,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     # Calibration of the angle offset
 
     def calibrate_offset(self):
-        ret = self.questionMessage('Confirmation', 'Are you sure you would like to calibrate it?')
+        ret = question_message_box(self,'Confirmation', 'Are you sure you would like to calibrate it?')
         if not ret:
             print('[E0 Calibration] Aborted!')
             return False
