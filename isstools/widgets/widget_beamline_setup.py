@@ -398,7 +398,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     pass
 
     def tune_beamline(self):
-        print('[Beamline tuning] Starting...')
+        print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
         self.pushEnableHHMFeedback.setChecked(False)
         self.detector_dictionary['bpm_fm']['obj'].insert()
         previous_detector = ''
@@ -406,7 +406,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE(bps.sleep(1))
 
         for element in self.tune_elements:
-            print('[Beamline tuning] '+ element['comment'])
+            print(f'[Beamline tuning] {element["comment"]}')
             detector = self.detector_dictionary[element['detector']]['obj']
             motor = self.motor_dictionary[element['motor']]['object']
 
@@ -472,7 +472,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
 
     def prepare_beamline(self):
-        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text())))
+        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text()),
+                                                                 stdout = self.parent_gui.emitstream_out))
 
 
     def enable_fb(self, value):
