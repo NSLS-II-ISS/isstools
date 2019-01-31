@@ -21,7 +21,8 @@ from matplotlib.figure import Figure
 
 
 from isstools.xasproject import xasproject
-from isstools.conversions.xray import k2e, e2k
+from xas.xray import k2e, e2k
+from xas.file_io import load_binned_df_from_file
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
@@ -30,21 +31,15 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 class XviewGui(*uic.loadUiType(ui_path)):
 
 #class GUI(QtWidgets.QMainWindow, gui_form):
-    def __init__(self, hhm_pulses_per_deg, processing_sender=None, db=None, db_analysis=None,
+    def __init__(self, db=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.hhm_pulses_per_deg = hhm_pulses_per_deg
-        self.sender = processing_sender
         self.db = db
-        self.db_analysis = db_analysis
-        self.gen_parser = xasdata_old.XASdataGeneric(hhm_pulses_per_deg, db=db)
-
         self.xasproject = xasproject.XASProject()
         self.xasproject.datasets_changed.connect(self.update_xas_project_list)
-
 
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.select_working_folder)
@@ -59,11 +54,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.keys = []
         self.last_keys = []
         self.current_plot_in = ''
-
-
         self.binned_data = []
-        self.gen = xasdata_old.XASdataGeneric(self.hhm_pulses_per_deg, db=None)
-
         self.last_num = ''
         self.last_den = ''
 
@@ -218,13 +209,13 @@ class XviewGui(*uic.loadUiType(ui_path)):
             self.listFiles_bin.addItems(files_bin)
 
     def selectBinnedDataFilesToPlot(self):
-        header = xasdata_old.XASdataGeneric.read_header(None, '{}/{}'.format(self.workingFolder,
-                                                                             self.listFiles_bin.currentItem().text()))
-        self.keys = header[header.rfind('#'):][1:-1].split()
-        self.keys.insert(0, '1')
-        if 'timestamp' in self.keys:
-            del self.keys[self.keys.index('timestamp')]
-
+        df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+        keys = df.keys()
+        refined_keys = []
+        for key in keys:
+            if not (('timestamp' in key) or ('energy' in key)):
+                refined_keys.append(key)
+        self.keys = refined_keys
         if self.keys != self.last_keys:
             self.listBinnedDataNumerator.clear()
             self.listBinnedDataDenominator.clear()
@@ -239,6 +230,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
+
         self.figureBinned.ax.clear()
         self.toolbar.update()
         self.figureBinned.ax.grid(alpha=0.4)
@@ -254,17 +246,20 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.last_num = self.listBinnedDataNumerator.currentRow()
         self.last_den = self.listBinnedDataDenominator.currentRow()
 
-        if 'En. (eV)' in self.keys:
-            energy_key = 'En. (eV)'
-        elif 'energy' in self.keys:
-            energy_key = 'energy'
+        energy_key = 'energy'
 
         handles = []
+
         for i in selected_items:
-            self.gen.loadInterpFile('{}/{}'.format(self.workingFolder, i.text()))
-            df = pd.DataFrame({k: v[:, 1] for k, v in self.gen.interp_arrays.items()}).sort_values(energy_key)
-            spectrum = df[self.listBinnedDataNumerator.currentItem().text()] \
-                       / df[self.listBinnedDataDenominator.currentItem().text()]
+            df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+            print(df)
+            numer = np.array(df[self.listBinnedDataNumerator.currentItem().text()])
+            denom = np.array(df[self.listBinnedDataDenominator.currentItem().text()])
+            print(numer.size)
+            print(denom.size)
+            spectrum = numer/denom
+            print(spectrum)
+            print(spectrum.size)
             if self.checkBox_log_bin.checkState():
                 spectrum = np.log(spectrum)
             if self.checkBox_inv_bin.checkState():
@@ -437,7 +432,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 header = self.gen_parser.read_header(filepath)
                 uid = header[header.find('UID:')+5:header.find('\n', header.find('UID:'))]
 
-                #FIXME different UID syntax in two files from manual binning and 0mq processing
+
                 try:
                     md = self.db[uid]['start']
                 except:

@@ -126,6 +126,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                 self.push_bin.setEnabled(True)
                 self.push_save_binned.setEnabled(True)
                 (dataset, comment) = load_interpolated_df_from_file(file_to_bin)
+                comment = comment[0:comment.rfind('#')]
                 self.comments.append(comment)
                 self.interpolated_datasets.append(dataset)
             self.label_filenames.setText(' '.join(self.filenames))

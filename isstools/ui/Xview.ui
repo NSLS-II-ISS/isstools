@@ -42,7 +42,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
@@ -873,7 +873,7 @@
          </item>
          <item>
           <widget class="QComboBox" name="comboBox_window">
-           <property name="currentText">
+           <property name="currentText" stdset="0">
             <string>Hanning</string>
            </property>
            <item>
@@ -1991,7 +1991,7 @@
      <x>0</x>
      <y>0</y>
      <width>1612</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

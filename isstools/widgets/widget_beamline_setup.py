@@ -408,10 +408,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             detector = self.detector_dictionary[element['detector']]['obj']
             motor = self.motor_dictionary[element['motor']]['object']
 
-            print(f'Detector {detector.name}')
-            print(f' >>>> Previous detector {previous_detector}')
-            print(f'Motor {motor.name}')
-            print(f' >>>> Previous motor {previous_motor}')
 
             if (detector.name != previous_detector) or (motor.name != previous_motor):
                 update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
