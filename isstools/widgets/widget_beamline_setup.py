@@ -284,8 +284,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
-        if len(uid_list) and curr_element is None:
-            self.create_log_scan(uid_list[0], self.figure_gen_scan)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         self.push_gen_scan.setEnabled(True)
@@ -601,7 +599,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     
                 if max_value >= 10 and max_value <= self.piezo_nlines * 100 and (
                     (max_value - min_value) / self.piezo_nlines) > 5:
-                    coeff, var_matrix = curve_fit(self.gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+                    coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
                     centers.append(960 - coeff[1])
     
             if len(centers) > 0:
@@ -609,9 +607,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.settings.setValue('piezo_center', self.piezo_center)
                 self.hhm.fb_center.put(self.piezo_center)
 
-    def gauss(self, x, *p):
-        A, mu, sigma = p
-        return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
+    # def gauss(self, x, *p):
+    #     A, mu, sigma = p
+    #     return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
 
 
     def get_offsets(self):
@@ -714,9 +712,9 @@ class piezo_fb_thread(QThread):
 
         while (self.go):
             #print("Here all the time? 1")
-            if len([self.gui.shutters[shutter] for shutter in self.gui.shutters if
-                    self.gui.shutters[shutter].shutter_type != 'SP' and
-                                    self.gui.shutters[shutter].state.read()['{}_state'.format(shutter)][
+            if len([self.gui.shutter_dictionary[shutter] for shutter in self.gui.shutter_dictionary if
+                    self.gui.shutter_dictionary[shutter].shutter_type != 'SP' and
+                                    self.gui.shutter_dictionary[shutter].state.read()['{}_state'.format(shutter)][
                                         'value'] != 0]) == 0:
                 self.gaussian_piezo_feedback(line=self.gui.piezo_line, center_point=self.gui.piezo_center,
                                              n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)

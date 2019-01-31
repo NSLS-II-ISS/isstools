@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -304,7 +304,7 @@
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
