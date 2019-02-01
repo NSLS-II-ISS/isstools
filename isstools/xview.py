@@ -43,12 +43,12 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.select_working_folder)
-        self.pushbuttonRefreshFolder.clicked.connect(self.getFileList)
+        self.pushbuttonRefreshFolder.clicked.connect(self.get_file_list)
         self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
         self.comboBox_sort_files_by.addItems(['Time','Name'])
-        self.comboBox_sort_files_by.currentIndexChanged.connect((self.getFileList))
+        self.comboBox_sort_files_by.currentIndexChanged.connect((self.get_file_list))
         # file lists
-        self.listFiles_bin.itemSelectionChanged.connect(self.selectBinnedDataFilesToPlot)
+        self.listFiles_bin.itemSelectionChanged.connect(self.select_files_to_plot)
         self.listFiles_bin.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.addCanvas()
         self.keys = []
@@ -66,7 +66,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         if self.workingFolder != '/GPFS/xf08id/User Data':
             self.label_working_folder.setText(self.workingFolder)
             self.label_working_folder.setToolTip(self.workingFolder)
-            self.getFileList()
+            self.get_file_list()
 
         self.label_E0.setText("E<sub>0</sub>")
         # Setting up Preprocess tab:
@@ -192,9 +192,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
             else:
                 self.label_working_folder.setText(self.workingFolder)
-            self.getFileList()
+            self.get_file_list()
 
-    def getFileList(self):
+    def get_file_list(self):
         if self.workingFolder:
             self.listFiles_bin.clear()
 
@@ -208,7 +208,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 files_bin.reverse()
             self.listFiles_bin.addItems(files_bin)
 
-    def selectBinnedDataFilesToPlot(self):
+    def select_files_to_plot(self):
         df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
         keys = df.keys()
         refined_keys = []
@@ -252,23 +252,25 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
         for i in selected_items:
             df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
-            print(df)
             numer = np.array(df[self.listBinnedDataNumerator.currentItem().text()])
             denom = np.array(df[self.listBinnedDataDenominator.currentItem().text()])
-            print(numer.size)
-            print(denom.size)
-            spectrum = numer/denom
-            print(spectrum)
-            print(spectrum.size)
+            if self.checkBox_ratio.checkState():
+                y_label = (f'{self.listBinnedDataNumerator.currentItem().text()} / '
+                           f'{self.listBinnedDataDenominator.currentItem().text()}')
+                spectrum = numer/denom
+            else:
+                y_label = (f'{self.listBinnedDataNumerator.currentItem().text()}')
+                spectrum = numer
             if self.checkBox_log_bin.checkState():
                 spectrum = np.log(spectrum)
+                y_label = f'ln ({y_label})'
             if self.checkBox_inv_bin.checkState():
                 spectrum = -spectrum
+                y_label = f'- {y_label}'
 
             self.figureBinned.ax.plot(df[energy_key], spectrum)
             self.figureBinned.ax.set_xlabel('Energy (eV)')
-            self.figureBinned.ax.set_ylabel('{} / {}'.format(self.listBinnedDataNumerator.currentItem().text(),
-                                                             self.listBinnedDataDenominator.currentItem().text()))
+            self.figureBinned.ax.set_ylabel(y_label)
             last_trace = self.figureBinned.ax.get_lines()[len(self.figureBinned.ax.get_lines()) - 1]
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
             handles.append(patch)
@@ -429,7 +431,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
                 name = Path(filepath).resolve().stem
-                header = self.gen_parser.read_header(filepath)
+                df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
                 uid = header[header.find('UID:')+5:header.find('\n', header.find('UID:'))]
 
 
@@ -439,8 +441,6 @@ class XviewGui(*uic.loadUiType(ui_path)):
                     print('Metadata not found')
                     md={}
 
-                self.gen_parser.data_manager.loadBinFile(filepath)
-                df = self.gen_parser.data_manager.binned_df
                 df = df.sort_values('energy')
                 num_key = self.listBinnedDataNumerator.currentItem().text()
                 den_key = self.listBinnedDataDenominator.currentItem().text()
@@ -452,7 +452,6 @@ class XviewGui(*uic.loadUiType(ui_path)):
                     mu = -mu
                 mu=np.array(mu)
 
-                print(type(mu))
                 ds = xasproject.XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
                 ds.header = header
                 self.xasproject.append(ds)

@@ -229,6 +229,22 @@
        <string>/</string>
       </property>
      </widget>
+     <widget class="QCheckBox" name="checkBox_ratio">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>770</y>
+        <width>101</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Ratio</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_preprocess">
      <attribute name="title">
