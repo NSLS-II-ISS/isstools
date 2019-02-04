@@ -249,6 +249,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                 item_scan = self.listView_scans.model().item(index)
                                 if item_scan.checkState():
                                     new_item_scan = self.clone_scan_item(item_scan)
+                                    print(f' Repeat {new_item_scan.repeat}')
                                     if self.listView_samples.model() is not None:
                                         samples_selected=0
                                         for index in range(self.listView_samples.model().rowCount()):

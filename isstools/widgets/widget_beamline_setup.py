@@ -463,7 +463,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        self.adjust_ic_gains_func(*detectors, stdout = self.parent_gui.emitstream_out)
+        self.RE(self.service_plan_funcs['adjust_ic_gains'](detectors, stdout = self.parent_gui.emitstream_out))
 
     def prepare_beamline(self):
         self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text()),
@@ -511,7 +511,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def set_reference_foil(self):
         foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.reference_foil_func(foil))
+        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.value)

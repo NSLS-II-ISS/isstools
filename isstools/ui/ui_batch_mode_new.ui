@@ -48,8 +48,8 @@
   <widget class="QPushButton" name="push_run_batch_manual">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>845</y>
+     <x>1230</x>
+     <y>850</y>
      <width>196</width>
      <height>36</height>
     </rect>
@@ -103,10 +103,13 @@
    </widget>
   </widget>
   <widget class="QPushButton" name="push_run_batch_manual_2">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>1435</x>
-     <y>845</y>
+     <x>1430</x>
+     <y>850</y>
      <width>196</width>
      <height>36</height>
     </rect>
