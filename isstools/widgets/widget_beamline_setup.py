@@ -463,7 +463,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        self.RE(self.service_plan_funcs['adjust_ic_gains'](detectors, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.service_plan_funcs['adjust_ic_gains'](detectors=detectors, stdout = self.parent_gui.emitstream_out))
 
     def prepare_beamline(self):
         self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text()),

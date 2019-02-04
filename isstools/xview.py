@@ -226,11 +226,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
             if self.last_den != '' and self.last_den <= len(self.keys) - 1:
                 self.listBinnedDataDenominator.setCurrentRow(self.last_den)
 
-
-
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
-
         self.figureBinned.ax.clear()
         self.toolbar.update()
         self.figureBinned.ax.grid(alpha=0.4)
@@ -238,7 +235,6 @@ class XviewGui(*uic.loadUiType(ui_path)):
         # self.toolbar._positions.clear()
         # self.toolbar._update_view()
         self.canvas.draw_idle()
-
         if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
             self.statusBar().showMessage('Please select numerator and denominator')
             return
@@ -251,7 +247,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
         handles = []
 
         for i in selected_items:
-            df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+            path = f'{self.workingFolder}/{i.text()}'
+            print(path)
+            df, header = load_binned_df_from_file(path)
             numer = np.array(df[self.listBinnedDataNumerator.currentItem().text()])
             denom = np.array(df[self.listBinnedDataDenominator.currentItem().text()])
             if self.checkBox_ratio.checkState():
@@ -430,8 +428,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
+                print(filepath)
                 name = Path(filepath).resolve().stem
-                df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+                df, header = load_binned_df_from_file(filepath)
                 uid = header[header.find('UID:')+5:header.find('\n', header.find('UID:'))]
 
 
