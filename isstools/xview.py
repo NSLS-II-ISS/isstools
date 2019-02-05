@@ -428,7 +428,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
                 filepath = str(Path(self.workingFolder) / Path(item.text()))
-                print(filepath)
+
                 name = Path(filepath).resolve().stem
                 df, header = load_binned_df_from_file(filepath)
                 uid = header[header.find('UID:')+5:header.find('\n', header.find('UID:'))]
