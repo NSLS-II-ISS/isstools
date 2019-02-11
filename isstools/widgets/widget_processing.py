@@ -61,6 +61,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.push_replot_file.clicked.connect(self.replot)
         self.push_reset_data.clicked.connect(self.reset_data_plots)
         self.cid = self.canvas_interpolated_scans.mpl_connect('button_press_event', self.getX)
+        self.checkBox_ratio.clicked.connect(self.checkbox_ratio_clicked)
         self.edge_found = -1
         # Disable buttons
         self.push_bin.setDisabled(True)
@@ -174,7 +175,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                     refined_keys.append(key)
             self.create_lists(refined_keys, refined_keys)
             self.update_list_widgets()
+        print(len(self.binned_datasets))
         self.plot_binned_datasets()
+
 
     # Plotting funcitons
 
@@ -208,7 +211,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
     def plot_binned_datasets(self):
         update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
                       self.canvas_binned_scans)
-        for dataset, label  in zip(self.binned_datasets, self.labels):
+        for dataset, label in zip(self.binned_datasets, self.labels):
             if self.checkBox_ratio.isChecked():
                 result = dataset[self.last_num_text] / dataset[self.last_den_text]
                 ylabel = f'{self.last_num_text} / {self.last_den_text}'
@@ -314,3 +317,6 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.listWidget_denominator.clear()
         self.listWidget_numerator.insertItems(0, list_num)
         self.listWidget_denominator.insertItems(0, list_den)
+
+    def checkbox_ratio_clicked(self,state):
+        self.listWidget_denominator.setEnabled(state)

@@ -82,14 +82,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_create_map.clicked.connect(self.create_map)
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
-        self.comboBox_service_scan.addItems(self.service_plan_funcs_names)
-        self.comboBox_service_scan.currentIndexChanged.connect(self.populate_parameter_grid)
+        self.comboBox_service_plan.addItems(self.service_plan_funcs_names)
+        self.comboBox_service_plan.currentIndexChanged.connect(self.populate_service_parameters)
         self.push_update_traj_list.clicked.connect(self.update_batch_traj)
         self.last_lut = 0
 
         self.service_parameter_values = []
         self.service_parameter_descriptions = []
-        self.populate_parameter_grid(0)
+        self.populate_service_parameters(0)
         self.update_batch_traj()
 
     '''
@@ -297,16 +297,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def create_service(self):
         #parse parameters
         service_params = dict()
-        for i in range(len(self.service_param1)):
-            variable = self.service_param2[i].text().split('=')[0]
-            if (self.service_params_types[i] == int) or (self.service_params_types[i] == float):
-                service_params[f'{variable}'] = f'{self.service_param1[i].value()}'
-            elif (self.service_params_types[i] == bool):
-                service_params[f'{variable}'] = f'{bool(self.service_param1[i].checkState())}'
-            elif (self.service_params_types[i] == str):
-                service_params[f'{variable}'] = f'{self.service_param1[i].text()}'
-        service_plan=self.service_plan_funcs[self.comboBox_services.currentIndex()]
-        new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_services.currentText()}')
+        for i in range(len(self.service_parameter_values)):
+            variable = self.service_parameter_descriptions[i].text().split('=')[0]
+            if (self.service_parameter_types[i] == int) or (self.service_parameter_types[i] == float):
+                service_params[f'{variable}'] = f'{self.service_parameter_values[i].value()}'
+            elif (self.service_parameter_types[i] == bool):
+                service_params[f'{variable}'] = f'{bool(self.service_parameter_values[i].checkState())}'
+            elif (self.service_parameter_types[i] == str):
+                service_params[f'{variable}'] = f'{self.service_parameter_values[i].text()}'
+        service_plan=self.service_plan_funcs[self.comboBox_service_plan.currentText()]
+        new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_service_plan.currentText()}')
         new_item_service.item_type = 'service'
         new_item_service.setIcon(icon_service)
         new_item_service.service_plan = service_plan
@@ -335,13 +335,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if item.item_type == 'service':
                     message_box(f'Batch element: {item.item_type}')
 
-    def populate_parameter_grid(self, index):
+    def populate_service_parameters(self, index):
         for i in range(len(self.service_parameter_values)):
-            self.gridLayout_service_parameters_service.removeWidget(self.service_parameter_values[i])
-            self.gridLayout_service_parameters_service.removeWidget(self.service_parameter_descriptions[i])
+            self.gridLayout_service_parameters.removeWidget(self.service_parameter_values[i])
+            self.gridLayout_service_parameters.removeWidget(self.service_parameter_descriptions[i])
             self.service_parameter_values[i].deleteLater()
             self.service_parameter_descriptions[i].deleteLater()
-        service_plan_func = self.service_plan_funcs[self.comboBox_service_scan.currentText()]
+        service_plan_func = self.service_plan_funcs[self.comboBox_service_plan.currentText()]
 
         [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
             = parse_plan_parameters(service_plan_func)
@@ -355,7 +355,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.comboBox_lut.clear()
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
-
 
     def create_map(self):
         if self.radioButton_sample_map_1D.isChecked():

@@ -10,5 +10,4 @@ class ProcessingCallback(CallbackBase):
         super().__init__()
 
     def stop(self, doc):
-        pass
         process_interpolate_bin(doc, self.db, self.draw_func_interp, self.draw_func_bin)
