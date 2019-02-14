@@ -408,7 +408,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             detector = self.detector_dictionary[element['detector']]['obj']
             motor = self.motor_dictionary[element['motor']]['object']
 
-
             if (detector.name != previous_detector) or (motor.name != previous_motor):
                 update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
 
@@ -427,8 +426,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             previous_motor = motor.name
 
         self.detector_dictionary['bpm_fm']['obj'].retract()
-        print('[Beamline tuning] Beamline tuning complete')
-
+        print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()

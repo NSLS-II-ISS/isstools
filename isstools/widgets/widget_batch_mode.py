@@ -6,10 +6,10 @@ from bluesky.plan_stubs import mv
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode_new.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
 
 
-class UIBatchModeNew(*uic.loadUiType(ui_path)):
+class UIBatchMode(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
                  service_plan_funcs,
@@ -38,7 +38,7 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
         self.push_run_batch_manual.clicked.connect(self.run_batch_manual)
 
     def run_batch_manual(self):
-        print('[Launching Threads]')
+        print('[Batch scan] Starting...')
         batch = self.widget_batch_manual.treeView_batch.model()
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
 
@@ -58,46 +58,53 @@ class UIBatchModeNew(*uic.loadUiType(ui_path)):
                     step = experiment.child(jj)
                     if step.item_type == 'sample':
                         sample = step
-                        #self.label_batch_step.setText (sample.name)
-                        #print('  ' + str(sample.x))
-                        #print('  ' + str(sample.y))
                         yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
-                        # print(f'moving to {sample.x}, {sample y}')
                         for kk in range(sample.rowCount()):
-                            scan = sample.child(kk)
-                            traj_index = scan.trajectory
-                            #print('      ' + scan.scan_type)
-                            plan = plans_dict[scan.scan_type]
-                            sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            self.label_batch_step.setText(sample_name)
-                            kwargs = {'name': sample_name,
-                                      'comment': '',
-                                      'delay': 0,
-                                      'n_cycles': scan.repeat,
-                                      'stdout': self.parent_gui.emitstream_out}
-                            tm.init(traj_index+1)
-                            yield from plan(**kwargs)
+                            child_item = sample.child(kk)
+                            if child_item.item_type == 'scan':
+                                scan=child_item
+                                traj_index = scan.trajectory
+                                plan = plans_dict[scan.scan_type]
+                                sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+                                self.label_batch_step.setText(sample_name)
+                                kwargs = {'name': sample_name,
+                                          'comment': '',
+                                          'delay': 0,
+                                          'n_cycles': scan.repeat,
+                                          'stdout': self.parent_gui.emitstream_out}
+                                tm.init(traj_index+1)
+                                yield from plan(**kwargs)
+                            elif child_item.item_type == 'service':
+                                service = child_item
+                                kwargs = {'stdout': self.parent_gui.emitstream_out}
+
+                                yield from service.service_plan(**step.service_params, **kwargs)
+
                     elif step.item_type == 'scan':
                         scan = step
                         traj_index = scan.trajectory
-                        print('  ' + scan.scan_type)
                         tm.init(traj_index + 1)
                         for kk in range(step.rowCount()):
-                            sample = scan.child(kk)
-                            yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
-                            plan = plans_dict[scan.scan_type]
-                            print('     ' + sample.name)
-                            print('     ' + str(sample.x))
-                            print('     ' + str(sample.y))
-                            sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            self.label_batch_step.setText(sample_name)
-                            kwargs = {'name': sample_name,
-                                      'comment': '',
-                                      'delay': 0,
-                                      'n_cycles': scan.repeat,
-                                      'stdout': self.parent_gui.emitstream_out}
+                            child_item = scan.child(kk)
+                            if child_item.item_type == 'sample':
+                                sample=child_item
+                                yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                                plan = plans_dict[scan.scan_type]
 
-                            yield from plan(**kwargs)
+                                sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+                                self.label_batch_step.setText(sample_name)
+                                kwargs = {'name': sample_name,
+                                          'comment': '',
+                                          'delay': 0,
+                                          'n_cycles': scan.repeat,
+                                          'stdout': self.parent_gui.emitstream_out}
+                                yield from plan(**kwargs)
+                            elif child_item == 'service':
+                                service = child_item
+                                kwargs = {'stdout': self.parent_gui.emitstream_out}
+                                yield from service.service_plan(**step.service_params,**kwargs)
                     elif step.item_type == 'service':
-                        yield from step.service_plan(**step.service_params)
+                        print(step.service_params)
+                        kwargs = {'stdout': self.parent_gui.emitstream_out}
+                        yield from step.service_plan(**step.service_params,**kwargs)
         self.label_batch_step.setText('idle')

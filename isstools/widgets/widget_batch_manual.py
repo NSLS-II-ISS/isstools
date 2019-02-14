@@ -369,19 +369,56 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             y_coord = np.ndarray(0)
             y_points = np.linspace(self.spinBox_sample_y_map_start.value(), self.spinBox_sample_y_map_end.value(),
                                   self.spinBox_sample_y_map_steps.value())
-            print(f' Y-points {y_points}')
+
             for i in range(int(self.spinBox_sample_y_map_steps.value())):
-                print(i)
                 x_line = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
                                 self.spinBox_sample_x_map_steps.value())
                 y_line = np.ones(len(x_line))*(y_points[i])
-                print(f'Y-line {y_line}')
 
                 x_coord = np.append(x_coord, x_line)
                 y_coord = np.append(y_coord, y_line)
 
-        xy_coord = np.column_stack((x_coord, y_coord))
+            xy_coord = np.column_stack((x_coord, y_coord))
         print(xy_coord)
+
+        if self.treeView_batch.model().rowCount() and self.treeView_batch.selectedIndexes():
+            parent = self.model_batch.itemFromIndex(self.treeView_batch.selectedIndexes()[0])
+            if (parent.item_type == 'experiment') and (self.listView_scans.model() is not None):
+                for index in range(self.listView_scans.model().rowCount()):
+                    item_scan = self.listView_scans.model().item(index)
+                    if item_scan.checkState():
+                        new_item_scan = self.clone_scan_item(item_scan)
+
+                        if self.lineEdit_map_name.text():
+                            for index in range(len(xy_coord)):
+                                x = xy_coord[index, 0]
+                                y = xy_coord[index, 1]
+                                name = f'{self.lineEdit_map_name.text()} at {x:.3f} {y:.3}'
+
+                                item = QtGui.QStandardItem(name)
+                                new_item_scan.appendRow(item)
+                                item.setDropEnabled(False)
+                                item.item_type = 'sample'
+                                item.setEditable(False)
+                                item.x = x
+                                item.y = y
+                                item.name = name
+                                item.comment = self.lineEdit_map_comment.text()
+                                item.setIcon(icon_sample)
+                        parent.appendRow(new_item_scan)
+                        new_item_scan.setCheckable(False)
+                        new_item_scan.setEditable(False)
+
+
+                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+
+            for index in range(parent.rowCount()):
+                self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
+                self.treeView_batch.setModel(self.model_batch)
+        else:
+            message_box('Warning','Select experiemnt first')
+
+
 
 
 

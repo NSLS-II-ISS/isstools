@@ -923,7 +923,7 @@
      <string>Name</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_sample_name_map">
+   <widget class="QLineEdit" name="lineEdit_map_name">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -1077,7 +1077,7 @@
      <string>Comment</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_sample_comment_map">
+   <widget class="QLineEdit" name="lineEdit_map_comment">
     <property name="geometry">
      <rect>
       <x>90</x>

@@ -141,15 +141,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                            )
         self.layout_run.addWidget(self.widget_run)
 
-        self.widget_batch_mode_new = widget_batch_mode.UIBatchModeNew(plan_funcs,
+        self.widget_batch_mode = widget_batch_mode.UIBatchMode(plan_funcs,
                                                                       service_plan_funcs,
                                                                       hhm,
                                                                       RE,
                                                                       sample_stage,
                                                                       self,
                                                                       )
-        self.layout_batch_new.addWidget(self.widget_batch_mode_new)
-        self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode_new.widget_batch_manual.update_batch_traj)
+        self.layout_batch.addWidget(self.widget_batch_mode)
+        self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
                                                                            hhm,
