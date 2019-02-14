@@ -175,7 +175,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
                     refined_keys.append(key)
             self.create_lists(refined_keys, refined_keys)
             self.update_list_widgets()
-        print(len(self.binned_datasets))
+            if len(self.binned_datasets) > 20:
+                self.binned_datasets = self.binned_datasets[-20:]
+                self.labels = self.labels[-20:]
         self.plot_binned_datasets()
 
 

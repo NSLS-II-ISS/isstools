@@ -6,6 +6,7 @@ from isstools.dialogs.BasicDialogs import message_box
 from isstools.elements import elements
 from isstools.elements.parameter_handler import parse_plan_parameters
 from xas.trajectory import trajectory_manager
+from isstools.dialogs.BasicDialogs import message_box
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')

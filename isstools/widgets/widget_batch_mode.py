@@ -5,6 +5,7 @@ from PyQt5 import uic
 from bluesky.plan_stubs import mv
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
+from isstools.dialogs.BasicDialogs import message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
 
@@ -54,7 +55,6 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                 else:
                     exper_index = ''
                 for jj in range(experiment.rowCount()):
-                    print(experiment.rowCount())
                     step = experiment.child(jj)
                     if step.item_type == 'sample':
                         sample = step
@@ -72,18 +72,21 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                           'delay': 0,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
-                                tm.init(traj_index+1)
+
+
+                                if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index+1:
+                                    tm.init(traj_index+1)
                                 yield from plan(**kwargs)
                             elif child_item.item_type == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
-
-                                yield from service.service_plan(**step.service_params, **kwargs)
+                                yield from service.service_plan(**service.service_params, **kwargs)
 
                     elif step.item_type == 'scan':
                         scan = step
                         traj_index = scan.trajectory
-                        tm.init(traj_index + 1)
+                        if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
+                            tm.init(traj_index + 1)
                         for kk in range(step.rowCount()):
                             child_item = scan.child(kk)
                             if child_item.item_type == 'sample':
@@ -102,9 +105,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                             elif child_item == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                yield from service.service_plan(**step.service_params,**kwargs)
+                                yield from service.service_plan(**service.service_params,**kwargs)
                     elif step.item_type == 'service':
-                        print(step.service_params)
                         kwargs = {'stdout': self.parent_gui.emitstream_out}
                         yield from step.service_plan(**step.service_params,**kwargs)
         self.label_batch_step.setText('idle')

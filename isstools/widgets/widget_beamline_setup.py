@@ -398,7 +398,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def tune_beamline(self):
         print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
         self.pushEnableHHMFeedback.setChecked(False)
-        self.detector_dictionary['bpm_fm']['obj'].insert()
+        self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'],'insert'))
         previous_detector = ''
         previous_motor = ''
         self.RE(bps.sleep(1))
@@ -425,7 +425,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             previous_detector = detector.name
             previous_motor = motor.name
 
-        self.detector_dictionary['bpm_fm']['obj'].retract()
+        self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'], 'retract'))
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def process_detsig(self):
