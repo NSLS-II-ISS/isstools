@@ -6,6 +6,7 @@ from bluesky.plan_stubs import mv
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
 from isstools.dialogs.BasicDialogs import message_box
+from random import random
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
 
@@ -43,6 +44,19 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
         batch = self.widget_batch_manual.treeView_batch.model()
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
 
+    def randomize_position(self):
+        if self.widget_batch_manual.checkBox_randomize.isChecked():
+            delta_x = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
+            delta_y = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
+        else:
+            delta_x = 0
+            delta_y = 0
+
+        print(f'>>>>>>>>>>>>>>>>>>> {delta_x}')
+        print(f'>>>>>>>>>>>>>>>>>>> {delta_y}')
+        return delta_x, delta_y
+
+
     def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict):
         sys.stdout = self.parent_gui.emitstream_out
         tm = trajectory_manager(hhm)
@@ -58,7 +72,9 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                     step = experiment.child(jj)
                     if step.item_type == 'sample':
                         sample = step
-                        yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                        #randomization
+                        delta_x, delta_y = self.randomize_position()
+                        yield from mv(sample_stage.x, sample.x+delta_x, sample_stage.y, sample.y+delta_y)
                         for kk in range(sample.rowCount()):
                             child_item = sample.child(kk)
                             if child_item.item_type == 'scan':
@@ -91,7 +107,12 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                             child_item = scan.child(kk)
                             if child_item.item_type == 'sample':
                                 sample=child_item
-                                yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+                                # randomization
+                                delta_x, delta_y = self.randomize_position()
+
+
+                                yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y)
+
                                 plan = plans_dict[scan.scan_type]
 
                                 sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)

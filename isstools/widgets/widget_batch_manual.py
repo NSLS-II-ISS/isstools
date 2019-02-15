@@ -7,7 +7,7 @@ from isstools.elements import elements
 from isstools.elements.parameter_handler import parse_plan_parameters
 from xas.trajectory import trajectory_manager
 from isstools.dialogs.BasicDialogs import message_box
-
+from random import random
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
@@ -68,6 +68,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
 
+
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
 
 
@@ -122,7 +123,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  'y_widget': 'spinBox_sample_y_map_start'},
             'push_get_sample_position_map_end':
                 {'x_widget': 'spinBox_sample_x_map_end',
-                 'y_widget': 'spinBox_sample_y_map_end'}
+                 'y_widget': 'spinBox_sample_y_map_end'},
+
+
 
         }
 
@@ -148,6 +151,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             item.item_type = 'sample'
             item.setCheckable(True)
             item.setEditable(False)
+
             item.x = x
             item.y = y
             item.name = name
