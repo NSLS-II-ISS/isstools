@@ -242,6 +242,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         for motor in self.motor_dictionary:
             if self.comboBox_gen_mot.currentText() == self.motor_dictionary[motor]['description']:
                 curr_mot = self.motor_dictionary[motor]['object']
+                self.canvas_gen_scan.motor = curr_mot
                 break
 
         if curr_det == '':
@@ -388,9 +389,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                    comments=comments)
 
     def getX_gen_scan(self, event):
-        print(event)
         if event.button == 3:
-            print(event.button)
             if self.canvas_gen_scan.motor != '':
                 dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_gen_scan.motor,
                                                       parent=self.canvas_gen_scan)
@@ -398,12 +397,15 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     pass
 
     def tune_beamline(self):
+        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+        self.canvas_gen_scan.motor = ''
         print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
         self.pushEnableHHMFeedback.setChecked(False)
         self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'],'insert'))
         previous_detector = ''
         previous_motor = ''
         self.RE(bps.sleep(1))
+
 
         for element in self.tune_elements:
             print(f'[Beamline tuning] {element["comment"]}')
@@ -429,6 +431,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'], 'retract'))
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
+
 
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
