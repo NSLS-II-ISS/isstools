@@ -1206,7 +1206,7 @@
      <x>710</x>
      <y>740</y>
      <width>171</width>
-     <height>20</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="text">
@@ -1244,7 +1244,7 @@
      <x>940</x>
      <y>740</y>
      <width>59</width>
-     <height>15</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="text">

@@ -7,7 +7,7 @@ class TreeView(QtWidgets.QTreeView):
         QtWidgets.QTreeView.__init__(self, parent)
         self.accepted_type = accepted_type
         self.unique_elements = unique_elements
-        self.setDragEnabled(True)
+        self.setDragEnabled(False)
         self.setAcceptDrops(True)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
@@ -45,7 +45,9 @@ class TreeView(QtWidgets.QTreeView):
         #print('Formats: {}'.format(event.mimeData().formats()))
         #print('Mime: {}'.format(event.mimeData().data('application/x-qstandarditemmodeldatalist')))
         #data = event.mimeData().data('application/x-qabstractitemmodeldatalist')
+        print('here')
 
+        '''
         exists = False
         curr_item_text = event.mimeData().text()
         if self.unique_elements:
@@ -61,6 +63,5 @@ class TreeView(QtWidgets.QTreeView):
             parent = self.model().invisibleRootItem()
             parent.appendRow(item)
             QtWidgets.QTreeView.dropEvent(self, event)
-
-
+        '''
 
