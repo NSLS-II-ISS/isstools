@@ -491,6 +491,42 @@
     <string>Get offsets</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_RE_status_indicator_2">
+   <property name="geometry">
+    <rect>
+     <x>1180</x>
+     <y>0</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_RE">
+   <property name="geometry">
+    <rect>
+     <x>1230</x>
+     <y>0</y>
+     <width>241</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Run engine</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

@@ -28,8 +28,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         # Start QTimer to display current day and time
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(1000)
-        self.timer_update_time.timeout.connect(self.update_time)
-        self.timer_update_time.timeout.connect(self.update_energy)
+        self.timer_update_time.timeout.connect(self.update_status)
         self.timer_update_time.start()
 
         self.timer_update_weather = QtCore.QTimer(self)
@@ -81,11 +80,10 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             string_current_weather = 'Weather information not available'
         self.label_current_weather.setText(string_current_weather)
 
-    def update_time(self):
+
+    def update_status(self):
         self.label_current_time.setText(
             'Today is {0}'.format(QtCore.QDateTime.currentDateTime().toString('MMMM d, yyyy, h:mm:ss ap')))
-
-    def update_energy(self):
         energy = self.hhm.energy.read()['hhm_energy']['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
         if ((self.hhm.fb_status.get()==1) and
@@ -107,6 +105,8 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.label_gain_it.setText(f'I<sub>t</sub>: 10<sup>{it_gain}</sup>')
         self.label_gain_ir.setText(f'I<sub>r</sub>: 10<sup>{ir_gain}</sup>')
         self.label_gain_if.setText(f'I<sub>f</sub>: 10<sup>{if_gain}</sup>')
+
+
 
     def update_beam_current(self, **kwargs):
         self.label_beam_current.setText('Beam current is {:.1f} mA'.format(kwargs['value']))

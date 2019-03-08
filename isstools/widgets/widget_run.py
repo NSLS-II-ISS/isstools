@@ -46,6 +46,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
         self.run_start.clicked.connect(self.run_scan)
+        self.run_once_start.clicked.connect(self.run_once_scan)
         # List with uids of scans created in the "run" mode:
         self.run_mode_uids = []
 
