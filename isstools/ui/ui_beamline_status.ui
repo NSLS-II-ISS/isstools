@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1129</width>
+    <width>336</width>
     <height>134</height>
    </rect>
   </property>
@@ -16,7 +16,7 @@
   <widget class="QGroupBox" name="groupBox_shutters">
    <property name="geometry">
     <rect>
-     <x>790</x>
+     <x>0</x>
      <y>0</y>
      <width>321</width>
      <height>131</height>
@@ -44,16 +44,7 @@
     <property name="sizeConstraint">
      <enum>QLayout::SetMinimumSize</enum>
     </property>
-    <property name="leftMargin">
-     <number>2</number>
-    </property>
-    <property name="topMargin">
-     <number>2</number>
-    </property>
-    <property name="rightMargin">
-     <number>2</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>2</number>
     </property>
     <item>
@@ -65,6 +56,8 @@
     </item>
    </layout>
   </widget>
+  <zorder>groupBox_shutters</zorder>
+  <zorder></zorder>
  </widget>
  <resources/>
  <connections/>

@@ -114,8 +114,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
-
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator, RE, db)
+        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
+                                                                     hhm,
+                                                                     shutters_dict,
+                                                                     ic_amplifiers,
+                                                                     RE,
+                                                                     db)
         self.layout_general_info.addWidget(self.widget_general_info)
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs

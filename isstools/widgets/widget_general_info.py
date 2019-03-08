@@ -3,6 +3,7 @@ from PyQt5 import uic, QtGui, QtCore
 import pkg_resources
 import requests
 import urllib.request
+import numpy as np
 
 from isstools.dialogs import UpdateUserDialog
 from timeit import default_timer as timer
@@ -13,8 +14,12 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
 class UIGeneralInfo(*uic.loadUiType(ui_path)):
     def __init__(self,
                  accelerator=None,
+                 hhm = None,
+                 shutters=None,
+                 ic_amplifiers = None,
                  RE = None,
                  db = None,
+
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -23,6 +28,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(1000)
         self.timer_update_time.timeout.connect(self.update_time)
+        self.timer_update_time.timeout.connect(self.update_energy)
         self.timer_update_time.start()
 
         self.timer_update_weather = QtCore.QTimer(self)
@@ -30,9 +36,12 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.timer_update_weather.setInterval(1000*60*5)
         self.timer_update_weather.timeout.connect(self.update_weather)
         self.timer_update_weather.start()
-
+        self.hhm = hhm
         self.RE = RE
         self.db = db
+        self.shutters = shutters
+        self.ic_amplifiers = ic_amplifiers
+
         if self.RE is not None:
             self.RE.is_aborted = False
             self.timer_update_user_info = QtCore.QTimer()
@@ -48,6 +57,12 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.accelerator = accelerator
         self.accelerator.beam_current.subscribe(self.update_beam_current)
         self.accelerator.status.subscribe(self.update_accelerator_status)
+
+        self.comboBox_set_i0_gain.currentIndexChanged.connect(self.set_i0_gain)
+        self.comboBox_set_it_gain.currentIndexChanged.connect(self.set_it_gain)
+        self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
+        self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
+
 
     def update_weather(self):
         try:
@@ -67,6 +82,29 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
     def update_time(self):
         self.label_current_time.setText(
             'Today is {0}'.format(QtCore.QDateTime.currentDateTime().toString('MMMM d, yyyy, h:mm:ss ap')))
+
+    def update_energy(self):
+        energy = self.hhm.energy.read()['hhm_energy']['value']
+        self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
+        if ((self.hhm.fb_status.get()==1) and
+                (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+            self.label_feedback_status.setText('Feedback on')
+            self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
+            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
+        else:
+            self.label_feedback_status.setText('Feedback off')
+            self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')
+            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
+
+        i0_gain = self.ic_amplifiers['i0_amp'].get_gain()[0]
+        it_gain = self.ic_amplifiers['it_amp'].get_gain()[0]
+        ir_gain = self.ic_amplifiers['ir_amp'].get_gain()[0]
+        if_gain = self.ic_amplifiers['iff_amp'].get_gain()[0]
+
+        self.label_gain_i0.setText(f'I<sub>0</sub>: 10<sup>{i0_gain}</sup>')
+        self.label_gain_it.setText(f'I<sub>t</sub>: 10<sup>{it_gain}</sup>')
+        self.label_gain_ir.setText(f'I<sub>r</sub>: 10<sup>{ir_gain}</sup>')
+        self.label_gain_if.setText(f'I<sub>f</sub>: 10<sup>{if_gain}</sup>')
 
     def update_beam_current(self, **kwargs):
         self.label_beam_current.setText('Beam current is {:.1f} mA'.format(kwargs['value']))
@@ -118,4 +156,15 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             stop1 = timer()
             self.update_user_info()
 
+    def set_i0_gain(self):
+        self.ic_amplifiers['i0_amp'].set_gain(int(self.comboBox_set_i0_gain.currentText()),0)
+
+    def set_it_gain(self):
+        self.ic_amplifiers['it_amp'].set_gain(int(self.comboBox_set_it_gain.currentText()),0)
+
+    def set_ir_gain(self):
+        self.ic_amplifiers['ir_amp'].set_gain(int(self.comboBox_set_ir_gain.currentText()),0)
+
+    def set_if_gain(self):
+        self.ic_amplifiers['iff_amp'].set_gain(int(self.comboBox_set_if_gain.currentText()), 0)
 

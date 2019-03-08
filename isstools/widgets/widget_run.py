@@ -148,7 +148,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
         if 'i0' in df and 'it' in df and 'energy' in df:
-            transmission = np.array(df['i0'] / df['it'])
+            transmission = np.array(np.log(df['i0'] / df['it']))
         if 'i0' in df and 'iff' in df and 'energy' in df:
             fluorescence = np.array(df['iff'] / df['i0'])
         if 'it' in df and 'ir' in df and 'energy' in df:
