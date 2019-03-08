@@ -114,13 +114,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
-                                                                     hhm,
-                                                                     shutters_dict,
-                                                                     ic_amplifiers,
-                                                                     RE,
-                                                                     db)
-        self.layout_general_info.addWidget(self.widget_general_info)
+
+
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs
                                                                                        )
@@ -173,6 +168,17 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
         self.push_re_abort.clicked.connect(self.re_abort)
 
+        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
+                                                                     hhm,
+                                                                     shutters_dict,
+                                                                     ic_amplifiers,
+                                                                     RE,
+                                                                     db,
+                                                                     self)
+        self.layout_general_info.addWidget(self.widget_general_info)
+
+
+        
         pc = ProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.token = self.RE.subscribe(pc,'stop')
 

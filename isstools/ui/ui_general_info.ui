@@ -478,6 +478,19 @@
     </property>
    </item>
   </widget>
+  <widget class="QPushButton" name="push_get_offsets">
+   <property name="geometry">
+    <rect>
+     <x>1160</x>
+     <y>60</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Get offsets</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

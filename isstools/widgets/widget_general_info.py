@@ -19,6 +19,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
                  ic_amplifiers = None,
                  RE = None,
                  db = None,
+                 parent = None,
 
                  *args, **kwargs):
 
@@ -49,6 +50,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             self.timer_update_user_info.start(60*1000)
             self.timer_update_user_info.singleShot(0, self.update_user_info)
             self.push_set_user_info.clicked.connect(self.set_user_info)
+
         else:
             self.push_update_user.setEnabled(False)
 
@@ -62,7 +64,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.comboBox_set_it_gain.currentIndexChanged.connect(self.set_it_gain)
         self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
         self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
-
+        self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
 
     def update_weather(self):
         try:
