@@ -491,7 +491,7 @@
     <string>Get offsets</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_RE_status_indicator_2">
+  <widget class="QLabel" name="label_RE_status_indicator">
    <property name="geometry">
     <rect>
      <x>1180</x>

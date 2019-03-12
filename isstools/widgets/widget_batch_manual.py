@@ -250,7 +250,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                         samples_selected=0
                                         for index in range(self.listView_samples.model().rowCount()):
                                             item_sample = self.listView_samples.model().item(index)
-                                            if item_scan.checkState():
+                                            if item_sample.checkState():
                                                 samples_selected = 1
                                                 new_item_sample = self.clone_sample_item(item_sample)
                                                 new_item_scan.appendRow(new_item_sample)
