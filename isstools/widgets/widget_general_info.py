@@ -106,16 +106,16 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.label_gain_ir.setText(f'I<sub>r</sub>: 10<sup>{ir_gain}</sup>')
         self.label_gain_if.setText(f'I<sub>f</sub>: 10<sup>{if_gain}</sup>') 
         if (self.RE.state == 'idle'):
-            self.label_RE.setText('Run Enging is idle')
+            self.label_RE.setText('Run Engine is idle')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
         elif (self.RE.state == 'running'):
-            self.label_RE.setText('Run Enging is running')
+            self.label_RE.setText('Run Engine is running')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
         elif (self.RE.state == 'paused'):
-            self.label_RE.setText('Run Enging is paused')
+            self.label_RE.setText('Run Engine is paused')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,153,51)')
         elif (self.RE.state == 'abort'):
-            self.label_RE.setText('Run Enging is aborted')
+            self.label_RE.setText('Run Engine is aborted')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
 
 
