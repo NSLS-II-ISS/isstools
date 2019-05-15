@@ -8,6 +8,7 @@ from isstools.widgets import widget_batch_manual
 from isstools.dialogs.BasicDialogs import message_box
 from random import random
 
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
 
 

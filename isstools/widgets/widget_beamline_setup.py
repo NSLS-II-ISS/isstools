@@ -124,11 +124,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
-        self.radioButton_fb_local.setEnabled(not self.hhm.fb_status.value)
-        self.radioButton_fb_remote.setEnabled(not self.hhm.fb_status.value)
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_local.setDisabled)
-        self.pushEnableHHMFeedback.toggled.connect(self.radioButton_fb_remote.setDisabled)
+
 
 
         if 'bpm_es' in self.detector_dictionary:
@@ -471,7 +468,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def prepare_beamline(self):
         self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text()),
                                                                  stdout = self.parent_gui.emitstream_out))
-
 
     def enable_fb(self, value):
         if self.radioButton_fb_local.isChecked():

@@ -5,8 +5,10 @@ import requests
 import urllib.request
 import numpy as np
 
-from isstools.dialogs import UpdateUserDialog
+from isstools.dialogs import UpdateUserDialog, SetEnergy
 from timeit import default_timer as timer
+from isstools.dialogs.BasicDialogs import message_box
+import bluesky.plan_stubs as bps
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
 
@@ -41,6 +43,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.db = db
         self.shutters = shutters
         self.ic_amplifiers = ic_amplifiers
+        self.parent = parent
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -64,6 +67,9 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
         self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
         self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
+        self.push_set_energy.clicked.connect(self.set_energy)
+        self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
+        self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
 
     def update_weather(self):
         try:
@@ -183,3 +189,28 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
     def set_if_gain(self):
         self.ic_amplifiers['iff_amp'].set_gain(int(self.comboBox_set_if_gain.currentText()), 0)
 
+    def set_energy(self):
+        energy = self.hhm.energy.read()['hhm_energy']['value']
+        dlg = SetEnergy.SetEnergy(round(energy), parent=self)
+        if dlg.exec_():
+            try:
+                new_energy=float(dlg.getValues())
+                print(new_energy)
+                if (new_energy > 4700) and (new_energy < 32000):
+                    self.RE(bps.mv(self.hhm.energy, new_energy))
+
+            except Exception as exc:
+                message_box('Incorrect energy','Energy should be within 4700-32000 eV range')
+
+
+
+
+    def tweak_pitch_pos(self):
+        self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
+        pitch = self.hhm.pitch.read()['hhm_pitch']['value']
+        self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
+
+    def tweak_pitch_neg(self):
+        self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
+        pitch = self.hhm.pitch.read()['hhm_pitch']['value']
+        self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
