@@ -241,7 +241,7 @@ b</string>
     <item row="3" column="2">
      <widget class="QLabel" name="label_85">
       <property name="text">
-       <string>K</string>
+       <string>k</string>
       </property>
      </widget>
     </item>
