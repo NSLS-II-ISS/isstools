@@ -198,7 +198,8 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
                 print(new_energy)
                 if (new_energy > 4700) and (new_energy < 32000):
                     self.RE(bps.mv(self.hhm.energy, new_energy))
-
+                else:
+                    raise ValueError
             except Exception as exc:
                 message_box('Incorrect energy','Energy should be within 4700-32000 eV range')
 
