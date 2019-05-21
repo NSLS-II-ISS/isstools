@@ -1,7 +1,8 @@
 import os
 from subprocess import call
 
-import isstools.widgets.widget_energy_selector
+from isstools.widgets import widget_energy_selector
+
 
 import numpy as np
 import pkg_resources
@@ -34,7 +35,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.e0 = '4492'
         self.edge = 'K'
 
-        self.widget_energy_selector = isstools.widgets.widget_energy_selector.UIEnergySelector()
+        self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector_trajectory.addWidget(self.widget_energy_selector)
         #communication between the Energy Selector widget and Trajectory Manager
 

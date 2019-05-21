@@ -8,10 +8,12 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
+from xas.xray import generate_energy_grid
 
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
+from isstools.widgets import widget_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
@@ -53,6 +55,19 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.parameter_descriptions = []
         self.populate_parameter_grid(0)
 
+        self.element = 'Scandium (21)'
+        self.e0 = '4492'
+        self.edge = 'K'
+
+        self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
+        self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
+        self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
+        self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
+
+        self.energy_grid = []
+
+
     def addCanvas(self):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
@@ -67,7 +82,10 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
     def run_scan(self):
-        ignore_shutter=False
+
+        ignore_shutter = False
+        energy_grid = []
+        time_grid = []
 
         for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
                         self.shutter_dictionary[shutter].shutter_type != 'SP']:
@@ -108,10 +126,27 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
             plan_key = self.comboBox_scan_type.currentText()
+            if plan_key == 'Step scan':
+                energy_grid, time_grid = generate_energy_grid(float(self.e0),
+                                                              float(self.edit_preedge_start.text()),
+                                                              float(self.edit_xanes_start.text()),
+                                                              float(self.edit_xanes_end.text()),
+                                                              float(self.edit_exafs_end.text()),
+                                                              float(self.edit_preedge_spacing.text()),
+                                                              float(self.edit_xanes_spacing.text()),
+                                                              float(self.edit_exafs_spacing.text()),
+                                                              float(self.edit_preedge_dwell.text()),
+                                                              float(self.edit_xanes_dwell.text()),
+                                                              float(self.edit_exafs_dwell.text()),
+                                                              int(self.comboBox_exafs_dwell_kpower.currentText())
+                                                              )
+
             plan_func = self.plan_funcs[plan_key]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
                                                    ax=self.figure.ax1,
                                                    ignore_shutter=ignore_shutter,
+                                                   energy_grid=energy_grid,
+                                                   time_grid=time_grid,
                                                    stdout=self.parent_gui.emitstream_out))
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
@@ -165,3 +200,11 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax3.legend(loc=3)
         self.canvas.draw_idle()
 
+    def update_E0(self, text):
+        self.e0 = text
+
+    def update_edge(self, text):
+        self.edge = text
+
+    def update_element(self, text):
+        self.element = text

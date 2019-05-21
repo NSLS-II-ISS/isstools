@@ -18,8 +18,8 @@
     <rect>
      <x>10</x>
      <y>50</y>
-     <width>371</width>
-     <height>331</height>
+     <width>386</width>
+     <height>191</height>
     </rect>
    </property>
    <property name="title">
@@ -51,7 +51,7 @@
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>410</x>
+     <x>400</x>
      <y>20</y>
      <width>1201</width>
      <height>881</height>
@@ -64,7 +64,7 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>246</width>
+     <width>381</width>
      <height>31</height>
     </rect>
    </property>
@@ -110,10 +110,10 @@
   <widget class="QGroupBox" name="groupBox_13">
    <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>390</y>
+     <x>10</x>
+     <y>240</y>
      <width>386</width>
-     <height>326</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="title">
@@ -122,14 +122,27 @@
    <widget class="QWidget" name="gridLayoutWidget_6">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>10</y>
-      <width>141</width>
-      <height>81</height>
+      <x>10</x>
+      <y>140</y>
+      <width>181</width>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_6">
-     <item row="2" column="2">
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_16">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>XANES start</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
       <widget class="QLabel" name="label_21">
        <property name="text">
         <string> k</string>
@@ -143,15 +156,15 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="edit_postedge_hi">
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="edit_exafs_end">
        <property name="text">
         <string>16</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="edit_preedge_lo">
+      <widget class="QLineEdit" name="edit_preedge_start">
        <property name="text">
         <string>-200</string>
        </property>
@@ -159,15 +172,68 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_14">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
-        <string>Pre-edge</string>
+        <string>Pre-edge start</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_20">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
-        <string>K</string>
+        <string>EXAFS end</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_18">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>XANES end</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="edit_xanes_start">
+       <property name="text">
+        <string>-30</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string> eV </string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_17">
+       <property name="text">
+        <string> eV </string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="edit_xanes_end">
+       <property name="text">
+        <string>30</string>
        </property>
       </widget>
      </item>
@@ -195,13 +261,13 @@
       <height>111</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="layout_energy_selectors"/>
+    <layout class="QHBoxLayout" name="layout_energy_selector"/>
    </widget>
    <widget class="QWidget" name="gridLayoutWidget_14">
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>95</y>
+      <y>20</y>
       <width>141</width>
       <height>112</height>
      </rect>
@@ -222,6 +288,12 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_75">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
         <string>Pre-edge</string>
        </property>
@@ -229,6 +301,12 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_72">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
         <string>XANES</string>
        </property>
@@ -236,6 +314,12 @@
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="edit_preedge_spacing">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>4</string>
        </property>
@@ -250,6 +334,12 @@
      </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="edit_xanes_spacing">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>0.2</string>
        </property>
@@ -264,6 +354,12 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_84">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
         <string>EXAFS</string>
        </property>
@@ -271,6 +367,12 @@
      </item>
      <item row="3" column="1">
       <widget class="QLineEdit" name="edit_exafs_spacing">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>0.04</string>
        </property>
@@ -289,14 +391,33 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>210</y>
-      <width>141</width>
-      <height>112</height>
+      <y>140</y>
+      <width>169</width>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_17">
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_92">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>EXAFS</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="edit_preedge_dwell">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>1</string>
        </property>
@@ -311,6 +432,12 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_80">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
         <string>Pre-edge</string>
        </property>
@@ -318,6 +445,12 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_81">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
        <property name="text">
         <string>XANES</string>
        </property>
@@ -325,6 +458,12 @@
      </item>
      <item row="3" column="1">
       <widget class="QLineEdit" name="edit_exafs_dwell">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>1</string>
        </property>
@@ -339,6 +478,12 @@
      </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="edit_xanes_dwell">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
         <string>1</string>
        </property>
@@ -348,13 +493,6 @@
       <widget class="QLabel" name="label_91">
        <property name="text">
         <string>  s  </string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_92">
-       <property name="text">
-        <string>EXAFS</string>
        </property>
       </widget>
      </item>
@@ -369,6 +507,44 @@
        <property name="text">
         <string>Dwell</string>
        </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_94">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>k-power</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="comboBox_exafs_dwell_kpower">
+       <property name="maximumSize">
+        <size>
+         <width>45</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
