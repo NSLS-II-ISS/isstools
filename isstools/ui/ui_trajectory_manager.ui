@@ -306,7 +306,7 @@
         <x>190</x>
         <y>10</y>
         <width>171</width>
-        <height>191</height>
+        <height>197</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -443,7 +443,7 @@
         <x>10</x>
         <y>10</y>
         <width>171</width>
-        <height>191</height>
+        <height>205</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
@@ -628,7 +628,7 @@
       <x>420</x>
       <y>70</y>
       <width>191</width>
-      <height>102</height>
+      <height>108</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_14">
@@ -731,7 +731,7 @@
      <item row="2" column="2">
       <widget class="QLabel" name="label_21">
        <property name="text">
-        <string>K</string>
+        <string>k</string>
        </property>
       </widget>
      </item>
@@ -910,7 +910,7 @@
       <x>10</x>
       <y>30</y>
       <width>211</width>
-      <height>104</height>
+      <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_40">
