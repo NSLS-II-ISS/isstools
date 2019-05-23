@@ -53,6 +53,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.run_start.clicked.connect(self.run_scan)
         # List with uids of scans created in the "run" mode:
         self.run_mode_uids = []
+        self.rr_token = None
 
         self.parameter_values = []
         self.parameter_descriptions = []
@@ -143,9 +144,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               float(self.edit_exafs_dwell.text()),
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
-                # pc = StepScanProcessingCallback()
-                # self.step_token = self.RE.subscribe(pc)
-                self.RE.subscribe(run_router)
+                self.rr_token = self.RE.subscribe(run_router)
 
 
 
@@ -161,6 +160,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()
             print('Scan duration {} s'.format(stop_scan_timer-start_scan_timer))
+            if self.rr_token is not None:
+                self.RE.unsubscribe(self.rr_token)
+
 
 
         else:

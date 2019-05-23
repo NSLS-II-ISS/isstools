@@ -3,6 +3,7 @@ from xas.process import process_interpolate_bin
 from event_model import RunRouter, Filler
 from databroker.assets.handlers_base import HandlerBase
 from collections import namedtuple
+import pandas as pd
 
 
 class FlyScanProcessingCallback(CallbackBase):
@@ -54,31 +55,6 @@ class FlyScanProcessingCallback(CallbackBase):
 #         #     pass
 
 
-# New handlers to support reading files into a Pandas dataframe
-class PizzaBoxAnHandlerTxtPD(HandlerBase):
-    "Read PizzaBox text files using info from filestore."
-    def __init__(self, fpath):
-        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'index', 'adc'], sep=' ')
-
-    def __call__(self):
-        return self.df
-
-class PizzaBoxDIHandlerTxtPD(HandlerBase):
-    "Read PizzaBox text files using info from filestore."
-    def __init__(self, fpath):
-        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'encoder', 'index', 'di'], sep=' ')
-
-    def __call__(self):
-        return self.df
-
-class PizzaBoxEncHandlerTxtPD(HandlerBase):
-    "Read PizzaBox text files using info from filestore."
-    def __init__(self, fpath):
-        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'encoder', 'index', 'state'], sep=' ')
-
-    def __call__(self):
-        return self.df
-
 class PizzaBoxEncHandlerTxt(HandlerBase):
     encoder_row = namedtuple('encoder_row',
                              ['ts_s', 'ts_ns', 'encoder', 'index', 'state'])
@@ -125,23 +101,61 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
                 for ln in self.lines[chunk_num*cs:(chunk_num+1)*cs]]
 
 
+# New handlers to support reading files into a Pandas dataframe
+class PizzaBoxAnHandlerTxtPD(HandlerBase):
+    "Read PizzaBox text files using info from filestore."
+    def __init__(self, fpath):
+        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'index', 'adc'], sep=' ')
+
+    def __call__(self):
+        return self.df
+
+class PizzaBoxDIHandlerTxtPD(HandlerBase):
+    "Read PizzaBox text files using info from filestore."
+    def __init__(self, fpath):
+        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'encoder', 'index', 'di'], sep=' ')
+
+    def __call__(self):
+        return self.df
+
+class PizzaBoxEncHandlerTxtPD(HandlerBase):
+    "Read PizzaBox text files using info from filestore."
+    def __init__(self, fpath):
+        self.df = pd.read_table(fpath, names=['ts_s', 'ts_ns', 'encoder', 'index', 'state'], sep=' ')
+
+    def __call__(self):
+        return self.df
+
+
 def step_scan_factory(name, start_doc):
+    data_dict = {}
     filler = Filler({'PIZZABOX_AN_FILE_TXT_PD': PizzaBoxAnHandlerTxtPD,
                      'PIZZABOX_DI_FILE_TXT_PD': PizzaBoxDIHandlerTxtPD,
-                     'PIZZABOX_ENC_FILE_TXT_PD': PizzaBoxEncHandlerTxtPD,
-                     'PIZZABOX_AN_FILE_TXT': PizzaBoxAnHandlerTxt,
-                     'PIZZABOX_DI_FILE_TXT': PizzaBoxDIHandlerTxt,
-                     'PIZZABOX_ENC_FILE_TXT': PizzaBoxEncHandlerTxt})
+                     'PIZZABOX_ENC_FILE_TXT_PD': PizzaBoxEncHandlerTxtPD})
 
     def cb(name, doc):
         filler(name, doc)  # Fill in place any externally-stored data written by area detector.
-        if True:  # name == 'bulk_events':
+        if name == 'event_page':
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print(doc)
+            # print(doc)
             print(name)
+            dev = list(dict(doc['data']).keys())[0]
+            try:
+                data = doc['data'][dev][0]
+                print(data)
+                print('!!!!!!!!!!!!!!!!!!!!!')
+                data_dec = data['adc'].apply(
+                    lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x,16) >> 8) * 7.62939453125e-05
+                print(data_dec)
+                print(f'>>>>> MEAN: {data_dec.mean()}')
+                seq_num = doc['seq_num'][0]
+                print(seq_num)
+            except:
+                pass
+
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
