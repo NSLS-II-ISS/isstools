@@ -15,6 +15,9 @@ from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
 
+from isstools.process_callbacks.callback import run_router
+
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 class UIRun(*uic.loadUiType(ui_path)):
@@ -140,6 +143,12 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               float(self.edit_exafs_dwell.text()),
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
+                # pc = StepScanProcessingCallback()
+                # self.step_token = self.RE.subscribe(pc)
+                self.RE.subscribe(run_router)
+
+
+
 
             plan_func = self.plan_funcs[plan_key]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,

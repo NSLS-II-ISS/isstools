@@ -159,14 +159,14 @@
      <item row="4" column="1">
       <widget class="QLineEdit" name="edit_exafs_end">
        <property name="text">
-        <string>16</string>
+        <string>6</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="edit_preedge_start">
        <property name="text">
-        <string>-200</string>
+        <string>-100</string>
        </property>
       </widget>
      </item>
@@ -321,7 +321,7 @@
         </size>
        </property>
        <property name="text">
-        <string>4</string>
+        <string>10</string>
        </property>
       </widget>
      </item>
@@ -341,7 +341,7 @@
         </size>
        </property>
        <property name="text">
-        <string>0.2</string>
+        <string>10</string>
        </property>
       </widget>
      </item>
@@ -374,7 +374,7 @@
         </size>
        </property>
        <property name="text">
-        <string>0.04</string>
+        <string>1</string>
        </property>
       </widget>
      </item>

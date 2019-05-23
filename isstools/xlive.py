@@ -11,7 +11,7 @@ from isstools.widgets import (widget_general_info, widget_trajectory_manager, wi
                               widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements.emitting_stream import EmittingStream
-from isstools.process_callbacks.callback import ProcessingCallback
+from isstools.process_callbacks.callback import FlyScanProcessingCallback
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/XLive.ui')
 
@@ -179,8 +179,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         
-        pc = ProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
-        self.token = self.RE.subscribe(pc,'stop')
+        pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
+        self.fly_token = self.RE.subscribe(pc, 'stop')
 
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream(self.textEdit_terminal)
