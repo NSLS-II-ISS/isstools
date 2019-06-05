@@ -4,6 +4,7 @@ from event_model import RunRouter, Filler
 from databroker.assets.handlers_base import HandlerBase
 from collections import namedtuple
 import pandas as pd
+import numpy as np
 
 
 class FlyScanProcessingCallback(CallbackBase):
@@ -127,39 +128,71 @@ class PizzaBoxEncHandlerTxtPD(HandlerBase):
         return self.df
 
 
+DATA = {}
+SEQ_NUM = 1
+
 def step_scan_factory(name, start_doc):
-    data_dict = {}
+    aliases = {'pba2_adc7': 'pba2_adc7',
+                'pba1_adc6':'iff',
+                'pba1_adc1': 'it',
+                'pba2_adc6':'ir',
+                'pba1_adc7':'i0',
+                'hhm_energy':'energy',
+                }
+
     filler = Filler({'PIZZABOX_AN_FILE_TXT_PD': PizzaBoxAnHandlerTxtPD,
                      'PIZZABOX_DI_FILE_TXT_PD': PizzaBoxDIHandlerTxtPD,
                      'PIZZABOX_ENC_FILE_TXT_PD': PizzaBoxEncHandlerTxtPD})
 
     def cb(name, doc):
+        global DATA
+        global SEQ_NUM
+
         filler(name, doc)  # Fill in place any externally-stored data written by area detector.
+
         if name == 'event_page':
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            seq_num = doc['seq_num'][0]
+            if seq_num > SEQ_NUM:
+                SEQ_NUM += 1
+                #print(f' &&&&&&&&&&&&&&&&&&&&& data {DATA}')
+                res = pd.DataFrame(DATA)
+                with open('/tmp/export.csv', 'w') as f:
+                    res.to_csv(f, index=False, columns=res.columns[::-1])
+                #print(f' Current number {seq_num}')
+                #print(f' Global number {SEQ_NUM}')
+
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             # print(doc)
-            print(name)
+            #print(name)
+
             dev = list(dict(doc['data']).keys())[0]
-            try:
-                data = doc['data'][dev][0]
-                print(data)
-                print('!!!!!!!!!!!!!!!!!!!!!')
+            print(f'>>>>>>>>>>>>>>>>>>>>>>>> Device {dev}')
+            aliased_dev = aliases[dev]
+            if aliased_dev not in DATA:
+                DATA[aliased_dev] = []
+
+            data = doc['data'][dev][0]
+            print(f'>>>>>>>>>>>>>>>>>>>>>>>> {dev} Data {data}')
+            if dev == 'hhm_energy':
+                data_dec = data
+            elif dev in ['pba2_adc7', 'pba1_adc6', 'pba1_adc1', 'pba2_adc6', 'pba1_adc7']:
+                print('?????????????????????' , [x for x in data['adc']] )
                 data_dec = data['adc'].apply(
                     lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x,16) >> 8) * 7.62939453125e-05
-                print(data_dec)
-                print(f'>>>>> MEAN: {data_dec.mean()}')
-                seq_num = doc['seq_num'][0]
-                print(seq_num)
-            except:
-                pass
+                data_dec = data_dec.mean()
 
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            if dev in aliases.keys():
+                DATA[aliased_dev].append(data_dec)
+
+            # print(f'>>>>>>>>>>>>>>>>>>>>>>>> Data {data_dec}')
+
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
 
     return [cb], []
 

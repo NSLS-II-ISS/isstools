@@ -12,6 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 
 from isstools.xiaparser import xiaparser
+from isstools.elements.figure_update import update_figure
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sdd_manager.ui')
@@ -95,7 +96,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.figure_gain_matching = Figure()
         self.figure_gain_matching.set_facecolor(color='#FcF9F6')
         self.canvas_gain_matching = FigureCanvas(self.figure_gain_matching)
-        self.figure_gain_matching.add_subplot(111)
+        self.figure_gain_matching.ax = self.figure_gain_matching.add_subplot(111)
         self.toolbar_gain_matching = NavigationToolbar(self.canvas_gain_matching, self, coordinates=True)
         self.plot_gain_matching.addWidget(self.toolbar_gain_matching)
         self.plot_gain_matching.addWidget(self.canvas_gain_matching)
@@ -223,9 +224,9 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                         exec('del self.figure_xia_all_graphs.ax.roi{}l,\
                             self.figure_xia_all_graphs.ax.roi{}h'.format(roi, roi))
 
-                self.toolbar_xia_all_graphs._views.clear()
-                self.toolbar_xia_all_graphs._positions.clear()
-                self.toolbar_xia_all_graphs._update_view()
+
+                update_figure([self.figure_xia_all_graphs.ax], self.toolbar_xia_all_graphs, self.canvas_xia_all_graphs)
+
                 self.xia_graphs_names.clear()
                 self.xia_graphs_labels.clear()
                 self.canvas_xia_all_graphs.draw_idle()
