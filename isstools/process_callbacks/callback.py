@@ -1,3 +1,6 @@
+import os
+import os.path
+
 from bluesky.callbacks import CallbackBase
 from xas.process import process_interpolate_bin
 from event_model import RunRouter, Filler
@@ -144,6 +147,9 @@ def step_scan_factory(name, start_doc):
                      'PIZZABOX_DI_FILE_TXT_PD': PizzaBoxDIHandlerTxtPD,
                      'PIZZABOX_ENC_FILE_TXT_PD': PizzaBoxEncHandlerTxtPD})
 
+    if os.path.exists('/tmp/export.dat'):
+        os.remove('/tmp/export.dat')
+
     def cb(name, doc):
         global DATA
         global SEQ_NUM
@@ -154,10 +160,14 @@ def step_scan_factory(name, start_doc):
             seq_num = doc['seq_num'][0]
             if seq_num > SEQ_NUM:
                 SEQ_NUM += 1
-                #print(f' &&&&&&&&&&&&&&&&&&&&& data {DATA}')
+                print(f' &&&&&&&&&&&&&&&&&&&&& data {DATA}')
                 res = pd.DataFrame(DATA)
-                with open('/tmp/export.csv', 'w') as f:
-                    res.to_csv(f, index=False, columns=res.columns[::-1])
+                ##with open('/tmp/export.csv', 'w') as f:
+                ##    res.to_csv(f, index=False, columns=res.columns[::-1])
+                with open('/tmp/export.dat', 'a') as f:
+                    if f.tell() == 0:
+                        f.write('# ')
+                    res.tail(n=1).to_csv(f, header=(f.tell() == 2), index=False, sep='\t', columns=res.columns[::-1])
                 #print(f' Current number {seq_num}')
                 #print(f' Global number {SEQ_NUM}')
 
@@ -175,11 +185,11 @@ def step_scan_factory(name, start_doc):
                 DATA[aliased_dev] = []
 
             data = doc['data'][dev][0]
-            print(f'>>>>>>>>>>>>>>>>>>>>>>>> {dev} Data {data}')
+            #print(f'>>>>>>>>>>>>>>>>>>>>>>>> {dev} Data {data}')
             if dev == 'hhm_energy':
                 data_dec = data
             elif dev in ['pba2_adc7', 'pba1_adc6', 'pba1_adc1', 'pba2_adc6', 'pba1_adc7']:
-                print('?????????????????????' , [x for x in data['adc']] )
+                #print('?????????????????????' , [x for x in data['adc']] )
                 data_dec = data['adc'].apply(
                     lambda x: (int(x, 16) >> 8) - 0x40000 if (int(x, 16) >> 8) > 0x1FFFF else int(x,16) >> 8) * 7.62939453125e-05
                 data_dec = data_dec.mean()
