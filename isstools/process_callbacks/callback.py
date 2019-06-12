@@ -163,7 +163,7 @@ def step_scan_factory(name, start_doc):
             seq_num = doc['seq_num'][0]
             if seq_num > SEQ_NUM:
                 SEQ_NUM += 1
-                print(f' &&&&&&&&&&&&&&&&&&&&& data {DATA}')
+                #print(f' &&&&&&&&&&&&&&&&&&&&& data {DATA}')
                 res = pd.DataFrame(DATA)
                 ##with open('/tmp/export.csv', 'w') as f:
                 ##    res.to_csv(f, index=False, columns=res.columns[::-1])
