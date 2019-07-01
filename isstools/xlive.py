@@ -43,7 +43,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  sample_stage=None,
                  tune_elements=None,
                  ic_amplifiers={},
-                 window_title="XLive @QAS/11-ID NSLS-II",
+                 window_title=" ",
                  *args, **kwargs):
         '''
 
