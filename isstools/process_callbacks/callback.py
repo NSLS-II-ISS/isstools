@@ -8,6 +8,7 @@ from databroker.assets.handlers_base import HandlerBase
 from collections import namedtuple
 import pandas as pd
 import numpy as np
+import uuid
 
 
 class FlyScanProcessingCallback(CallbackBase):
@@ -147,11 +148,11 @@ def step_scan_factory(name, start_doc):
                      'PIZZABOX_DI_FILE_TXT_PD': PizzaBoxDIHandlerTxtPD,
                      'PIZZABOX_ENC_FILE_TXT_PD': PizzaBoxEncHandlerTxtPD})
 
-    export_fp = '/tmp/export.dat'
+    export_fp = '/tmp/{}.dat'.format(str(uuid.uuid4())[0:8])
     if os.path.exists(export_fp):
         os.remove(export_fp)
-        with open(export_fp, 'w') as f:
-            f.write('# ')
+    with open(export_fp, 'w') as f:
+        f.write('# ')
 
     def cb(name, doc):
         global DATA

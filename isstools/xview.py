@@ -598,7 +598,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
             if pathname is not '':
                 for indx, obj in enumerate(selection):
                     ds = self.xasproject._datasets[selection[indx].row()]
-                    filename = str(Path(ds.filename).stem)
+                    filename = ds.name
                     if ret == 0:
                         xx = ds.energy
                         yy = np.array(ds.mu.mu)
@@ -626,25 +626,32 @@ class XviewGui(*uic.loadUiType(ui_path)):
                     fid.close()
 
     def merge_datasets(self):
+
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
+
             mu = self.xasproject._datasets[selection[0].row()].mu
             energy_master=self.xasproject._datasets[selection[0].row()].energy
             mu_array=np.zeros([len(selection),len(mu)])
             energy = self.xasproject._datasets[selection[0].row()].energy
-            md=['merged']
+            md=['# merged \n']
             for indx, obj in enumerate(selection):
+
                 energy = self.xasproject._datasets[selection[indx].row()].energy
                 mu = self.xasproject._datasets[selection[indx].row()].mu.mu
                 mu = np.interp(energy_master, energy, mu)
                 mu_array[indx, :]=mu
-                md.append(self.xasproject._datasets[selection[indx].row()].filename)
+                md.append('# ' + self.xasproject._datasets[selection[indx].row()].filename + '\n')
+
 
             mu_merged = np.average(mu_array, axis=0)
             merged = xasproject.XASDataSet(name='merge', md=md, energy=energy, mu=mu_merged, filename='',
                                      datatype='processed')
+            merged.header = "".join(merged.md)
+            merged.filename
             self.xasproject.append(merged)
             self.xasproject.project_changed()
+
 
 
     def combine_and_save_xas_datasets_as_text(self):
