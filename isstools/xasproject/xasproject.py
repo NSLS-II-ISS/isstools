@@ -15,6 +15,7 @@ class XASDataSet:
 
     def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, verbose=False,
                  *args, **kwargs):
+        self.verbose = verbose
         self.larch = xafsgroup()
         if md is not None:
             self._md = md
@@ -42,7 +43,6 @@ class XASDataSet:
             self.extract_chi()
             self.kmin_ft = 3
             self.kmax_ft = self.kmax
-        self.verbose = verbose
 
     def update_larch(self):
         if self.mu is not None:
