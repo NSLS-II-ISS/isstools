@@ -11,6 +11,7 @@ from PyQt5.Qt import QSplashScreen, QObject
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
+from sys import platform
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 
 from pathlib import Path
