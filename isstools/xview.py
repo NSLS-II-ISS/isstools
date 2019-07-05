@@ -18,15 +18,15 @@ import pandas as pd
 
 from matplotlib.figure import Figure
 
-
-
 from isstools.xasproject import xasproject
 from xas.xray import k2e, e2k
 from xas.file_io import load_binned_df_from_file
 
+if platform == 'darwin':
+    ui_path = pkg_resources.resource_filename('isstools', 'ui/xview-mac.ui')
+else:
+    ui_path = pkg_resources.resource_filename('isstools', 'ui/xvive.ui')
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
-#gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 class XviewGui(*uic.loadUiType(ui_path)):
 
@@ -61,11 +61,11 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
         # Persistent settings
         self.settings = QSettings('ISS Beamline', 'Xview')
-        self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
+        self.working_folder = self.settings.value('working_folder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
-        if self.workingFolder != '/GPFS/xf08id/User Data':
-            self.label_working_folder.setText(self.workingFolder)
-            self.label_working_folder.setToolTip(self.workingFolder)
+        if self.working_folder != '/GPFS/xf08id/User Data':
+            self.label_working_folder.setText(self.working_folder)
+            self.label_working_folder.setToolTip(self.working_folder)
             self.get_file_list()
 
         self.label_E0.setText("E<sub>0</sub>")
@@ -158,24 +158,24 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.close()
 
     def addCanvas(self):
-        self.figureBinned = Figure()
-        self.figureBinned.set_facecolor(color='#FcF9F6')
-        self.figureBinned.ax = self.figureBinned.add_subplot(111)
-        self.canvas = FigureCanvas(self.figureBinned)
-
+        self.figure_files = Figure()
+        self.figure_files.set_facecolor(color='#e3e3e3')
+        self.figure_files.ax = self.figure_files.add_subplot(111)
+        self.figure_files.ax.grid(alpha=0.4)
+        self.figure_files.tight_layout()
+        self.canvas = FigureCanvas(self.figure_files)
         self.toolbar = NavigationToolbar(self.canvas, self)
-        self.toolbar.setMaximumHeight(25)
-        self.layout_plot_bin.addWidget(self.toolbar)
-        self.layout_plot_bin.addWidget(self.canvas)
+        self.layout_plot_files.addWidget(self.canvas)
+        self.layout_plot_files.addWidget(self.toolbar)
         self.canvas.draw()
 
         # XASProject Plot:
-        self.figureXASProject = Figure()
-        self.figureXASProject.set_facecolor(color='#FcF9F6')
-        self.figureXASProject.ax = self.figureXASProject.add_subplot(111)
-        self.figureXASProject.ax.grid(alpha = 0.4)
-        self.canvasXASProject = FigureCanvas(self.figureXASProject)
-
+        self.figure_preprocess = Figure()
+        self.figure_preprocess.set_facecolor(color='#e3e3e3')
+        self.figure_preprocess.ax = self.figure_preprocess.add_subplot(111)
+        self.figure_preprocess.ax.grid(alpha = 0.4)
+        self.figure_preprocess.tight_layout()
+        self.canvasXASProject = FigureCanvas(self.figure_preprocess)
         self.toolbar_XASProject = NavigationToolbar(self.canvasXASProject, self)
         self.layout_plot_xasproject.addWidget(self.canvasXASProject)
         self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
@@ -184,32 +184,34 @@ class XviewGui(*uic.loadUiType(ui_path)):
         #layout_plot_xasproject
 
     def select_working_folder(self):
-        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.workingFolder,
+        self.working_folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.working_folder,
                                                                         QtWidgets.QFileDialog.ShowDirsOnly)
-        if  self.workingFolder:
-            self.settings.setValue('WorkingFolder', self.workingFolder)
-            if len(self.workingFolder) > 50:
-                self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
+        if  self.working_folder:
+            self.settings.setValue('working_folder', self.working_folder)
+            if len(self.working_folder) > 50:
+                self.label_working_folder.setText(self.working_folder[1:20] + '...' + self.working_folder[-30:])
             else:
-                self.label_working_folder.setText(self.workingFolder)
+                self.label_working_folder.setText(self.working_folder)
             self.get_file_list()
 
     def get_file_list(self):
-        if self.workingFolder:
+        if self.working_folder:
             self.listFiles_bin.clear()
+            try:
+                files_bin = [f for f in os.listdir(self.working_folder) if f.endswith('.dat')]
 
-            files_bin = [f for f in os.listdir(self.workingFolder) if f.endswith('.dat')]
+                if self.comboBox_sort_files_by.currentText() == 'Name':
+                    files_bin.sort()
+                elif self.comboBox_sort_files_by.currentText() == 'Time':
+                    files_bin.sort(key=lambda x: os.path.getmtime('{}/{}'.format(self.working_folder, x)))
 
-            if self.comboBox_sort_files_by.currentText() == 'Name':
-                files_bin.sort()
-            elif self.comboBox_sort_files_by.currentText() == 'Time':
-                files_bin.sort(key=lambda x: os.path.getmtime('{}/{}'.format(self.workingFolder, x)))
-
-                files_bin.reverse()
-            self.listFiles_bin.addItems(files_bin)
+                    files_bin.reverse()
+                self.listFiles_bin.addItems(files_bin)
+            except:
+                pass
 
     def select_files_to_plot(self):
-        df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+        df, header = load_binned_df_from_file(f'{self.working_folder}/{self.listFiles_bin.currentItem().text()}')
         keys = df.keys()
         refined_keys = []
         for key in keys:
@@ -228,9 +230,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def plotBinnedData(self):
         selected_items = (self.listFiles_bin.selectedItems())
-        self.figureBinned.ax.clear()
+        self.figure_files.ax.clear()
         self.toolbar.update()
-        self.figureBinned.ax.grid(alpha=0.4)
+        self.figure_files.ax.grid(alpha=0.4)
         # self.toolbar._views.clear()
         # self.toolbar._positions.clear()
         # self.toolbar._update_view()
@@ -247,7 +249,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         handles = []
 
         for i in selected_items:
-            path = f'{self.workingFolder}/{i.text()}'
+            path = f'{self.working_folder}/{i.text()}'
             print(path)
             df, header = load_binned_df_from_file(path)
             numer = np.array(df[self.listBinnedDataNumerator.currentItem().text()])
@@ -266,15 +268,15 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 spectrum = -spectrum
                 y_label = f'- {y_label}'
 
-            self.figureBinned.ax.plot(df[energy_key], spectrum)
-            self.figureBinned.ax.set_xlabel('Energy (eV)')
-            self.figureBinned.ax.set_ylabel(y_label)
-            last_trace = self.figureBinned.ax.get_lines()[len(self.figureBinned.ax.get_lines()) - 1]
+            self.figure_files.ax.plot(df[energy_key], spectrum)
+            self.figure_files.ax.set_xlabel('Energy (eV)')
+            self.figure_files.ax.set_ylabel(y_label)
+            last_trace = self.figure_files.ax.get_lines()[len(self.figure_files.ax.get_lines()) - 1]
             patch = mpatches.Patch(color=last_trace.get_color(), label=i.text())
             handles.append(patch)
 
-        self.figureBinned.ax.legend(handles=handles)
-        self.figureBinned.tight_layout()
+        self.figure_files.ax.legend(handles=handles)
+        self.figure_files.tight_layout()
         self.canvas.draw_idle()
 
     def push_param(self):
@@ -427,7 +429,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
     def add_files_to_xas_project(self):
         if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
-                filepath = str(Path(self.workingFolder) / Path(item.text()))
+                filepath = str(Path(self.working_folder) / Path(item.text()))
 
                 name = Path(filepath).resolve().stem
                 df, header = load_binned_df_from_file(filepath)
@@ -471,7 +473,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def plot_xas_project_in_E(self):
         if self.listView_xasproject.selectedIndexes():
-            self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
+            self.reset_figure(self.figure_preprocess.ax, self.toolbar_XASProject, self.canvasXASProject)
 
             for index in self.listView_xasproject.selectedIndexes():
                 ds = self.xasproject[index.row()]
@@ -489,29 +491,29 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 if self.checkBox_deriv.isChecked():
                     data = ds.mu_deriv
                     energy = ds.energy_deriv
-                self.figureXASProject.ax.plot(energy, data, label = ds.name)
+                self.figure_preprocess.ax.plot(energy, data, label = ds.name)
 
                 if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
                     if self.checkBox_preedge_show.checkState():
-                        self.figureXASProject.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
+                        self.figure_preprocess.ax.plot(ds.energy, ds.pre_edge,label='Preedge', linewidth=0.75)
                     if self.checkBox_postedge_show.checkState():
-                        self.figureXASProject.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
+                        self.figure_preprocess.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
                     if self.checkBox_background_show.checkState():
-                        self.figureXASProject.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
+                        self.figure_preprocess.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
 
 
-            self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='Energy /eV',
+            self.set_figure(self.figure_preprocess.ax, self.canvasXASProject,label_x ='Energy /eV',
                        label_y =r'$\chi  \mu$' + '(E)'),
 
             if self.checkBox_force_range_E.checkState():
-                self.figureXASProject.ax.set_xlim((float(self.lineEdit_e0.text())+float(self.lineEdit_range_E_lo.text())),
+                self.figure_preprocess.ax.set_xlim((float(self.lineEdit_e0.text())+float(self.lineEdit_range_E_lo.text())),
                                                   (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_hi.text())))
             self.current_plot_in = 'e'
 
 
     def plot_xas_project_in_K(self):
         if self.listView_xasproject.selectedIndexes():
-            self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
+            self.reset_figure(self.figure_preprocess.ax, self.toolbar_XASProject, self.canvasXASProject)
             window=self.set_ft_window()
             for index in self.listView_xasproject.selectedIndexes():
                 ds = self.xasproject[index.row()]
@@ -520,48 +522,48 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
                 data = ds.chi * np.power(ds.k,self.spinBox_k_weight.value())
 
-                self.figureXASProject.ax.plot(ds.k, data, label = ds.name)
+                self.figure_preprocess.ax.plot(ds.k, data, label = ds.name)
                 data_max = data.max()
                 if self.checkBox_show_window.isChecked():
-                    self.figureXASProject.ax.plot(ds.k, ds.kwin*data_max/2, label='Windows')
+                    self.figure_preprocess.ax.plot(ds.k, ds.kwin*data_max/2, label='Windows')
 
 
-            self.set_figure(self.figureXASProject.ax, self.canvasXASProject,label_x ='k (' + r'$\AA$' + '$^1$' +')',
+            self.set_figure(self.figure_preprocess.ax, self.canvasXASProject,label_x ='k (' + r'$\AA$' + '$^1$' +')',
                        label_y =r'$\chi  \mu$' + '(k)')
 
 
             if self.checkBox_force_range_k.checkState():
-                self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
+                self.figure_preprocess.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
                                                   float(self.lineEdit_range_k_hi.text()))
             self.current_plot_in = 'k'
 
     def plot_xas_project_in_R(self):
         if self.listView_xasproject.selectedIndexes():
-            self.reset_figure(self.figureXASProject.ax,self.toolbar_XASProject, self.canvasXASProject)
+            self.reset_figure(self.figure_preprocess.ax,self.toolbar_XASProject, self.canvasXASProject)
             window = self.set_ft_window()
             for index in self.listView_xasproject.selectedIndexes():
                 ds = self.xasproject[index.row()]
                 ds.extract_ft_force(window=window)
                 if self.checkBox_show_chir_mag.checkState():
-                    self.figureXASProject.ax.plot(ds.r, ds.chir_mag, label = ds.name)
+                    self.figure_preprocess.ax.plot(ds.r, ds.chir_mag, label = ds.name)
                 if self.checkBox_show_chir_im.checkState():
-                    self.figureXASProject.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
+                    self.figure_preprocess.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
                 if self.checkBox_show_chir_re.checkState():
-                    self.figureXASProject.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
+                    self.figure_preprocess.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
                 #if self.checkBox_show_chir_pha.checked:
-                #    self.figureXASProject.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
+                #    self.figure_preprocess.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
 
-            self.set_figure(self.figureXASProject.ax,self.canvasXASProject, label_y=r'$\chi  \mu$' + '(k)',
+            self.set_figure(self.figure_preprocess.ax,self.canvasXASProject, label_y=r'$\chi  \mu$' + '(k)',
                        label_x='R (' + r'$\AA$'  +')')
             if self.checkBox_force_range_R.checkState():
-                self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
+                self.figure_preprocess.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
                                                   float(self.lineEdit_range_R_hi.text()))
             self.current_plot_in = 'R'
 
 
     def save_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
                                                   'XAS project files (*.xas)', options=options)
         if filename:
             if Path(filename).suffix != '.xas':
@@ -571,7 +573,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
             
     def open_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.workingFolder,
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.working_folder,
                                                   'XAS project files (*.xas)', options=options)
         if filename:
             self.xasproject_loaded_from_file = xasproject.XASProject()
@@ -586,13 +588,13 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def save_xas_datasets_as_text(self):
         #options = QtWidgets.QFileDialog.DontUseNativeDialog
-        #filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+        #filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
         #                                          'XAS project files (*.xas)', options=options)
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             ret = self.message_box_save_datasets_as()
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.workingFolder,
+            pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.working_folder,
                                                                     options=options)
             separator = '#______________________________________________________\n'
             if pathname is not '':
@@ -688,7 +690,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
             self.mu_array = mu_array
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.workingFolder,
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.working_folder,
                                                                 'XAS dataset (*.dat)', options=options)
             if filename:
                 if Path(filename).suffix != '.xas':
