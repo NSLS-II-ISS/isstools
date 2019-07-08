@@ -11,21 +11,23 @@ from PyQt5.Qt import QSplashScreen, QObject
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
-
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+    NavigationToolbar2QT as NavigationToolbar
+from sys import platform
 from pathlib import Path
 import pandas as pd
 
 from matplotlib.figure import Figure
 
-
-
 from isstools.xasproject import xasproject
 from xas.xray import k2e, e2k
 from xas.file_io import load_binned_df_from_file
 
+if platform == 'darwin':
+    ui_path = pkg_resources.resource_filename('isstools', 'ui/xview-mac.ui')
+else:
+    ui_path = pkg_resources.resource_filename('isstools', 'ui/xview.ui')
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/Xview.ui')
 #gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
 class XviewGui(*uic.loadUiType(ui_path)):
@@ -162,11 +164,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.figureBinned.set_facecolor(color='#FcF9F6')
         self.figureBinned.ax = self.figureBinned.add_subplot(111)
         self.canvas = FigureCanvas(self.figureBinned)
-
         self.toolbar = NavigationToolbar(self.canvas, self)
-        self.toolbar.setMaximumHeight(25)
-        self.layout_plot_bin.addWidget(self.toolbar)
         self.layout_plot_bin.addWidget(self.canvas)
+        self.layout_plot_bin.addWidget(self.toolbar)
         self.canvas.draw()
 
         # XASProject Plot:
@@ -625,30 +625,27 @@ class XviewGui(*uic.loadUiType(ui_path)):
                     np.savetxt(fid,table)
                     fid.close()
 
-    def merge_datasets(self):
 
+    def merge_datasets(self):
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
 
             mu = self.xasproject._datasets[selection[0].row()].mu
-            energy_master=self.xasproject._datasets[selection[0].row()].energy
-            mu_array=np.zeros([len(selection),len(mu)])
+            energy_master = self.xasproject._datasets[selection[0].row()].energy
+            mu_array = np.zeros([len(selection), len(mu)])
             energy = self.xasproject._datasets[selection[0].row()].energy
-            md=['# merged \n']
+            md = ['# merged \n']
             for indx, obj in enumerate(selection):
-
                 energy = self.xasproject._datasets[selection[indx].row()].energy
                 mu = self.xasproject._datasets[selection[indx].row()].mu.mu
                 mu = np.interp(energy_master, energy, mu)
-                mu_array[indx, :]=mu
+                mu_array[indx, :] = mu
                 md.append('# ' + self.xasproject._datasets[selection[indx].row()].filename + '\n')
-
 
             mu_merged = np.average(mu_array, axis=0)
             merged = xasproject.XASDataSet(name='merge', md=md, energy=energy, mu=mu_merged, filename='',
-                                     datatype='processed')
+                                           datatype='processed')
             merged.header = "".join(merged.md)
-            merged.filename
             self.xasproject.append(merged)
             self.xasproject.project_changed()
 
