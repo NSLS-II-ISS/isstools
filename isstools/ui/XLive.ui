@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -121,6 +121,26 @@
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_run">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetNoConstraint</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_camera">
+     <attribute name="title">
+      <string>Camera</string>
+     </attribute>
+     <widget class="QWidget" name="horizontalLayoutWidget_11">
+      <property name="geometry">
+       <rect>
+        <x>-10</x>
+        <y>10</y>
+        <width>1631</width>
+        <height>931</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_camera">
        <property name="sizeConstraint">
         <enum>QLayout::SetNoConstraint</enum>
        </property>
@@ -304,7 +324,7 @@
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

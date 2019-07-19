@@ -8,7 +8,7 @@ from PyQt5 import uic, QtGui, QtCore
 
 from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
                               widget_batch_mode, widget_run, widget_beamline_setup,
-                              widget_sdd_manager, widget_beamline_status)
+                              widget_sdd_manager, widget_beamline_status, widget_camera)
 
 from isstools.elements.emitting_stream import EmittingStream
 from isstools.process_callbacks.callback import FlyScanProcessingCallback
@@ -40,6 +40,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
+                 camera_dict={},
                  sample_stage=None,
                  tune_elements=None,
                  ic_amplifiers={},
@@ -139,6 +140,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             self,
                                            )
         self.layout_run.addWidget(self.widget_run)
+
+        self.widget_camera = widget_camera.UICamera(plan_funcs,
+                                           aux_plan_funcs,
+                                           RE,
+                                           db,
+                                           hhm,
+                                           shutters_dict,
+                                           adc_list,
+                                           enc_list,
+                                           xia,
+                                           self,
+                                           )
+        self.layout_camera.addWidget(self.widget_camera)
+
+
 
         self.widget_batch_mode = widget_batch_mode.UIBatchMode(plan_funcs,
                                                                       service_plan_funcs,
