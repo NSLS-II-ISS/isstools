@@ -22,21 +22,15 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_camera.ui')
 
 class UICamera(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 plan_funcs,
-                 aux_plan_funcs,
-                 RE,
-                 db,
-                 hhm,
-                 shutter_dictionary,
-                 adc_list,
-                 enc_list,
-                 xia,
-                 parent_gui,
+                 camera_dict={},
+                 parent_gui = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
+        self.push_show_image.clicked.connect(self.show_image)
+        self.camera_dict = camera_dict
 
 
 
@@ -46,12 +40,23 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
         self.canvas = FigureCanvas(self.figure)
-        self.figure.ax1 = self.figure.add_subplot(111)
-        self.figure.ax2 = self.figure.ax1.twinx()
-        self.figure.ax3 = self.figure.ax1.twinx()
+        self.figure.ax = self.figure.add_subplot(111)
         self.toolbar = NavigationToolbar(self.canvas, self, coordinates=True)
         self.plots.addWidget(self.toolbar)
         self.plots.addWidget(self.canvas)
         #self.figure.ax3.grid(alpha = 0.4)
         self.canvas.draw_idle()
+
+    def show_image(self):
+        camera = self.camera_dict['camera_sample3']
+        print(camera)
+        image=camera.image.image
+        print(image)
+        a=self.figure.ax.imshow(image, cmap='gray')
+        print(a)
+        self.canvas.draw_idle()
+
+
+
+
 

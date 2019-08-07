@@ -19,10 +19,23 @@
      <x>20</x>
      <y>10</y>
      <width>1201</width>
-     <height>881</height>
+     <height>791</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="plots"/>
+  </widget>
+  <widget class="QPushButton" name="push_show_image">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>830</y>
+     <width>83</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PushButton</string>
+   </property>
   </widget>
  </widget>
  <resources/>
