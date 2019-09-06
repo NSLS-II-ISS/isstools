@@ -15,7 +15,7 @@ import os
 
 from isstools.conversions import xray
 from isstools.elements.figure_update import update_figure
-from isstools.dialogs.BasicDialogs import question_message_box
+from isstools.dialogs.BasicDialogs import question_message_box, message_box
 
 from xas.file_io import load_interpolated_df_from_file,  save_binned_df_as_file
 from xas.bin import bin
@@ -256,6 +256,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         if self.set_new_angle_offset(new_value):
             return
         print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
+        message_box('Reload trajectory', 'Switch to Trajectory tab and re-load and re-initialize the trajectory')
 
     def getX(self, event):
         if event.button == 3:

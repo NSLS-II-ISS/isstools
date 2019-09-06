@@ -217,12 +217,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.figure_single_trajectory.ax.clear()
         self.figure_single_trajectory.ax2.clear()
         self.toolbar_single_trajectory.update()
-        #self.toolbar_single_trajectory._positions.clear()
-        #self.toolbar_single_trajectory._update_view()
         self.figure_full_trajectory.ax.clear()
         self.toolbar_full_trajectory.update()
-        #self.toolbar_full_trajectory._positions.clear()
-        #self.toolbar_full_trajectory._update_view()
         self.canvas_single_trajectory.draw_idle()
         self.canvas_full_trajectory.draw_idle()
 
