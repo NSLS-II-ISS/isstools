@@ -910,7 +910,7 @@
       <x>10</x>
       <y>30</y>
       <width>211</width>
-      <height>112</height>
+      <height>111</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_40">
@@ -1144,9 +1144,9 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>150</y>
+      <y>160</y>
       <width>51</width>
-      <height>41</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1157,9 +1157,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>160</y>
       <width>71</width>
-      <height>41</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1172,7 +1172,7 @@
       <x>85</x>
       <y>160</y>
       <width>51</width>
-      <height>22</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -1185,10 +1185,10 @@
    <widget class="QPushButton" name="push_read_traj_info">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>110</x>
       <y>200</y>
-      <width>91</width>
-      <height>31</height>
+      <width>111</width>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1199,9 +1199,9 @@
     <property name="geometry">
      <rect>
       <x>140</x>
-      <y>150</y>
+      <y>160</y>
       <width>31</width>
-      <height>41</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1227,7 +1227,7 @@
       <x>80</x>
       <y>40</y>
       <width>51</width>
-      <height>21</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -1254,9 +1254,9 @@
     <property name="geometry">
      <rect>
       <x>3</x>
-      <y>30</y>
+      <y>40</y>
       <width>71</width>
-      <height>41</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1267,9 +1267,9 @@
     <property name="geometry">
      <rect>
       <x>140</x>
-      <y>30</y>
-      <width>31</width>
-      <height>41</height>
+      <y>40</y>
+      <width>32</width>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -1280,9 +1280,9 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>30</y>
+      <y>40</y>
       <width>51</width>
-      <height>41</height>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">

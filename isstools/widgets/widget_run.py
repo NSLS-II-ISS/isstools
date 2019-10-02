@@ -130,6 +130,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
             plan_key = self.comboBox_scan_type.currentText()
+
             if plan_key == 'Step scan':
                 energy_grid, time_grid = generate_energy_grid(float(self.e0),
                                                               float(self.edit_preedge_start.text()),
@@ -151,11 +152,11 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             plan_func = self.plan_funcs[plan_key]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
-                                                   ax=self.figure.ax1,
-                                                   ignore_shutter=ignore_shutter,
-                                                   energy_grid=energy_grid,
-                                                   time_grid=time_grid,
-                                                   stdout=self.parent_gui.emitstream_out))
+                                                  ax=self.figure.ax1,
+                                                  ignore_shutter=ignore_shutter,
+                                                  energy_grid=energy_grid,
+                                                  time_grid=time_grid,
+                                                  stdout=self.parent_gui.emitstream_out))
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()

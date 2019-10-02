@@ -96,9 +96,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def create_batch_experiment(self):
         parent = self.model_batch.invisibleRootItem()
-        batch_experiment = 'Batch experiment "{}" repeat {} times                                      '\
+        batch_experiment = 'Batch experiment "{}" repeat {} times'\
             .format(self.lineEdit_batch_experiment_name.text(), self.spinBox_sample_loop_rep.value())
         new_item = QtGui.QStandardItem(batch_experiment)
+        new_item.name = batch_experiment
         new_item.setEditable(False)
         new_item.setDropEnabled(True)
         new_item.item_type = 'experiment'
