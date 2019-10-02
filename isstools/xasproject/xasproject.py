@@ -13,7 +13,7 @@ class XASDataSet:
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, verbose=False,
+    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, verbose=False, nnorm=None,
                  *args, **kwargs):
         self.verbose = verbose
         self.larch = xafsgroup()
@@ -35,6 +35,8 @@ class XASDataSet:
             self.name = name
         if datatype is not None:
             self.datatype = datatype
+        if nnorm is not None:
+            self.nnorm = nnorm
         if mu is not None and energy is not None:
             self.clamp_hi = 0
             self.clamp_lo = 0
@@ -82,7 +84,7 @@ class XASDataSet:
 
     def normalize_force(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
-                                                                           norm1=self.norm1, norm2=self.norm2)
+                                                         nnorm=self.nnorm, norm1=self.norm1, norm2=self.norm2)
         self.norm = self.larch.norm
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
