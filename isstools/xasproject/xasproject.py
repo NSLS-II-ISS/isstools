@@ -35,8 +35,7 @@ class XASDataSet:
             self.name = name
         if datatype is not None:
             self.datatype = datatype
-        if nnorm is not None:
-            self.nnorm = nnorm
+        self.nnorm = nnorm
         if mu is not None and energy is not None:
             self.clamp_hi = 0
             self.clamp_lo = 0
