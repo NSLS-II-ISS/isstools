@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 
-from isstools.xiaparser import xiaparser
+from xas.xia import xiaparser
 from isstools.elements.figure_update import update_figure
 
 
@@ -29,7 +29,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.addCanvas()
 
         self.xia_list = xia_list
-        self.xia_parser = xiaparser.xiaparser()
+        self.xia_parser = xiaparser
         self.xia_graphs_names = []
         self.xia_graphs_labels = []
         self.xia_handles = []
