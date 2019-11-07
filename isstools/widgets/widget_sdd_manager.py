@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 
-from xas.xia import xiaparser
+from isstools.xiaparser import xiaparser
 from isstools.elements.figure_update import update_figure
 
 
