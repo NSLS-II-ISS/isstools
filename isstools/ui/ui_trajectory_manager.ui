@@ -1213,9 +1213,9 @@
    <property name="geometry">
     <rect>
      <x>1330</x>
-     <y>70</y>
+     <y>90</y>
      <width>231</width>
-     <height>121</height>
+     <height>91</height>
     </rect>
    </property>
    <property name="title">
@@ -1237,23 +1237,10 @@
      </sizepolicy>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_prepare_trajectory">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>90</y>
-      <width>131</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Prepare Trajectory</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_59">
     <property name="geometry">
      <rect>
-      <x>3</x>
+      <x>10</x>
       <y>40</y>
       <width>71</width>
       <height>24</height>
@@ -1350,9 +1337,9 @@ to run</string>
    <property name="geometry">
     <rect>
      <x>1480</x>
-     <y>190</y>
+     <y>180</y>
      <width>31</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="lineWidth">
