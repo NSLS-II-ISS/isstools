@@ -29,7 +29,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.addCanvas()
 
         self.xia_list = xia_list
-        self.xia_parser = xiaparser.xiaparser()
+        self.xia_parser = xiaparser
         self.xia_graphs_names = []
         self.xia_graphs_labels = []
         self.xia_handles = []
