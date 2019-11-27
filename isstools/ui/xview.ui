@@ -46,7 +46,7 @@
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
-      <string>Browse data</string>
+      <string>XAS data</string>
      </attribute>
      <widget class="QListWidget" name="listFiles_bin">
       <property name="geometry">
@@ -110,7 +110,7 @@
        <string>Numerator</string>
       </property>
      </widget>
-     <widget class="QListWidget" name="listBinnedDataNumerator">
+     <widget class="QListWidget" name="list_xas_data_numerator">
       <property name="geometry">
        <rect>
         <x>360</x>
@@ -133,7 +133,7 @@
        <string>Invert</string>
       </property>
      </widget>
-     <widget class="QListWidget" name="listBinnedDataDenominator">
+     <widget class="QListWidget" name="list_xas_data_denominator">
       <property name="geometry">
        <rect>
         <x>450</x>
@@ -248,7 +248,7 @@
     </widget>
     <widget class="QWidget" name="tab_preprocess">
      <attribute name="title">
-      <string>Preprocess</string>
+      <string>XAS project</string>
      </attribute>
      <widget class="QListWidget" name="listView_xasproject">
       <property name="geometry">
@@ -295,7 +295,7 @@
         <x>280</x>
         <y>10</y>
         <width>249</width>
-        <height>161</height>
+        <height>162</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -889,7 +889,7 @@
          </item>
          <item>
           <widget class="QComboBox" name="comboBox_window">
-           <property name="currentText" stdset="0">
+           <property name="currentText">
             <string>Hanning</string>
            </property>
            <item>
@@ -1886,7 +1886,7 @@
         <x>570</x>
         <y>760</y>
         <width>191</width>
-        <height>51</height>
+        <height>58</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -2007,7 +2007,7 @@
      <x>0</x>
      <y>0</y>
      <width>1612</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

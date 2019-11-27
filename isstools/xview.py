@@ -9,13 +9,14 @@ import pkg_resources
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
 from PyQt5.Qt import QSplashScreen, QObject
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
+from PyQt5.QtWidgets import QMenu
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 from sys import platform
 from pathlib import Path
-import pandas as pd
+from .dialogs.BasicDialogs import message_box
 
 from matplotlib.figure import Figure
 
@@ -46,11 +47,19 @@ class XviewGui(*uic.loadUiType(ui_path)):
         # pushbuttons
         self.pushbuttonSelectFolder.clicked.connect(self.select_working_folder)
         self.pushbuttonRefreshFolder.clicked.connect(self.get_file_list)
-        self.pushbutton_plot_bin.clicked.connect(self.plotBinnedData)
+        self.pushbutton_plot_bin.clicked.connect(self.plot_xas_data)
         self.comboBox_sort_files_by.addItems(['Time','Name'])
         self.comboBox_sort_files_by.currentIndexChanged.connect((self.get_file_list))
         # file lists
         self.listFiles_bin.itemSelectionChanged.connect(self.select_files_to_plot)
+
+
+
+        self.listFiles_bin.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listFiles_bin.customContextMenuRequested.connect(self.xas_data_context_menu)
+
+
+
         self.listFiles_bin.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.addCanvas()
         self.keys = []
@@ -63,11 +72,11 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
         # Persistent settings
         self.settings = QSettings('ISS Beamline', 'Xview')
-        self.workingFolder = self.settings.value('WorkingFolder', defaultValue='/GPFS/xf08id/User Data', type=str)
+        self.working_folder = self.settings.value('working_folder', defaultValue='/GPFS/xf08id/User Data', type=str)
 
-        if self.workingFolder != '/GPFS/xf08id/User Data':
-            self.label_working_folder.setText(self.workingFolder)
-            self.label_working_folder.setToolTip(self.workingFolder)
+        if self.working_folder != '/GPFS/xf08id/User Data':
+            self.label_working_folder.setText(self.working_folder)
+            self.label_working_folder.setToolTip(self.working_folder)
             self.get_file_list()
 
         self.label_E0.setText("E<sub>0</sub>")
@@ -155,6 +164,21 @@ class XviewGui(*uic.loadUiType(ui_path)):
             'sine'
         ]
 
+    def xas_data_context_menu(self,QPos):
+        menu = QMenu()
+        plot_action = menu.addAction("&Plot")
+        add_to_project_action = menu.addAction("&Add to project")
+        parentPosition = self.listFiles_bin.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition+QPos)
+        action = menu.exec_()
+        if action == plot_action:
+            self.plot_xas_data()
+        elif action == add_to_project_action:
+            self.add_files_to_xas_project()
+
+
+
+
 
     def close_app(self):
         self.close()
@@ -184,32 +208,34 @@ class XviewGui(*uic.loadUiType(ui_path)):
         #layout_plot_xasproject
 
     def select_working_folder(self):
-        self.workingFolder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.workingFolder,
+        self.working_folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a folder", self.working_folder,
                                                                         QtWidgets.QFileDialog.ShowDirsOnly)
-        if  self.workingFolder:
-            self.settings.setValue('WorkingFolder', self.workingFolder)
-            if len(self.workingFolder) > 50:
-                self.label_working_folder.setText(self.workingFolder[1:20] + '...' + self.WorkingFolder[-30:])
+        if self.working_folder:
+
+            self.settings.setValue('working_folder', self.working_folder)
+            if len(self.working_folder) > 50:
+                self.label_working_folder.setText(self.working_folder[1:20] + '...' + self.working_folder[-30:])
             else:
-                self.label_working_folder.setText(self.workingFolder)
+                self.label_working_folder.setText(self.working_folder)
             self.get_file_list()
 
     def get_file_list(self):
-        if self.workingFolder:
+        if self.working_folder:
+            print('aaaaaa')
             self.listFiles_bin.clear()
 
-            files_bin = [f for f in os.listdir(self.workingFolder) if f.endswith('.dat')]
+            files_bin = [f for f in os.listdir(self.working_folder) if f.endswith('.dat')]
 
             if self.comboBox_sort_files_by.currentText() == 'Name':
                 files_bin.sort()
             elif self.comboBox_sort_files_by.currentText() == 'Time':
-                files_bin.sort(key=lambda x: os.path.getmtime('{}/{}'.format(self.workingFolder, x)))
+                files_bin.sort(key=lambda x: os.path.getmtime('{}/{}'.format(self.working_folder, x)))
 
                 files_bin.reverse()
             self.listFiles_bin.addItems(files_bin)
 
     def select_files_to_plot(self):
-        df, header = load_binned_df_from_file(f'{self.workingFolder}/{self.listFiles_bin.currentItem().text()}')
+        df, header = load_binned_df_from_file(f'{self.working_folder}/{self.listFiles_bin.currentItem().text()}')
         keys = df.keys()
         refined_keys = []
         for key in keys:
@@ -217,16 +243,16 @@ class XviewGui(*uic.loadUiType(ui_path)):
                 refined_keys.append(key)
         self.keys = refined_keys
         if self.keys != self.last_keys:
-            self.listBinnedDataNumerator.clear()
-            self.listBinnedDataDenominator.clear()
-            self.listBinnedDataNumerator.insertItems(0, self.keys)
-            self.listBinnedDataDenominator.insertItems(0, self.keys)
+            self.list_xas_data_numerator.clear()
+            self.list_xas_data_denominator.clear()
+            self.list_xas_data_numerator.insertItems(0, self.keys)
+            self.list_xas_data_denominator.insertItems(0, self.keys)
             if self.last_num != '' and self.last_num <= len(self.keys) - 1:
-                self.listBinnedDataNumerator.setCurrentRow(self.last_num)
+                self.list_xas_data_numerator.setCurrentRow(self.last_num)
             if self.last_den != '' and self.last_den <= len(self.keys) - 1:
-                self.listBinnedDataDenominator.setCurrentRow(self.last_den)
+                self.list_xas_data_denominator.setCurrentRow(self.last_den)
 
-    def plotBinnedData(self):
+    def plot_xas_data(self):
         selected_items = (self.listFiles_bin.selectedItems())
         self.figureBinned.ax.clear()
         self.toolbar.update()
@@ -235,29 +261,29 @@ class XviewGui(*uic.loadUiType(ui_path)):
         # self.toolbar._positions.clear()
         # self.toolbar._update_view()
         self.canvas.draw_idle()
-        if self.listBinnedDataNumerator.currentRow() == -1 or self.listBinnedDataDenominator.currentRow() == -1:
-            self.statusBar().showMessage('Please select numerator and denominator')
+        if self.list_xas_data_numerator.currentRow() == -1 or self.list_xas_data_denominator.currentRow() == -1:
+            message_box('Warning','Please select numerator and denominator')
             return
 
-        self.last_num = self.listBinnedDataNumerator.currentRow()
-        self.last_den = self.listBinnedDataDenominator.currentRow()
+        self.last_num = self.list_xas_data_numerator.currentRow()
+        self.last_den = self.list_xas_data_denominator.currentRow()
 
         energy_key = 'energy'
 
         handles = []
 
         for i in selected_items:
-            path = f'{self.workingFolder}/{i.text()}'
+            path = f'{self.working_folder}/{i.text()}'
             print(path)
             df, header = load_binned_df_from_file(path)
-            numer = np.array(df[self.listBinnedDataNumerator.currentItem().text()])
-            denom = np.array(df[self.listBinnedDataDenominator.currentItem().text()])
+            numer = np.array(df[self.list_xas_data_numerator.currentItem().text()])
+            denom = np.array(df[self.list_xas_data_denominator.currentItem().text()])
             if self.checkBox_ratio.checkState():
-                y_label = (f'{self.listBinnedDataNumerator.currentItem().text()} / '
-                           f'{self.listBinnedDataDenominator.currentItem().text()}')
+                y_label = (f'{self.list_xas_data_numerator.currentItem().text()} / '
+                           f'{self.list_xas_data_denominator.currentItem().text()}')
                 spectrum = numer/denom
             else:
-                y_label = (f'{self.listBinnedDataNumerator.currentItem().text()}')
+                y_label = (f'{self.list_xas_data_numerator.currentItem().text()}')
                 spectrum = numer
             if self.checkBox_log_bin.checkState():
                 spectrum = np.log(spectrum)
@@ -425,9 +451,9 @@ class XviewGui(*uic.loadUiType(ui_path)):
             self.listView_xasproject.item(index.row()).setFont(font)
 
     def add_files_to_xas_project(self):
-        if self.listBinnedDataNumerator.currentRow() != -1 and self.listBinnedDataDenominator.currentRow() != -1:
+        if self.list_xas_data_numerator.currentRow() != -1 and self.list_xas_data_denominator.currentRow() != -1:
             for item in self.listFiles_bin.selectedItems():
-                filepath = str(Path(self.workingFolder) / Path(item.text()))
+                filepath = str(Path(self.working_folder) / Path(item.text()))
 
                 name = Path(filepath).resolve().stem
                 df, header = load_binned_df_from_file(filepath)
@@ -441,8 +467,8 @@ class XviewGui(*uic.loadUiType(ui_path)):
                     md={}
 
                 df = df.sort_values('energy')
-                num_key = self.listBinnedDataNumerator.currentItem().text()
-                den_key = self.listBinnedDataDenominator.currentItem().text()
+                num_key = self.list_xas_data_numerator.currentItem().text()
+                den_key = self.list_xas_data_denominator.currentItem().text()
                 mu = df[num_key] / df[den_key]
 
                 if self.checkBox_log_bin.checkState():
@@ -561,7 +587,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def save_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
                                                   'XAS project files (*.xas)', options=options)
         if filename:
             if Path(filename).suffix != '.xas':
@@ -571,7 +597,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
             
     def open_xas_project(self):
         options = QtWidgets.QFileDialog.DontUseNativeDialog
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.workingFolder,
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.working_folder,
                                                   'XAS project files (*.xas)', options=options)
         if filename:
             self.xasproject_loaded_from_file = xasproject.XASProject()
@@ -586,13 +612,13 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
     def save_xas_datasets_as_text(self):
         #options = QtWidgets.QFileDialog.DontUseNativeDialog
-        #filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.workingFolder,
+        #filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
         #                                          'XAS project files (*.xas)', options=options)
         selection = self.listView_xasproject.selectedIndexes()
         if selection != []:
             ret = self.message_box_save_datasets_as()
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.workingFolder,
+            pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.working_folder,
                                                                     options=options)
             separator = '#______________________________________________________\n'
             if pathname is not '':
@@ -685,7 +711,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
 
             self.mu_array = mu_array
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.workingFolder,
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.working_folder,
                                                                 'XAS dataset (*.dat)', options=options)
             if filename:
                 if Path(filename).suffix != '.xas':

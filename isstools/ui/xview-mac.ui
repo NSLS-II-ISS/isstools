@@ -46,7 +46,7 @@
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
-      <string>Browse data</string>
+      <string>XAS data</string>
      </attribute>
      <widget class="QListWidget" name="listFiles_bin">
       <property name="geometry">
@@ -110,7 +110,7 @@
        <string>Numerator</string>
       </property>
      </widget>
-     <widget class="QListWidget" name="listBinnedDataNumerator">
+     <widget class="QListWidget" name="list_xas_data_numerator">
       <property name="geometry">
        <rect>
         <x>360</x>
@@ -133,7 +133,7 @@
        <string>Invert</string>
       </property>
      </widget>
-     <widget class="QListWidget" name="listBinnedDataDenominator">
+     <widget class="QListWidget" name="list_xas_data_denominator">
       <property name="geometry">
        <rect>
         <x>450</x>
@@ -248,7 +248,7 @@
     </widget>
     <widget class="QWidget" name="tab_preprocess">
      <attribute name="title">
-      <string>Preprocess</string>
+      <string>XAS project</string>
      </attribute>
      <widget class="QListWidget" name="listView_xasproject">
       <property name="geometry">
