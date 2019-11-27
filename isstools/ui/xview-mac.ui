@@ -42,7 +42,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_visualize">
      <attribute name="title">
@@ -63,7 +63,7 @@
        <rect>
         <x>640</x>
         <y>720</y>
-        <width>110</width>
+        <width>141</width>
         <height>40</height>
        </rect>
       </property>
@@ -159,7 +159,7 @@
        <rect>
         <x>640</x>
         <y>760</y>
-        <width>110</width>
+        <width>141</width>
         <height>40</height>
        </rect>
       </property>
@@ -283,8 +283,8 @@
       <property name="font">
        <font>
         <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -303,8 +303,8 @@
       <property name="font">
        <font>
         <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -323,8 +323,9 @@
       <property name="font">
        <font>
         <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
+        <kerning>false</kerning>
        </font>
       </property>
       <property name="text">
