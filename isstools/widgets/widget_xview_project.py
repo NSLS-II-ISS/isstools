@@ -14,6 +14,7 @@ from sys import platform
 from pathlib import Path
 from isstools.dialogs.BasicDialogs import message_box
 from matplotlib.figure import Figure
+from isstools.elements.figure_update import update_figure
 
 from xas.xray import k2e, e2k
 from xas.file_io import load_binned_df_from_file
@@ -135,17 +136,18 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
         def addCanvas(self):
 
             # XASProject Plot:
-            self.figureXASProject = Figure()
-            self.figureXASProject.set_facecolor(color='#E2E2E2')
-            self.figureXASProject.ax = self.figureXASProject.add_subplot(111)
-            self.figureXASProject.ax.grid(alpha=0.4)
-            self.canvasXASProject = FigureCanvas(self.figureXASProject)
+            self.figure_project = Figure()
+            self.figure_project.set_facecolor(color='#E2E2E2')
+            self.figure_project.ax = self.figure_project.add_subplot(111)
+            self.figure_project.ax.grid(alpha=0.4)
+            self.canvas_project = FigureCanvas(self.figure_project)
 
-            self.toolbar_XASProject = NavigationToolbar(self.canvasXASProject, self)
-            self.layout_plot_xasproject.addWidget(self.canvasXASProject)
-            self.layout_plot_xasproject.addWidget(self.toolbar_XASProject)
+            self.toolbar_project = NavigationToolbar(self.canvas_project, self)
+            self.layout_plot_project.addWidget(self.canvas_project)
+            self.layout_plot_project.addWidget(self.toolbar_project)
+            self.figure_project.tight_layout()
 
-            self.canvasXASProject.draw()
+            self.canvas_project.draw()
             # layout_plot_xasproject
 
         def push_param(self):
@@ -212,11 +214,11 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             sender = QObject()
             self.sender_object = sender.sender().objectName()
             self.statusBar().showMessage('Click on graph or press Esc')
-            self.cid = self.canvasXASProject.mpl_connect('button_press_event', self.mouse_press_event)
+            self.cid = self.canvas_project.mpl_connect('button_press_event', self.mouse_press_event)
 
         def _disconnect_cid(self):
             if hasattr(self, 'cid'):
-                self.canvasXASProject.mpl_disconnect(self.cid)
+                self.canvas_project.mpl_disconnect(self.cid)
                 delattr(self, 'cid')
 
         def keyPressEvent(self, event):
@@ -306,7 +308,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
         def plot_project_in_E(self):
             if self.listView_project.selectedIndexes():
-                self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
+                update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
 
                 for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
@@ -324,28 +326,28 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                     if self.checkBox_deriv.isChecked():
                         data = ds.mu_deriv
                         energy = ds.energy_deriv
-                    self.figureXASProject.ax.plot(energy, data, label=ds.name)
+                    self.figure_project.ax.plot(energy, data, label=ds.name)
 
                     if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
                         if self.checkBox_preedge_show.checkState():
-                            self.figureXASProject.ax.plot(ds.energy, ds.pre_edge, label='Preedge', linewidth=0.75)
+                            self.figure_project.ax.plot(ds.energy, ds.pre_edge, label='Preedge', linewidth=0.75)
                         if self.checkBox_postedge_show.checkState():
-                            self.figureXASProject.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
+                            self.figure_project.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
                         if self.checkBox_background_show.checkState():
-                            self.figureXASProject.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
+                            self.figure_project.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
 
-                self.set_figure(self.figureXASProject.ax, self.canvasXASProject, label_x='Energy /eV',
+                self.parent.set_figure(self.figure_project.ax, self.canvas_project, label_x='Energy /eV',
                                 label_y=r'$\chi  \mu$' + '(E)'),
 
                 if self.checkBox_force_range_E.checkState():
-                    self.figureXASProject.ax.set_xlim(
+                    self.figure_project.ax.set_xlim(
                         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_lo.text())),
                         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_hi.text())))
                 self.current_plot_in = 'e'
 
         def plot_project_in_K(self):
             if self.listView_project.selectedIndexes():
-                self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
+                update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
                 window = self.set_ft_window()
                 for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
@@ -354,40 +356,40 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
                     data = ds.chi * np.power(ds.k, self.spinBox_k_weight.value())
 
-                    self.figureXASProject.ax.plot(ds.k, data, label=ds.name)
+                    self.figure_project.ax.plot(ds.k, data, label=ds.name)
                     data_max = data.max()
                     if self.checkBox_show_window.isChecked():
-                        self.figureXASProject.ax.plot(ds.k, ds.kwin * data_max / 2, label='Windows')
+                        self.figure_project.ax.plot(ds.k, ds.kwin * data_max / 2, label='Windows')
 
-                self.set_figure(self.figureXASProject.ax, self.canvasXASProject,
+                self.parent.set_figure(self.figure_project.ax, self.canvas_project,
                                 label_x='k (' + r'$\AA$' + '$^1$' + ')',
                                 label_y=r'$\chi  \mu$' + '(k)')
 
                 if self.checkBox_force_range_k.checkState():
-                    self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
+                    self.figure_project.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
                                                       float(self.lineEdit_range_k_hi.text()))
                 self.current_plot_in = 'k'
 
         def plot_project_in_R(self):
             if self.listView_project.selectedIndexes():
-                self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
+                update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
                 window = self.set_ft_window()
                 for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
                     ds.extract_ft_force(window=window)
                     if self.checkBox_show_chir_mag.checkState():
-                        self.figureXASProject.ax.plot(ds.r, ds.chir_mag, label=ds.name)
+                        self.figure_project.ax.plot(ds.r, ds.chir_mag, label=ds.name)
                     if self.checkBox_show_chir_im.checkState():
-                        self.figureXASProject.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
+                        self.figure_project.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
                     if self.checkBox_show_chir_re.checkState():
-                        self.figureXASProject.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
+                        self.figure_project.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
                     # if self.checkBox_show_chir_pha.checked:
-                    #    self.figureXASProject.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
+                    #    self.figure_project.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
 
-                self.set_figure(self.figureXASProject.ax, self.canvasXASProject, label_y=r'$\chi  \mu$' + '(k)',
+                self.parent.set_figure(self.figure_project.ax, self.canvas_project, label_y=r'$\chi  \mu$' + '(k)',
                                 label_x='R (' + r'$\AA$' + ')')
                 if self.checkBox_force_range_R.checkState():
-                    self.figureXASProject.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
+                    self.figure_project.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
                                                       float(self.lineEdit_range_R_hi.text()))
                 self.current_plot_in = 'R'
 
@@ -564,25 +566,8 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                     self.parent.xasproject._datasets[selection[indx].row()] = ds
 
         '''
-
          Service routines
-
-         '''
-
-        def set_figure(self, axis, canvas, label_x='', label_y=''):
-            axis.legend(fontsize='small')
-            axis.grid(alpha=0.4)
-            axis.set_ylabel(label_y, size='13')
-            axis.set_xlabel(label_x, size='13')
-            canvas.draw_idle()
-
-        def reset_figure(self, axis, toolbar, canvas):
-            axis.clear()
-            toolbar.update()
-            # toolbar._views.clear()
-            # toolbar._positions.clear()
-            # toolbar._update_view()
-            canvas.draw_idle()
+        '''
 
         def message_box_save_datasets_as(self):
             messageBox = QtWidgets.QMessageBox()

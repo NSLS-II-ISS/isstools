@@ -1477,7 +1477,7 @@
      </size>
     </property>
     <property name="text">
-     <string>50</string>
+     <string>16</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -1499,7 +1499,7 @@
      </size>
     </property>
     <property name="text">
-     <string>50</string>
+     <string>6</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -1646,7 +1646,7 @@
      </size>
     </property>
     <property name="text">
-     <string>-50</string>
+     <string>0</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -1729,7 +1729,7 @@
      </size>
     </property>
     <property name="text">
-     <string>-50</string>
+     <string>0</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -2069,9 +2069,9 @@
    <widget class="QListWidget" name="listView_project">
     <property name="geometry">
      <rect>
-      <x>15</x>
+      <x>5</x>
       <y>10</y>
-      <width>261</width>
+      <width>271</width>
       <height>791</height>
      </rect>
     </property>
@@ -2085,7 +2085,7 @@
       <height>686</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="layout_plot_xasproject"/>
+    <layout class="QVBoxLayout" name="layout_plot_project"/>
    </widget>
   </widget>
   <action name="action_open_project">

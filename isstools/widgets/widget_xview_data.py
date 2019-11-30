@@ -1,23 +1,22 @@
 import os
 import matplotlib.patches as mpatches
 import numpy as np
-
 import pkg_resources
-from PyQt5 import  QtWidgets, QtCore, uic
 
+from PyQt5 import  QtWidgets, QtCore, uic
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QMenu
-
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
+
 from sys import platform
 from pathlib import Path
-from isstools.dialogs.BasicDialogs import message_box
 
 from matplotlib.figure import Figure
-
 from isstools.xasproject import xasproject
+from isstools.elements.figure_update import update_figure
+from isstools.dialogs.BasicDialogs import message_box
 from xas.file_io import load_binned_df_from_file
 
 
@@ -28,8 +27,6 @@ else:
 
 
 class UIXviewData(*uic.loadUiType(ui_path)):
-
-
     def __init__(self, db=None, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -41,6 +38,10 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.push_plot_data.clicked.connect(self.plot_xas_data)
         self.comboBox_sort_files_by.addItems(['Time','Name'])
         self.comboBox_sort_files_by.currentIndexChanged.connect((self.get_file_list))
+
+        self.comboBox_data_numerator.currentIndexChanged.connect(self.update_current_numerator)
+        self.comboBox_data_denominator.currentIndexChanged.connect(self.update_current_denominator)
+
         self.list_data.itemSelectionChanged.connect(self.select_files_to_plot)
         self.push_add_to_project.clicked.connect(self.add_data_to_project)
         self.list_data.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -51,8 +52,8 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.last_keys = []
         self.current_plot_in = ''
         self.binned_data = []
-        self.last_num = ''
-        self.last_den = ''
+        self.last_numerator= ''
+        self.last_denominator = ''
         # Persistent settings
         self.settings = QSettings('ISS Beamline', 'Xview')
         self.working_folder = self.settings.value('working_folder', defaultValue='/GPFS/xf08id/User Data', type=str)
@@ -118,31 +119,46 @@ class UIXviewData(*uic.loadUiType(ui_path)):
             if not (('timestamp' in key) or ('energy' in key)):
                 refined_keys.append(key)
         self.keys = refined_keys
+        print(f'Last keys {self.last_keys}')
+        print(f'New keys {self.keys}')
         if self.keys != self.last_keys:
-            self.list_data_numerator.clear()
-            self.list_data_denominator.clear()
-            self.list_data_numerator.insertItems(0, self.keys)
-            self.list_data_denominator.insertItems(0, self.keys)
-            if self.last_num != '' and self.last_num <= len(self.keys) - 1:
-                self.list_data_numerator.setCurrentRow(self.last_num)
-            if self.last_den != '' and self.last_den <= len(self.keys) - 1:
-                self.list_data_denominator.setCurrentRow(self.last_den)
+            self.last_keys = self.keys
+            self.comboBox_data_numerator.clear()
+            self.comboBox_data_denominator.clear()
+            self.comboBox_data_numerator.insertItems(0, self.keys)
+            self.comboBox_data_denominator.insertItems(0, self.keys)
+            print(f'Last numerator was {self.last_numerator}')
+            print(f' Is it in {self.last_numerator in self.keys}')
+            if self.last_numerator!= '' and self.last_numerator in self.keys:
+                print('I am here')
+                print(f'Last numerator before resetting is {self.last_numerator}')
+                indx = self.comboBox_data_numerator.findText(self.last_numerator)
+                print(indx)
+                self.comboBox_data_numerator.setCurrentIndex(indx)
+            if self.last_denominator!= '' and self.last_denominator in self.keys:
+                print('I am here')
+                print(f'Last last_denominator before resetting is {self.last_denominator}')
+                indx = self.comboBox_data_denominator.findText(self.last_denominator)
+                print(indx)
+                self.comboBox_data_denominator.setCurrentIndex(indx)
+
+    def update_current_numerator(self):
+        self.last_numerator= self.comboBox_data_numerator.currentText()
+        print(f'Chanhin last num to {self.last_numerator}')
+
+    def update_current_denominator(self):
+        self.last_denominator= self.comboBox_data_denominator.currentText()
+        print(f'I am there {self.last_denominator}')
 
     def plot_xas_data(self):
         selected_items = (self.list_data.selectedItems())
-        self.figure_data.ax.clear()
-        self.toolbar.update()
-        self.figure_data.ax.grid(alpha=0.4)
-        # self.toolbar._views.clear()
-        # self.toolbar._positions.clear()
-        # self.toolbar._update_view()
-        self.canvas.draw_idle()
-        if self.list_data_numerator.currentRow() == -1 or self.list_data_denominator.currentRow() == -1:
+        update_figure([self.figure_data.ax], self.toolbar, self.canvas)
+        if self.comboBox_data_numerator.currentText() == -1 or self.comboBox_data_denominator.currentText() == -1:
             message_box('Warning','Please select numerator and denominator')
             return
 
-        self.last_num = self.list_data_numerator.currentRow()
-        self.last_den = self.list_data_denominator.currentRow()
+        self.last_numerator = self.comboBox_data_numerator.currentText()
+        self.last_denominator = self.comboBox_data_denominator.currentText()
 
         energy_key = 'energy'
 
@@ -152,14 +168,14 @@ class UIXviewData(*uic.loadUiType(ui_path)):
             path = f'{self.working_folder}/{i.text()}'
             print(path)
             df, header = load_binned_df_from_file(path)
-            numer = np.array(df[self.list_data_numerator.currentItem().text()])
-            denom = np.array(df[self.list_data_denominator.currentItem().text()])
+            numer = np.array(df[self.comboBox_data_numerator.currentText()])
+            denom = np.array(df[self.comboBox_data_denominator.currentText()])
             if self.checkBox_ratio.checkState():
-                y_label = (f'{self.list_data_numerator.currentItem().text()} / '
-                           f'{self.list_data_denominator.currentItem().text()}')
+                y_label = (f'{self.comboBox_data_numerator.currentText()} / '
+                           f'{self.comboBox_data_denominator.currentText()}')
                 spectrum = numer/denom
             else:
-                y_label = (f'{self.list_data_numerator.currentItem().text()}')
+                y_label = (f'{self.comboBox_data_numerator.currentText()}')
                 spectrum = numer
             if self.checkBox_log_bin.checkState():
                 spectrum = np.log(spectrum)
@@ -169,6 +185,8 @@ class UIXviewData(*uic.loadUiType(ui_path)):
                 y_label = f'- {y_label}'
 
             self.figure_data.ax.plot(df[energy_key], spectrum)
+            self.parent.set_figure(self.figure_data.ax,self.canvas,label_x='Energy (eV)', label_y=y_label)
+
             self.figure_data.ax.set_xlabel('Energy (eV)')
             self.figure_data.ax.set_ylabel(y_label)
             last_trace = self.figure_data.ax.get_lines()[len(self.figure_data.ax.get_lines()) - 1]
@@ -181,7 +199,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
 
 
     def add_data_to_project(self):
-        if self.list_data_numerator.currentRow() != -1 and self.list_data_denominator.currentRow() != -1:
+        if self.comboBox_data_numerator.currentText() != -1 and self.comboBox_data_denominator.currentText() != -1:
             for item in self.list_data.selectedItems():
                 filepath = str(Path(self.working_folder) / Path(item.text()))
 
@@ -197,8 +215,8 @@ class UIXviewData(*uic.loadUiType(ui_path)):
                     md={}
 
                 df = df.sort_values('energy')
-                num_key = self.list_data_numerator.currentItem().text()
-                den_key = self.list_data_denominator.currentItem().text()
+                num_key = self.comboBox_data_numerator.currentText()
+                den_key = self.comboBox_data_denominator.currentText()
                 mu = df[num_key] / df[den_key]
 
                 if self.checkBox_log_bin.checkState():

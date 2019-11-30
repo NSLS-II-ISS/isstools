@@ -24,6 +24,13 @@ class XviewGui(*uic.loadUiType(ui_path)):
         self.widget_project = widget_xview_project.UIXviewProject(parent=self)
         self.layout_project.addWidget(self.widget_project)
 
+    def  set_figure(self, axis, canvas, label_x='', label_y=''):
+        axis.legend(fontsize='small')
+        axis.grid(alpha=0.4)
+        axis.set_ylabel(label_y, size='13')
+        axis.set_xlabel(label_x, size='13')
+        canvas.draw_idle()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
