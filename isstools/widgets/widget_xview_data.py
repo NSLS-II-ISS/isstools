@@ -42,7 +42,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.comboBox_sort_files_by.addItems(['Time','Name'])
         self.comboBox_sort_files_by.currentIndexChanged.connect((self.get_file_list))
         self.list_data.itemSelectionChanged.connect(self.select_files_to_plot)
-        self.push_add_to_project.clicked.connect(self.add_files_to_xas_project)
+        self.push_add_to_project.clicked.connect(self.add_data_to_project)
         self.list_data.setContextMenuPolicy(Qt.CustomContextMenu)
         self.list_data.customContextMenuRequested.connect(self.xas_data_context_menu)
         self.list_data.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -72,7 +72,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         if action == plot_action:
             self.plot_xas_data()
         elif action == add_to_project_action:
-            self.add_files_to_xas_project()
+            self.add_data_to_project()
 
     def addCanvas(self):
         self.figure_data = Figure()
@@ -180,7 +180,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
 
-    def add_files_to_xas_project(self):
+    def add_data_to_project(self):
         if self.list_data_numerator.currentRow() != -1 and self.list_data_denominator.currentRow() != -1:
             for item in self.list_data.selectedItems():
                 filepath = str(Path(self.working_folder) / Path(item.text()))

@@ -2066,7 +2066,7 @@
      <string>-</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listView_xasproject">
+   <widget class="QListWidget" name="listView_project">
     <property name="geometry">
      <rect>
       <x>15</x>

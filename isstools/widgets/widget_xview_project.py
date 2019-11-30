@@ -29,23 +29,18 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
             super().__init__(*args, **kwargs)
             self.setupUi(self)
-
-
             self.parent = parent
-            self.parent.xasproject.datasets_changed.connect(self.update_xas_project_list)
-
-            # pushbuttons
+            self.parent.xasproject.datasets_changed.connect(self.update_project_list)
             self.addCanvas()
-
-
-
             self.label_E0.setText("E<sub>0</sub>")
-            # Setting up Preprocess tab:
-            self.listView_xasproject.itemSelectionChanged.connect(self.show_ds_params)
-            self.listView_xasproject.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            self.listView_project.itemSelectionChanged.connect(self.show_ds_params)
+            self.listView_project.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
             self.push_plot_project_in_E.clicked.connect(self.plot_project_in_E)
             self.push_plot_project_in_K.clicked.connect(self.plot_project_in_K)
             self.push_plot_project_in_R.clicked.connect(self.plot_project_in_R)
+
+
+
             self.lineEdit_e0.textEdited.connect(self.update_ds_params)
             self.lineEdit_preedge_lo.textEdited.connect(self.update_ds_params)
             self.lineEdit_preedge_hi.textEdited.connect(self.update_ds_params)
@@ -90,31 +85,31 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             # self.action_remove.triggered.connect(self.remove_from_xas_project)
 
             self.lineEdit_to_ds_parameter_dict = {
-                'lineEdit_preedge_lo': 'pre1',
-                'lineEdit_preedge_hi': 'pre2',
+                'lineEdit_preedge_lo':  'pre1',
+                'lineEdit_preedge_hi':  'pre2',
                 'lineEdit_postedge_lo': 'norm1',
                 'lineEdit_postedge_hi': 'norm2',
-                'lineEdit_e0': 'e0',
-                'lineEdit_spline_lo': 'kmin',
-                'lineEdit_spline_hi': 'kmax',
-                'lineEdit_clamp_lo': 'clamp_lo',
-                'lineEdit_clamp_hi': 'clamp_hi',
+                'lineEdit_e0':          'e0',
+                'lineEdit_spline_lo':   'kmin',
+                'lineEdit_spline_hi':   'kmax',
+                'lineEdit_clamp_lo':    'clamp_lo',
+                'lineEdit_clamp_hi':    'clamp_hi',
                 'lineEdit_truncate_at': 'truncate',
-                'lineEdit_k_ft_lo': 'kmin_ft',
-                'lineEdit_k_ft_hi': 'kmax_ft'
+                'lineEdit_k_ft_lo':     'kmin_ft',
+                'lineEdit_k_ft_hi':     'kmax_ft'
             }
 
             self.pushButton_set_to_lineEdit_dict = {
                 'pushButton_e0_set': 'lineEdit_e0',
-                'pushButton_preedge_lo_set': 'lineEdit_preedge_lo',
-                'pushButton_preedge_hi_set': 'lineEdit_preedge_hi',
-                'pushButton_postedge_lo_set': 'lineEdit_postedge_lo',
-                'pushButton_postedge_hi_set': 'lineEdit_postedge_hi',
-                'pushButton_spline_lo_set': 'lineEdit_spline_lo',
-                'pushButton_spline_hi_set': 'lineEdit_spline_hi',
-                'pushButton_k_ft_lo_set': 'lineEdit_k_ft_lo',
-                'pushButton_k_ft_hi_set': 'lineEdit_k_ft_hi',
-                'pushButton_truncate_at_set': 'lineEdit_truncate_at'
+                'pushButton_preedge_lo_set':    'lineEdit_preedge_lo',
+                'pushButton_preedge_hi_set':    'lineEdit_preedge_hi',
+                'pushButton_postedge_lo_set':   'lineEdit_postedge_lo',
+                'pushButton_postedge_hi_set':   'lineEdit_postedge_hi',
+                'pushButton_spline_lo_set':     'lineEdit_spline_lo',
+                'pushButton_spline_hi_set':     'lineEdit_spline_hi',
+                'pushButton_k_ft_lo_set':       'lineEdit_k_ft_lo',
+                'pushButton_k_ft_hi_set':       'lineEdit_k_ft_hi',
+                'pushButton_truncate_at_set':   'lineEdit_truncate_at'
             }
             self.windows_list = [
                 'hanning',
@@ -171,7 +166,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             self.ft_param_list = [
 
             ]
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 sender = QObject()
                 sender_object = sender.sender().objectName()
@@ -201,7 +196,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             sender = QObject()
             sender_object = sender.sender().objectName()
             print(sender_object)
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 index = selection[0].row()
                 ds = self.parent.xasproject[index]
@@ -259,7 +254,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             sender_object = lineEdit
 
             print(sender_object)
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 index = selection[0].row()
                 ds = self.xasproject[index]
@@ -272,15 +267,15 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
             self._disconnect_cid()
 
-        def update_xas_project_list(self, datasets):
-            self.listView_xasproject.clear()
+        def update_project_list(self, datasets):
+            self.listView_project.clear()
             for ds in datasets:
-                self.listView_xasproject.addItem(ds.name)
+                self.listView_project.addItem(ds.name)
 
 
         def show_ds_params(self):
-            if self.listView_xasproject.selectedIndexes():
-                index = self.listView_xasproject.selectedIndexes()[0]
+            if self.listView_project.selectedIndexes():
+                index = self.listView_project.selectedIndexes()[0]
                 ds = self.parent.xasproject[index.row()]
                 self.lineEdit_e0.setText('{:.1f}'.format(ds.e0))
                 self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.pre1))
@@ -298,24 +293,22 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 font = QtGui.QFont()
                 font.setBold(False)
 
-                for i in range(self.listView_xasproject.count()):
-                    self.listView_xasproject.item(i).setFont(font)
+                for i in range(self.listView_project.count()):
+                    self.listView_project.item(i).setFont(font)
                 font.setBold(True)
-                self.listView_xasproject.item(index.row()).setFont(font)
-
-
+                self.listView_project.item(index.row()).setFont(font)
 
         def remove_from_xas_project(self):
-            for index in self.listView_xasproject.selectedIndexes()[
+            for index in self.listView_project.selectedIndexes()[
                          ::-1]:  # [::-1] to remove using indexes from last to first
                 self.parent.xasproject.removeDatasetIndex(index.row())
                 self.statusBar().showMessage('Datasets deleted')
 
         def plot_project_in_E(self):
-            if self.listView_xasproject.selectedIndexes():
+            if self.listView_project.selectedIndexes():
                 self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
 
-                for index in self.listView_xasproject.selectedIndexes():
+                for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
                     ds.normalize_force()
                     ds.extract_chi_force()
@@ -351,10 +344,10 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 self.current_plot_in = 'e'
 
         def plot_project_in_K(self):
-            if self.listView_xasproject.selectedIndexes():
+            if self.listView_project.selectedIndexes():
                 self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
                 window = self.set_ft_window()
-                for index in self.listView_xasproject.selectedIndexes():
+                for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
                     ds.extract_chi_force()
                     ds.extract_ft_force(window=window)
@@ -376,10 +369,10 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 self.current_plot_in = 'k'
 
         def plot_project_in_R(self):
-            if self.listView_xasproject.selectedIndexes():
+            if self.listView_project.selectedIndexes():
                 self.reset_figure(self.figureXASProject.ax, self.toolbar_XASProject, self.canvasXASProject)
                 window = self.set_ft_window()
-                for index in self.listView_xasproject.selectedIndexes():
+                for index in self.listView_project.selectedIndexes():
                     ds = self.parent.xasproject[index.row()]
                     ds.extract_ft_force(window=window)
                     if self.checkBox_show_chir_mag.checkState():
@@ -418,7 +411,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
                 if ret == 0:
                     self.parent.xasproject = self.parent.xasproject_loaded_from_file
-                    self.update_xas_project_list(self.parent.xasproject._datasets)
+                    self.update_project_list(self.parent.xasproject._datasets)
                 if ret == 1:
                     for i in self.parent.xasproject_loaded_from_file._datasets:
                         self.parent.xasproject.append(i)
@@ -427,7 +420,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             # options = QtWidgets.QFileDialog.DontUseNativeDialog
             # filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
             #                                          'XAS project files (*.xas)', options=options)
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 ret = self.message_box_save_datasets_as()
                 options = QtWidgets.QFileDialog.DontUseNativeDialog
@@ -465,7 +458,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                         fid.close()
 
         def merge_datasets(self):
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
 
                 mu = self.parent.xasproject._datasets[selection[0].row()].mu
@@ -488,7 +481,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 self.parent.xasproject.project_changed()
 
         def combine_and_save_xas_datasets_as_text(self):
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 ds_list = []
                 md = []
@@ -536,7 +529,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                     fid.close()
 
         def rename_dataset(self):
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 name = self.parent.xasproject._datasets[selection[0].row()].name
                 new_name, ok = QtWidgets.QInputDialog.getText(self, 'Rename dataset', 'Enter new name:',
@@ -549,7 +542,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             sender = QObject()
             sender_object = sender.sender().objectName()
             print(sender_object)
-            selection = self.listView_xasproject.selectedIndexes()
+            selection = self.listView_project.selectedIndexes()
             if selection != []:
                 for indx, obj in enumerate(selection):
                     print(indx)
