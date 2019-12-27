@@ -1,7 +1,7 @@
 import sys
 import pkg_resources
 from PyQt5 import  QtWidgets, uic
-from isstools.xasproject import xasproject
+from isstools.xasproject.xasproject import XASProject
 
 from isstools.widgets import widget_xview_data, widget_xview_project
 
@@ -16,7 +16,7 @@ class XviewGui(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.xasproject = xasproject.XASProject()
+        self.project = XASProject()
 
         self.widget_data = widget_xview_data.UIXviewData(db=db, parent=self)
         self.layout_data.addWidget(self.widget_data)

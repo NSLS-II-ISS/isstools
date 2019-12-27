@@ -14,7 +14,7 @@ from sys import platform
 from pathlib import Path
 
 from matplotlib.figure import Figure
-from isstools.xasproject import xasproject
+from isstools.xasproject.xasproject import XASDataSet
 from isstools.elements.figure_update import update_figure
 from isstools.dialogs.BasicDialogs import message_box
 from xas.file_io import load_binned_df_from_file
@@ -46,6 +46,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.push_add_to_project.clicked.connect(self.add_data_to_project)
         self.list_data.setContextMenuPolicy(Qt.CustomContextMenu)
         self.list_data.customContextMenuRequested.connect(self.xas_data_context_menu)
+
         self.list_data.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.addCanvas()
         self.keys = []
@@ -81,6 +82,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         self.figure_data.ax = self.figure_data.add_subplot(111)
         self.canvas = FigureCanvas(self.figure_data)
         self.toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar.resize(1, 10)
         self.layout_plot_data.addWidget(self.toolbar)
         self.layout_plot_data.addWidget(self.canvas)
         self.figure_data.tight_layout()
@@ -119,27 +121,17 @@ class UIXviewData(*uic.loadUiType(ui_path)):
             if not (('timestamp' in key) or ('energy' in key)):
                 refined_keys.append(key)
         self.keys = refined_keys
-        print(f'Last keys {self.last_keys}')
-        print(f'New keys {self.keys}')
         if self.keys != self.last_keys:
             self.last_keys = self.keys
             self.comboBox_data_numerator.clear()
             self.comboBox_data_denominator.clear()
             self.comboBox_data_numerator.insertItems(0, self.keys)
             self.comboBox_data_denominator.insertItems(0, self.keys)
-            print(f'Last numerator was {self.last_numerator}')
-            print(f' Is it in {self.last_numerator in self.keys}')
             if self.last_numerator!= '' and self.last_numerator in self.keys:
-                print('I am here')
-                print(f'Last numerator before resetting is {self.last_numerator}')
                 indx = self.comboBox_data_numerator.findText(self.last_numerator)
-                print(indx)
                 self.comboBox_data_numerator.setCurrentIndex(indx)
             if self.last_denominator!= '' and self.last_denominator in self.keys:
-                print('I am here')
-                print(f'Last last_denominator before resetting is {self.last_denominator}')
                 indx = self.comboBox_data_denominator.findText(self.last_denominator)
-                print(indx)
                 self.comboBox_data_denominator.setCurrentIndex(indx)
 
     def update_current_numerator(self):
@@ -225,9 +217,9 @@ class UIXviewData(*uic.loadUiType(ui_path)):
                     mu = -mu
                 mu=np.array(mu)
 
-                ds = xasproject.XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
+                ds = XASDataSet(name=name,md=md,energy=df['energy'],mu=mu, filename=filepath,datatype='experiment')
                 ds.header = header
-                self.parent.xasproject.append(ds)
+                self.parent.project.append(ds)
                 self.parent.statusBar().showMessage('Scans added to the project successfully')
         else:
             message_box('Error', 'Select numerator and denominator columns')

@@ -18,6 +18,7 @@ from isstools.elements.figure_update import update_figure
 
 from xas.xray import k2e, e2k
 from xas.file_io import load_binned_df_from_file
+from isstools.xasproject.xasproject import XASDataSet
 
 if platform == 'darwin':
     ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xview_project-mac.ui')
@@ -31,11 +32,13 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             super().__init__(*args, **kwargs)
             self.setupUi(self)
             self.parent = parent
-            self.parent.xasproject.datasets_changed.connect(self.update_project_list)
+            self.parent.project.datasets_changed.connect(self.update_project_list)
             self.addCanvas()
             self.label_E0.setText("E<sub>0</sub>")
-            self.listView_project.itemSelectionChanged.connect(self.show_ds_params)
-            self.listView_project.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            self.list_project.itemSelectionChanged.connect(self.show_ds_params)
+            self.list_project.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.list_project.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            self.list_project.customContextMenuRequested.connect(self.xas_project_context_menu)
             self.push_plot_project_in_E.clicked.connect(self.plot_project_in_E)
             self.push_plot_project_in_K.clicked.connect(self.plot_project_in_K)
             self.push_plot_project_in_R.clicked.connect(self.plot_project_in_R)
@@ -80,7 +83,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             # self.action_save_project.triggered.connect(self.save_xas_project)
             # self.action_open_project.triggered.connect(self.open_xas_project)
             # self.action_save_datasets_as_text.triggered.connect(self.save_xas_datasets_as_text)
-            # self.action_combine_and_save_as_text.triggered.connect(self.combine_and_save_xas_datasets_as_text)
+            # self.action_combine_and_save_as_text.triggered.connect(self.combine_and_save_datasets_as_text)
             # self.action_merge.triggered.connect(self.merge_datasets)
             # self.action_rename.triggered.connect(self.rename_dataset)
             # self.action_remove.triggered.connect(self.remove_from_xas_project)
@@ -119,22 +122,29 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 'sine'
             ]
 
-        # def xas_data_context_menu(self, QPos):
-        #     menu = QMenu()
-        #     plot_action = menu.addAction("&Plot")
-        #     add_to_project_action = menu.addAction("&Add to project")
-        #     parentPosition = self.listFiles_bin.mapToGlobal(QtCore.QPoint(0, 0))
-        #     menu.move(parentPosition + QPos)
-        #     action = menu.exec_()
-        #     if action == plot_action:
-        #         self.plot_xas_data()
-        #     elif action == add_to_project_action:
-        #         self.add_files_to_xas_project()
-
+        def xas_project_context_menu(self, QPos):
+            menu = QMenu()
+            rename_action = menu.addAction("&Rename")
+            merge_action = menu.addAction("&Merge")
+            remove_action = menu.addAction("&Remove")
+            save_datasets_as_text_action = menu.addAction("&Save datasets as text")
+            combine_and_save_datasets_as_text_action = menu.addAction("&Combine and save datasets as text")
+            parentPosition = self.list_project.mapToGlobal(QtCore.QPoint(0, 0))
+            menu.move(parentPosition + QPos)
+            action = menu.exec_()
+            if action == rename_action:
+                self.rename_dataset()
+            elif action == merge_action:
+                self.merge_datasets()
+            elif action == remove_action:
+                self.remove_from_xas_project()
+            elif action == combine_and_save_datasets_as_text_action:
+                self.combine_and_save_datasets_as_text()
+            elif action == save_datasets_as_text_action:
+                self.save_datasets_as_text()
 
 
         def addCanvas(self):
-
             # XASProject Plot:
             self.figure_project = Figure()
             self.figure_project.set_facecolor(color='#E2E2E2')
@@ -168,37 +178,37 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             self.ft_param_list = [
 
             ]
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 sender = QObject()
                 sender_object = sender.sender().objectName()
                 index = selection[0].row()
-                ds_master = self.xasproject[index]
+                ds_master = self.parent.project[index]
                 if sender_object == 'pushButton_push_norm_param_to_selected':
                     for indx, obj in enumerate(selection):
-                        ds = self.xasproject[selection[indx].row()]
+                        ds = self.parent.project[selection[indx].row()]
                         for param in self.norm_param_list:
                             setattr(ds, param, getattr(ds_master, param))
                 if sender_object == 'pushButton_push_norm_param_to_all':
-                    for indx, obj in enumerate(self.xasproject):
+                    for indx, obj in enumerate(self.parent.project):
                         for param in self.norm_param_list:
-                            setattr(self.xasproject[indx], param, getattr(ds_master, param))
+                            setattr(self.parent.project[indx], param, getattr(ds_master, param))
                 if sender_object == 'pushButton_push_bkg_param_to_selected':
                     for indx, obj in enumerate(selection):
-                        ds = self.xasproject[selection[indx].row()]
+                        ds = self.parent.project[selection[indx].row()]
                         for param in self.bkg_param_list:
                             setattr(ds, param, getattr(ds_master, param))
                 if sender_object == 'pushButton_push_bkg_param_to_all':
-                    for indx, obj in enumerate(self.xasproject):
+                    for indx, obj in enumerate(self.parent.project):
                         for param in self.bkg_param_list:
-                            setattr(self.xasproject[indx], param, getattr(ds_master, param))
+                            setattr(self.parent.project[indx], param, getattr(ds_master, param))
 
         # here we begin to work on the second pre-processing tab
         def update_ds_params(self):
             sender = QObject()
             sender_object = sender.sender().objectName()
             print(sender_object)
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 index = selection[0].row()
                 ds = self.parent.xasproject[index]
@@ -256,10 +266,10 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             sender_object = lineEdit
 
             print(sender_object)
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 index = selection[0].row()
-                ds = self.xasproject[index]
+                ds = self.parent.project[index]
                 try:
                     float(sender_object.text())
                     setattr(ds, self.lineEdit_to_ds_parameter_dict[sender_object.objectName()],
@@ -270,15 +280,16 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             self._disconnect_cid()
 
         def update_project_list(self, datasets):
-            self.listView_project.clear()
+            self.list_project.clear()
             for ds in datasets:
-                self.listView_project.addItem(ds.name)
+                self.list_project.addItem(ds.name)
 
 
         def show_ds_params(self):
-            if self.listView_project.selectedIndexes():
-                index = self.listView_project.selectedIndexes()[0]
-                ds = self.parent.xasproject[index.row()]
+            print('12')
+            if self.list_project.selectedIndexes():
+                index = self.list_project.selectedIndexes()[0]
+                ds = self.parent.project[index.row()]
                 self.lineEdit_e0.setText('{:.1f}'.format(ds.e0))
                 self.lineEdit_preedge_lo.setText('{:.1f}'.format(ds.pre1))
                 self.lineEdit_preedge_hi.setText('{:.1f}'.format(ds.pre2))
@@ -295,23 +306,23 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 font = QtGui.QFont()
                 font.setBold(False)
 
-                for i in range(self.listView_project.count()):
-                    self.listView_project.item(i).setFont(font)
+                for i in range(self.list_project.count()):
+                    self.list_project.item(i).setFont(font)
                 font.setBold(True)
-                self.listView_project.item(index.row()).setFont(font)
+                self.list_project.item(index.row()).setFont(font)
 
         def remove_from_xas_project(self):
-            for index in self.listView_project.selectedIndexes()[
+            for index in self.list_project.selectedIndexes()[
                          ::-1]:  # [::-1] to remove using indexes from last to first
-                self.parent.xasproject.removeDatasetIndex(index.row())
+                self.parent.project.removeDatasetIndex(index.row())
                 self.statusBar().showMessage('Datasets deleted')
 
         def plot_project_in_E(self):
-            if self.listView_project.selectedIndexes():
+            if self.list_project.selectedIndexes():
                 update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
 
-                for index in self.listView_project.selectedIndexes():
-                    ds = self.parent.xasproject[index.row()]
+                for index in self.list_project.selectedIndexes():
+                    ds = self.parent.project[index.row()]
                     ds.normalize_force()
                     ds.extract_chi_force()
                     ds.extract_ft()
@@ -346,11 +357,11 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 self.current_plot_in = 'e'
 
         def plot_project_in_K(self):
-            if self.listView_project.selectedIndexes():
+            if self.list_project.selectedIndexes():
                 update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
                 window = self.set_ft_window()
-                for index in self.listView_project.selectedIndexes():
-                    ds = self.parent.xasproject[index.row()]
+                for index in self.list_project.selectedIndexes():
+                    ds = self.parent.project[index.row()]
                     ds.extract_chi_force()
                     ds.extract_ft_force(window=window)
 
@@ -371,11 +382,11 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 self.current_plot_in = 'k'
 
         def plot_project_in_R(self):
-            if self.listView_project.selectedIndexes():
+            if self.list_project.selectedIndexes():
                 update_figure([self.figure_project.ax], self.toolbar_project, self.canvas_project)
                 window = self.set_ft_window()
-                for index in self.listView_project.selectedIndexes():
-                    ds = self.parent.xasproject[index.row()]
+                for index in self.list_project.selectedIndexes():
+                    ds = self.parent.project[index.row()]
                     ds.extract_ft_force(window=window)
                     if self.checkBox_show_chir_mag.checkState():
                         self.figure_project.ax.plot(ds.r, ds.chir_mag, label=ds.name)
@@ -401,28 +412,28 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 if Path(filename).suffix != '.xas':
                     filename = filename + '.xas'
                 print(filename)
-                self.parent.xasproject.save(filename=filename)
+                self.parent.project.save(filename=filename)
 
         def open_xas_project(self):
             options = QtWidgets.QFileDialog.DontUseNativeDialog
             filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.working_folder,
                                                                 'XAS project files (*.xas)', options=options)
             if filename:
-                self.parent.xasproject_loaded_from_file = xasproject.XASProject()
-                self.parent.xasproject_loaded_from_file.load(filename=filename)
+                self.parent.project_loaded_from_file = xasproject.XASProject()
+                self.parent.project_loaded_from_file.load(filename=filename)
 
                 if ret == 0:
-                    self.parent.xasproject = self.parent.xasproject_loaded_from_file
-                    self.update_project_list(self.parent.xasproject._datasets)
+                    self.parent.project = self.parent.xasproject_loaded_from_file
+                    self.update_project_list(self.parent.project._datasets)
                 if ret == 1:
-                    for i in self.parent.xasproject_loaded_from_file._datasets:
-                        self.parent.xasproject.append(i)
+                    for i in self.parent.project_loaded_from_file._datasets:
+                        self.parent.project.append(i)
 
-        def save_xas_datasets_as_text(self):
+        def save_datasets_as_text(self):
             # options = QtWidgets.QFileDialog.DontUseNativeDialog
             # filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
             #                                          'XAS project files (*.xas)', options=options)
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 ret = self.message_box_save_datasets_as()
                 options = QtWidgets.QFileDialog.DontUseNativeDialog
@@ -431,7 +442,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 separator = '#______________________________________________________\n'
                 if pathname is not '':
                     for indx, obj in enumerate(selection):
-                        ds = self.parent.xasproject._datasets[selection[indx].row()]
+                        ds = self.parent.project._datasets[selection[indx].row()]
                         filename = ds.name
                         if ret == 0:
                             xx = ds.energy
@@ -460,35 +471,35 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                         fid.close()
 
         def merge_datasets(self):
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
 
-                mu = self.parent.xasproject._datasets[selection[0].row()].mu
-                energy_master = self.parent.xasproject._datasets[selection[0].row()].energy
+                mu = self.parent.project._datasets[selection[0].row()].mu
+                energy_master = self.parent.project._datasets[selection[0].row()].energy
                 mu_array = np.zeros([len(selection), len(mu)])
-                energy = self.parent.xasproject._datasets[selection[0].row()].energy
+                energy = self.parent.project._datasets[selection[0].row()].energy
                 md = ['# merged \n']
                 for indx, obj in enumerate(selection):
-                    energy = self.parent.xasproject._datasets[selection[indx].row()].energy
-                    mu = self.parent.xasproject._datasets[selection[indx].row()].mu.mu
+                    energy = self.parent.project._datasets[selection[indx].row()].energy
+                    mu = self.parent.project._datasets[selection[indx].row()].mu.mu
                     mu = np.interp(energy_master, energy, mu)
                     mu_array[indx, :] = mu
-                    md.append('# ' + self.parent.xasproject._datasets[selection[indx].row()].filename + '\n')
+                    md.append('# ' + self.parent.project._datasets[selection[indx].row()].filename + '\n')
 
                 mu_merged = np.average(mu_array, axis=0)
-                merged = xasproject.XASDataSet(name='merge', md=md, energy=energy, mu=mu_merged, filename='',
+                merged = XASDataSet(name='merge', md=md, energy=energy, mu=mu_merged, filename='',
                                                datatype='processed')
                 merged.header = "".join(merged.md)
-                self.parent.xasproject.append(merged)
-                self.parent.xasproject.project_changed()
+                self.parent.project.append(merged)
+                self.parent.project.project_changed()
 
-        def combine_and_save_xas_datasets_as_text(self):
-            selection = self.listView_project.selectedIndexes()
+        def combine_and_save_datasets_as_text(self):
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 ds_list = []
                 md = []
                 for indx, obj in enumerate(selection):
-                    ds_list.append(self.parent.xasproject._datasets[selection[indx].row()])
+                    ds_list.append(self.parent.project._datasets[selection[indx].row()])
 
                 ds_list.sort(key=lambda x: x.name)
                 mu = ds_list[0].mu
@@ -531,24 +542,24 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                     fid.close()
 
         def rename_dataset(self):
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
-                name = self.parent.xasproject._datasets[selection[0].row()].name
+                name = self.parent.project._datasets[selection[0].row()].name
                 new_name, ok = QtWidgets.QInputDialog.getText(self, 'Rename dataset', 'Enter new name:',
                                                               QtWidgets.QLineEdit.Normal, name)
                 if ok:
-                    self.parent.xasproject._datasets[selection[0].row()].name = new_name
-                    self.parent.xasproject.project_changed()
+                    self.parent.project._datasets[selection[0].row()].name = new_name
+                    self.parent.project.project_changed()
 
         def truncate(self):
             sender = QObject()
             sender_object = sender.sender().objectName()
             print(sender_object)
-            selection = self.listView_project.selectedIndexes()
+            selection = self.list_project.selectedIndexes()
             if selection != []:
                 for indx, obj in enumerate(selection):
                     print(indx)
-                    ds = self.parent.xasproject._datasets[selection[indx].row()]
+                    ds = self.parent.project._datasets[selection[indx].row()]
                     print(ds.name)
                     energy = ds.energy
                     mu = ds.mu
@@ -563,7 +574,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
                         ds.mu = mu[0:indx_energy_to_truncate_at:]
                     ds.update_larch()
-                    self.parent.xasproject._datasets[selection[indx].row()] = ds
+                    self.parent.project._datasets[selection[indx].row()] = ds
 
         '''
          Service routines
