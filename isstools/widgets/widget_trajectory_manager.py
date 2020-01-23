@@ -43,7 +43,6 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
 
-        self.run_prep_traj = aux_plan_funcs['prepare_traj_plan']
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
         self.traj_manager = trajectory_manager(hhm)
@@ -66,7 +65,6 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.push_load_trajectory.clicked.connect(self.load_trajectory)
         self.push_init_trajectory.clicked.connect(self.init_trajectory)
         self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
-        self.push_prepare_trajectory.clicked.connect(self.run_prep_traj)
         self.push_plot_traj.clicked.connect(self.plot_traj_file)
         self.push_plot_traj.setDisabled(True)
         self.push_save_trajectory.setDisabled(True)
