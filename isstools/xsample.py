@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-import time
+import time as ttime
 import matplotlib
 matplotlib.use('WXAgg')
 import matplotlib.patches as mpatches
@@ -15,17 +15,11 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
-from sys import platform
-from pathlib import Path
-import pandas as pd
 
-import bluesky.plan_stubs as bps
 
 from matplotlib.figure import Figure
+from isstools.elements.figure_update import update_figure
 
-from isstools.xasproject import xasproject
-from xas.xray import k2e, e2k
-from xas.file_io import load_binned_df_from_file
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/xsample.ui')
 
@@ -36,14 +30,22 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/xsample.ui')
 class XsampleGui(*uic.loadUiType(ui_path)):
 
     # class GUI(QtWidgets.QMainWindow, gui_form):
-    def __init__(self, mfcs = [], RE = [], *args, **kwargs):
+    def __init__(self,
+                 mfcs = [],
+                 rga_channels = [],
+                 rga_masses = [],
+                 RE = [],
+                 archiver = [],
+                 *args, **kwargs):
+
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.addCanvas()
         self.mfcs = mfcs
+        self.rga_channels = rga_channels
+        self.rga_masses = rga_masses
         self.RE = RE
-
-
+        self.archiver = archiver
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(2000)
         self.timer_update_time.timeout.connect(self.update_status)
@@ -77,7 +79,27 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         flow_H2 = self.mfcs[2].flow.read()['mfc_cart_H2_flow']['value']
         self.label_H2.setText('{:.1f} sccm'.format(flow_H2))
 
+        now = ttime.time()
+        some_time_ago = now - 3600 / 2
+        df = self.archiver.tables_given_times(some_time_ago, now)
 
+        masses = []
+        for rga_mass in self.rga_masses:
+            masses.append(str(rga_mass.get()))
+
+
+        update_figure([self.figure_data.ax], self.toolbar, self.canvas)
+        for rga_ch, mass in zip(self.rga_channels, masses):
+            dataset = df[rga_ch.name]
+            self.figure_data.ax.plot(dataset['time'],dataset['data'], label = f'{mass} amu')
+        self.figure_data.ax.grid(alpha=0.4)
+        self.figure_data.ax.relim(visible_only=True)
+        self.figure_data.ax.autoscale_view(tight=True)
+        self.figure_data.ax.set_yscale('log')
+        self.figure_data.tight_layout()
+        self.figure_data.ax.legend(loc=6)
+
+        self.canvas.draw_idle()
 
 
     def set_mfc_cart_flow(self):
