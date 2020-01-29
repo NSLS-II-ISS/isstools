@@ -147,7 +147,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
         def addCanvas(self):
             # XASProject Plot:
             self.figure_project = Figure()
-            self.figure_project.set_facecolor(color='#E2E2E2')
+            #self.figure_project.set_facecolor(color='#E2E2E2')
             self.figure_project.ax = self.figure_project.add_subplot(111)
             self.figure_project.ax.grid(alpha=0.4)
             self.canvas_project = FigureCanvas(self.figure_project)

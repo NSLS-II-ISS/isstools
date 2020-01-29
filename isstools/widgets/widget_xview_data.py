@@ -78,7 +78,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
         self.figure_data = Figure()
-        self.figure_data.set_facecolor(color='#E2E2E2')
+        #self.figure_data.set_facecolor(color='#E2E2E2')
         self.figure_data.ax = self.figure_data.add_subplot(111)
         self.canvas = FigureCanvas(self.figure_data)
         self.toolbar = NavigationToolbar(self.canvas, self)

@@ -236,12 +236,12 @@
      <rect>
       <x>10</x>
       <y>720</y>
-      <width>51</width>
+      <width>41</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Data:</string>
+     <string>Show</string>
     </property>
    </widget>
    <widget class="QPushButton" name="push_refresh_folder">
@@ -270,6 +270,25 @@
      <string>Select folder</string>
     </property>
    </widget>
+   <zorder>label_5</zorder>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>list_data</zorder>
+   <zorder>label3</zorder>
+   <zorder>label_working_folder</zorder>
+   <zorder>comboBox_sort_files_by</zorder>
+   <zorder>push_add_to_project</zorder>
+   <zorder>checkBox_inv_bin</zorder>
+   <zorder>checkBox_ratio</zorder>
+   <zorder>checkBox_log_bin</zorder>
+   <zorder>push_plot_data</zorder>
+   <zorder>comboBox_data_numerator</zorder>
+   <zorder>comboBox_data_denominator</zorder>
+   <zorder>label</zorder>
+   <zorder>label_2</zorder>
+   <zorder>label_3</zorder>
+   <zorder>label_4</zorder>
+   <zorder>push_refresh_folder</zorder>
+   <zorder>push_select_folder</zorder>
   </widget>
   <action name="action_open_project">
    <property name="text">
