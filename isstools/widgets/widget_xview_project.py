@@ -406,7 +406,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
         def save_xas_project(self):
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.parent.widget_data.working_folder,
                                                                 'XAS project files (*.xas)', options=options)
             if filename:
                 if Path(filename).suffix != '.xas':
@@ -416,7 +416,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
         def open_xas_project(self):
             options = QtWidgets.QFileDialog.DontUseNativeDialog
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.working_folder,
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Load XAS project', self.parent.widget_data.working_folder,
                                                                 'XAS project files (*.xas)', options=options)
             if filename:
                 self.parent.project_loaded_from_file = xasproject.XASProject()
@@ -431,13 +431,14 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
         def save_datasets_as_text(self):
             # options = QtWidgets.QFileDialog.DontUseNativeDialog
-            # filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.working_folder,
+            # filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project as', self.parent.widget_data.working_folder,
             #                                          'XAS project files (*.xas)', options=options)
             selection = self.list_project.selectedIndexes()
             if selection != []:
                 ret = self.message_box_save_datasets_as()
                 options = QtWidgets.QFileDialog.DontUseNativeDialog
-                pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...', self.working_folder,
+                pathname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Choose folder...',
+                                                                      self.parent.widget_data.working_folder,
                                                                       options=options)
                 separator = '#______________________________________________________\n'
                 if pathname is not '':
@@ -527,7 +528,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
                 self.mu_array = mu_array
                 options = QtWidgets.QFileDialog.DontUseNativeDialog
-                filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.working_folder,
+                filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save XAS project', self.parent.widget_data.working_folder,
                                                                     'XAS dataset (*.dat)', options=options)
                 if filename:
                     if Path(filename).suffix != '.xas':
