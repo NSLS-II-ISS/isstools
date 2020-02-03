@@ -97,18 +97,7 @@
     <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
-   <widget class="QMenu" name="menuDatasets">
-    <property name="title">
-     <string>Datasets</string>
-    </property>
-    <addaction name="action_merge"/>
-    <addaction name="action_rename"/>
-    <addaction name="action_save_datasets_as_text"/>
-    <addaction name="action_combine_and_save_as_text"/>
-    <addaction name="action_remove"/>
-   </widget>
    <addaction name="menu_File"/>
-   <addaction name="menuDatasets"/>
   </widget>
   <action name="action_open_project">
    <property name="text">

@@ -39,6 +39,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             self.list_project.setContextMenuPolicy(Qt.CustomContextMenu)
             self.list_project.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
             self.list_project.customContextMenuRequested.connect(self.xas_project_context_menu)
+            self.list_project.doubleClicked.connect(self.xas_project_double_clicked)
             self.push_plot_project_in_E.clicked.connect(self.plot_project_in_E)
             self.push_plot_project_in_K.clicked.connect(self.plot_project_in_K)
             self.push_plot_project_in_R.clicked.connect(self.plot_project_in_R)
@@ -143,6 +144,11 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             elif action == save_datasets_as_text_action:
                 self.save_datasets_as_text()
 
+        def xas_project_double_clicked(self):
+            selection = self.list_project.selectedIndexes()
+            if selection != []:
+                self.rename_dataset()
+
 
         def addCanvas(self):
             # XASProject Plot:
@@ -213,17 +219,17 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
                 index = selection[0].row()
                 ds = self.parent.xasproject[index]
                 try:
-                    self.statusBar().showMessage(sender_object)
+                    self.parent.statusBar().showMessage(sender_object)
                     print(getattr(self, sender_object).text())
                     setattr(ds, self.lineEdit_to_ds_parameter_dict[sender_object],
                             float(getattr(self, sender_object).text()))
                 except:
-                    self.statusBar().showMessage('Use numbers only')
+                    self.parent.statusBar().showMessage('Use numbers only')
 
         def set_ds_params_from_plot(self):
             sender = QObject()
             self.sender_object = sender.sender().objectName()
-            self.statusBar().showMessage('Click on graph or press Esc')
+            self.parent.statusBar().showMessage('Click on graph or press Esc')
             self.cid = self.canvas_project.mpl_connect('button_press_event', self.mouse_press_event)
 
         def _disconnect_cid(self):
@@ -286,7 +292,6 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
 
 
         def show_ds_params(self):
-            print('12')
             if self.list_project.selectedIndexes():
                 index = self.list_project.selectedIndexes()[0]
                 ds = self.parent.project[index.row()]
@@ -315,7 +320,7 @@ class UIXviewProject(*uic.loadUiType(ui_path)):
             for index in self.list_project.selectedIndexes()[
                          ::-1]:  # [::-1] to remove using indexes from last to first
                 self.parent.project.removeDatasetIndex(index.row())
-                self.statusBar().showMessage('Datasets deleted')
+                self.parent.statusBar().showMessage('Datasets deleted')
 
         def plot_project_in_E(self):
             if self.list_project.selectedIndexes():
