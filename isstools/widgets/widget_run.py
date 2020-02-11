@@ -14,11 +14,38 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
+from bluesky.callbacks import LivePlot
 
-from isstools.process_callbacks.callback import run_router
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
+
+class XASPlot(LivePlot):
+    def __init__(self, num_name, den_name, result_name, motor, *args, **kwargs):
+        super().__init__(result_name, x=motor, *args, **kwargs)
+        self.num_name = num_name
+        self.den_name = den_name
+        self.result_name = result_name
+
+    def event(self, doc):
+        print(f' Numerator {self.num_name}')
+        print(f' Denominator {self.den_name}')
+
+        doc = dict(doc)
+        doc['data'] = dict(doc['data'])
+        print(doc['data'])
+        try:
+            if self.den_name == '1':
+                denominator = 1
+            else:
+                denominator = doc['data'][self.den_name]
+            doc['data'][self.result_name] = np.log(doc['data'][self.num_name] / denominator)
+        except KeyError:
+            print('Key error')
+        print(f"after normalizing:\n{doc['data']}")
+        super().event(doc)
+
+
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -31,7 +58,9 @@ class UIRun(*uic.loadUiType(ui_path)):
                  adc_list,
                  enc_list,
                  xia,
+                 apb,
                  parent_gui,
+
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -43,10 +72,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.aux_plan_funcs = aux_plan_funcs
         self.RE = RE
         self.db = db
+        self.hhm=hhm,
         self.shutter_dictionary = shutter_dictionary
         self.adc_list = adc_list
         self.enc_list = enc_list
         self.xia = xia
+        self.apb = apb
         self.parent_gui = parent_gui
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
@@ -145,18 +176,24 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               float(self.edit_exafs_dwell.text()),
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
-                self.rr_token = self.RE.subscribe(run_router)
 
 
 
 
             plan_func = self.plan_funcs[plan_key]
+
+            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),
+                         XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
                                                   ax=self.figure.ax1,
                                                   ignore_shutter=ignore_shutter,
                                                   energy_grid=energy_grid,
                                                   time_grid=time_grid,
-                                                  stdout=self.parent_gui.emitstream_out))
+                                                  e0 =  self.e0,
+                                                  edge =  self.edge,
+                                                  element = self.element,
+                                                  stdout=self.parent_gui.emitstream_out),LivePlots
+                                         )
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()

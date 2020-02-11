@@ -11,7 +11,7 @@ from isstools.widgets import (widget_general_info, widget_trajectory_manager, wi
                               widget_sdd_manager, widget_beamline_status)
 
 from isstools.elements.emitting_stream import EmittingStream
-from isstools.process_callbacks.callback import FlyScanProcessingCallback
+from isstools.process_callbacks.callback import ScanProcessingCallback
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
@@ -47,6 +47,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  tune_elements=None,
                  ic_amplifiers={},
                  window_title=" ",
+                 apb = None,
                  *args, **kwargs):
         '''
 
@@ -81,6 +82,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.db = db
+        self.apb = apb
         self.token = None
         self.window_title = window_title
         
@@ -138,6 +140,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             adc_list,
                                             enc_list,
                                             xia,
+                                            apb,
                                             self,
                                            )
         self.layout_run.addWidget(self.widget_run)
@@ -181,7 +184,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         
-        pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
+        pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.fly_token = self.RE.subscribe(pc, 'stop')
 
         # Redirect terminal output to GUI
