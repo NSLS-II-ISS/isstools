@@ -127,7 +127,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                 parent_gui=self,
                                                                 )
         self.layout_processing.addWidget(self.widget_processing)
-
         self.widget_run = widget_run.UIRun(plan_funcs,
                                             aux_plan_funcs,
                                             RE,

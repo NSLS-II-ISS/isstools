@@ -4,6 +4,7 @@ import pkg_resources
 import requests
 import urllib.request
 import numpy as np
+import datetime
 
 from isstools.dialogs import UpdateUserDialog, SetEnergy
 from timeit import default_timer as timer
@@ -30,7 +31,7 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         # Start QTimer to display current day and time
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(1000)
-        self.timer_update_time.timeout.connect(self.update_status)
+        self.timer_update_time.timeouprint('Starting time timer')
         self.timer_update_time.start()
 
         self.timer_update_weather = QtCore.QTimer(self)
@@ -38,6 +39,8 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.timer_update_weather.setInterval(1000*60*5)
         self.timer_update_weather.timeout.connect(self.update_weather)
         self.timer_update_weather.start()
+        self.timer_update_weather.singleShot(0, self.update_weather)
+
         self.hhm = hhm
         self.RE = RE
         self.db = db
@@ -87,7 +90,9 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.label_current_weather.setText(string_current_weather)
 
 
+
     def update_status(self):
+
         self.label_current_time.setText(
             'Today is {0}'.format(QtCore.QDateTime.currentDateTime().toString('MMMM d, yyyy, h:mm:ss ap')))
         energy = self.hhm.energy.read()['hhm_energy']['value']
@@ -126,7 +131,6 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
 
 
 
-
     def update_beam_current(self, **kwargs):
         self.label_beam_current.setText('Beam current is {:.1f} mA'.format(kwargs['value']))
 
@@ -161,11 +165,16 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
             self.label_accelerator_status_indicator.setStyleSheet('background-color: rgb(0,177,0)')
 
     def update_user_info(self):
-        self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
-                                     format(self.RE.md['PI'], self.RE.md['PROPOSAL'], self.RE.md['SAF']))
-        self.cycle = ['', 'Spring', 'Summer', 'Fall']
-        self.label_current_cycle.setText(
-            'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
+
+        try:
+            self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
+                                         format(self.RE.md['PI'], self.RE.md['PROPOSAL'], self.RE.md['SAF']))
+            self.cycle = ['', 'Spring', 'Summer', 'Fall']
+            self.label_current_cycle.setText(
+                'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
+        except:
+            print('something wrong with user update')
+
 
     def set_user_info(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'],
