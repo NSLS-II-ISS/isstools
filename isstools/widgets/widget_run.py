@@ -117,7 +117,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
     def run_scan(self):
-
         ignore_shutter = False
         energy_grid = []
         time_grid = []
@@ -192,7 +191,8 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                   e0 =  self.e0,
                                                   edge =  self.edge,
                                                   element = self.element,
-                                                  stdout=self.parent_gui.emitstream_out),LivePlots
+                                                  stdout=self.parent_gui.emitstream_out),
+                                        LivePlots
                                          )
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
