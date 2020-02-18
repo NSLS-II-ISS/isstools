@@ -39,7 +39,7 @@ class XASPlot(LivePlot):
                 denominator = 1
             else:
                 denominator = doc['data'][self.den_name]
-            doc['data'][self.result_name] = np.log(doc['data'][self.num_name] / denominator)
+            doc['data'][self.result_name] = (doc['data'][self.num_name] / denominator)
         except KeyError:
             print('Key error')
         print(f"after normalizing:\n{doc['data']}")
@@ -182,7 +182,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             plan_func = self.plan_funcs[plan_key]
 
-            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),
+            LivePlots = [XASPlot(self.apb.ch2_mean.name, self.apb.ch1_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),
                          XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
                                                   ax=self.figure.ax1,
