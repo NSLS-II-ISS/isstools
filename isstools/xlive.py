@@ -14,7 +14,8 @@ from isstools.elements.emitting_stream import EmittingStream
 from isstools.process_callbacks.callback import FlyScanProcessingCallback
 
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/xlive.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
+
 
 
 def auto_redraw_factory(fnc):
@@ -128,7 +129,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                 parent_gui=self,
                                                                 )
         self.layout_processing.addWidget(self.widget_processing)
-
         self.widget_run = widget_run.UIRun(plan_funcs,
                                             aux_plan_funcs,
                                             RE,
