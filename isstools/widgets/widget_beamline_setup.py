@@ -29,10 +29,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      RE,
                      hhm,
                      db,
-                     adc_list,
-                     enc_list,
                      detector_dictionary,
-                     xia,
                      ic_amplifiers,
                      service_plan_funcs,
                      aux_plan_funcs,
@@ -48,10 +45,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.db = db
-        self.adc_list = adc_list
-        self.enc_list = enc_list
         self.detector_dictionary = detector_dictionary
-        self.xia = xia
         self.ic_amplifiers = ic_amplifiers
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
@@ -89,9 +83,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
             self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
-
-
-
         # Populate analog detectors setup section with adcs:
         self.adc_checkboxes = []
         for index, adc_name in enumerate([adc.dev_name.get() for adc in
@@ -102,7 +93,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
 
         self.last_text = '0'
@@ -130,8 +120,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if 'bpm_es' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['bpm_es']['obj']
-
-
 
         if len(self.adc_list):
             times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))

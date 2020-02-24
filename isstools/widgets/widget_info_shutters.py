@@ -2,13 +2,10 @@ from PyQt5 import uic, QtCore, QtWidgets
 import pkg_resources
 
 
-from isstools.dialogs import UpdateUserDialog
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_shutters.ui')
 
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_status.ui')
-
-
-class UIBeamlineStatus(*uic.loadUiType(ui_path)):
+class UIInfoShutters(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     def __init__(self,
                  shutters={},
