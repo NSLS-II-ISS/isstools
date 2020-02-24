@@ -55,9 +55,8 @@ class UIRun(*uic.loadUiType(ui_path)):
                  db,
                  hhm,
                  shutter_dictionary,
-                 adc_list,
-                 enc_list,
-                 xia,
+
+
                  apb,
                  parent_gui,
 
@@ -74,9 +73,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.db = db
         self.hhm=hhm,
         self.shutter_dictionary = shutter_dictionary
-        self.adc_list = adc_list
-        self.enc_list = enc_list
-        self.xia = xia
+
+
         self.apb = apb
         self.parent_gui = parent_gui
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
@@ -132,21 +130,6 @@ class UIRun(*uic.loadUiType(ui_path)):
                 ignore_shutter=True
                 break
 
-        # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
-
-        for adc in self.adc_list:
-            adc.averaging_points.put(str(value))
-
-        for enc in self.enc_list:
-            enc.filter_dt.put(float(self.enc_samp_time) * 100000)
-
-        # not needed at QAS this is a detector
-        if self.xia is not None:
-            if self.xia.input_trigger is not None:
-                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
-
         name_provided = self.parameter_values[0].text()
         if name_provided:
             timenow = datetime.datetime.now()
@@ -201,8 +184,6 @@ class UIRun(*uic.loadUiType(ui_path)):
             if self.rr_token is not None:
                 self.RE.unsubscribe(self.rr_token)
 
-
-
         else:
             message_box('Error', 'Please provide the name for the scan')
 
@@ -219,15 +200,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         for i in range(len(self.parameter_values)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_parameters.addWidget(self.parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
-
-    def setAnalogSampTime(self, text):
-        self.analog_samp_time = text
-
-    def setEncSampTime(self, text):
-        self.enc_samp_time = text
-
-    def setXiaSampTime(self, text):
-        self.xia_samp_time = text
 
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)

@@ -29,10 +29,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      RE,
                      hhm,
                      db,
-                     adc_list,
-                     enc_list,
                      detector_dictionary,
-                     xia,
                      ic_amplifiers,
                      service_plan_funcs,
                      aux_plan_funcs,
@@ -48,10 +45,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.db = db
-        self.adc_list = adc_list
-        self.enc_list = enc_list
         self.detector_dictionary = detector_dictionary
-        self.xia = xia
         self.ic_amplifiers = ic_amplifiers
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
@@ -89,20 +83,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
             self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
-
-
-
-        # Populate analog detectors setup section with adcs:
-        self.adc_checkboxes = []
-        for index, adc_name in enumerate([adc.dev_name.value for adc in
-                                          self.adc_list if adc.dev_name.value != adc.name]):
-            checkbox = QtWidgets.QCheckBox(adc_name)
-            checkbox.setChecked(True)
-            self.adc_checkboxes.append(checkbox)
-            self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
-
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
 
         self.last_text = '0'
@@ -133,27 +114,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
 
-        if len(self.adc_list):
-            times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
-            times_arr[times_arr == ''] = 0.0
-            times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.value / 100000)
-            times_arr = [str(elem) for elem in times_arr]
-            self.comboBox_samp_time.addItems(times_arr)
-            #   self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_batch_mode.setAnalogSampTime)
-            self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_run.setAnalogSampTime)
-            self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.value)
-
-        if len(self.enc_list):
-            #self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_batch_mode.setEncSampTime)
-            self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_run.setEncSampTime)
-            self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
-
-        if hasattr(self.xia, 'input_trigger'):
-            if self.xia.input_trigger is not None:
-                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                #self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_batch_mode.setXiaSampTime)
-                self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
-                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
 
         self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
                              if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
