@@ -197,7 +197,10 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
     def update_enc_rate(self):
         enc_rate = self.spinBox_enc_rate.value()
         rate_in_points = (1/(enc_rate*1e3))*1e9/10
-        print(rate_in_points)
+
+        rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
+        self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
+
         #self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points, wait=True))
 
 
