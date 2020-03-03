@@ -98,25 +98,25 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_text = '0'
         self.tune_dialog = None
         self.last_gen_scan_uid = ''
-        self.det_list = [detector_dictionary[det]['obj'].dev_name.get() if hasattr(detector_dictionary[det]['obj'], 'dev_name') else detector_dictionary[det]['obj'].name for det in detector_dictionary]
-        self.det_sorted_list = self.det_list
-        self.det_sorted_list.sort()
+        self.detector_dictionary = detector_dictionary
+        self.det_list = list(detector_dictionary.keys())
 
-        self.comboBox_gen_det.addItems(self.det_sorted_list)
-        self.comboBox_gen_det_den.addItem('1')
-        self.comboBox_gen_det_den.addItems(self.det_sorted_list)
-        self.comboBox_gen_mot.addItems(self.mot_sorted_list)
-        self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
-        self.comboBox_gen_det_den.currentIndexChanged.connect(self.process_detsig_den)
-        self.process_detsig()
-        self.process_detsig_den()
+        ## self.det_sorted_list = self.det_list
+        # self.det_sorted_list.sort()
+
+        self.comboBox_detectors.addItems(self.det_list)
+        self.comboBox_detectors_den.addItem('1')
+        self.comboBox_detectors_den.addItems(self.det_list)
+        self.comboBox_motors.addItems(self.mot_sorted_list)
+        self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
+        self.comboBox_detectors_den.currentIndexChanged.connect(self.detector_selected_den)
+        self.detector_selected()
+        self.detector_selected_den()
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-
-
 
         if 'bpm_es' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['bpm_es']['obj']
@@ -145,8 +145,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
                              if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
-
-
 
         reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe','Co', 'Ni','Cu', 'Zn','Pt', 'Au', 'Se', 'Pb', 'Nb','Mo','Ru',
                            'Rh', 'Pd','Ag','Sn','Sb', '--']
@@ -203,9 +201,22 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
         curr_det = ''
-        detectors = []
-
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+        detectors = []
+        detector_name = self.comboBox_detectors.currentText()
+        detector = self.detector_dictionary[detector_name]['device']
+        detectors.append(detector)
+        channel = self.detector_dictionary[detector_name]['channels']
+        result_name = channel
+
+        detector_name_den = self.comboBox_detectors_den.currentText()
+        if detector_name_den != '1':
+            detector_den = self.detector_dictionary[detector_name_den]['device']
+            channel_den = self.detector_dictionary[detector_name_den]['channels']
+            detectors.append(detector_den)
+            result_name += '/{}'.channel_den
+        else:
+            channel_den = '1'
 
         for i in range(self.comboBox_gen_det.count()):
             if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):
@@ -225,48 +236,28 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
         for motor in self.motor_dictionary:
-            if self.comboBox_gen_mot.currentText() == self.motor_dictionary[motor]['description']:
+            if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
                 curr_mot = self.motor_dictionary[motor]['object']
                 self.canvas_gen_scan.motor = curr_mot
                 break
 
-        if curr_det == '':
-            print('Detector not found. Aborting...')
-            raise Exception('Detector not found')
 
-        if curr_mot == '':
-            print('Motor not found. Aborting...')
-            raise Exception('Motor not found')
 
         rel_start = -float(self.edit_gen_range.text()) / 2
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        if not repeat:
-            update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
-
-
-        result_name = self.comboBox_gen_det.currentText()
-        if self.comboBox_gen_det_den.currentText() != '1':
-            result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
-
-        print(self.comboBox_gen_detsig.currentText())
-        print(self.comboBox_gen_detsig_den.currentText())
-        print(result_name)
-        print(curr_mot)
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
         self.push_gen_scan.setEnabled(False)
-        try:
-            uid_list = list(self.aux_plan_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
-                                               self.comboBox_gen_detsig_den.currentText(),
+        uid_list = list(self.aux_plan_funcs['general_scan'](detectors, channel,
+                                               channel_den,
                                                result_name, curr_mot, rel_start, rel_stop,
-                                               num_steps, False,
-                                               retries=1,
-                                               ax=self.figure_gen_scan.ax))
-        except Exception as exc:
-            print('[General Scan] Aborted! Exception: {}'.format(exc))
-            print('[General Scan] Limit switch reached . Set narrower range and try again.')
-            uid_list = []
+                                               num_steps,    ax=self.figure_gen_scan.ax))
+        # except Exception as exc:
+        #     print('[General Scan] Aborted! Exception: {}'.format(exc))
+        #     print('[General Scan] Limit switch reached . Set narrower range and try again.')
+        #     uid_list = []
 
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
@@ -417,7 +408,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'], 'retract'))
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
-
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
@@ -448,6 +438,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if self.comboBox_gen_det_den.currentText() == '1':
             self.comboBox_gen_detsig_den.addItem('1')
 
+    def detector_selected(self):
+        self.comboBox_channels.clear()
+        detector = self.comboBox_detectors.currentText()
+        self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
+
+    def detector_selected_den(self):
+        self.comboBox_channels_den.clear()
+        detector = self.comboBox_detectors_den.currentText()
+        if detector == '1':
+            self.comboBox_channels_den.addItem('1')
+        else:
+            self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
 
     def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]

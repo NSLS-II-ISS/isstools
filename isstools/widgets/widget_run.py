@@ -26,23 +26,40 @@ class XASPlot(LivePlot):
         self.num_name = num_name
         self.den_name = den_name
         self.result_name = result_name
+        self.num_offset = None
+        self.den_offset = None
+
+    def descriptor(self, doc):
+                # self.apb.ch1_mean.name, self.apb.ch2_mean.name
+        num_offset_name = self.num_name.replace("_mean", "_offset")
+        den_offset_name = self.den_name.replace("_mean", "_offset")
+        self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
+        self.den_offset = doc["configuration"]['apb_ave']['data'][den_offset_name]
+
+        #print(f' Num off {self.num_offset}')
+        #rint(f' Den off {self.den_offset}')
+
 
     def event(self, doc):
-        print(f' Numerator {self.num_name}')
-        print(f' Denominator {self.den_name}')
+        #print(f' Numerator {self.num_name}')
+        #print(f' Denominator {self.den_name}')
 
         doc = dict(doc)
         doc['data'] = dict(doc['data'])
-        print(doc['data'])
+        #print(doc['data'])
         try:
             if self.den_name == '1':
                 denominator = 1
             else:
-                denominator = doc['data'][self.den_name]
-            doc['data'][self.result_name] = (doc['data'][self.num_name] / denominator)
+                denominator = doc['data'][self.den_name]-self.den_offset
+            doc['data'][self.result_name] = (
+                (doc['data'][self.num_name] - self.num_offset) / (denominator)
+            )
+            #print(' Num {}'.format(doc['data'][self.num_name] - self.num_offset))
+            #print(' Den {}'.format(denominator))
         except KeyError:
             print('Key error')
-        print(f"after normalizing:\n{doc['data']}")
+        #print(f"after normalizing:\n{doc['data']}")
         super().event(doc)
 
 
@@ -96,6 +113,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
+
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
 
         self.energy_grid = []
@@ -160,6 +178,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             plan_key = self.comboBox_scan_type.currentText()
 
             if plan_key == 'Step scan':
+                update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
                 energy_grid, time_grid = generate_energy_grid(float(self.e0),
                                                               float(self.edit_preedge_start.text()),
                                                               float(self.edit_xanes_start.text()),
@@ -174,13 +193,13 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
 
-
+                #print(energy_grid)
 
 
             plan_func = self.plan_funcs[plan_key]
 
-            LivePlots = [XASPlot(self.apb.ch2_mean.name, self.apb.ch1_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),
-                         XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
+            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),]
+                         #XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
                                                   ax=self.figure.ax1,
                                                   ignore_shutter=ignore_shutter,
