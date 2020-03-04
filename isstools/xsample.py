@@ -15,7 +15,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
-
+import bluesky.plan_stubs as bps
 
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
@@ -23,6 +23,8 @@ from isstools.elements.figure_update import update_figure
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/xsample.ui')
 
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 
 
 # gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
@@ -59,16 +61,41 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.spinBox_CO.setValue(mfcs[1].flow.get_setpoint())
         self.spinBox_H2.setValue(mfcs[2].flow.get_setpoint())
 
+        for indx in range(8):
+            getattr(self, f'checkBox_rga{indx+1}').toggled.connect(self.update_status)
+
+
+        for indx, rga_mass in enumerate(self.rga_masses):
+            getattr(self, f'spinBox_rga_mass{indx + 1}').setValue(rga_mass.get())
+            getattr(self, f'spinBox_rga_mass{indx + 1}').valueChanged.connect(self.change_rga_mass)
+
+
+
 
     def addCanvas(self):
-        self.figure_data = Figure()
-        self.figure_data.set_facecolor(color='#FcF9F6')
-        self.figure_data.ax = self.figure_data.add_subplot(111)
-        self.canvas = FigureCanvas(self.figure_data)
-        self.toolbar = NavigationToolbar(self.canvas, self)
-        self.layout_data.addWidget(self.canvas)
-        self.layout_data.addWidget(self.toolbar)
-        self.canvas.draw()
+        self.figure_rga = Figure()
+        self.figure_rga.set_facecolor(color='#FcF9F6')
+        self.figure_rga.ax = self.figure_rga.add_subplot(111)
+        self.canvas_rga = FigureCanvas(self.figure_rga)
+        self.toolbar_rga = NavigationToolbar(self.canvas_rga, self)
+        self.layout_rga.addWidget(self.canvas_rga)
+        self.layout_rga.addWidget(self.toolbar_rga)
+        self.canvas_rga.draw()
+
+        self.figure_mfc = Figure()
+        self.figure_mfc.set_facecolor(color='#FcF9F6')
+        self.figure_mfc.ax = self.figure_mfc.add_subplot(111)
+        self.canvas_mfc = FigureCanvas(self.figure_mfc)
+        self.toolbar_mfc = NavigationToolbar(self.canvas_mfc, self)
+        self.layout_mfc.addWidget(self.canvas_mfc)
+        self.layout_mfc.addWidget(self.toolbar_mfc)
+        self.canvas_mfc.draw()
+
+    def change_rga_mass(self):
+        sender_object = QObject().sender()
+        print(sender_object.objectName())
+        indx=sender_object.objectName()[-1]
+        self.RE(bps.mv(self.rga_masses[int(indx)-1],sender_object.value()))
 
 
     def update_status(self):
@@ -80,7 +107,10 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.label_H2.setText('{:.1f} sccm'.format(flow_H2))
 
         now = ttime.time()
-        some_time_ago = now - 3600 / 2
+
+        timewindow = self.doubleSpinBox_timewindow.value()
+
+        some_time_ago = now - 3600 * timewindow
         df = self.archiver.tables_given_times(some_time_ago, now)
 
         masses = []
@@ -88,18 +118,19 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             masses.append(str(rga_mass.get()))
 
 
-        update_figure([self.figure_data.ax], self.toolbar, self.canvas)
+        update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
         for rga_ch, mass in zip(self.rga_channels, masses):
             dataset = df[rga_ch.name]
-            self.figure_data.ax.plot(dataset['time'],dataset['data'], label = f'{mass} amu')
-        self.figure_data.ax.grid(alpha=0.4)
-        self.figure_data.ax.relim(visible_only=True)
-        self.figure_data.ax.autoscale_view(tight=True)
-        self.figure_data.ax.set_yscale('log')
-        self.figure_data.tight_layout()
-        self.figure_data.ax.legend(loc=6)
-
-        self.canvas.draw_idle()
+            indx = rga_ch.name[-1]
+            if getattr(self, f'checkBox_rga{indx}').isChecked():
+                self.figure_rga.ax.plot(dataset['time'],dataset['data'], label = f'{mass} amu')
+        self.figure_rga.ax.grid(alpha=0.4)
+        self.figure_rga.ax.relim(visible_only=True)
+        self.figure_rga.ax.autoscale_view(tight=True)
+        self.figure_rga.ax.set_yscale('log')
+        self.figure_rga.tight_layout()
+        self.figure_rga.ax.legend(loc=6)
+        self.canvas_rga.draw_idle()
 
 
     def set_mfc_cart_flow(self):
