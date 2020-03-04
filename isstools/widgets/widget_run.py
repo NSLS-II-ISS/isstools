@@ -22,6 +22,8 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 class XASPlot(LivePlot):
     def __init__(self, num_name, den_name, result_name, motor, *args, **kwargs):
+        print(f'NormPlot *args: {args}')
+        print(f'NormPlot **kwargs: {kwargs}')
         super().__init__(result_name, x=motor, *args, **kwargs)
         self.num_name = num_name
         self.den_name = den_name
