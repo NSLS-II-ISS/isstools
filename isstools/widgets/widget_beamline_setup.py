@@ -19,6 +19,7 @@ from matplotlib.widgets import Cursor
 from scipy.optimize import curve_fit
 from xas.pid import PID
 from xas.math import gauss
+from isstools.elements.liveplots import NormPlot
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
@@ -206,15 +207,17 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         detector_name = self.comboBox_detectors.currentText()
         detector = self.detector_dictionary[detector_name]['device']
         detectors.append(detector)
-        channel = self.detector_dictionary[detector_name]['channels']
+        channels = self.detector_dictionary[detector_name]['channels']
+        channel = channels[self.comboBox_channels.currentIndex()]
         result_name = channel
 
         detector_name_den = self.comboBox_detectors_den.currentText()
         if detector_name_den != '1':
             detector_den = self.detector_dictionary[detector_name_den]['device']
-            channel_den = self.detector_dictionary[detector_name_den]['channels']
+            channels_den = self.detector_dictionary[detector_name_den]['channels']
+            channel_den = channels_den[self.comboBox_channels.currentIndex()]
             detectors.append(detector_den)
-            result_name += '/{}'.channel_den
+            result_name += '/{}'.format(channel_den)
         else:
             channel_den = '1'
 
@@ -250,10 +253,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
         self.push_gen_scan.setEnabled(False)
-        uid_list = list(self.aux_plan_funcs['general_scan'](detectors, channel,
-                                               channel_den,
-                                               result_name, curr_mot, rel_start, rel_stop,
-                                               num_steps,    ax=self.figure_gen_scan.ax))
+        uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
+                                                               curr_mot,
+                                                               rel_start,
+                                                               rel_stop,
+                                                               num_steps, ),
+                           NormPlot(channel, channel_den, result_name, curr_mot.name, ax=self.figure_gen_scan.ax))
+
         # except Exception as exc:
         #     print('[General Scan] Aborted! Exception: {}'.format(exc))
         #     print('[General Scan] Limit switch reached . Set narrower range and try again.')
@@ -267,102 +273,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_gen_scan_uid = self.db[-1]['start']['uid']
         self.push_gen_scan_save.setEnabled(True)
 
-    def save_gen_scan(self):
-        run = self.db[self.last_gen_scan_uid]
-        self.user_directory = '/nlsl2/xf08id/users/{}/{}/{}/' \
-            .format(run['start']['year'],
-                    run['start']['cycle'],
-                    run['start']['PROPOSAL'])
 
-        detectors_names = []
-        for detector in run['start']['plan_args']['detectors']:
-            text = detector.split('name=')[1]
-            detectors_names.append(text[1: text.find('\'', 1)])
-
-        numerator_name = detectors_names[0]
-        denominator_name = ''
-        if len(detectors_names) > 1:
-            denominator_name = detectors_names[1]
-
-        text = run['start']['plan_args']['motor'].split('name=')[1]
-        motor_name = text[1: text.find('\'', 1)]
-
-        numerator_devname = ''
-        denominator_devname = ''
-        for descriptor in run['descriptors']:
-            if 'data_keys' in descriptor:
-                if numerator_name in descriptor['data_keys']:
-                    numerator_devname = descriptor['data_keys'][numerator_name]['devname']
-                if denominator_name in descriptor['data_keys']:
-                    denominator_devname = descriptor['data_keys'][denominator_name]['devname']
-
-        ydata = []
-        xdata = []
-        for line in self.figure_gen_scan.ax.lines:
-            ydata.extend(line.get_ydata())
-            xdata.extend(line.get_xdata())
-
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save scan...', self.user_directory, '*.txt')[0]
-        if filename[-4:] != '.txt':
-            filename += '.txt'
-
-        start = run['start']
-
-        year = start['year']
-        cycle = start['cycle']
-        saf = start['SAF']
-        pi = start['PI']
-        proposal = start['PROPOSAL']
-        scan_id = start['scan_id']
-        real_uid = start['uid']
-        start_time = start['time']
-        stop_time = run['stop']['time']
-
-        human_start_time = str(datetime.fromtimestamp(start_time).strftime('%m/%d/%Y  %H:%M:%S'))
-        human_stop_time = str(datetime.fromtimestamp(stop_time).strftime('%m/%d/%Y  %H:%M:%S'))
-        human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
-
-        if len(numerator_devname):
-            numerator_name = numerator_devname
-        result_name = numerator_name
-        if len(denominator_name):
-            if len(denominator_devname):
-                denominator_name = denominator_devname
-            result_name += '/{}'.format(denominator_name)
-
-        header = '{}  {}'.format(motor_name, result_name)
-        comments = '# Year: {}\n' \
-                   '# Cycle: {}\n' \
-                   '# SAF: {}\n' \
-                   '# PI: {}\n' \
-                   '# PROPOSAL: {}\n' \
-                   '# Scan ID: {}\n' \
-                   '# UID: {}\n' \
-                   '# Start time: {}\n' \
-                   '# Stop time: {}\n' \
-                   '# Total time: {}\n#\n# '.format(year,
-                                                    cycle,
-                                                    saf,
-                                                    pi,
-                                                    proposal,
-                                                    scan_id,
-                                                    real_uid,
-                                                    human_start_time,
-                                                    human_stop_time,
-                                                    human_duration)
-
-        matrix = np.array([xdata, ydata]).transpose()
-        matrix = self.gen_parser.data_manager.sort_data(matrix, 0)
-
-        fmt = ' '.join(
-            ['%d' if array.dtype == np.dtype('int64') else '%.6f' for array in [np.array(xdata), np.array(ydata)]])
-
-        np.savetxt(filename,
-                   np.array([xdata, ydata]).transpose(),
-                   delimiter=" ",
-                   header=header,
-                   fmt=fmt,
-                   comments=comments)
 
     def getX_gen_scan(self, event):
         if event.button == 3:
