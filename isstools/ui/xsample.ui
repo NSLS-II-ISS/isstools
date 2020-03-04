@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1611</width>
-    <height>1006</height>
+    <height>1290</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>70</x>
       <y>50</y>
       <width>1111</width>
-      <height>431</height>
+      <height>361</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layout_rga"/>
@@ -388,12 +388,34 @@ monoxide</string>
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>490</y>
+      <y>420</y>
       <width>1111</width>
-      <height>431</height>
+      <height>411</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layout_mfc"/>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>840</y>
+      <width>1111</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layout_mfc_2"/>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>1200</x>
+      <y>900</y>
+      <width>160</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout"/>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
