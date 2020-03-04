@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1612</width>
+    <width>1611</width>
     <height>1006</height>
    </rect>
   </property>
@@ -18,38 +18,18 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>40</y>
-      <width>1121</width>
-      <height>361</height>
+      <y>50</y>
+      <width>1111</width>
+      <height>431</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="layout_data"/>
-   </widget>
-   <widget class="QDateTimeEdit" name="dateTimeEdit">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>430</y>
-      <width>194</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QDateTimeEdit" name="dateTimeEdit_2">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>430</y>
-      <width>194</width>
-      <height>22</height>
-     </rect>
-    </property>
+    <layout class="QVBoxLayout" name="layout_rga"/>
    </widget>
    <widget class="QDoubleSpinBox" name="spinBox_CO">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>630</y>
+      <x>1280</x>
+      <y>560</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -61,8 +41,8 @@
    <widget class="QDoubleSpinBox" name="spinBox_H2">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>670</y>
+      <x>1280</x>
+      <y>600</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -74,8 +54,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>670</y>
+      <x>1200</x>
+      <y>600</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -87,8 +67,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>630</y>
+      <x>1200</x>
+      <y>560</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -101,8 +81,8 @@ monoxide</string>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>590</y>
+      <x>1200</x>
+      <y>520</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -114,8 +94,8 @@ monoxide</string>
    <widget class="QLabel" name="label_CH4">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>590</y>
+      <x>1370</x>
+      <y>520</y>
       <width>59</width>
       <height>31</height>
      </rect>
@@ -127,8 +107,8 @@ monoxide</string>
    <widget class="QLabel" name="label_CO">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>630</y>
+      <x>1370</x>
+      <y>560</y>
       <width>59</width>
       <height>31</height>
      </rect>
@@ -140,8 +120,8 @@ monoxide</string>
    <widget class="QLabel" name="label_H2">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>670</y>
+      <x>1370</x>
+      <y>600</y>
       <width>59</width>
       <height>31</height>
      </rect>
@@ -166,8 +146,8 @@ monoxide</string>
    <widget class="QDoubleSpinBox" name="spinBox_CH4">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>590</y>
+      <x>1280</x>
+      <y>520</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -175,6 +155,245 @@ monoxide</string>
     <property name="decimals">
      <number>1</number>
     </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>1200</x>
+      <y>60</y>
+      <width>168</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>9</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga1">
+         <property name="text">
+          <string>RGA mass 1</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga2">
+         <property name="text">
+          <string>RGA mass 2</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga3">
+         <property name="text">
+          <string>RGA mass 3</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga4">
+         <property name="text">
+          <string>RGA mass 4</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga5">
+         <property name="text">
+          <string>RGA mass 5</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga6">
+         <property name="text">
+          <string>RGA mass 6</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga7">
+         <property name="text">
+          <string>RGA mass 7</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga8">
+         <property name="text">
+          <string>RGA mass 8</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass1">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass2">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass3">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass4">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass5">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass6">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass7">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass8">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QDoubleSpinBox" name="doubleSpinBox_timewindow">
+    <property name="geometry">
+     <rect>
+      <x>1280</x>
+      <y>330</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="singleStep">
+     <double>0.500000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.500000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>330</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show last </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>1350</x>
+      <y>330</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>hours</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>490</y>
+      <width>1111</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layout_mfc"/>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
