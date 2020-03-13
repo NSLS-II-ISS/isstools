@@ -5,6 +5,7 @@ import time as ttime
 import matplotlib
 matplotlib.use('WXAgg')
 import matplotlib.patches as mpatches
+import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -19,6 +20,7 @@ import bluesky.plan_stubs as bps
 
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
+from datetime import timedelta
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/xsample.ui')
@@ -36,6 +38,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  mfcs = [],
                  rga_channels = [],
                  rga_masses = [],
+                 temps = [],
+                 temps_sp = [],
                  RE = [],
                  archiver = [],
                  *args, **kwargs):
@@ -46,6 +50,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.mfcs = mfcs
         self.rga_channels = rga_channels
         self.rga_masses = rga_masses
+        self.temps = temps
+        self.temps_sp = temps_sp
         self.RE = RE
         self.archiver = archiver
         self.timer_update_time = QtCore.QTimer(self)
@@ -91,46 +97,77 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.layout_mfc.addWidget(self.toolbar_mfc)
         self.canvas_mfc.draw()
 
+        self.figure_temp = Figure()
+        self.figure_temp.set_facecolor(color='#FcF9F6')
+        self.figure_temp.ax = self.figure_temp.add_subplot(111)
+        self.canvas_temp = FigureCanvas(self.figure_temp)
+        self.toolbar_temp = NavigationToolbar(self.canvas_temp, self)
+        self.layout_temp.addWidget(self.canvas_temp)
+        self.layout_temp.addWidget(self.toolbar_temp)
+        self.canvas_temp.draw()
+
+
     def change_rga_mass(self):
         sender_object = QObject().sender()
-        print(sender_object.objectName())
         indx=sender_object.objectName()[-1]
         self.RE(bps.mv(self.rga_masses[int(indx)-1],sender_object.value()))
 
 
     def update_status(self):
-        flow_CH4 = self.mfcs[0].flow.read()['mfc_cart_CH4_flow']['value']
-        self.label_CH4.setText('{:.1f} sccm'.format(flow_CH4))
-        flow_CO = self.mfcs[1].flow.read()['mfc_cart_CO_flow']['value']
-        self.label_CO.setText('{:.1f} sccm'.format(flow_CO))
-        flow_H2 = self.mfcs[2].flow.read()['mfc_cart_H2_flow']['value']
-        self.label_H2.setText('{:.1f} sccm'.format(flow_H2))
+        if self.checkBox_update.isChecked():
+            flow_CH4 = self.mfcs[0].flow.read()['mfc_cart_CH4_flow']['value']
+            self.label_CH4.setText('{:.1f} sccm'.format(flow_CH4))
+            flow_CO = self.mfcs[1].flow.read()['mfc_cart_CO_flow']['value']
+            self.label_CO.setText('{:.1f} sccm'.format(flow_CO))
+            flow_H2 = self.mfcs[2].flow.read()['mfc_cart_H2_flow']['value']
+            self.label_H2.setText('{:.1f} sccm'.format(flow_H2))
 
-        now = ttime.time()
-
-        timewindow = self.doubleSpinBox_timewindow.value()
-
-        some_time_ago = now - 3600 * timewindow
-        df = self.archiver.tables_given_times(some_time_ago, now)
-
-        masses = []
-        for rga_mass in self.rga_masses:
-            masses.append(str(rga_mass.get()))
+            now = ttime.time()
+            timewindow = self.doubleSpinBox_timewindow.value()
+            data_format= mdates.DateFormatter('%H:%M:%S')
 
 
-        update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
-        for rga_ch, mass in zip(self.rga_channels, masses):
-            dataset = df[rga_ch.name]
-            indx = rga_ch.name[-1]
-            if getattr(self, f'checkBox_rga{indx}').isChecked():
-                self.figure_rga.ax.plot(dataset['time'],dataset['data'], label = f'{mass} amu')
-        self.figure_rga.ax.grid(alpha=0.4)
-        self.figure_rga.ax.relim(visible_only=True)
-        self.figure_rga.ax.autoscale_view(tight=True)
-        self.figure_rga.ax.set_yscale('log')
-        self.figure_rga.tight_layout()
-        self.figure_rga.ax.legend(loc=6)
-        self.canvas_rga.draw_idle()
+            some_time_ago = now - 3600 * timewindow
+            df = self.archiver.tables_given_times(some_time_ago, now)
+
+            masses = []
+            for rga_mass in self.rga_masses:
+                masses.append(str(rga_mass.get()))
+
+
+            update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
+            for rga_ch, mass in zip(self.rga_channels, masses):
+                dataset = df[rga_ch.name]
+                indx = rga_ch.name[-1]
+                if getattr(self, f'checkBox_rga{indx}').isChecked():
+                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-4),dataset['data'], label = f'{mass} amu')
+            self.figure_rga.ax.grid(alpha=0.4)
+            self.figure_rga.ax.xaxis.set_major_formatter(data_format)
+            self.figure_rga.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
+            self.figure_rga.ax.autoscale_view(tight=True)
+            self.figure_rga.ax.set_yscale('log')
+            self.figure_rga.tight_layout()
+            self.figure_rga.ax.legend(loc=6)
+            self.canvas_rga.draw_idle()
+
+            update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
+            if self.radioButton_current_control.isChecked():
+                dataset1 = df[self.temps[0].name]
+                dataset2 = df[self.temps_sp[0].name]
+            else:
+                dataset1 = df[self.temps[1].name]
+                dataset2 = df[self.temps_sp[1].name]
+            self.figure_temp.ax.plot(dataset1['time']+timedelta(hours=-4),dataset1['data'], label = 'T readback')
+            self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
+            self.figure_temp.ax.xaxis.set_major_formatter(data_format)
+            self.figure_temp.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
+            self.figure_temp.ax.relim(visible_only=True)
+            self.figure_temp.ax.grid(alpha=0.4)
+            self.figure_temp.ax.autoscale_view(tight=True)
+            self.figure_temp.tight_layout()
+            self.figure_temp.ax.legend(loc=5)
+            self.canvas_temp.draw_idle()
+
 
 
     def set_mfc_cart_flow(self):
@@ -144,6 +181,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     }
 
         mfc_dict[sender_name].flow.put(value)
+
 
 
 
