@@ -8,7 +8,7 @@ from PyQt5 import uic, QtGui, QtCore
 
 from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
                               widget_batch_mode, widget_run, widget_beamline_setup,
-                              widget_sdd_manager, widget_beamline_status)
+                              widget_sdd_manager, widget_beamline_status, widget_spectrometer)
 
 from isstools.elements.emitting_stream import EmittingStream
 from isstools.process_callbacks.callback import FlyScanProcessingCallback
@@ -45,6 +45,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  motors_dict={},
                  sample_stage=None,
                  tune_elements=None,
+                 tune_pcl=None,
                  ic_amplifiers={},
                  window_title=" ",
                  *args, **kwargs):
@@ -179,7 +180,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                      self)
         self.layout_general_info.addWidget(self.widget_general_info)
 
-
+        self.widget_spectrometer = widget_spectrometer.UISpectrometer(RE,
+                                                                      hhm,
+                                                                      db,
+                                                                      adc_list,
+                                                                      enc_list,
+                                                                      det_dict,
+                                                                      xia,
+                                                                      ic_amplifiers,
+                                                                      service_plan_funcs,
+                                                                      aux_plan_funcs,
+                                                                      motors_dict,
+                                                                      tune_pcl,
+                                                                      shutters_dict,
+                                                                      self)
+        self.layout_spectrometer.addWidget(self.widget_spectrometer)
         
         pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.fly_token = self.RE.subscribe(pc, 'stop')
