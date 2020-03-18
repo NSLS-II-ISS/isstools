@@ -112,6 +112,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         regex = re.compile('xia\d{1}')
         matches = [det for det in det_dict if re.match(regex, det)]
         xia_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
+        xia = None
         if len(xia_list):
             xia = xia_list[0]
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)

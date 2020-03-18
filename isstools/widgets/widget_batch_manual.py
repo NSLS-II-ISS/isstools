@@ -304,12 +304,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 service_params[f'{variable}'] = f'{bool(self.service_parameter_values[i].checkState())}'
             elif (self.service_parameter_types[i] == str):
                 service_params[f'{variable}'] = f'{self.service_parameter_values[i].text()}'
-        service_plan=self.service_plan_funcs[self.comboBox_service_plan.currentText()]
-        new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_service_plan.currentText()}')
-        new_item_service.item_type = 'service'
-        new_item_service.setIcon(icon_service)
-        new_item_service.service_plan = service_plan
-        new_item_service.service_params = service_params
+        if self.service_plan_funcs:
+            service_plan=self.service_plan_funcs[self.comboBox_service_plan.currentText()]
+            new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_service_plan.currentText()}')
+            new_item_service.item_type = 'service'
+            new_item_service.setIcon(icon_service)
+            new_item_service.service_plan = service_plan
+            new_item_service.service_params = service_params
 
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
@@ -340,9 +341,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.gridLayout_service_parameters.removeWidget(self.service_parameter_descriptions[i])
             self.service_parameter_values[i].deleteLater()
             self.service_parameter_descriptions[i].deleteLater()
-        service_plan_func = self.service_plan_funcs[self.comboBox_service_plan.currentText()]
+        if self.service_plan_funcs:
+            service_plan_func = self.service_plan_funcs[self.comboBox_service_plan.currentText()]
 
-        [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
+            [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
             = parse_plan_parameters(service_plan_func)
 
         for i in range(len(self.service_parameter_values)):

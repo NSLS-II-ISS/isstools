@@ -123,14 +123,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
-        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
-        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-
-
+        # TODO: generalize it better
+        if hasattr(self.hhm, 'fb_status'):
+            self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
+            self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
         if 'bpm_es' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['bpm_es']['obj']
-
 
 
         if len(self.adc_list):

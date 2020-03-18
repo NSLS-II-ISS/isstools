@@ -99,9 +99,9 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
     def update_status(self):
         self.label_current_time.setText(
             'Today is {0}'.format(QtCore.QDateTime.currentDateTime().toString('MMMM d, yyyy, h:mm:ss ap')))
-        energy = self.hhm.energy.read()['hhm_energy']['value']
+        energy = self.hhm.energy.read()[self.hhm.energy.name]['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
-        if ((self.hhm.fb_status.get()==1) and
+        if ((hasattr(self.hhm, 'fb_status') and self.hhm.fb_status.get()==1) and
                 (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
             self.label_feedback_status.setText('Feedback on')
             self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
