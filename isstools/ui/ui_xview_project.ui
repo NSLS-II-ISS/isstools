@@ -1248,10 +1248,10 @@
    <widget class="QComboBox" name="comboBox_window">
     <property name="geometry">
      <rect>
-      <x>349</x>
-      <y>383</y>
+      <x>350</x>
+      <y>390</y>
       <width>186</width>
-      <height>30</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="currentText" stdset="0">
