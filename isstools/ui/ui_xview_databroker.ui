@@ -48,7 +48,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QListWidget" name="list_project">
+   <widget class="QListWidget" name="list_uids">
     <property name="geometry">
      <rect>
       <x>5</x>
