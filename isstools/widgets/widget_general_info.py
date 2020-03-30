@@ -16,7 +16,7 @@ from issgoogletools.initialize import get_dropbox_service, get_gmail_service
 from issgoogletools.gmail import create_html_message, upload_draft, send_draft
 import uuid
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
+#ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
 
 
 # class UIGeneralInfo(*uic.loadUiType(ui_path)):
