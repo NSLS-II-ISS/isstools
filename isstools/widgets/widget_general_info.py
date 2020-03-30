@@ -19,9 +19,8 @@ import uuid
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_general_info.ui')
 
 
-
-
-class UIGeneralInfo(*uic.loadUiType(ui_path)):
+# class UIGeneralInfo(*uic.loadUiType(ui_path)):
+class UIGeneralInfo:
     def __init__(self,
                  accelerator=None,
                  hhm = None,
@@ -71,10 +70,10 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
         self.accelerator.beam_current.subscribe(self.update_beam_current)
         self.accelerator.status.subscribe(self.update_accelerator_status)
 
-        self.comboBox_set_i0_gain.currentIndexChanged.connect(self.set_i0_gain)
-        self.comboBox_set_it_gain.currentIndexChanged.connect(self.set_it_gain)
-        self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
-        self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
+        # self.comboBox_set_i0_gain.currentIndexChanged.connect(self.set_i0_gain)
+        # self.comboBox_set_it_gain.currentIndexChanged.connect(self.set_it_gain)
+        # self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
+        # self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
         self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
         self.push_set_energy.clicked.connect(self.set_energy)
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
@@ -242,17 +241,17 @@ class UIGeneralInfo(*uic.loadUiType(ui_path)):
 
 
 
-    def set_i0_gain(self):
-        self.ic_amplifiers['i0_amp'].set_gain(int(self.comboBox_set_i0_gain.currentText()),0)
-
-    def set_it_gain(self):
-        self.ic_amplifiers['it_amp'].set_gain(int(self.comboBox_set_it_gain.currentText()),0)
-
-    def set_ir_gain(self):
-        self.ic_amplifiers['ir_amp'].set_gain(int(self.comboBox_set_ir_gain.currentText()),0)
-
-    def set_if_gain(self):
-        self.ic_amplifiers['iff_amp'].set_gain(int(self.comboBox_set_if_gain.currentText()), 0)
+    # def set_i0_gain(self):
+    #     self.ic_amplifiers['i0_amp'].set_gain(int(self.comboBox_set_i0_gain.currentText()),0)
+    #
+    # def set_it_gain(self):
+    #     self.ic_amplifiers['it_amp'].set_gain(int(self.comboBox_set_it_gain.currentText()),0)
+    # pip
+    # def set_ir_gain(self):
+    #     self.ic_amplifiers['ir_amp'].set_gain(int(self.comboBox_set_ir_gain.currentText()),0)
+    #
+    # def set_if_gain(self):
+    #     self.ic_amplifiers['iff_amp'].set_gain(int(self.comboBox_set_if_gain.currentText()), 0)
 
     def set_energy(self):
         energy = self.hhm.energy.read()['hhm_energy']['value']
