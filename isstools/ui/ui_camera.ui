@@ -18,11 +18,11 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>1201</width>
-     <height>791</height>
+     <width>591</width>
+     <height>511</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plots"/>
+   <layout class="QVBoxLayout" name="plot_camera1"/>
   </widget>
   <widget class="QPushButton" name="push_show_image">
    <property name="geometry">
@@ -34,8 +34,46 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>Take shot</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>10</y>
+     <width>591</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="plot_camera2"/>
+  </widget>
+  <widget class="QPushButton" name="push_track">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>830</y>
+     <width>83</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Track</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_4">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>540</y>
+     <width>511</width>
+     <height>351</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="plot_camera_bc"/>
   </widget>
  </widget>
  <resources/>
