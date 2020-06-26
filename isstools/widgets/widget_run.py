@@ -185,7 +185,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             plan_func = self.plan_funcs[plan_key]
 
-            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),]
+            #LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),]
                          #XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
             self.run_mode_uids = self.RE(plan_func(**run_parameters,
                                                   ax=self.figure.ax1,
@@ -196,7 +196,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                   edge =  self.edge,
                                                   element = self.element,
                                                   stdout=self.parent_gui.emitstream_out),
-                                        LivePlots
+                                        #LivePlots
                                          )
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
