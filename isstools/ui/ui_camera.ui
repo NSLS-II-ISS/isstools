@@ -73,7 +73,7 @@
      <height>351</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_camera_bc"/>
+   <layout class="QVBoxLayout" name="plot_camera_qr"/>
   </widget>
  </widget>
  <resources/>
