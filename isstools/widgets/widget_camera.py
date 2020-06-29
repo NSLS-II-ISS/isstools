@@ -4,11 +4,14 @@ from timeit import default_timer as timer
 import numpy as np
 import pkg_resources
 from PyQt5 import uic, QtCore
+from PyQt5.QtCore import QThread, QSettings
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 import time
+from pyzbar.pyzbar import decode as pzDecode
+import bluesky.plan_stubs as bps
 from xas.xray import generate_energy_grid
 
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
@@ -24,11 +27,15 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_camera.ui')
 class UICamera(*uic.loadUiType(ui_path)):
     def __init__(self,
                  camera_dict={},
+                 sample_stage = {},
+                 RE = None,
                  parent_gui = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self.sample_stage = sample_stage
+        self.RE = RE
         self.addCanvas()
         self.cid = self.canvas_c1.mpl_connect('button_press_event', self.set_hcursor)
         self.cid = self.canvas_c2.mpl_connect('button_press_event', self.set_vcursor)
@@ -36,13 +43,18 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.h_hc = None
 
         self.push_show_image.clicked.connect(self.show_image)
+        self.push_zero_stage.clicked.connect(self.zero_stage)
         self.camera_dict = camera_dict
 
+        self.parent_gui = parent_gui
+        self.settings = QSettings(self.parent_gui.window_title, 'XLive')
+        # self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
+        # self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y', defaultValue=250, type=int))
 
         self.timer_track_camera = QtCore.QTimer(self)
         self.timer_track_camera.setInterval(1000)
         self.timer_track_camera.timeout.connect(self.track_camera)
-        self.timer_track_camera.start()
+        #self.timer_track_camera.start()
 
 
     def addCanvas(self):
@@ -88,12 +100,8 @@ class UICamera(*uic.loadUiType(ui_path)):
             self.timer_track_camera.start()
         else:
             self.timer_track_camera.singleShot(0, self.track_camera)
-        # time_in = time.time()
-
-        # print('time it took to draw figure:', time.time() - time_in)
 
     def track_camera(self):
-
         camera1 = self.camera_dict['camera_sample1']
         camera2 = self.camera_dict['camera_sample2']
         camera_qr = self.camera_dict['camera_sample4']
@@ -106,6 +114,30 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.canvas_c1.draw_idle()
         self.canvas_c2.draw_idle()
         self.canvas_qr.draw_idle()
+
+    def zero_stage(self):
+        self.settings.setValue('sample_stage_zero_x', self.spinBox_zero_x)
+        self.settings.setValue('sample_stage_zero_y', self.spinBox_zero_y)
+        calib = 10.957
+        camera_qr = self.camera_dict['camera_sample4']
+        image_qr = camera_qr.image.image
+        qr_codes = pzDecode(image_qr)
+        if qr_codes:
+            for qr_code in qr_codes:
+                qr_text = qr_code.data.decode('utf8')
+                if qr_text == '0 position':
+                    self.label_qrcode.setText(qr_text)
+                    self.qrcode_zero_y = qr_code.rect.top
+                    self.qrcode_zero_x = qr_code.rect.left
+                    delta_x = (self.spinBox_zero_x.value() - self.qrcode_zero_x)/calib
+                    delta_y = (self.spinBox_zero_y.value() - self.qrcode_zero_y)/calib
+                    print(delta_x, delta_y)
+                    self.RE(bps.mvr(self.sample_stage.x, -delta_x))
+                    self.RE(bps.mvr(self.sample_stage.y, delta_y))
+                    self.show_image()
+
+
+
 
     def set_vcursor(self, event):
         if self.h_vc:

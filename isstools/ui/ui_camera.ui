@@ -75,6 +75,90 @@
    </property>
    <layout class="QVBoxLayout" name="plot_camera_qr"/>
   </widget>
+  <widget class="QSpinBox" name="spinBox_zero_x">
+   <property name="geometry">
+    <rect>
+     <x>1210</x>
+     <y>620</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="maximum">
+    <number>1280</number>
+   </property>
+   <property name="value">
+    <number>500</number>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spinBox_zero_y">
+   <property name="geometry">
+    <rect>
+     <x>1210</x>
+     <y>650</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="maximum">
+    <number>1000</number>
+   </property>
+   <property name="value">
+    <number>500</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>560</y>
+     <width>131</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>1180</x>
+     <y>650</y>
+     <width>21</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Y</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_2">
+   <property name="geometry">
+    <rect>
+     <x>1180</x>
+     <y>620</y>
+     <width>21</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_zero_stage">
+   <property name="geometry">
+    <rect>
+     <x>1210</x>
+     <y>680</y>
+     <width>101</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Zero stage</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
