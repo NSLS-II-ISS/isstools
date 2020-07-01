@@ -48,7 +48,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.db = db
 
-        self.settings = QSettings(parent_gui.window_title, 'XLive')
+        self.settings = parent_gui.settings
         self.edit_E0.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0.textChanged.connect(self.save_e0_processing_value)
         self.user_dir = self.settings.value('user_dir', defaultValue = '/nsls2/xf08id/users/', type = str)

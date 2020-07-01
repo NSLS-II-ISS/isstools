@@ -159,6 +159,32 @@
     <string>Zero stage</string>
    </property>
   </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_zero_y_rbk">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1210</x>
+     <y>760</y>
+     <width>111</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_zero_x_rbk">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1210</x>
+     <y>730</y>
+     <width>111</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

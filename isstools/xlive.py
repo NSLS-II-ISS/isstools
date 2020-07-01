@@ -5,6 +5,7 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore
+from PyQt5.QtCore import QThread, QSettings
 
 from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
                               widget_batch_mode, widget_run, widget_beamline_setup,
@@ -91,7 +92,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
-
+        self.settings = QSettings(self.window_title, 'XLive')
 
         self.run_mode = 'run'
         self.window_title = window_title

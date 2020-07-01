@@ -46,10 +46,10 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.push_zero_stage.clicked.connect(self.zero_stage)
         self.camera_dict = camera_dict
 
-        self.parent_gui = parent_gui
-        self.settings = QSettings(self.parent_gui.window_title, 'XLive')
-        # self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
-        # self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y', defaultValue=250, type=int))
+
+        self.settings = parent_gui.settings
+        #self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
+        #self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y', defaultValue=250, type=int))
 
         self.timer_track_camera = QtCore.QTimer(self)
         self.timer_track_camera.setInterval(1000)
@@ -135,6 +135,12 @@ class UICamera(*uic.loadUiType(ui_path)):
                     self.RE(bps.mvr(self.sample_stage.x, -delta_x))
                     self.RE(bps.mvr(self.sample_stage.y, delta_y))
                     self.show_image()
+
+                    #self.sample_x_zero_pos = self.sample_stage.x
+                    #self.sample_y_zero_pos = self.sample_stage.y
+
+                    # self.self.spinBox_zero_x.setValue(self.sample_x_zero_pos)
+                    # self.self.spinBox_zero_y.setValue(self.sample_y_zero_pos)
 
 
 
