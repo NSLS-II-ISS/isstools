@@ -88,7 +88,7 @@
     <number>1280</number>
    </property>
    <property name="value">
-    <number>500</number>
+    <number>200</number>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinBox_zero_y">
@@ -104,20 +104,7 @@
     <number>1000</number>
    </property>
    <property name="value">
-    <number>500</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_qrcode">
-   <property name="geometry">
-    <rect>
-     <x>1170</x>
-     <y>560</y>
-     <width>131</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>X</string>
+    <number>200</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -171,6 +158,12 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="minimum">
+    <double>-20000.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>200000.000000000000000</double>
+   </property>
   </widget>
   <widget class="QDoubleSpinBox" name="spinBox_zero_x_rbk">
    <property name="enabled">
@@ -183,6 +176,112 @@
      <width>111</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="minimum">
+    <double>-20000.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>20000.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spinBox_sample_stack">
+   <property name="geometry">
+    <rect>
+     <x>1270</x>
+     <y>810</y>
+     <width>54</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>9</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_3">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>810</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sample stack</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_4">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>840</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sample holder</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spinBox_sample_stack_2">
+   <property name="geometry">
+    <rect>
+     <x>1270</x>
+     <y>840</y>
+     <width>54</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>4</number>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spinBox_sample_stack_3">
+   <property name="geometry">
+    <rect>
+     <x>1270</x>
+     <y>870</y>
+     <width>54</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>4</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_5">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>870</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sample holder</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_move_to_sample">
+   <property name="geometry">
+    <rect>
+     <x>1340</x>
+     <y>840</y>
+     <width>101</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move</string>
    </property>
   </widget>
  </widget>

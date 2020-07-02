@@ -127,8 +127,8 @@ class UICamera(*uic.loadUiType(ui_path)):
                 qr_text = qr_code.data.decode('utf8')
                 if qr_text == '0 position':
                     self.label_qrcode.setText(qr_text)
-                    self.qrcode_zero_y = qr_code.rect.top
-                    self.qrcode_zero_x = qr_code.rect.left
+                    self.qrcode_zero_y = qr_code.rect.top + qr_code.rect.height/2
+                    self.qrcode_zero_x = qr_code.rect.left + qr_code.rect.width/2
                     delta_x = (self.spinBox_zero_x.value() - self.qrcode_zero_x)/calib
                     delta_y = (self.spinBox_zero_y.value() - self.qrcode_zero_y)/calib
                     print(delta_x, delta_y)
@@ -136,11 +136,11 @@ class UICamera(*uic.loadUiType(ui_path)):
                     self.RE(bps.mvr(self.sample_stage.y, delta_y))
                     self.show_image()
 
-                    #self.sample_x_zero_pos = self.sample_stage.x
-                    #self.sample_y_zero_pos = self.sample_stage.y
+                    self.sample_x_zero_pos = self.sample_stage.x.read()[self.sample_stage.x.name]['value']
+                    self.sample_y_zero_pos = self.sample_stage.y.read()[self.sample_stage.y.name]['value']
 
-                    # self.self.spinBox_zero_x.setValue(self.sample_x_zero_pos)
-                    # self.self.spinBox_zero_y.setValue(self.sample_y_zero_pos)
+                    self.spinBox_zero_x_rbk.setValue(self.sample_x_zero_pos)
+                    self.spinBox_zero_y_rbk.setValue(self.sample_y_zero_pos)
 
 
 
