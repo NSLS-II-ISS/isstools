@@ -18,6 +18,7 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
+from isstools.elements.batch_motion import shift_stage_to_zero
 
 from isstools.process_callbacks.callback import run_router
 
@@ -122,7 +123,6 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.canvas_qr.draw_idle()
 
     def zero_stage(self):
-        calib = 10.957
         camera_qr = self.camera_dict['camera_sample4']
         image_qr = camera_qr.image.image
         qr_codes = pzDecode(image_qr)
@@ -131,12 +131,13 @@ class UICamera(*uic.loadUiType(ui_path)):
                 qr_text = qr_code.data.decode('utf8')
                 if qr_text == '0 position':
                     # self.label_qrcode.setText(qr_text)
-                    self.qrcode_zero_y = qr_code.rect.top + qr_code.rect.height/2
-                    self.qrcode_zero_x = qr_code.rect.left + qr_code.rect.width/2
-                    delta_x = (self.spinBox_zero_x.value() - self.qrcode_zero_x)/calib
-                    delta_y = (self.spinBox_zero_y.value() - self.qrcode_zero_y)/calib
-                    print(delta_x, delta_y)
-                    self.RE(bps.mvr(self.sample_stage.x, -delta_x))
+
+                    delta_x, delta_y = shift_stage_to_zero( qr_code.rect.top + qr_code.rect.height/2,
+                                                            qr_code.rect.left + qr_code.rect.width/2,
+                                                            self.spinBox_zero_x.value(),
+                                                            self.spinBox_zero_y.value())
+                    print('moving the giant_xy stage by (', delta_x, ',', delta_y, ')')
+                    self.RE(bps.mvr(self.sample_stage.x, delta_x))
                     self.RE(bps.mvr(self.sample_stage.y, delta_y))
                     self.show_image()
 
@@ -145,6 +146,7 @@ class UICamera(*uic.loadUiType(ui_path)):
 
                     self.spinBox_zero_x_rbk.setValue(self.sample_x_zero_pos)
                     self.spinBox_zero_y_rbk.setValue(self.sample_y_zero_pos)
+
                     self.settings.setValue('sample_stage_zero_x_pix', self.spinBox_zero_x.value())
                     self.settings.setValue('sample_stage_zero_y_pix', self.spinBox_zero_y.value())
                     self.settings.setValue('sample_stage_zero_x_rbk', self.spinBox_zero_x_rbk.value())
