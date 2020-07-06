@@ -48,8 +48,14 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
         self.settings = parent_gui.settings
-        #self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
-        #self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y', defaultValue=250, type=int))
+        # print('DEBUGGING', self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
+        self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x_pix', defaultValue=250, type=int))
+        self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y_pix', defaultValue=250, type=int))
+        self.spinBox_zero_x_rbk.setValue(self.settings.value('sample_stage_zero_x_rbk', defaultValue=0, type=float))
+        self.spinBox_zero_y_rbk.setValue(self.settings.value('sample_stage_zero_y_rbk', defaultValue=0, type=float))
+        # print('DEBUGGING', self.spinBox_zero_x.value())
+        #
+        # self.spinBox_zero_x.valueChanged.connect(self._update_camera_settings)
 
         self.timer_track_camera = QtCore.QTimer(self)
         self.timer_track_camera.setInterval(1000)
@@ -116,8 +122,6 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.canvas_qr.draw_idle()
 
     def zero_stage(self):
-        self.settings.setValue('sample_stage_zero_x', self.spinBox_zero_x)
-        self.settings.setValue('sample_stage_zero_y', self.spinBox_zero_y)
         calib = 10.957
         camera_qr = self.camera_dict['camera_sample4']
         image_qr = camera_qr.image.image
@@ -126,7 +130,7 @@ class UICamera(*uic.loadUiType(ui_path)):
             for qr_code in qr_codes:
                 qr_text = qr_code.data.decode('utf8')
                 if qr_text == '0 position':
-                    self.label_qrcode.setText(qr_text)
+                    # self.label_qrcode.setText(qr_text)
                     self.qrcode_zero_y = qr_code.rect.top + qr_code.rect.height/2
                     self.qrcode_zero_x = qr_code.rect.left + qr_code.rect.width/2
                     delta_x = (self.spinBox_zero_x.value() - self.qrcode_zero_x)/calib
@@ -141,6 +145,10 @@ class UICamera(*uic.loadUiType(ui_path)):
 
                     self.spinBox_zero_x_rbk.setValue(self.sample_x_zero_pos)
                     self.spinBox_zero_y_rbk.setValue(self.sample_y_zero_pos)
+                    self.settings.setValue('sample_stage_zero_x_pix', self.spinBox_zero_x.value())
+                    self.settings.setValue('sample_stage_zero_y_pix', self.spinBox_zero_y.value())
+                    self.settings.setValue('sample_stage_zero_x_rbk', self.spinBox_zero_x_rbk.value())
+                    self.settings.setValue('sample_stage_zero_y_rbk', self.spinBox_zero_y_rbk.value())
 
 
 
