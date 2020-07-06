@@ -86,7 +86,6 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.figure_full_trajectory = Figure()
         self.figure_full_trajectory.set_facecolor(color='#FcF9F6')
         self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
-        self.figure_full_trajectory.add_subplot(111)
         self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
         self.toolbar_full_trajectory = NavigationToolbar(self.canvas_full_trajectory, self,coordinates=True)
 

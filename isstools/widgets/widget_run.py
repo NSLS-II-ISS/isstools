@@ -103,7 +103,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                 break
 
         # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
+        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
 
         for adc in self.adc_list:
             adc.averaging_points.put(str(value))
