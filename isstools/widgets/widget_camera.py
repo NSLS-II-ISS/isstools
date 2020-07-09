@@ -18,7 +18,7 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
-from isstools.elements.batch_motion import shift_stage_to_zero
+from isstools.elements.batch_motion import shift_stage_to_zero, move_to_sample
 
 from isstools.process_callbacks.callback import run_router
 
@@ -152,6 +152,8 @@ class UICamera(*uic.loadUiType(ui_path)):
                     self.settings.setValue('sample_stage_zero_x_rbk', self.spinBox_zero_x_rbk.value())
                     self.settings.setValue('sample_stage_zero_y_rbk', self.spinBox_zero_y_rbk.value())
 
+
+    def move_to_sample(self):
 
 
 
