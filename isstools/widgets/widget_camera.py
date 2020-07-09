@@ -42,9 +42,13 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.cid = self.canvas_c2.mpl_connect('button_press_event', self.set_vcursor)
         self.h_vc = None
         self.h_hc = None
+        self.qr_vc = None
+        self.qr_hc = None
 
         self.push_show_image.clicked.connect(self.show_image)
         self.push_zero_stage.clicked.connect(self.zero_stage)
+        self.push_move_to_sample.clicked.connect(self.move_to_sample)
+        self.push_park_stage.clicked.connect(self.park_stage)
         self.camera_dict = camera_dict
 
 
@@ -118,9 +122,33 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.figure_c1.ax.imshow(image1, cmap='gray')
         self.figure_c2.ax.imshow(image2, cmap='gray')
         self.figure_qr.ax.imshow(image_qr, cmap='gray')
+
+        # pretty cross
+        color = [0.0, 0.7, 0.0]
+        x_low, y_low = 0, 0
+        x_high, y_high = image_qr.shape
+        if self.qr_vc:
+            self.qr_vc.remove()
+        if self.qr_hc:
+            self.qr_hc.remove()
+
+        self.qr_vc = self.figure_qr.ax.vlines(self.spinBox_zero_x.value(), x_low, x_high, colors=color, linewidths=0.5)
+        self.qr_hc = self.figure_qr.ax.hlines(self.spinBox_zero_y.value(), y_low, y_high, colors=color, linewidths=0.5)
+        self.figure_qr.ax.set_xlim(y_low, y_high)
+        self.figure_qr.ax.set_ylim(x_low, x_high)
+
         self.canvas_c1.draw_idle()
         self.canvas_c2.draw_idle()
         self.canvas_qr.draw_idle()
+
+
+    def park_stage(self):
+        stage_x = self.spinBox_zero_x_rbk.value()
+        stage_y = self.spinBox_zero_y_rbk.value()
+        self.RE(bps.mv(self.sample_stage.x, stage_x))
+        self.RE(bps.mv(self.sample_stage.y, stage_y))
+        self.show_image()
+
 
     def zero_stage(self):
         camera_qr = self.camera_dict['camera_sample4']
@@ -132,8 +160,15 @@ class UICamera(*uic.loadUiType(ui_path)):
                 if qr_text == '0 position':
                     # self.label_qrcode.setText(qr_text)
 
-                    delta_x, delta_y = shift_stage_to_zero( qr_code.rect.top + qr_code.rect.height/2,
-                                                            qr_code.rect.left + qr_code.rect.width/2,
+                    # print('qr code center:',
+                    #       qr_code.rect.left + qr_code.rect.width/2,
+                    #       qr_code.rect.top + qr_code.rect.height/2)
+                    # print('qr code should be moved by these pixels:',
+                    #       qr_code.rect.left + qr_code.rect.width/2 - self.spinBox_zero_x.value(),
+                    #       qr_code.rect.top + qr_code.rect.height/2 - self.spinBox_zero_y.value())
+
+                    delta_x, delta_y = shift_stage_to_zero( qr_code.rect.left + qr_code.rect.width/2,
+                                                            qr_code.rect.top + qr_code.rect.height/2,
                                                             self.spinBox_zero_x.value(),
                                                             self.spinBox_zero_y.value())
                     print('moving the giant_xy stage by (', delta_x, ',', delta_y, ')')
@@ -154,6 +189,25 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
     def move_to_sample(self):
+        index_stack = self.spinBox_index_stack.value()
+        index_holder = self.spinBox_index_holder.value()
+        index_sample = self.spinBox_index_sample.value()
+        zero_x = self.spinBox_zero_x_rbk.value()
+        zero_y = self.spinBox_zero_y_rbk.value()
+
+        qr_code_111_x = 281.859
+        qr_code_111_y = -24.866
+        delta_first_holder_x = qr_code_111_x - zero_x
+        delta_first_holder_y = qr_code_111_y - zero_y
+
+        giant_x, giant_y = move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y,
+                                          index_stack, index_holder, index_sample)
+        print('moving the giant_xy stage by (', giant_x - self.sample_stage.x.read()[self.sample_stage.x.name]['value'], ',',
+                                                giant_y - self.sample_stage.y.read()[self.sample_stage.y.name]['value'], ')')
+        # print(giant_x - zero_x, giant_y - zero_y)
+        self.RE(bps.mv(self.sample_stage.x, giant_x))
+        self.RE(bps.mv(self.sample_stage.y, giant_y))
+        self.show_image()
 
 
 

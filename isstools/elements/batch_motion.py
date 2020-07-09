@@ -2,10 +2,10 @@ import numpy as np
 
 
 def move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y, index_stack, index_holder, index_sample):
-    delta_sample_x = 15
-    delta_stack_x = 100
-    delta_holder_y = 16
-    delta_stack_y = 100
+    delta_sample_x = 15 # 28.4
+    delta_stack_x = 109.2 # 101.55 + 7.65
+    delta_holder_y = 16.14
+    delta_stack_y = 133
 
     disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
     disp_stack_y = np.floor((index_stack - 1) / 3)

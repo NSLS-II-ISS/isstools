@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>holder_sample</class>
+ <widget class="QWidget" name="holder_sample">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -184,10 +184,10 @@
     <double>20000.000000000000000</double>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_sample_stack">
+  <widget class="QSpinBox" name="spinBox_index_stack">
    <property name="geometry">
     <rect>
-     <x>1270</x>
+     <x>1280</x>
      <y>810</y>
      <width>54</width>
      <height>22</height>
@@ -200,7 +200,7 @@
     <number>9</number>
    </property>
   </widget>
-  <widget class="QLabel" name="label_qrcode_3">
+  <widget class="QLabel" name="label_stack">
    <property name="geometry">
     <rect>
      <x>1170</x>
@@ -210,10 +210,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>Sample stack</string>
+    <string>Stack number</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_qrcode_4">
+  <widget class="QLabel" name="label_holder">
    <property name="geometry">
     <rect>
      <x>1170</x>
@@ -223,13 +223,13 @@
     </rect>
    </property>
    <property name="text">
-    <string>Sample holder</string>
+    <string>Holder number</string>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_sample_stack_2">
+  <widget class="QSpinBox" name="spinBox_index_holder">
    <property name="geometry">
     <rect>
-     <x>1270</x>
+     <x>1280</x>
      <y>840</y>
      <width>54</width>
      <height>22</height>
@@ -242,39 +242,39 @@
     <number>4</number>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_sample_stack_3">
+  <widget class="QSpinBox" name="spinBox_index_sample">
    <property name="geometry">
     <rect>
-     <x>1270</x>
+     <x>1280</x>
      <y>870</y>
      <width>54</width>
      <height>22</height>
     </rect>
    </property>
    <property name="minimum">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="maximum">
     <number>4</number>
    </property>
   </widget>
-  <widget class="QLabel" name="label_qrcode_5">
+  <widget class="QLabel" name="label_sample">
    <property name="geometry">
     <rect>
      <x>1170</x>
      <y>870</y>
-     <width>71</width>
+     <width>131</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Sample holder</string>
+    <string>Sample number</string>
    </property>
   </widget>
   <widget class="QPushButton" name="push_move_to_sample">
    <property name="geometry">
     <rect>
-     <x>1340</x>
+     <x>1350</x>
      <y>840</y>
      <width>101</width>
      <height>25</height>
@@ -282,6 +282,19 @@
    </property>
    <property name="text">
     <string>Move</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_park_stage">
+   <property name="geometry">
+    <rect>
+     <x>1320</x>
+     <y>630</y>
+     <width>101</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Park stage</string>
    </property>
   </widget>
  </widget>
