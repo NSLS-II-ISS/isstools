@@ -152,21 +152,21 @@ class UIRun(*uic.loadUiType(ui_path)):
                     return False
                 ignore_shutter=True
                 break
-
-        # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
-
-        for adc in self.adc_list:
-            adc.averaging_points.put(str(value))
-
-        for enc in self.enc_list:
-            enc.filter_dt.put(float(self.enc_samp_time) * 100000)
-
-        # not needed at QAS this is a detector
-        if self.xia is not None:
-            if self.xia.input_trigger is not None:
-                self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-                self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
+        #
+        # # Send sampling time to the pizzaboxes:
+        # value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
+        #
+        # for adc in self.adc_list:
+        #     adc.averaging_points.put(str(value))
+        #
+        # for enc in self.enc_list:
+        #     enc.filter_dt.put(float(self.enc_samp_time) * 100000)
+        #
+        # # not needed at QAS this is a detector
+        # if self.xia is not None:
+        #     if self.xia.input_trigger is not None:
+        #         self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+        #         self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         name_provided = self.parameter_values[0].text()
         if name_provided:
