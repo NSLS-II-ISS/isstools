@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1401</width>
+    <width>1769</width>
     <height>1290</height>
    </rect>
   </property>
@@ -437,6 +437,58 @@ monoxide</string>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QTableWidget" name="tableWidget_program">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>860</y>
+      <width>441</width>
+      <height>301</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_temperature_program">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start program</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_pause_program">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Pause program</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_stop_program">
+    <property name="geometry">
+     <rect>
+      <x>1460</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Pause program</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

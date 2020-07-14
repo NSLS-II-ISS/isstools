@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('WXAgg')
 import matplotlib.patches as mpatches
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -20,8 +21,9 @@ import bluesky.plan_stubs as bps
 
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
-from datetime import timedelta
-
+from datetime import timedelta, datetime
+import time as ttime
+from .dialogs.BasicDialogs import message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/xsample.ui')
 
@@ -59,6 +61,13 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_update_time.timeout.connect(self.update_status)
         self.timer_update_time.start()
 
+        self.timer_program = QtCore.QTimer(self)
+        self.timer_program.setInterval(1000)
+        self.timer_program.timeout.connect(self.update_temp_sp)
+
+
+        self.push_temperature_program.clicked.connect(self.temperature_program)
+
         self.spinBox_CH4.valueChanged.connect(self.set_mfc_cart_flow)
         self.spinBox_CO.valueChanged.connect(self.set_mfc_cart_flow)
         self.spinBox_H2.valueChanged.connect(self.set_mfc_cart_flow)
@@ -75,6 +84,20 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             getattr(self, f'spinBox_rga_mass{indx + 1}').setValue(rga_mass.get())
             getattr(self, f'spinBox_rga_mass{indx + 1}').valueChanged.connect(self.change_rga_mass)
 
+        self.tableWidget_program.setColumnCount(2)
+        self.tableWidget_program.setRowCount(10)
+        self.tableWidget_program.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
+        self.plot_program = False
+
+
+    # a.setRowCount(2)
+    # a.setRowCount(12)
+    # a.setVerticalHeaderLabels('sd', 'sdsd')
+    # a.setVerticalHeaderLabels(('sd', 'sdsd'))
+    # a.setHorizontalHeaderLabels(('Temperqature setpoint', 'Time'))
+    # a.setHorizontalHeaderLabels(('Temperqature\n setpoint', 'Time'))
+    # a.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
+    # a.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
 
 
 
@@ -157,10 +180,20 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             else:
                 dataset1 = df[self.temps[1].name]
                 dataset2 = df[self.temps_sp[1].name]
-            self.figure_temp.ax.plot(dataset1['time']+timedelta(hours=-4),dataset1['data'], label = 'T readback')
+
+            XLIM = [dataset1['time'].iloc[0] + timedelta(hours=-4),
+                    dataset1['time'].iloc[-1] + timedelta(hours=-4)]
+
+            self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
             self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
+            if self.plot_program:
+                self.figure_temp.ax.plot(self.program_dataset['time'],
+                                         self.program_dataset['data'], 'k:', label='T program')
+                XLIM[1] = self.program_dataset['time'].iloc[-1]
+
+
             self.figure_temp.ax.xaxis.set_major_formatter(data_format)
-            self.figure_temp.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
+            self.figure_temp.ax.set_xlim(XLIM)
             self.figure_temp.ax.relim(visible_only=True)
             self.figure_temp.ax.grid(alpha=0.4)
             self.figure_temp.ax.autoscale_view(tight=True)
@@ -181,6 +214,75 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     }
 
         mfc_dict[sender_name].flow.put(value)
+
+
+
+    def temperature_program(self):
+        print('Starting the Temperature program')
+        table = self.tableWidget_program
+        nrows = table.rowCount()
+        times = []
+        temps = []
+        for i in range(nrows):
+            this_time = table.item(i, 1)
+            this_temp = table.item(i, 0)
+
+            if this_time and this_temp:
+                try:
+                    times.append(float(this_time.text()))
+                except:
+                    message_box('Error','Time must be numerical' )
+                    raise ValueError('time must be numerical')
+                try:
+                    temps.append(float(this_temp.text()))
+                except:
+                    message_box('Error', 'Temperature must be numerical')
+                    raise ValueError('Temperature must be numerical')
+                
+
+        times = np.hstack((0, np.array(times))) * 60
+        temps = np.hstack((self.temps[0].get(), np.array(temps)))
+        print('times', times, 'temperatures', temps)
+        self.program_time = np.arange(times[0], times[-1] + 1)
+        datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in (ttime.time() + self.program_time)]
+        self.program_sps = np.interp(self.program_time, times, temps)
+        self.program_dataset = pd.DataFrame({'time' : pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
+                                             'data' : self.program_sps})
+
+        self.plot_program = True
+        self.program_idx = 0
+        self.init_time = ttime.time()
+        self.timer_program.start()
+
+        # plt.figure()
+        # plt.plot(times, temps, 'ko-')
+        # plt.plot(time_grid, self.programs_sps, 'r.-')
+
+
+        # for this_time, this_temp in zip(times, temps):
+        #     self.init_time = ttime.time()
+        #     init_temp =  self.temps[0].get()
+        #     self.a = (this_temp-init_temp)/this_time
+        #     self.b = this_temp
+        #     self.timer_program.start()
+        #     while self.temps[0].get() - 7
+
+
+    def update_temp_sp(self):
+        current_time = ttime.time()
+        try:
+            this_sp = self.program_sps[self.program_idx]
+        except IndexError:
+            this_sp = self.program_sps[-1]
+        # print('time passed:', current_time - self.init_time, 'index:', self.program_idx, 'setpoint:', this_sp)
+        # self.temps_sp[0].put(this_sp)
+        self.program_idx += 1
+
+
+
+
+
+
 
 
 
