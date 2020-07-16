@@ -116,6 +116,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             xia = xia_list[0]
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
+        else:
+            xia = None
 
 
 
