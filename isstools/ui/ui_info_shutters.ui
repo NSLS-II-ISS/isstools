@@ -56,8 +56,6 @@
     </item>
    </layout>
   </widget>
-  <zorder>groupBox_shutters</zorder>
-  <zorder></zorder>
  </widget>
  <resources/>
  <connections/>

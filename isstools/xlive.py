@@ -6,15 +6,22 @@ import math
 
 from PyQt5 import uic, QtGui, QtCore
 
-from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
-                              widget_batch_mode, widget_run, widget_beamline_setup,
-                              widget_sdd_manager, widget_beamline_status)
+from isstools.widgets import (widget_info_general,
+                              widget_trajectory_manager,
+                              widget_processing,
+                              widget_batch_mode,
+                              widget_run,
+                              widget_beamline_setup,
+                              widget_sdd_manager,
+                              widget_info_shutters,
+                              widget_info_beamline)
 
 from isstools.elements.emitting_stream import EmittingStream
-from isstools.process_callbacks.callback import FlyScanProcessingCallback
+from isstools.process_callbacks.callback import ScanProcessingCallback
 
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/xlive.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
+
 
 
 def auto_redraw_factory(fnc):
@@ -46,40 +53,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  tune_elements=None,
                  ic_amplifiers={},
                  window_title=" ",
+                 apb = None,
                  *args, **kwargs):
-        '''
 
-            Parameters
-            ----------
-
-            plan_funcs : list, optional
-                functions that run plans (call RE(plan()) etc)
-            prep_traj_plan : generator or None, optional
-                a plan that prepares the trajectories
-            RE : bluesky.RunEngine, optional
-                a RunEngine instance
-            db : databroker.Broker, optional
-                the database to save acquired data to
-            accelerator :
-            hhm : ophyd.Device, optional
-                the monochromator. "hhm" stood for "high heatload monochromator"
-                and has been kept from the legacy ISS code
-            shutters_dict : dict, optional
-                dictionary of available shutters
-            det_dict : dict, optional
-                dictionary of detectors
-            motors_dict : dict, optional
-                dictionary of motors
-            general_scan_func : generator or None, optional
-            receiving address: string, optinal
-                the address for where to subscribe the Kafka Consumer to
-        '''
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.RE = RE
         self.db = db
+        self.apb = apb
         self.token = None
         self.window_title = window_title
         
@@ -94,34 +77,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
 
 
-        self.run_mode = 'run'
-        self.window_title = window_title
-
-        # Looking for analog pizzaboxes:
-        regex = re.compile('pba\d{1}.*')
-        matches = [det for det in det_dict if re.match(regex, det)]
-        adc_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
-
-        # Looking for encoder pizzaboxes:
-        regex = re.compile('pb\d{1}_enc.*')
-        matches = [det for det in det_dict if re.match(regex, det)]
-        enc_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
-
-        # Looking for xias:
-        regex = re.compile('xia\d{1}')
-        matches = [det for det in det_dict if re.match(regex, det)]
-        xia_list = [det_dict[x]['obj'] for x in det_dict if x in matches]
-        if len(xia_list):
-            xia = xia_list[0]
-            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(xia_list)
-            self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
-
-
-
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs
                                                                                        )
         self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+
 
         self.widget_processing = widget_processing.UIProcessing(hhm,
                                                                 db,
@@ -135,9 +95,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             db,
                                             hhm,
                                             shutters_dict,
-                                            adc_list,
-                                            enc_list,
-                                            xia,
+                                            apb,
                                             self,
                                            )
         self.layout_run.addWidget(self.widget_run)
@@ -150,38 +108,49 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       self,
                                                                       )
         self.layout_batch.addWidget(self.widget_batch_mode)
+
         self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
+        #Beamline setup
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
                                                                            hhm,
                                                                            db,
-                                                                           adc_list,
-                                                                           enc_list,
                                                                            det_dict,
-                                                                           xia,
                                                                            ic_amplifiers,
                                                                            service_plan_funcs,
                                                                            aux_plan_funcs,
                                                                            motors_dict,
                                                                            tune_elements,
                                                                            shutters_dict,
-                                                                           self)
+                                                                           self,
+                                                                           )
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
-        self.layout_beamline_status.addWidget(widget_beamline_status.UIBeamlineStatus(shutters_dict))
+
+        #Info shutters
+        self.layout_info_shutters.addWidget(widget_info_shutters.UIInfoShutters(shutters_dict))
+
+        #Info general
+        self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
+                                                                     db=db,
+                                                                     parent=self)
+
+        self.layout_info_general.addWidget(self.widget_info_general)
+
+        #Info beamline
+        self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(accelerator=accelerator,
+                                                                        hhm=hhm,
+                                                                        shutters=shutters_dict,
+                                                                        ic_amplifiers=ic_amplifiers,
+                                                                        apb=apb,
+                                                                        RE=RE,
+                                                                        db=None,
+                                                                        parent=self)
+
+        self.layout_info_beamline.addWidget(self.widget_info_beamline)
+
+
         self.push_re_abort.clicked.connect(self.re_abort)
-
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
-                                                                     hhm,
-                                                                     shutters_dict,
-                                                                     ic_amplifiers,
-                                                                     RE,
-                                                                     db,
-                                                                     self)
-        self.layout_general_info.addWidget(self.widget_general_info)
-
-
-        
-        pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
+        pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.fly_token = self.RE.subscribe(pc, 'stop')
 
         # Redirect terminal output to GUI

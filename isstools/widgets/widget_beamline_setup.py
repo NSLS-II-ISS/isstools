@@ -19,6 +19,7 @@ from matplotlib.widgets import Cursor
 from scipy.optimize import curve_fit
 from xas.pid import PID
 from xas.math import gauss
+from isstools.elements.liveplots import NormPlot
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
@@ -29,10 +30,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      RE,
                      hhm,
                      db,
-                     adc_list,
-                     enc_list,
                      detector_dictionary,
-                     xia,
                      ic_amplifiers,
                      service_plan_funcs,
                      aux_plan_funcs,
@@ -48,10 +46,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.db = db
-        self.adc_list = adc_list
-        self.enc_list = enc_list
         self.detector_dictionary = detector_dictionary
-        self.xia = xia
         self.ic_amplifiers = ic_amplifiers
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
@@ -76,11 +71,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if hasattr(hhm, 'fb_line'):
             self.fb_master = 0
-            self.piezo_line = int(self.hhm.fb_line.value)
-            self.piezo_center = float(self.hhm.fb_center.value)
-            self.piezo_nlines = int(self.hhm.fb_nlines.value)
-            self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
-            self.piezo_kp = float(self.hhm.fb_pcoeff.value)
+            self.piezo_line = int(self.hhm.fb_line.get())
+            self.piezo_center = float(self.hhm.fb_center.get())
+            self.piezo_nlines = int(self.hhm.fb_nlines.get())
+            self.piezo_nmeasures = int(self.hhm.fb_nmeasures.get())
+            self.piezo_kp = float(self.hhm.fb_pcoeff.get())
             self.hhm.fb_status.subscribe(self.update_fb_status)
             self.piezo_thread = piezo_fb_thread(self) 
             self.push_update_piezo.clicked.connect(self.update_piezo_params)
@@ -89,76 +84,68 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
             self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
-
-
-
         # Populate analog detectors setup section with adcs:
         self.adc_checkboxes = []
-        for index, adc_name in enumerate([adc.dev_name.value for adc in
-                                          self.adc_list if adc.dev_name.value != adc.name]):
+        for index, adc_name in enumerate([adc.dev_name.get() for adc in
+                                          self.adc_list if adc.dev_name.get() != adc.name]):
             checkbox = QtWidgets.QCheckBox(adc_name)
             checkbox.setChecked(True)
             self.adc_checkboxes.append(checkbox)
             self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.push_gen_scan_save.clicked.connect(self.save_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
 
         self.last_text = '0'
         self.tune_dialog = None
         self.last_gen_scan_uid = ''
-        self.det_list = [detector_dictionary[det]['obj'].dev_name.value if hasattr(detector_dictionary[det]['obj'], 'dev_name') else detector_dictionary[det]['obj'].name for det in detector_dictionary]
-        self.det_sorted_list = self.det_list
-        self.det_sorted_list.sort()
+        self.detector_dictionary = detector_dictionary
+        self.det_list = list(detector_dictionary.keys())
 
-        self.comboBox_gen_det.addItems(self.det_sorted_list)
-        self.comboBox_gen_det_den.addItem('1')
-        self.comboBox_gen_det_den.addItems(self.det_sorted_list)
-        self.comboBox_gen_mot.addItems(self.mot_sorted_list)
-        self.comboBox_gen_det.currentIndexChanged.connect(self.process_detsig)
-        self.comboBox_gen_det_den.currentIndexChanged.connect(self.process_detsig_den)
-        self.process_detsig()
-        self.process_detsig_den()
+        ## self.det_sorted_list = self.det_list
+        # self.det_sorted_list.sort()
+
+        self.comboBox_detectors.addItems(self.det_list)
+        self.comboBox_detectors_den.addItem('1')
+        self.comboBox_detectors_den.addItems(self.det_list)
+        self.comboBox_motors.addItems(self.mot_sorted_list)
+        self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
+        self.comboBox_detectors_den.currentIndexChanged.connect(self.detector_selected_den)
+        self.detector_selected()
+        self.detector_selected_den()
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
-        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.value)
+        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
-
-
 
         if 'bpm_es' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['bpm_es']['obj']
 
-
-
         if len(self.adc_list):
             times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
             times_arr[times_arr == ''] = 0.0
-            times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.value / 100000)
+            times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.get() / 100000)
             times_arr = [str(elem) for elem in times_arr]
             self.comboBox_samp_time.addItems(times_arr)
             #   self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_batch_mode.setAnalogSampTime)
             self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_run.setAnalogSampTime)
-            self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.value)
+            self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.get())
 
         if len(self.enc_list):
             #self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_batch_mode.setEncSampTime)
             self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_run.setEncSampTime)
-            self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.value / 100000))
+            self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.get() / 100000))
 
         if hasattr(self.xia, 'input_trigger'):
             if self.xia.input_trigger is not None:
                 self.xia.input_trigger.unit_sel.put(1)  # ms, not us
                 #self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_batch_mode.setXiaSampTime)
                 self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
-                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.value))
+                self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.get()))
 
         self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
                              if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
-
-
 
         reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe','Co', 'Ni','Cu', 'Zn','Pt', 'Au', 'Se', 'Pb', 'Nb','Mo','Ru',
                            'Rh', 'Pd','Ag','Sn','Sb', '--']
@@ -198,7 +185,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if not ignore_shutter:
             for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
                             self.shutter_dictionary[shutter].shutter_type != 'SP']:
-                if shutter.state.value:
+                if shutter.state.get():
                     ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
                     if not ret:
                         print('Aborted!')
@@ -215,16 +202,31 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
         curr_det = ''
-        detectors = []
-
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+        detectors = []
+        detector_name = self.comboBox_detectors.currentText()
+        detector = self.detector_dictionary[detector_name]['device']
+        detectors.append(detector)
+        channels = self.detector_dictionary[detector_name]['channels']
+        channel = channels[self.comboBox_channels.currentIndex()]
+        result_name = channel
+
+        detector_name_den = self.comboBox_detectors_den.currentText()
+        if detector_name_den != '1':
+            detector_den = self.detector_dictionary[detector_name_den]['device']
+            channels_den = self.detector_dictionary[detector_name_den]['channels']
+            channel_den = channels_den[self.comboBox_channels.currentIndex()]
+            detectors.append(detector_den)
+            result_name += '/{}'.format(channel_den)
+        else:
+            channel_den = '1'
 
         for i in range(self.comboBox_gen_det.count()):
             if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
                     curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
                     curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detectors.append(curr_det)
             else:
@@ -237,48 +239,31 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
         for motor in self.motor_dictionary:
-            if self.comboBox_gen_mot.currentText() == self.motor_dictionary[motor]['description']:
+            if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
                 curr_mot = self.motor_dictionary[motor]['object']
                 self.canvas_gen_scan.motor = curr_mot
                 break
 
-        if curr_det == '':
-            print('Detector not found. Aborting...')
-            raise Exception('Detector not found')
 
-        if curr_mot == '':
-            print('Motor not found. Aborting...')
-            raise Exception('Motor not found')
 
         rel_start = -float(self.edit_gen_range.text()) / 2
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        if not repeat:
-            update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
-
-
-        result_name = self.comboBox_gen_det.currentText()
-        if self.comboBox_gen_det_den.currentText() != '1':
-            result_name += '/{}'.format(self.comboBox_gen_det_den.currentText())
-
-        print(self.comboBox_gen_detsig.currentText())
-        print(self.comboBox_gen_detsig_den.currentText())
-        print(result_name)
-        print(curr_mot)
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
         self.push_gen_scan.setEnabled(False)
-        try:
-            uid_list = list(self.aux_plan_funcs['general_scan'](detectors, self.comboBox_gen_detsig.currentText(),
-                                               self.comboBox_gen_detsig_den.currentText(),
-                                               result_name, curr_mot, rel_start, rel_stop,
-                                               num_steps, False,
-                                               retries=1,
-                                               ax=self.figure_gen_scan.ax))
-        except Exception as exc:
-            print('[General Scan] Aborted! Exception: {}'.format(exc))
-            print('[General Scan] Limit switch reached . Set narrower range and try again.')
-            uid_list = []
+        uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
+                                                               curr_mot,
+                                                               rel_start,
+                                                               rel_stop,
+                                                               num_steps, ),
+                           NormPlot(channel, channel_den, result_name, curr_mot.name, ax=self.figure_gen_scan.ax))
+
+        # except Exception as exc:
+        #     print('[General Scan] Aborted! Exception: {}'.format(exc))
+        #     print('[General Scan] Limit switch reached . Set narrower range and try again.')
+        #     uid_list = []
 
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
@@ -288,102 +273,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_gen_scan_uid = self.db[-1]['start']['uid']
         self.push_gen_scan_save.setEnabled(True)
 
-    def save_gen_scan(self):
-        run = self.db[self.last_gen_scan_uid]
-        self.user_directory = '/nlsl2/xf08id/users/{}/{}/{}/' \
-            .format(run['start']['year'],
-                    run['start']['cycle'],
-                    run['start']['PROPOSAL'])
 
-        detectors_names = []
-        for detector in run['start']['plan_args']['detectors']:
-            text = detector.split('name=')[1]
-            detectors_names.append(text[1: text.find('\'', 1)])
-
-        numerator_name = detectors_names[0]
-        denominator_name = ''
-        if len(detectors_names) > 1:
-            denominator_name = detectors_names[1]
-
-        text = run['start']['plan_args']['motor'].split('name=')[1]
-        motor_name = text[1: text.find('\'', 1)]
-
-        numerator_devname = ''
-        denominator_devname = ''
-        for descriptor in run['descriptors']:
-            if 'data_keys' in descriptor:
-                if numerator_name in descriptor['data_keys']:
-                    numerator_devname = descriptor['data_keys'][numerator_name]['devname']
-                if denominator_name in descriptor['data_keys']:
-                    denominator_devname = descriptor['data_keys'][denominator_name]['devname']
-
-        ydata = []
-        xdata = []
-        for line in self.figure_gen_scan.ax.lines:
-            ydata.extend(line.get_ydata())
-            xdata.extend(line.get_xdata())
-
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save scan...', self.user_directory, '*.txt')[0]
-        if filename[-4:] != '.txt':
-            filename += '.txt'
-
-        start = run['start']
-
-        year = start['year']
-        cycle = start['cycle']
-        saf = start['SAF']
-        pi = start['PI']
-        proposal = start['PROPOSAL']
-        scan_id = start['scan_id']
-        real_uid = start['uid']
-        start_time = start['time']
-        stop_time = run['stop']['time']
-
-        human_start_time = str(datetime.fromtimestamp(start_time).strftime('%m/%d/%Y  %H:%M:%S'))
-        human_stop_time = str(datetime.fromtimestamp(stop_time).strftime('%m/%d/%Y  %H:%M:%S'))
-        human_duration = str(datetime.fromtimestamp(stop_time - start_time).strftime('%M:%S'))
-
-        if len(numerator_devname):
-            numerator_name = numerator_devname
-        result_name = numerator_name
-        if len(denominator_name):
-            if len(denominator_devname):
-                denominator_name = denominator_devname
-            result_name += '/{}'.format(denominator_name)
-
-        header = '{}  {}'.format(motor_name, result_name)
-        comments = '# Year: {}\n' \
-                   '# Cycle: {}\n' \
-                   '# SAF: {}\n' \
-                   '# PI: {}\n' \
-                   '# PROPOSAL: {}\n' \
-                   '# Scan ID: {}\n' \
-                   '# UID: {}\n' \
-                   '# Start time: {}\n' \
-                   '# Stop time: {}\n' \
-                   '# Total time: {}\n#\n# '.format(year,
-                                                    cycle,
-                                                    saf,
-                                                    pi,
-                                                    proposal,
-                                                    scan_id,
-                                                    real_uid,
-                                                    human_start_time,
-                                                    human_stop_time,
-                                                    human_duration)
-
-        matrix = np.array([xdata, ydata]).transpose()
-        matrix = self.gen_parser.data_manager.sort_data(matrix, 0)
-
-        fmt = ' '.join(
-            ['%d' if array.dtype == np.dtype('int64') else '%.6f' for array in [np.array(xdata), np.array(ydata)]])
-
-        np.savetxt(filename,
-                   np.array([xdata, ydata]).transpose(),
-                   delimiter=" ",
-                   header=header,
-                   fmt=fmt,
-                   comments=comments)
 
     def getX_gen_scan(self, event):
         if event.button == 3:
@@ -429,12 +319,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'], 'retract'))
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
-
     def process_detsig(self):
         self.comboBox_gen_detsig.clear()
         for i in range(self.comboBox_gen_det.count()):
             if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
                     curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
@@ -448,7 +337,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.comboBox_gen_detsig_den.clear()
         for i in range(self.comboBox_gen_det_den.count() - 1):
             if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.value:
+                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
                     curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
@@ -460,6 +349,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if self.comboBox_gen_det_den.currentText() == '1':
             self.comboBox_gen_detsig_den.addItem('1')
 
+    def detector_selected(self):
+        self.comboBox_channels.clear()
+        detector = self.comboBox_detectors.currentText()
+        self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
+
+    def detector_selected_den(self):
+        self.comboBox_channels_den.clear()
+        detector = self.comboBox_detectors_den.currentText()
+        if detector == '1':
+            self.comboBox_channels_den.addItem('1')
+        else:
+            self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
 
     def adjust_gains(self):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
@@ -472,7 +373,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def enable_fb(self, value):
         if self.radioButton_fb_local.isChecked():
             if value == 0:
-                if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.value != 0:
+                if self.piezo_thread.go != 0 or self.fb_master != 0 or self.hhm.fb_status.get() != 0:
                     self.toggle_piezo_fb(0)
             else:
                 if self.fb_master == -1:
@@ -513,11 +414,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def update_piezo_params(self):
-        self.piezo_line = int(self.hhm.fb_line.value)
-        self.piezo_center = float(self.hhm.fb_center.value)
-        self.piezo_nlines = int(self.hhm.fb_nlines.value)
-        self.piezo_nmeasures = int(self.hhm.fb_nmeasures.value)
-        self.piezo_kp = float(self.hhm.fb_pcoeff.value)
+        self.piezo_line = int(self.hhm.fb_line.get())
+        self.piezo_center = float(self.hhm.fb_center.get())
+        self.piezo_nlines = int(self.hhm.fb_nlines.get())
+        self.piezo_nmeasures = int(self.hhm.fb_nmeasures.get())
+        self.piezo_kp = float(self.hhm.fb_pcoeff.get())
         dlg = UpdatePiezoDialog.UpdatePiezoDialog(str(self.piezo_line), str(self.piezo_center), str(self.piezo_nlines),
                                                   str(self.piezo_nmeasures), str(self.piezo_kp), parent=self)
         if dlg.exec_():
@@ -609,12 +510,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def get_offsets(self):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.get() in adc_names]
         self.RE(self.service_plan_funcs['get_adc_offsets'](20, *adcs, stdout = self.parent_gui.emitstream_out))
 
     def get_readouts(self):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        adcs = [adc for adc in self.adc_list if adc.dev_name.value in adc_names]
+        adcs = [adc for adc in self.adc_list if adc.dev_name.get() in adc_names]
         self.RE(self.aux_plan_funcs['get_adc_readouts'](20, *adcs, stdout = self.parent_gui.emitstream_out))
 
 

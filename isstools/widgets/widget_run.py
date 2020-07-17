@@ -14,11 +14,60 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
+from bluesky.callbacks import LivePlot
 
-from isstools.process_callbacks.callback import run_router
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
+
+class XASPlot(LivePlot):
+    def __init__(self, num_name, den_name, result_name, motor, log = False, *args, **kwargs):
+        #print(f'NormPlot *args: {args}')
+        #print(f'NormPlot **kwargs: {kwargs}')
+        super().__init__(result_name, x=motor, *args, **kwargs)
+        self.num_name = num_name
+        self.den_name = den_name
+        self.result_name = result_name
+        self.num_offset = None
+        self.den_offset = None
+        self.log = log
+
+    def descriptor(self, doc):
+        # self.apb.ch1_mean.name, self.apb.ch2_mean.name
+        num_offset_name = self.num_name.replace("_mean", "_offset")
+        den_offset_name = self.den_name.replace("_mean", "_offset")
+        self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
+        self.den_offset = doc["configuration"]['apb_ave']['data'][den_offset_name]
+
+        #print(f' Num off {self.num_offset}')
+        #rint(f' Den off {self.den_offset}')
+
+
+    def event(self, doc):
+        #print(f' Numerator {self.num_name}')
+        #print(f' Denominator {self.den_name}')
+
+        doc = dict(doc)
+        doc['data'] = dict(doc['data'])
+        #print(doc['data'])
+        try:
+            if self.den_name == '1':
+                denominator = 1
+            else:
+                denominator = doc['data'][self.den_name]-self.den_offset
+            if self.log:
+                #TODO
+                doc['data'][self.result_name] = np.log(np.abs(((doc['data'][self.num_name] - self.num_offset) / (denominator))))
+                #doc['data'][self.result_name] = np.log(((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+            else:
+                doc['data'][self.result_name] = (((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+
+            #print(' Num {}'.format(doc['data'][self.num_name] - self.num_offset))
+            #print(' Den {}'.format(denominator))
+        except KeyError:
+            print('Key error')
+        #print(f"after normalizing:\n{doc['data']}")
+        super().event(doc)
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -28,10 +77,11 @@ class UIRun(*uic.loadUiType(ui_path)):
                  db,
                  hhm,
                  shutter_dictionary,
-                 adc_list,
-                 enc_list,
-                 xia,
+
+
+                 apb,
                  parent_gui,
+
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -43,10 +93,11 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.aux_plan_funcs = aux_plan_funcs
         self.RE = RE
         self.db = db
+        self.hhm=hhm,
         self.shutter_dictionary = shutter_dictionary
-        self.adc_list = adc_list
-        self.enc_list = enc_list
-        self.xia = xia
+
+
+        self.apb = apb
         self.parent_gui = parent_gui
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
@@ -67,6 +118,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
+
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
 
         self.energy_grid = []
@@ -86,7 +138,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.canvas.draw_idle()
 
     def run_scan(self):
-
         ignore_shutter = False
         energy_grid = []
         time_grid = []
@@ -103,7 +154,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                 break
 
         # Send sampling time to the pizzaboxes:
-        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.value * 100000))
+        value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
 
         for adc in self.adc_list:
             adc.averaging_points.put(str(value))
@@ -132,6 +183,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             plan_key = self.comboBox_scan_type.currentText()
 
             if plan_key == 'Step scan':
+                update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
                 energy_grid, time_grid = generate_energy_grid(float(self.e0),
                                                               float(self.edit_preedge_start.text()),
                                                               float(self.edit_xanes_start.text()),
@@ -145,26 +197,41 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               float(self.edit_exafs_dwell.text()),
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
-                self.rr_token = self.RE.subscribe(run_router)
 
-
+                #print(energy_grid)
 
 
             plan_func = self.plan_funcs[plan_key]
-            self.run_mode_uids = self.RE(plan_func(**run_parameters,
-                                                  ax=self.figure.ax1,
-                                                  ignore_shutter=ignore_shutter,
-                                                  energy_grid=energy_grid,
-                                                  time_grid=time_grid,
-                                                  stdout=self.parent_gui.emitstream_out))
+
+            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
+                                   log=True, ax=self.figure.ax1, color='b'),
+                         XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Reference', self.hhm[0].energy.name,
+                                   log=True, ax=self.figure.ax1, color='r'),
+                         XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence',self.hhm[0].energy.name,
+                                 log=False,ax=self.figure.ax1, color='g'),
+                         ]
+            print(f'Edge at execution {self.edge}')
+
+            RE_args = [plan_func(**run_parameters,
+                                  ignore_shutter=ignore_shutter,
+                                  energy_grid=energy_grid,
+                                  time_grid=time_grid,
+                                  element=self.element,
+                                  e0=self.e0,
+                                  edge=self.edge,
+                                  ax=self.figure.ax1,
+                                  stdout=self.parent_gui.emitstream_out)]
+            if plan_key.lower() == 'step scan':
+                RE_args.append(LivePlots)
+
+            self.run_mode_uids = self.RE(*RE_args)
+
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()
             print('Scan duration {} s'.format(stop_scan_timer-start_scan_timer))
             if self.rr_token is not None:
                 self.RE.unsubscribe(self.rr_token)
-
-
 
         else:
             message_box('Error', 'Please provide the name for the scan')
@@ -182,15 +249,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         for i in range(len(self.parameter_values)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_parameters.addWidget(self.parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
-
-    def setAnalogSampTime(self, text):
-        self.analog_samp_time = text
-
-    def setEncSampTime(self, text):
-        self.enc_samp_time = text
-
-    def setXiaSampTime(self, text):
-        self.xia_samp_time = text
 
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
@@ -216,6 +274,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.e0 = text
 
     def update_edge(self, text):
+        print(text)
         self.edge = text
 
     def update_element(self, text):
