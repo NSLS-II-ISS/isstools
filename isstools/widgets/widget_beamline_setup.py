@@ -119,8 +119,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
-        if 'bpm_es' in self.detector_dictionary:
-            self.bpm_es = self.detector_dictionary['bpm_es']['obj']
+        if 'Endstation BPM' in self.detector_dictionary:
+            self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
 
         # if len(self.adc_list):
         #     times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
@@ -193,10 +193,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     break
 
         if curr_element is not None:
-            self.comboBox_gen_det.setCurrentText(curr_element['det_name'])
-            self.comboBox_gen_detsig.setCurrentText(curr_element['det_sig'])
-            self.comboBox_gen_det_den.setCurrentText('1')
-            self.comboBox_gen_mot.setCurrentText(self.motor_dictionary[curr_element['motor_name']]['description'])
+            self.comboBox_detectors.setCurrentText(curr_element['det_name'])
+            self.comboBox_channels.setCurrentText(curr_element['det_sig'])
+            self.comboBox_detectors_den.setCurrentText('1')
+            self.comboBox_motors.setCurrentText(self.motor_dictionary[curr_element['motor_name']]['description'])
             self.edit_gen_range.setText(str(curr_element['scan_range']))
             self.edit_gen_step.setText(str(curr_element['step_size']))
 
@@ -221,20 +221,20 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             channel_den = '1'
 
-        for i in range(self.comboBox_gen_det.count()):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+        for i in range(self.comboBox_detectors.count()):
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):
+                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detectors.append(curr_det)
             else:
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detectors.append(curr_det)
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detectors.append(curr_det)
 
         #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
@@ -288,7 +288,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.motor = ''
         print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
         self.pushEnableHHMFeedback.setChecked(False)
-        self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'],'insert'))
+        self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
         previous_detector = ''
         previous_motor = ''
         self.RE(bps.sleep(1))
@@ -296,7 +296,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         for element in self.tune_elements:
             print(f'[Beamline tuning] {element["comment"]}')
-            detector = self.detector_dictionary[element['detector']]['obj']
+            detector = self.detector_dictionary[element['detector']]['device']
             motor = self.motor_dictionary[element['motor']]['object']
 
             if (detector.name != previous_detector) or (motor.name != previous_motor):
@@ -316,38 +316,38 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             previous_detector = detector.name
             previous_motor = motor.name
 
-        self.RE(bps.mv(self.detector_dictionary['bpm_fm']['obj'], 'retract'))
+        self.RE(bps.mv(self.detector_dictionary['bpm_fm']['device'], 'retract'))
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def process_detsig(self):
-        self.comboBox_gen_detsig.clear()
-        for i in range(self.comboBox_gen_det.count()):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+        self.comboBox_detectorssig.clear()
+        for i in range(self.comboBox_detectors.count()):
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
+                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
             else:
-                if self.comboBox_gen_det.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig.addItems(detsig)
 
     def process_detsig_den(self):
-        self.comboBox_gen_detsig_den.clear()
+        self.comboBox_signals_den.clear()
         for i in range(self.comboBox_gen_det_den.count() - 1):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
+                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
                     self.comboBox_gen_detsig_den.addItems(detsig)
             else:
-                if self.comboBox_gen_det_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['obj']
+                if self.comboBox_signals_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
+                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
                     detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
-                    self.comboBox_gen_detsig_den.addItems(detsig)
-        if self.comboBox_gen_det_den.currentText() == '1':
-            self.comboBox_gen_detsig_den.addItem('1')
+                    self.comboBox_channels_den.addItems(detsig)
+        if self.comboBox_detectors_den.currentText() == '1':
+            self.comboBox_channels_den.addItem('1')
 
     def detector_selected(self):
         self.comboBox_channels.clear()
@@ -535,11 +535,14 @@ class piezo_fb_thread(QThread):
 
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
+
         # Eli's comment - that's where the check for the intensity should go.
         # if the feedback is too slow, check the max retries value in the piezo IOC or maybe the network load.
         #print("Here all the time? 2")
         try:
+
             image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
+
         except Exception as e:
             print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
             return
