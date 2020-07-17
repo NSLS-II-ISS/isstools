@@ -13,7 +13,9 @@ class XASDataSet:
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, *args, **kwargs):
+    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, verbose=False, nnorm=None,
+                 *args, **kwargs):
+        self.verbose = verbose
         self.larch = xafsgroup()
         if md is not None:
             self._md = md
@@ -33,6 +35,7 @@ class XASDataSet:
             self.name = name
         if datatype is not None:
             self.datatype = datatype
+        self.nnorm = nnorm
         if mu is not None and energy is not None:
             self.clamp_hi = 0
             self.clamp_lo = 0
@@ -80,7 +83,7 @@ class XASDataSet:
 
     def normalize_force(self):
         pre_edge(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, pre1=self.pre1, pre2=self.pre2,
-                                                                           norm1=self.norm1, norm2=self.norm2)
+                                                         nnorm=self.nnorm, norm1=self.norm1, norm2=self.norm2)
         self.norm = self.larch.norm
         self.e0 = self.larch.e0
         self.pre_edge=self.larch.pre_edge
@@ -89,7 +92,8 @@ class XASDataSet:
         self.flatten()
 
     def extract_chi(self):
-        print('chi reporting')
+        if self.verbose:
+            print('chi reporting')
         autobk(self.larch, group=self.larch,  _larch=self._larch)
 
         self.chi = self.larch.chi
@@ -103,7 +107,8 @@ class XASDataSet:
 
 
     def extract_chi_force(self):
-        print('chi force reporting')
+        if self.verbose:
+            print('chi force reporting')
         # autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax)
         autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax,
                nclamp=2, clamp_hi=10)
@@ -113,7 +118,8 @@ class XASDataSet:
 
 
     def extract_ft(self):
-        print('ft reporting')
+        if self.verbose:
+            print('ft reporting')
         print(self.kmin_ft)
         xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax)
 
@@ -127,7 +133,8 @@ class XASDataSet:
         self.kwin = self.larch.kwin
 
     def extract_ft_force(self, window={}):
-        print('ft force reporting')
+        if self.verbose:
+            print('ft force reporting')
         if not window:
             xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax_ft)
         else:
