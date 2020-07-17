@@ -509,9 +509,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
     def get_offsets(self):
-        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        adcs = [adc for adc in self.adc_list if adc.dev_name.get() in adc_names]
-        self.RE(self.service_plan_funcs['get_adc_offsets'](20, *adcs, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.service_plan_funcs['get_offsets']())
 
     def get_readouts(self):
         adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
