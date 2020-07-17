@@ -24,7 +24,6 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
                  RE = None,
                  db = None,
                  parent = None,
-
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -56,8 +55,6 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         else:
             self.push_update_user.setEnabled(False)
 
-
-
     def update_weather(self):
         try:
             current_weather = requests.get(
@@ -73,11 +70,9 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             string_current_weather = 'Weather information not available'
         self.label_current_weather.setText(string_current_weather)
 
-
     def update_time(self):
         self.label_current_time.setText(
             'Today is {0}'.format(QtCore.QDateTime.currentDateTime().toString('MMMM d, yyyy, h:mm:ss ap')))
-
 
     def update_user_info(self):
         self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
@@ -97,10 +92,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             self.update_user_info()
 
 
-
-
     def send_results(self):
-
         dlg = GetEmailAddress.GetEmailAddress('', parent=self)
         if dlg.exec_():
             email_address = dlg.getValue()

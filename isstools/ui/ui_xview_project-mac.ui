@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1612</width>
-    <height>812</height>
+    <height>836</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -94,7 +94,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -128,7 +128,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -175,7 +175,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>13</pointsize>
      </font>
     </property>
     <property name="text">
@@ -246,7 +246,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -299,7 +299,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -327,7 +327,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -346,7 +346,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>13</pointsize>
      </font>
     </property>
     <property name="text">
@@ -408,7 +408,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -452,7 +452,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -518,7 +518,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -619,7 +619,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -688,7 +688,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -748,7 +748,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -773,7 +773,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -798,7 +798,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -883,7 +883,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -955,7 +955,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -996,7 +996,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1106,7 +1106,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1140,7 +1140,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1174,7 +1174,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1254,7 +1254,7 @@
       <height>30</height>
      </rect>
     </property>
-    <property name="currentText" stdset="0">
+    <property name="currentText">
      <string>Hanning</string>
     </property>
     <item>
@@ -1322,7 +1322,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1363,7 +1363,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1391,7 +1391,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1410,7 +1410,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>14</pointsize>
       <weight>50</weight>
       <bold>false</bold>
       <kerning>false</kerning>
@@ -1431,7 +1431,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1450,7 +1450,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1528,7 +1528,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1569,7 +1569,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1594,7 +1594,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1663,7 +1663,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>14</pointsize>
       <weight>50</weight>
       <bold>false</bold>
      </font>
@@ -1683,7 +1683,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1758,7 +1758,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1818,7 +1818,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>14</pointsize>
       <weight>50</weight>
       <bold>false</bold>
      </font>
@@ -1888,7 +1888,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1910,7 +1910,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1929,7 +1929,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1954,7 +1954,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1973,7 +1973,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -1992,7 +1992,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>
@@ -2017,7 +2017,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>12</pointsize>
       <italic>false</italic>
      </font>
     </property>

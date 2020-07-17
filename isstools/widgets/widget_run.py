@@ -21,18 +21,19 @@ from bluesky.callbacks import LivePlot
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 class XASPlot(LivePlot):
-    def __init__(self, num_name, den_name, result_name, motor, *args, **kwargs):
-        print(f'NormPlot *args: {args}')
-        print(f'NormPlot **kwargs: {kwargs}')
+    def __init__(self, num_name, den_name, result_name, motor, log = False, *args, **kwargs):
+        #print(f'NormPlot *args: {args}')
+        #print(f'NormPlot **kwargs: {kwargs}')
         super().__init__(result_name, x=motor, *args, **kwargs)
         self.num_name = num_name
         self.den_name = den_name
         self.result_name = result_name
         self.num_offset = None
         self.den_offset = None
+        self.log = log
 
     def descriptor(self, doc):
-                # self.apb.ch1_mean.name, self.apb.ch2_mean.name
+        # self.apb.ch1_mean.name, self.apb.ch2_mean.name
         num_offset_name = self.num_name.replace("_mean", "_offset")
         den_offset_name = self.den_name.replace("_mean", "_offset")
         self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
@@ -54,17 +55,19 @@ class XASPlot(LivePlot):
                 denominator = 1
             else:
                 denominator = doc['data'][self.den_name]-self.den_offset
-            doc['data'][self.result_name] = (
-                (doc['data'][self.num_name] - self.num_offset) / (denominator)
-            )
+            if self.log:
+                #TODO
+                doc['data'][self.result_name] = np.log(np.abs(((doc['data'][self.num_name] - self.num_offset) / (denominator))))
+                #doc['data'][self.result_name] = np.log(((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+            else:
+                doc['data'][self.result_name] = (((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+
             #print(' Num {}'.format(doc['data'][self.num_name] - self.num_offset))
             #print(' Den {}'.format(denominator))
         except KeyError:
             print('Key error')
         #print(f"after normalizing:\n{doc['data']}")
         super().event(doc)
-
-
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -149,6 +152,21 @@ class UIRun(*uic.loadUiType(ui_path)):
                     return False
                 ignore_shutter=True
                 break
+        #
+        # # Send sampling time to the pizzaboxes:
+        # value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
+        #
+        # for adc in self.adc_list:
+        #     adc.averaging_points.put(str(value))
+        #
+        # for enc in self.enc_list:
+        #     enc.filter_dt.put(float(self.enc_samp_time) * 100000)
+        #
+        # # not needed at QAS this is a detector
+        # if self.xia is not None:
+        #     if self.xia.input_trigger is not None:
+        #         self.xia.input_trigger.unit_sel.put(1)  # ms, not us
+        #         self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
 
         name_provided = self.parameter_values[0].text()
         if name_provided:
@@ -185,19 +203,29 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             plan_func = self.plan_funcs[plan_key]
 
-            #LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Abs',self.hhm[0].energy.name, ax=self.figure.ax1,color='b'),]
-                         #XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Ref',self.hhm[0].energy.name, ax=self.figure.ax2, color='r')]
-            self.run_mode_uids = self.RE(plan_func(**run_parameters,
-                                                  ax=self.figure.ax1,
-                                                  ignore_shutter=ignore_shutter,
-                                                  energy_grid=energy_grid,
-                                                  time_grid=time_grid,
-                                                  e0 =  self.e0,
-                                                  edge =  self.edge,
-                                                  element = self.element,
-                                                  stdout=self.parent_gui.emitstream_out),
-                                        #LivePlots
-                                         )
+            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
+                                   log=True, ax=self.figure.ax1, color='b'),
+                         XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Reference', self.hhm[0].energy.name,
+                                   log=True, ax=self.figure.ax1, color='r'),
+                         XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence',self.hhm[0].energy.name,
+                                 log=False,ax=self.figure.ax1, color='g'),
+                         ]
+            print(f'Edge at execution {self.edge}')
+
+            RE_args = [plan_func(**run_parameters,
+                                  ignore_shutter=ignore_shutter,
+                                  energy_grid=energy_grid,
+                                  time_grid=time_grid,
+                                  element=self.element,
+                                  e0=self.e0,
+                                  edge=self.edge,
+                                  ax=self.figure.ax1,
+                                  stdout=self.parent_gui.emitstream_out)]
+            if plan_key.lower() == 'step scan':
+                RE_args.append(LivePlots)
+
+            self.run_mode_uids = self.RE(*RE_args)
+
             timenow = datetime.datetime.now()
             print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()
@@ -246,6 +274,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.e0 = text
 
     def update_edge(self, text):
+        print(text)
         self.edge = text
 
     def update_element(self, text):
