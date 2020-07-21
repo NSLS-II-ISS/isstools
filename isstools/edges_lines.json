@@ -1,10 +1,5 @@
 [
    {
-      "symbol" : "Sc",
-      "name" : "Scandium",
-      "K" : 4492
-   },
-   {
       "name" : "Titanium",
       "K" : 4966,
       "symbol" : "Ti"

@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -149,7 +149,7 @@
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Run Batch</string>
+      <string>Batch</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
       <property name="geometry">
@@ -161,6 +161,22 @@
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_batch"/>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Autopilot</string>
+     </attribute>
+     <widget class="QWidget" name="horizontalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1631</width>
+        <height>921</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_autopilot"/>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
@@ -324,7 +340,7 @@
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

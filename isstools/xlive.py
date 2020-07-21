@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, QSettings
 
 from isstools.widgets import (widget_general_info, widget_trajectory_manager, widget_processing,
                               widget_batch_mode, widget_run, widget_beamline_setup,
-                              widget_sdd_manager, widget_beamline_status, widget_camera)
+                              widget_sdd_manager, widget_beamline_status, widget_camera, widget_autopilot)
 
 from isstools.elements.emitting_stream import EmittingStream
 from isstools.process_callbacks.callback import FlyScanProcessingCallback
@@ -187,6 +187,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                      db,
                                                                      self)
         self.layout_general_info.addWidget(self.widget_general_info)
+
+        self.widget_autopilot = widget_autopilot.UIAutopilot(hhm, RE)
+        self.layout_autopilot.addWidget(self.widget_autopilot)
 
 
         
