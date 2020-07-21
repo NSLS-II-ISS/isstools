@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>XSsample</class>
+ <widget class="QMainWindow" name="XSsample">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1769</width>
+    <height>1290</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>XSample Environment</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>1111</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layout_rga"/>
+   </widget>
+   <widget class="QDoubleSpinBox" name="spinBox_CO">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>450</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="decimals">
+     <number>1</number>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="spinBox_H2">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>490</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="decimals">
+     <number>1</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>490</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Hydrogen</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>450</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Carbon 
+monoxide</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>410</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Methane</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_CH4">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>410</y>
+      <width>59</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CH4</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_CO">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>450</y>
+      <width>59</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CO</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_H2">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>490</y>
+      <width>59</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>H2</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="spinBox_CH4">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>410</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="decimals">
+     <number>1</number>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>80</y>
+      <width>168</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>9</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga1">
+         <property name="text">
+          <string>RGA mass 1</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga2">
+         <property name="text">
+          <string>RGA mass 2</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga3">
+         <property name="text">
+          <string>RGA mass 3</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga4">
+         <property name="text">
+          <string>RGA mass 4</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga5">
+         <property name="text">
+          <string>RGA mass 5</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga6">
+         <property name="text">
+          <string>RGA mass 6</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga7">
+         <property name="text">
+          <string>RGA mass 7</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rga8">
+         <property name="text">
+          <string>RGA mass 8</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass1">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass2">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass3">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass4">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass5">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass6">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass7">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_rga_mass8">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>80</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QDoubleSpinBox" name="doubleSpinBox_timewindow">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>40</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="singleStep">
+     <double>0.500000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.500000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>40</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show last </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>1280</x>
+      <y>40</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>hours</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>380</y>
+      <width>1111</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layout_mfc"/>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>800</y>
+      <width>1111</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layout_temp"/>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_update">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>10</y>
+      <width>87</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>update</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>810</y>
+      <width>246</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QRadioButton" name="radioButton_current_control">
+       <property name="text">
+        <string>Current control</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButton_voltage_control">
+       <property name="text">
+        <string>Voltage control</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QTableWidget" name="tableWidget_program">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>860</y>
+      <width>441</width>
+      <height>301</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_temperature_program">
+    <property name="geometry">
+     <rect>
+      <x>1140</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start program</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_pause_program">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Pause program</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_stop_program">
+    <property name="geometry">
+     <rect>
+      <x>1460</x>
+      <y>1170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Pause program</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_open_project">
+   <property name="text">
+    <string>&amp;Open project</string>
+   </property>
+  </action>
+  <action name="action_save_project">
+   <property name="text">
+    <string>&amp;Save project</string>
+   </property>
+  </action>
+  <action name="action_save_datasets_as_text">
+   <property name="text">
+    <string>Save datasets as text</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>&amp;Exit</string>
+   </property>
+  </action>
+  <action name="action_merge">
+   <property name="text">
+    <string>Merge</string>
+   </property>
+  </action>
+  <action name="action_rename">
+   <property name="text">
+    <string>Rename</string>
+   </property>
+  </action>
+  <action name="action_remove">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+  </action>
+  <action name="action_combine_and_save_as_text">
+   <property name="text">
+    <string>Combine and save as text</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
