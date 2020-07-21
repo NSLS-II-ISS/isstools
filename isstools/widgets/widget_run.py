@@ -33,12 +33,16 @@ class XASPlot(LivePlot):
         self.log = log
 
     def descriptor(self, doc):
-        # self.apb.ch1_mean.name, self.apb.ch2_mean.name
-        num_offset_name = self.num_name.replace("_mean", "_offset")
-        den_offset_name = self.den_name.replace("_mean", "_offset")
-        self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
-        self.den_offset = doc["configuration"]['apb_ave']['data'][den_offset_name]
-
+        if self.num_name.startswith('apb'):
+            num_offset_name = self.num_name.replace("_mean", "_offset")
+            self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
+        else:
+            self.num_offset = 0
+        if self.den_name.startswith('apb'):
+            den_offset_name = self.den_name.replace("_mean", "_offset")
+            self.den_offset = doc["configuration"]['apb_ave']['data'][den_offset_name]
+        else:
+            self.den_offset = 0
         #print(f' Num off {self.num_offset}')
         #rint(f' Den off {self.den_offset}')
 
@@ -46,7 +50,6 @@ class XASPlot(LivePlot):
     def event(self, doc):
         #print(f' Numerator {self.num_name}')
         #print(f' Denominator {self.den_name}')
-
         doc = dict(doc)
         doc['data'] = dict(doc['data'])
         #print(doc['data'])
@@ -54,13 +57,14 @@ class XASPlot(LivePlot):
             if self.den_name == '1':
                 denominator = 1
             else:
-                denominator = doc['data'][self.den_name]-self.den_offset
+                denominator = np.abs(doc['data'][self.den_name]-self.den_offset)
+
+            ratio = np.abs(doc['data'][self.num_name] - self.num_offset) / denominator
             if self.log:
                 #TODO
-                doc['data'][self.result_name] = np.log(np.abs(((doc['data'][self.num_name] - self.num_offset) / (denominator))))
-                #doc['data'][self.result_name] = np.log(((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+                doc['data'][self.result_name] = np.log(ratio)
             else:
-                doc['data'][self.result_name] = (((doc['data'][self.num_name] - self.num_offset) / (denominator)))
+                doc['data'][self.result_name] = ratio
 
             #print(' Num {}'.format(doc['data'][self.num_name] - self.num_offset))
             #print(' Den {}'.format(denominator))
@@ -76,6 +80,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                  RE,
                  db,
                  hhm,
+                 detectors_list,
                  shutter_dictionary,
 
 
@@ -94,6 +99,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.db = db
         self.hhm=hhm,
+        self.detectors_list = detectors_list
         self.shutter_dictionary = shutter_dictionary
 
 
@@ -182,7 +188,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.parent_gui.run_mode = 'run'
             plan_key = self.comboBox_scan_type.currentText()
 
-            if plan_key == 'Step scan':
+            if plan_key.lower().startswith('step scan'):
                 update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
                 energy_grid, time_grid = generate_energy_grid(float(self.e0),
                                                               float(self.edit_preedge_start.text()),
@@ -204,13 +210,20 @@ class UIRun(*uic.loadUiType(ui_path)):
             plan_func = self.plan_funcs[plan_key]
 
             LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
-                                   log=True, ax=self.figure.ax1, color='b'),
+                                   log=True, ax=self.figure.ax1, color='b', legend_keys=['Transmission']),
                          XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Reference', self.hhm[0].energy.name,
-                                   log=True, ax=self.figure.ax1, color='r'),
+                                   log=True, ax=self.figure.ax1, color='r', legend_keys=['Reference']),
                          XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence',self.hhm[0].energy.name,
-                                 log=False,ax=self.figure.ax1, color='g'),
+                                 log=False,ax=self.figure.ax1, color='g', legend_keys=['Fluorescence']),
                          ]
-            print(f'Edge at execution {self.edge}')
+
+
+            self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
+
+            LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
+                        log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+
+
 
             RE_args = [plan_func(**run_parameters,
                                   ignore_shutter=ignore_shutter,
@@ -221,8 +234,15 @@ class UIRun(*uic.loadUiType(ui_path)):
                                   edge=self.edge,
                                   ax=self.figure.ax1,
                                   stdout=self.parent_gui.emitstream_out)]
-            if plan_key.lower() == 'step scan':
+
+            if plan_key.lower().endswith('pilatus'):
+                LivePlots.append(LivePlotPilatus)
+
+            if plan_key.lower().startswith('step scan'):
                 RE_args.append(LivePlots)
+
+
+
 
             self.run_mode_uids = self.RE(*RE_args)
 
