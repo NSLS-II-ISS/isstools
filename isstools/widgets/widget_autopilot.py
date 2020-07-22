@@ -9,7 +9,7 @@ from bluesky.plan_stubs import mv
 from isstools.batch.table_batch import XASBatchExperiment
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
-from issgoogletools import gdrive, initialize
+from isscloudtools import gdrive, initialize
 import numpy as np
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
 from isstools.dialogs.BasicDialogs import message_box
