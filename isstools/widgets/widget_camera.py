@@ -58,6 +58,11 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y_pix', defaultValue=250, type=int))
         self.spinBox_zero_x_rbk.setValue(self.settings.value('sample_stage_zero_x_rbk', defaultValue=0, type=float))
         self.spinBox_zero_y_rbk.setValue(self.settings.value('sample_stage_zero_y_rbk', defaultValue=0, type=float))
+        bla = self.settings.value('beam_x_position_on_camera')
+        print(bla, type(bla))
+        self.beam_x_position_on_camera = self.settings.value('beam_x_position_on_camera', defaultValue=250)
+        self.beam_y_position_on_camera = self.settings.value('beam_y_position_on_camera', defaultValue=250)
+
         # print('DEBUGGING', self.spinBox_zero_x.value())
         #
         # self.spinBox_zero_x.valueChanged.connect(self._update_camera_settings)
@@ -121,21 +126,14 @@ class UICamera(*uic.loadUiType(ui_path)):
         image_qr = camera_qr.image.image
         self.figure_c1.ax.imshow(image1, cmap='gray')
         self.figure_c2.ax.imshow(image2, cmap='gray')
-        self.figure_qr.ax.imshow(image_qr, cmap='gray')
+        self.figure_qr.ax.imshow(image_qr, cmap='gray', origin='lower')
+
+        # beam position from previous session
+        self._set_vcursor()
+        self._set_hcursor()
 
         # pretty cross
-        color = [0.0, 0.7, 0.0]
-        x_low, y_low = 0, 0
-        x_high, y_high = image_qr.shape
-        if self.qr_vc:
-            self.qr_vc.remove()
-        if self.qr_hc:
-            self.qr_hc.remove()
-
-        self.qr_vc = self.figure_qr.ax.vlines(self.spinBox_zero_x.value(), x_low, x_high, colors=color, linewidths=0.5)
-        self.qr_hc = self.figure_qr.ax.hlines(self.spinBox_zero_y.value(), y_low, y_high, colors=color, linewidths=0.5)
-        self.figure_qr.ax.set_xlim(y_low, y_high)
-        self.figure_qr.ax.set_ylim(x_low, x_high)
+        self.set_qr_cursor()
 
         self.canvas_c1.draw_idle()
         self.canvas_c2.draw_idle()
@@ -212,25 +210,52 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
     def set_vcursor(self, event):
+        # wrapper for separation of event and xdata
+        if event.button == 3:
+            self.beam_x_position_on_camera = event.xdata
+            self.settings.setValue('beam_x_position_on_camera', self.beam_x_position_on_camera)
+            self._set_vcursor()
+
+    def _set_vcursor(self):
+        xdata = self.beam_x_position_on_camera
         if self.h_vc:
             self.h_vc.remove()
-        if event.button == 3:
-            y1, y2 = self.figure_c2.ax.get_ylim()
-            self.h_vc = self.figure_c2.ax.vlines(event.xdata, y1,y2, color = 'green' )
-            self.canvas_c2.draw_idle()
+        y1, y2 = self.figure_c2.ax.get_ylim()
+        self.h_vc = self.figure_c2.ax.vlines(xdata, y1,y2, color = 'green' )
+        self.canvas_c2.draw_idle()
+
 
     def set_hcursor(self, event):
-
+        # wrapper for separation of event and ydata
         if event.button == 3:
-            if self.h_hc:
-                self.h_hc.remove()
-            x1, x2 = self.figure_c1.ax.get_xlim()
-            self.h_hc = self.figure_c1.ax.hlines(event.ydata, x1, x2, color = 'green' )
-            self.canvas_c1.draw_idle()
+            self.beam_y_position_on_camera = event.ydata
+            self.settings.setValue('beam_y_position_on_camera', self.beam_y_position_on_camera)
+            self._set_hcursor()
+
+
+    def _set_hcursor(self):
+        ydata = self.beam_y_position_on_camera
+        if self.h_hc:
+            self.h_hc.remove()
+        x1, x2 = self.figure_c1.ax.get_xlim()
+        self.h_hc = self.figure_c1.ax.hlines(ydata, x1, x2, color='green')
+        self.canvas_c1.draw_idle()
 
 
 
+    def set_qr_cursor(self):
+        color = [0.0, 0.7, 0.0]
+        y_lo, y_hi = self.figure_qr.ax.get_xlim()
+        x_lo, x_hi = self.figure_qr.ax.get_ylim()
+        if self.qr_vc:
+            self.qr_vc.remove()
+        if self.qr_hc:
+            self.qr_hc.remove()
 
+        self.qr_vc = self.figure_qr.ax.vlines(self.spinBox_zero_x.value(), x_lo, x_hi, colors=color, linewidths=0.5)
+        self.qr_hc = self.figure_qr.ax.hlines(self.spinBox_zero_y.value(), y_lo, y_hi, colors=color, linewidths=0.5)
+        # self.figure_qr.ax.set_xlim(y_low, y_high)
+        # self.figure_qr.ax.set_ylim(x_low, x_high)
 
 
 
