@@ -168,11 +168,11 @@ class Converter:
 
 
 
-def create_converters():
-    cam_sp1_data = np.genfromtxt(cam_sp1_calib_file)
-    cam_sp2_data = np.genfromtxt(cam_sp2_calib_file)
-
-    c1 = Converter()
+# def create_converters():
+#     cam_sp1_data = np.genfromtxt(cam_sp1_calib_file)
+#     cam_sp2_data = np.genfromtxt(cam_sp2_calib_file)
+#
+#     c1 = Converter()
 
 
 
