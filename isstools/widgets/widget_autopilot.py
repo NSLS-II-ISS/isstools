@@ -16,6 +16,11 @@ from isstools.dialogs.BasicDialogs import message_box
 from xas.trajectory import trajectory, trajectory_manager
 
 
+from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
+
+
+
+
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
                  # plan_funcs,
@@ -82,6 +87,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #
         self.push_proposal_list.clicked.connect(self.get_proposal_list_gdrive)
         self.push_select_proposals.clicked.connect(self.select_proposals)
+        self.push_run_autopilot.clicked.connect(self.run_autopilot)
         #
         #
         self.listWidget_proposals.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -206,6 +212,34 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             for j, item in enumerate(entry_list):
                                 self.tableWidget_sample_def.setItem(qtable_row_index, j, QtWidgets.QTableWidgetItem(item))
                             qtable_row_index += 1
+
+
+
+    def run_autopilot(self):
+
+        traj_stack = TrajectoryStack(self.hhm)
+
+        for step in self.batch_experiment:
+            # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
+            #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
+
+
+            experiment = Experiment(step['Sample label'],
+                                    step['Comment'],
+                                    step['# of scans'],
+                                    0, # delay
+                                    step['Element'],
+                                    step['Edge'],
+                                    step['Energy'],
+                                    -200, # preedge
+                                    step['k-range'],
+                                    10, # t1
+                                    20 * step['k-range']/16) # t2
+
+            traj_stack.set_traj(experiment.traj_signature)
+
+            print('success')
+
 
 
 

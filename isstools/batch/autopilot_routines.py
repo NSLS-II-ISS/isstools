@@ -2,22 +2,24 @@ from xas.trajectory import trajectory, trajectory_manager
 import copy
 from isstools.conversions import xray
 import uuid
+from subprocess import call
+
 
 class Experiment:
     def __init__(self, name, comment, n_cycles, delay, element, edge, E0, Epreedge, kmax, t1, t2):
 
         self.run_parameters = {'name' : name,
                                'comment' : comment,
-                               'n_cycles' : n_cycles,
+                               'n_cycles' : int(n_cycles),
                                'delay' : delay}
 
         self.traj_signature = {'element' : element,
                                'edge' : edge,
-                               'E0' : E0,
-                               'Epreedge' : Epreedge,
-                               'kmax' : kmax,
-                               't1' : t1,
-                               't2' : t2}
+                               'E0' : float(E0),
+                               'Epreedge' : float(Epreedge),
+                               'kmax' : float(kmax),
+                               't1' : float(t1),
+                               't2' : float(t2)}
 
 
 
@@ -27,21 +29,21 @@ class Experiment:
 class TrajectoryStack:
     def __init__(self, hhm):
 
-
+        self.most_recent = 0
         self.slots = [None]*8
-        self.hhm = hmm
+        self.hhm = hhm
         self.traj_manager = trajectory_manager(hhm)
+    #
+    #
+    # def check_if_exists(self, traj_signature):
+    #     for slot in self.slots:
+    #         if slot:
+    #             if slot == traj_signature:
+    #                 return True
+    #     return False
 
 
-    def check_if_exists(self, traj_signature):
-        for slot in self.slots:
-            if slot:
-                if slot == traj_signature:
-                    return True
-        return False
-
-
-    def get_traj(self, traj_signature):
+    def set_traj(self, traj_signature):
         # if exists, then initialize it on the controller
         for traj_index, slot in enumerate(self.slots):
             if slot == traj_signature:
@@ -55,14 +57,18 @@ class TrajectoryStack:
                 self.create_new_trajectory(traj_signature, traj_index)
                 return
 
-        # if all slots are
+        # if all slots are filled then FIFO
+        self.slots[self.most_recent] = copy.deepcopy(traj_signature)
+        self.create_new_trajectory(traj_signature, self.most_recent)
+        self.update_most_recent()
 
 
-                ### if all slots are full, then we need to replace
 
-
-
-
+    def update_most_recent(self):
+        if self.most_recent < 7: # numeration is from 0 to 7
+            self.most_recent += 1
+        else:
+            self.most_recent = 0
 
 
     def create_new_trajectory(self, traj_signature, traj_index): # creates, saves, loads, and initializes trajectory with this signature
@@ -83,18 +89,17 @@ class TrajectoryStack:
         traj_creator.interpolate()
         traj_creator.revert()
 
-        fpath = self.hhm.traj_filepath + str(uuid.uuid4()) + '.txt'
+
+        fname = str(uuid.uuid4())[:8] + '.txt'
+        fpath = self.hhm.traj_filepath + fname
         traj_creator.save(fpath)
 
-        self.traj_manager.load(orig_file_name=fpath,
+        self.traj_manager.load(orig_file_name=fname,
                                new_file_path=traj_index + 1,
                                is_energy=True, offset=self.hhm.angle_offset.value)
 
         self.traj_manager.init(traj_index + 1)
 
-
-
-            # some kind of creation of the trajectory
 
 
 
