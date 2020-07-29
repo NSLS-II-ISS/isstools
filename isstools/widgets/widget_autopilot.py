@@ -15,7 +15,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
 from isstools.dialogs.BasicDialogs import message_box
 from xas.trajectory import trajectory, trajectory_manager
 
-
+import time as ttime
 from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
 
 
@@ -48,10 +48,14 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.mot_sorted_list = list(self.mot_list)
         # self.mot_sorted_list.sort()
         self.hhm = hhm
+        self.traj_stack = TrajectoryStack(self.hhm)
+
         # self.traj_manager = trajectory_manager(hhm)
         #
 
         self.RE = RE
+
+
 
         self.service = initialize.get_gdrive_service()
         self.service_sheets = initialize.get_gsheets_service()
@@ -217,9 +221,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
     def run_autopilot(self):
 
-        traj_stack = TrajectoryStack(self.hhm)
+
 
         for step in self.batch_experiment:
+
+            start = ttime.time()
             # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
             #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
 
@@ -234,11 +240,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                     -200, # preedge
                                     step['k-range'],
                                     10, # t1
-                                    20 * step['k-range']/16) # t2
+                                    20 * float(step['k-range'])/16) # t2
 
-            traj_stack.set_traj(experiment.traj_signature)
+            self.traj_stack.set_traj(experiment.traj_signature)
 
-            print('success')
+            print(f'success took: {ttime.time() - start}')
 
 
 
