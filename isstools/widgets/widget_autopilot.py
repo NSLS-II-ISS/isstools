@@ -155,10 +155,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # #doen setting table
 
 
+
     def get_proposal_list_gdrive(self):
         cycle = self.RE.md['cycle']
         year = self.RE.md['year']
-
+        found_flag = False
         fid_year = gdrive.folder_exists_in_root(self.service, year)
         fid_cycle = gdrive.folder_exists(self.service, fid_year, cycle)
         files = gdrive.get_file_list(self.service, fid_cycle)['files']
@@ -168,9 +169,16 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         if files:
             self.listWidget_proposals.clear()
             for file in files:
-                self.listWidget_proposals.addItem(file['name'])
+                fn= file['name']
+                if str.isnumeric(fn) and len(fn)==6:
+                    found_flag = True
+                    self.listWidget_proposals.addItem(fn)
         else:
             message_box('Error','No proposal definition files found')
+
+        if not found_flag:
+            message_box('Error', 'No proposal definition files found')
+
 
 
     def select_proposals(self):
