@@ -188,7 +188,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                      self)
         self.layout_general_info.addWidget(self.widget_general_info)
 
-        self.widget_autopilot = widget_autopilot.UIAutopilot(hhm, RE)
+        self.widget_autopilot = widget_autopilot.UIAutopilot(camera_dict, hhm, RE, sample_stage)
         self.layout_autopilot.addWidget(self.widget_autopilot)
 
 

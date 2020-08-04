@@ -78,8 +78,8 @@
   <widget class="QSpinBox" name="spinBox_zero_x">
    <property name="geometry">
     <rect>
-     <x>1210</x>
-     <y>620</y>
+     <x>1280</x>
+     <y>610</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -94,8 +94,8 @@
   <widget class="QSpinBox" name="spinBox_zero_y">
    <property name="geometry">
     <rect>
-     <x>1210</x>
-     <y>650</y>
+     <x>1280</x>
+     <y>640</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -110,8 +110,8 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>1180</x>
-     <y>650</y>
+     <x>1260</x>
+     <y>640</y>
      <width>21</width>
      <height>16</height>
     </rect>
@@ -123,8 +123,8 @@
   <widget class="QLabel" name="label_qrcode_2">
    <property name="geometry">
     <rect>
-     <x>1180</x>
-     <y>620</y>
+     <x>1260</x>
+     <y>610</y>
      <width>21</width>
      <height>16</height>
     </rect>
@@ -136,8 +136,8 @@
   <widget class="QPushButton" name="push_zero_stage">
    <property name="geometry">
     <rect>
-     <x>1210</x>
-     <y>680</y>
+     <x>1390</x>
+     <y>620</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -152,9 +152,9 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>1210</x>
-     <y>760</y>
-     <width>111</width>
+     <x>1280</x>
+     <y>740</y>
+     <width>101</width>
      <height>22</height>
     </rect>
    </property>
@@ -171,9 +171,9 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>1210</x>
-     <y>730</y>
-     <width>111</width>
+     <x>1280</x>
+     <y>710</y>
+     <width>101</width>
      <height>22</height>
     </rect>
    </property>
@@ -252,7 +252,7 @@
     </rect>
    </property>
    <property name="minimum">
-    <number>0</number>
+    <number>1</number>
    </property>
    <property name="maximum">
     <number>4</number>
@@ -287,14 +287,48 @@
   <widget class="QPushButton" name="push_park_stage">
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>630</y>
+     <x>1390</x>
+     <y>720</y>
      <width>101</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
     <string>Park stage</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_3">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>610</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Position on
+camera</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_4">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>710</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Stage
+coordinates</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

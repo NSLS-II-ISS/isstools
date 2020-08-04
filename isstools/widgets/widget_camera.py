@@ -18,7 +18,7 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
-from isstools.elements.batch_motion import shift_stage_to_zero, move_to_sample
+from isstools.elements.batch_motion import shift_stage_to_zero, move_to_sample, SamplePositioner
 
 from isstools.process_callbacks.callback import run_router
 
@@ -56,10 +56,20 @@ class UICamera(*uic.loadUiType(ui_path)):
         # print('DEBUGGING', self.settings.value('sample_stage_zero_x', defaultValue=250, type=int))
         self.spinBox_zero_x.setValue(self.settings.value('sample_stage_zero_x_pix', defaultValue=250, type=int))
         self.spinBox_zero_y.setValue(self.settings.value('sample_stage_zero_y_pix', defaultValue=250, type=int))
-        self.spinBox_zero_x_rbk.setValue(self.settings.value('sample_stage_zero_x_rbk', defaultValue=0, type=float))
-        self.spinBox_zero_y_rbk.setValue(self.settings.value('sample_stage_zero_y_rbk', defaultValue=0, type=float))
-        bla = self.settings.value('beam_x_position_on_camera')
-        print(bla, type(bla))
+
+        sample_stage_zero_x_rbk = self.settings.value('sample_stage_zero_x_rbk', defaultValue=0, type=float)
+        sample_stage_zero_y_rbk = self.settings.value('sample_stage_zero_y_rbk', defaultValue=0, type=float)
+
+        self.spinBox_zero_x_rbk.setValue(sample_stage_zero_x_rbk)
+        self.spinBox_zero_y_rbk.setValue(sample_stage_zero_y_rbk)
+
+        self.sample_positioner = SamplePositioner(sample_stage_zero_x_rbk,
+                                                  sample_stage_zero_y_rbk,
+                                                  10.0, # delta_first_holder_x
+                                                  10.0, # delta_first_holder_y
+                                                  RE,
+                                                  sample_stage)
+
         self.beam_x_position_on_camera = self.settings.value('beam_x_position_on_camera', defaultValue=250)
         self.beam_y_position_on_camera = self.settings.value('beam_y_position_on_camera', defaultValue=250)
 
@@ -141,10 +151,11 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
     def park_stage(self):
-        stage_x = self.spinBox_zero_x_rbk.value()
-        stage_y = self.spinBox_zero_y_rbk.value()
-        self.RE(bps.mv(self.sample_stage.x, stage_x))
-        self.RE(bps.mv(self.sample_stage.y, stage_y))
+        # stage_x = self.spinBox_zero_x_rbk.value()
+        # stage_y = self.spinBox_zero_y_rbk.value()
+        # self.RE(bps.mv(self.sample_stage.x, stage_x))
+        # self.RE(bps.mv(self.sample_stage.y, stage_y))
+        self.sample_positioner.goto_park()
         self.show_image()
 
 
@@ -180,6 +191,14 @@ class UICamera(*uic.loadUiType(ui_path)):
                     self.spinBox_zero_x_rbk.setValue(self.sample_x_zero_pos)
                     self.spinBox_zero_y_rbk.setValue(self.sample_y_zero_pos)
 
+                    # need to change the (delta_first_holder_x, delta_first_holder_y) upon update
+                    self.sample_positioner = SamplePositioner(self.sample_x_zero_pos,
+                                                              self.sample_y_zero_pos,
+                                                              10.0,  # delta_first_holder_x
+                                                              10.0,  # delta_first_holder_y
+                                                              self.RE,
+                                                              self.sample_stage)
+
                     self.settings.setValue('sample_stage_zero_x_pix', self.spinBox_zero_x.value())
                     self.settings.setValue('sample_stage_zero_y_pix', self.spinBox_zero_y.value())
                     self.settings.setValue('sample_stage_zero_x_rbk', self.spinBox_zero_x_rbk.value())
@@ -190,22 +209,23 @@ class UICamera(*uic.loadUiType(ui_path)):
         index_stack = self.spinBox_index_stack.value()
         index_holder = self.spinBox_index_holder.value()
         index_sample = self.spinBox_index_sample.value()
-        zero_x = self.spinBox_zero_x_rbk.value()
-        zero_y = self.spinBox_zero_y_rbk.value()
-
-        qr_code_111_x = 281.859
-        qr_code_111_y = -24.866
-        delta_first_holder_x = qr_code_111_x - zero_x
-        delta_first_holder_y = qr_code_111_y - zero_y
-
-        giant_x, giant_y = move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y,
-                                          index_stack, index_holder, index_sample)
-        print('moving the giant_xy stage by (', giant_x - self.sample_stage.x.read()[self.sample_stage.x.name]['value'], ',',
-                                                giant_y - self.sample_stage.y.read()[self.sample_stage.y.name]['value'], ')')
-        # print(giant_x - zero_x, giant_y - zero_y)
-        self.RE(bps.mv(self.sample_stage.x, giant_x))
-        self.RE(bps.mv(self.sample_stage.y, giant_y))
-        self.show_image()
+        self.sample_positioner.goto_sample(index_stack, index_holder, index_sample)
+        # zero_x = self.spinBox_zero_x_rbk.value()
+        # zero_y = self.spinBox_zero_y_rbk.value()
+        #
+        # qr_code_111_x = 281.859
+        # qr_code_111_y = -24.866
+        # delta_first_holder_x = qr_code_111_x - zero_x
+        # delta_first_holder_y = qr_code_111_y - zero_y
+        #
+        # giant_x, giant_y = move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y,
+        #                                   index_stack, index_holder, index_sample)
+        # print('moving the giant_xy stage by (', giant_x - self.sample_stage.x.read()[self.sample_stage.x.name]['value'], ',',
+        #                                         giant_y - self.sample_stage.y.read()[self.sample_stage.y.name]['value'], ')')
+        # # print(giant_x - zero_x, giant_y - zero_y)
+        # self.RE(bps.mv(self.sample_stage.x, giant_x))
+        # self.RE(bps.mv(self.sample_stage.y, giant_y))
+        # self.show_image()
 
 
 

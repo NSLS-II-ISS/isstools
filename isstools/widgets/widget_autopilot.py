@@ -17,8 +17,9 @@ from xas.trajectory import trajectory, trajectory_manager
 
 import time as ttime
 from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
-
-
+from isstools.elements.batch_motion import shift_stage_to_zero, move_to_sample, SamplePositioner
+import bluesky.plan_stubs as bps
+from pyzbar.pyzbar import decode as pzDecode
 
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
@@ -26,10 +27,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                  # plan_funcs,
                  # service_plan_funcs,
                  # motors_dict,
+                 camera_dict,
                  hhm,
                  RE,
                  # db,
-                 # sample_stage,
+                 sample_stage,
                  # parent_gui,
 
                  *args, **kwargs):
@@ -47,6 +49,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.mot_list = self.motors_dict.keys()
         # self.mot_sorted_list = list(self.mot_list)
         # self.mot_sorted_list.sort()
+        self.camera_dict = camera_dict
         self.hhm = hhm
         self.traj_stack = TrajectoryStack(self.hhm)
 
@@ -54,6 +57,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #
 
         self.RE = RE
+        self.sample_stage = sample_stage
+        self.sample_positioner = SamplePositioner() # define it somehow
 
 
 
@@ -226,8 +231,56 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             qtable_row_index += 1
 
 
+    def locate_samples(self):
+        full_stop = False
+        for s in range(self.sample_positioner.n_stacks):
+            for h in range(self.sample_positioner.n_holders):
+                found_holder, holder_type = self.validate_holder(s+1, h+1)
+
+                if (not found_holder):
+                    if h == 0:
+                        full_stop = True
+                    break
+                if holder_type == 2: # only one capillary holder is allowed per stack
+                    break
+            if full_stop:
+                break
+
+
+    def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
+        self.sample_positioner.goto_holder(idx_stack, idx_holder)
+        self.RE(bps.sleep(0.25))
+        i_attempt = 0
+        while i_attempt<n_attempts:
+            image_qr = self.camera_dict['camera_sample4'].image.image # add ROI
+            qr_codes = pzDecode(image_qr)
+            if qr_codes:
+                for qr_code in qr_codes:
+                    qr_text = qr_code.data.decode('utf8')
+                    proposal, holder_type, holder_id = qr_text.split('-')
+                    for step in self.batch_experiment:
+                        if ((step['Proposal'] == proposal) and
+                            (step['Sample holder ID'] == holder_id)):
+                            step['found'] = True
+                            step['position'] = [idx_stack, idx_holder, step['Sample #']]
+                            step['holder type'] = holder_type
+                            return True, holder_type
+            else:
+                i_attempt += 1
+        return False
+
 
     def run_autopilot(self):
+
+    # workflow:
+    # go through the entire stack of samples and scan qr-codes:
+    #               -mark the samples that were found in the table
+    #               -mark the position of each sample
+    # go through elements from low to high energy:
+    #               -prepare and tune the beamline for each energy
+    #               -(tbd) vibrations handling
+    #               -set trajectory
+    #               -sample optimization, aka gain setting, spiral scan etc
 
 
 
