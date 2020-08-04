@@ -18,7 +18,7 @@ setuptools.setup(
     url="https://github.com/NSLS-II-ISS/isstools",
     packages=setuptools.find_packages(),
 
-    package_data={'isstools': ['dialogs/*.ui', 'ui/*ui', "*.json"]},
+    package_data={'isstools': ['dialogs/*.ui', 'ui/*ui', "*.json", "schemas/*.json]},
 
     #install_requires=['netcdf4','pyparsing', 'pysmbc', 'pytable'], #needs zbarlight
     classifiers=[
