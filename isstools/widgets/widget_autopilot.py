@@ -58,7 +58,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.sample_stage = sample_stage
-        self.sample_positioner = SamplePositioner() # define it somehow
+        # self.sample_positioner = SamplePositioner() # define it somehow
 
 
 
@@ -267,18 +267,22 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             return True, holder_type
             else:
                 i_attempt += 1
-        return False
+        return False, None
 
 
     def run_autopilot(self):
+        self.locate_samples()
+
+    # todo: finalize the definition of sample positioner
+
 
     # workflow:
     # go through the entire stack of samples and scan qr-codes:
-    #               -mark the samples that were found in the table
-    #               -mark the position of each sample
+    #               -mark the samples that were found in the table - done
+    #               -mark the position of each sample - done
     # go through elements from low to high energy:
     #               -prepare and tune the beamline for each energy
-    #               -(tbd) vibrations handling
+    #               -(tbd) vibrations handling - done?
     #               -set trajectory
     #               -sample optimization, aka gain setting, spiral scan etc
 

@@ -33,12 +33,13 @@ def shift_stage_to_zero(cur_x_pix, cur_y_pix, zero_x_pix, zero_y_pix, calib=10.9
 class SamplePositioner:
 
     def __init__(self,
+                 RE,
+                 sample_stage,
                  zero_x,
                  zero_y,
-                 delta_first_holder_x,
-                 delta_first_holder_y,
-                 RE,
-                 sample_stage):
+                 offset_x=0,
+                 offset_y=0):
+
         '''
         :param zero_x: zero position of the giant stage x
         :param zero_y: zero position of the giant stage y
@@ -53,8 +54,8 @@ class SamplePositioner:
         # this comes from our calibration
         self.zero_x = zero_x
         self.zero_y = zero_y
-        self.delta_first_holder_x = delta_first_holder_x
-        self.delta_first_holder_y = delta_first_holder_y
+        self.delta_first_holder_x = offset_x
+        self.delta_first_holder_y = offset_y
 
         # distances between stacks
         self.delta_stack_x = delta_stack_x
