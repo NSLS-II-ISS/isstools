@@ -2,31 +2,31 @@ import numpy as np
 import bluesky.plan_stubs as bps
 
 
-delta_stack_x = 109.2 # 101.55 + 7.65
-delta_stack_y = 133
+delta_stack_x = 108.0 
+delta_stack_y = 132.4
 
 
 
 
-def move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y, index_stack, index_holder, index_sample):
-    delta_sample_x = 15 # 28.4
-    delta_stack_x = 109.2 # 101.55 + 7.65
-    delta_holder_y = 16.14
-    delta_stack_y = 133
-
-    disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
-    disp_stack_y = np.floor((index_stack - 1) / 3)
-
-    Giant_x = zero_x + delta_first_holder_x + delta_sample_x * index_sample + delta_stack_x * disp_stack_x
-    Giant_y = zero_y + delta_first_holder_y - (index_holder - 1) * delta_holder_y + delta_stack_y * disp_stack_y
-
-    return Giant_x, Giant_y
-
-
-def shift_stage_to_zero(cur_x_pix, cur_y_pix, zero_x_pix, zero_y_pix, calib=10.957):
-    delta_x = -(zero_x_pix - cur_x_pix) / calib
-    delta_y = (zero_y_pix - cur_y_pix) / calib
-    return delta_x, delta_y
+# def move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y, index_stack, index_holder, index_sample):
+#     delta_sample_x = 15 # 28.4
+#     delta_stack_x = 109.2 # 101.55 + 7.65
+#     delta_holder_y = 16.14
+#     delta_stack_y = 133
+#
+#     disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
+#     disp_stack_y = np.floor((index_stack - 1) / 3)
+#
+#     Giant_x = zero_x + delta_first_holder_x + delta_sample_x * index_sample + delta_stack_x * disp_stack_x
+#     Giant_y = zero_y + delta_first_holder_y - (index_holder - 1) * delta_holder_y + delta_stack_y * disp_stack_y
+#
+#     return Giant_x, Giant_y
+#
+#
+# def shift_stage_to_zero(cur_x_pix, cur_y_pix, zero_x_pix, zero_y_pix, calib=10.957):
+#     delta_x = -(zero_x_pix - cur_x_pix) / calib
+#     delta_y = (zero_y_pix - cur_y_pix) / calib
+#     return delta_x, delta_y
 
 
 
@@ -72,11 +72,11 @@ class SamplePositioner:
 
 
     def goto_holder(self, index_stack, index_holder):
-        self.goto_sample(index_stack, index_holder, 0)
+        self.goto_sample(index_stack, index_holder, 1)
 
 
     def goto_sample(self, index_stack, index_holder, index_sample, holder_type=1):
-        delta_holder_y = 16.14  # hight of the holder
+        delta_holder_y = 15.44  # hight of the holder
 
         if holder_type == 1:
             assert index_sample<5, 'sample index must be between 1 and 4'
@@ -89,7 +89,7 @@ class SamplePositioner:
 
         giant_x = (self.zero_x +
                    self.delta_first_holder_x +
-                   delta_holder_x * index_sample +
+                   delta_holder_x * (index_sample - 1) +
                    self.delta_stack_x * disp_stack_x)
         giant_y = (self.zero_y +
                    self.delta_first_holder_y -

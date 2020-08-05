@@ -75,27 +75,27 @@
    </property>
    <layout class="QVBoxLayout" name="plot_camera_qr"/>
   </widget>
-  <widget class="QPushButton" name="push_update_parking">
+  <widget class="QPushButton" name="push_update_stage_parking">
    <property name="geometry">
     <rect>
-     <x>1430</x>
-     <y>370</y>
-     <width>131</width>
+     <x>1420</x>
+     <y>340</y>
+     <width>161</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
-    <string>Update parking</string>
+    <string>Update stage parking</string>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="spinBox_park_y_rbk">
+  <widget class="QDoubleSpinBox" name="spinBox_stage_y">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>400</y>
+     <x>1310</x>
+     <y>370</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -107,14 +107,14 @@
     <double>200000.000000000000000</double>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="spinBox_park_x_rbk">
+  <widget class="QDoubleSpinBox" name="spinBox_stage_x">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>370</y>
+     <x>1310</x>
+     <y>340</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -130,7 +130,7 @@
    <property name="geometry">
     <rect>
      <x>1400</x>
-     <y>560</y>
+     <y>700</y>
      <width>54</width>
      <height>22</height>
     </rect>
@@ -146,7 +146,7 @@
    <property name="geometry">
     <rect>
      <x>1290</x>
-     <y>560</y>
+     <y>700</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -159,7 +159,7 @@
    <property name="geometry">
     <rect>
      <x>1290</x>
-     <y>590</y>
+     <y>730</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -172,7 +172,7 @@
    <property name="geometry">
     <rect>
      <x>1400</x>
-     <y>590</y>
+     <y>730</y>
      <width>54</width>
      <height>22</height>
     </rect>
@@ -188,7 +188,7 @@
    <property name="geometry">
     <rect>
      <x>1400</x>
-     <y>620</y>
+     <y>760</y>
      <width>54</width>
      <height>22</height>
     </rect>
@@ -204,7 +204,7 @@
    <property name="geometry">
     <rect>
      <x>1290</x>
-     <y>620</y>
+     <y>760</y>
      <width>131</width>
      <height>21</height>
     </rect>
@@ -217,7 +217,7 @@
    <property name="geometry">
     <rect>
      <x>1470</x>
-     <y>590</y>
+     <y>730</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -229,9 +229,9 @@
   <widget class="QPushButton" name="push_park_stage">
    <property name="geometry">
     <rect>
-     <x>1430</x>
-     <y>400</y>
-     <width>131</width>
+     <x>1420</x>
+     <y>370</y>
+     <width>161</width>
      <height>25</height>
     </rect>
    </property>
@@ -242,14 +242,14 @@
   <widget class="QLabel" name="label_qrcode_4">
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>320</y>
+     <x>1310</x>
+     <y>290</y>
      <width>101</width>
      <height>51</height>
     </rect>
    </property>
    <property name="text">
-    <string>Parking
+    <string>Stage parking
 coordinates</string>
    </property>
    <property name="alignment">
@@ -308,7 +308,7 @@ coordinates</string>
     <string>LEFT</string>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="spinbox_ver_step">
+  <widget class="QDoubleSpinBox" name="spinBox_ver_step">
    <property name="geometry">
     <rect>
      <x>1320</x>
@@ -327,7 +327,7 @@ coordinates</string>
     <double>1.000000000000000</double>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="spinbox_hor_step">
+  <widget class="QDoubleSpinBox" name="spinBox_hor_step">
    <property name="geometry">
     <rect>
      <x>1430</x>
@@ -383,8 +383,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_7">
    <property name="geometry">
     <rect>
-     <x>1280</x>
-     <y>370</y>
+     <x>1270</x>
+     <y>340</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -399,14 +399,114 @@ step</string>
   <widget class="QLabel" name="label_qrcode_8">
    <property name="geometry">
     <rect>
-     <x>1280</x>
-     <y>400</y>
+     <x>1270</x>
+     <y>370</y>
      <width>31</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Y</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_update_sample_parking">
+   <property name="geometry">
+    <rect>
+     <x>1420</x>
+     <y>500</y>
+     <width>161</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Update sample parking</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_sample_x">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1310</x>
+     <y>500</y>
+     <width>101</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <double>-20000.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>20000.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_sample_y">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1310</x>
+     <y>530</y>
+     <width>101</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <double>-20000.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>200000.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_9">
+   <property name="geometry">
+    <rect>
+     <x>1270</x>
+     <y>500</y>
+     <width>31</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_10">
+   <property name="geometry">
+    <rect>
+     <x>1270</x>
+     <y>530</y>
+     <width>31</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Y</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_qrcode_11">
+   <property name="geometry">
+    <rect>
+     <x>1310</x>
+     <y>450</y>
+     <width>101</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sample parking
+coordnates</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

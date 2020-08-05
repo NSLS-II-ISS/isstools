@@ -17,7 +17,7 @@ from xas.trajectory import trajectory, trajectory_manager
 
 import time as ttime
 from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
-from isstools.elements.batch_motion import shift_stage_to_zero, move_to_sample, SamplePositioner
+from isstools.elements.batch_motion import SamplePositioner
 import bluesky.plan_stubs as bps
 from pyzbar.pyzbar import decode as pzDecode
 
@@ -32,7 +32,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                  RE,
                  # db,
                  sample_stage,
-                 # parent_gui,
+                 parent_gui,
 
                  *args, **kwargs):
 
@@ -57,10 +57,10 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #
 
         self.RE = RE
+
         self.sample_stage = sample_stage
         # self.sample_positioner = SamplePositioner() # define it somehow
-
-
+        self.settings = parent_gui.settings
 
         self.service = initialize.get_gdrive_service()
         self.service_sheets = initialize.get_gsheets_service()
@@ -244,33 +244,67 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 if holder_type == 2: # only one capillary holder is allowed per stack
                     break
             if full_stop:
+                print('no more holders found')
                 break
 
 
     def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
+        print(f'looking at stack:{idx_stack}, holder:{idx_holder}')
+
         self.sample_positioner.goto_holder(idx_stack, idx_holder)
-        self.RE(bps.sleep(0.25))
+        self.RE(bps.sleep(0.5))
         i_attempt = 0
         while i_attempt<n_attempts:
-            image_qr = self.camera_dict['camera_sample4'].image.image # add ROI
-            qr_codes = pzDecode(image_qr)
+            print('attempt:', i_attempt+1)
+            qr_codes = self.read_qr_codes()
             if qr_codes:
                 for qr_code in qr_codes:
                     qr_text = qr_code.data.decode('utf8')
                     proposal, holder_type, holder_id = qr_text.split('-')
+                    found_holder = False
                     for step in self.batch_experiment:
                         if ((step['Proposal'] == proposal) and
                             (step['Sample holder ID'] == holder_id)):
+                            found_holder = True
                             step['found'] = True
-                            step['position'] = [idx_stack, idx_holder, step['Sample #']]
+                            step['position'] = [idx_stack, idx_holder, int(step['Sample #'])]
                             step['holder type'] = holder_type
-                            return True, holder_type
+                    return found_holder, holder_type
+
             else:
                 i_attempt += 1
         return False, None
 
 
+    def read_qr_codes(self):
+        x1, x2, y1, y2 = self.qr_roi
+        image_qr = self.camera_dict['camera_sample4'].image.image[y1:y2, x1:x2]
+        return pzDecode(image_qr)
+
+    def get_qr_roi(self):
+        x1 = self.settings.value('qr_roi_x1', defaultValue=0, type=int)
+        x2 = self.settings.value('qr_roi_x2', defaultValue=0, type=int)
+        y1 = self.settings.value('qr_roi_y1', defaultValue=0, type=int)
+        y2 = self.settings.value('qr_roi_y2', defaultValue=0, type=int)
+        self.qr_roi = [x1, x2, y1, y2]
+
+    def get_sample_positioner(self):
+        stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
+        stage_park_y = self.settings.value('stage_park_y', defaultValue=0, type=float)
+        sample_park_x = self.settings.value('sample_park_x', defaultValue=0, type=float)
+        sample_park_y = self.settings.value('sample_park_y', defaultValue=0, type=float)
+
+        self.sample_positioner = SamplePositioner(self.RE,
+                                                  self.sample_stage,
+                                                  stage_park_x,
+                                                  stage_park_y,
+                                                  offset_x=sample_park_x - stage_park_x,
+                                                  offset_y=sample_park_y - stage_park_y)
+
+
     def run_autopilot(self):
+        self.get_qr_roi()
+        self.get_sample_positioner()
         self.locate_samples()
 
     # todo: finalize the definition of sample positioner
@@ -288,28 +322,28 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-        for step in self.batch_experiment:
-
-            start = ttime.time()
-            # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
-            #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
-
-
-            experiment = Experiment(step['Sample label'],
-                                    step['Comment'],
-                                    step['# of scans'],
-                                    0, # delay
-                                    step['Element'],
-                                    step['Edge'],
-                                    step['Energy'],
-                                    -200, # preedge
-                                    step['k-range'],
-                                    10, # t1
-                                    20 * float(step['k-range'])/16) # t2
-
-            self.traj_stack.set_traj(experiment.traj_signature)
-
-            print(f'success took: {ttime.time() - start}')
+        # for step in self.batch_experiment:
+        #
+        #     start = ttime.time()
+        #     # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
+        #     #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
+        #
+        #
+        #     experiment = Experiment(step['Sample label'],
+        #                             step['Comment'],
+        #                             step['# of scans'],
+        #                             0, # delay
+        #                             step['Element'],
+        #                             step['Edge'],
+        #                             step['Energy'],
+        #                             -200, # preedge
+        #                             step['k-range'],
+        #                             10, # t1
+        #                             20 * float(step['k-range'])/16) # t2
+        #
+        #     self.traj_stack.set_traj(experiment.traj_signature)
+        #
+        #     print(f'success took: {ttime.time() - start}')
 
 
 
