@@ -12,7 +12,7 @@ from isstools.widgets import widget_batch_manual
 from isscloudtools import gdrive, initialize
 import numpy as np
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
-from isstools.dialogs.BasicDialogs import message_box
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
 from xas.trajectory import trajectory, trajectory_manager
 
 import time as ttime
@@ -21,12 +21,11 @@ from isstools.elements.batch_motion import SamplePositioner
 import bluesky.plan_stubs as bps
 from pyzbar.pyzbar import decode as pzDecode
 
-
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
                  # plan_funcs,
                  # service_plan_funcs,
-                 # motors_dict,
+                 motors_dict,
                  camera_dict,
                  hhm,
                  RE,
@@ -50,6 +49,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.mot_sorted_list = list(self.mot_list)
         # self.mot_sorted_list.sort()
         self.camera_dict = camera_dict
+        self.motors_dict = motors_dict
         self.hhm = hhm
         self.traj_stack = TrajectoryStack(self.hhm)
 
@@ -100,8 +100,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #
         #
         self.listWidget_proposals.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
-        self.element_list =[i['symbol'] for i in json.loads(json_data)]
+        self.read_json_data()
         #
         # #setting up sample table
         # pushButtons_load = [self.pushButton_load_sample_def_11,
@@ -160,6 +159,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # #doen setting table
 
 
+    def read_json_data(self):
+        json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+        self.element_dict = {}
+
+        for i in json.loads(json_data):
+            self.element_dict[i['symbol']] = i
+
 
     def get_proposal_list_gdrive(self):
         cycle = self.RE.md['cycle']
@@ -187,7 +193,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def select_proposals(self):
-
+        self.tableWidget_sample_def.setRowCount(0)
         selected_items = (self.listWidget_proposals.selectedItems())
         selected_file_ids = []
 
@@ -215,13 +221,16 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     nscanss = row[12::6]
 
                     for el, el_conc, edge, energy, krange, nscans in zip(els, el_concs, edges, energies, kranges, nscanss):
-                        if el in self.element_list: # check if the element exists
-
-                            # create entry for the experimental plan
+                        if self._check_entry(el, edge, float(energy), name.text(), i):
                             entry_list = sample_info + [el, el_conc, edge, energy, krange, nscans]
                             entry = {}
                             for key, value in zip(self.table_keys, entry_list):
-                                entry[key] = value
+                                if key in ['Energy', 'k-range']:
+                                    entry[key] = float(value)
+                                elif key in ['# of scans']:
+                                    entry[key] = int(value)
+                                else:
+                                    entry[key] = value
                             self.batch_experiment.append(entry)
 
                             # update table in the widget
@@ -231,7 +240,42 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             qtable_row_index += 1
 
 
+
+    def _check_entry(self, el, edge, energy, name, row):
+        info = f'Proposal: {name}, row: {row}, element: {el}, edge: {edge}, energy: {energy}'
+        if el in self.element_dict.keys():
+            if edge in self.element_dict[el].keys():
+                if abs(energy - float(self.element_dict[el][edge])) < 10:  # provided energy must be within 10 eV from the xray DB
+                    if (energy > 4900) and(energy < 32000):
+                        return True
+                    else:
+                        message_box('Energy outside of feasible range',
+                                    ('Warning\nAn entry with energy outside of feasible range found!\n' +
+                                     'This measurement will be skipped.\n' +
+                                     info))
+                else:
+                    message_box('Invalid energy',
+                                ('Warning\nAn entry with invalid energy was found!\n' +
+                                 'This measurement will be skipped.\n' +
+                                 info))
+            else:
+                message_box('Edge not found',
+                            ('Warning\nAn entry with invalid edge was found!\n' +
+                             'This measurement will be skipped.\n' +
+                             info))
+        else:
+            message_box('Element not found',
+                        ('Warning\nAn entry with invalid element was found!\n' +
+                         'This measurement will be skipped.\n' +
+                         info))
+        return False
+
+
+
+
+
     def locate_samples(self):
+        self.get_qr_roi()
         full_stop = False
         for s in range(self.sample_positioner.n_stacks):
             for h in range(self.sample_positioner.n_holders):
@@ -246,6 +290,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             if full_stop:
                 print('no more holders found')
                 break
+
+        # mark samples that were not found:
+        for step in self.batch_experiment:
+            if 'found' not in step.keys():
+                step['found'] = False
 
 
     def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
@@ -302,23 +351,79 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                                   offset_y=sample_park_y - stage_park_y)
 
 
+
+
     def run_autopilot(self):
-        self.get_qr_roi()
-        self.get_sample_positioner()
-        self.locate_samples()
 
-    # todo: finalize the definition of sample positioner
+        # workflow:
+        # go through the entire stack of samples and scan qr-codes:
+        #               -mark the samples that were found in the table - done
+        #               -mark the position of each sample - done
+        # go through elements from low to high energy:
+        #               -prepare and tune the beamline for each energy
+        #               -(tbd) vibrations handling - done?
+        #               -set trajectory
+        #               -sample optimization, aka gain setting, spiral scan etc
+
+        self.get_sample_positioner() # handle on sample positioner
+        self.locate_samples() # go through all samples on the holder and confirm that all of them are found
+
+        # generate order
+        exec_order = np.argsort([float(i['Energy']) for i in self.batch_experiment])
+        n_measurements = len(self.batch_experiment)
+
+        current_energy = None
+
+        for i in range(n_measurements):
+            idx = exec_order[i]
+            step = self.batch_experiment[idx]
+            if step['found']:
+                # print((step['Sample label'],
+                #        step['Comment'],
+                #        step['# of scans'],
+                #        0, # delay
+                #        step['Element'],
+                #        step['Edge'],
+                #        step['Energy'],
+                #        -200, # preedge
+                #        step['k-range'],
+                #        10, # t1
+                #        20 * float(step['k-range'])/16))
+                if ((not current_energy) or
+                        (abs(current_energy - step['Energy']) > 0.1 * current_energy)):
+                    current_energy = step['Energy']
+                    print(i, current_energy)
+                    # park stage before tuning?
+                    # tune beamline and whatever
+
+                if current_energy < 14000:
+                    mirror_position = 40
+                else:
+                    mirror_position = 0
+
+                self.RE(bps.mv(self.motors_dict['cm1_x'], mirror_position))
 
 
-    # workflow:
-    # go through the entire stack of samples and scan qr-codes:
-    #               -mark the samples that were found in the table - done
-    #               -mark the position of each sample - done
-    # go through elements from low to high energy:
-    #               -prepare and tune the beamline for each energy
-    #               -(tbd) vibrations handling - done?
-    #               -set trajectory
-    #               -sample optimization, aka gain setting, spiral scan etc
+
+
+                #
+                # experiment = Experiment(step['Sample label'],
+                #                         step['Comment'],
+                #                         step['# of scans'],
+                #                         0, # delay
+                #                         step['Element'],
+                #                         step['Edge'],
+                #                         step['Energy'],
+                #                         -200, # preedge
+                #                         step['k-range'],
+                #                         10, # t1
+                #                         20 * float(step['k-range'])/16) # t2
+                # self.traj_stack.set_traj(experiment.traj_signature)
+
+                # gain setting
+                # spiral scan
+                # measurement
+
 
 
 

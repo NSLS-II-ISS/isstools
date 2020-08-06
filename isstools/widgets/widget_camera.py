@@ -216,8 +216,8 @@ class UICamera(*uic.loadUiType(ui_path)):
             self.spinBox_stage_x.setValue(stage_park_x)
             self.spinBox_stage_y.setValue(stage_park_y)
 
-            self.settings.setValue('sample_park_x', stage_park_x)
-            self.settings.setValue('sample_park_y', stage_park_y)
+            self.settings.setValue('stage_park_x', stage_park_x)
+            self.settings.setValue('stage_park_y', stage_park_y)
 
             sample_park_x = self.spinBox_sample_x.value()
             sample_park_y = self.spinBox_sample_y.value()
