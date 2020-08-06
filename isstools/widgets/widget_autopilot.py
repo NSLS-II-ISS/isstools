@@ -394,7 +394,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     current_energy = step['Energy']
                     print(i, current_energy)
                     # park stage before tuning?
-                    # tune beamline and whatever
+                    # tune beamline and whateverggg
 
                 if current_energy < 14000:
                     mirror_position = 40
