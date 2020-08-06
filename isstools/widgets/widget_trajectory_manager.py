@@ -132,6 +132,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         vel_edge = float(self.edit_vel_edge.text())
         #Define element and edge
+        # TODO: move it to trajectory class definition
         self.traj_creator.elem = f'{self.element}'
         self.traj_creator.edge = f'{self.edge}'
         self.traj_creator.e0 = f'{self.e0}'
@@ -182,6 +183,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.push_save_trajectory.setEnabled(True)
 
     def save_trajectory(self):
+        # TODO: move the saving method to the trajectory class
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         if filename[-4:] == '.txt':

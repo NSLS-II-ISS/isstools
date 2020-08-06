@@ -81,7 +81,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo.clicked.connect(self.update_piezo_params)
             self.push_increase_center.clicked.connect(self.fb_center_increase)
             self.push_decrease_center.clicked.connect(self.fb_center_decrease)
-            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)            
             self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
         # # Populate analog detectors setup section with adcs:

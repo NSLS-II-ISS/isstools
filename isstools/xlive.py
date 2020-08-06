@@ -5,6 +5,7 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore
+from PyQt5.QtCore import QThread, QSettings
 
 from isstools.widgets import (widget_info_general,
                               widget_trajectory_manager,
@@ -14,7 +15,10 @@ from isstools.widgets import (widget_info_general,
                               widget_beamline_setup,
                               widget_sdd_manager,
                               widget_info_shutters,
-                              widget_info_beamline)
+                              widget_info_beamline,
+                              widget_camera,
+                              widget_autopilot)
+
 
 from isstools.elements.emitting_stream import EmittingStream
 from isstools.process_callbacks.callback import ScanProcessingCallback
@@ -49,6 +53,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
+                 camera_dict={},
                  sample_stage=None,
                  tune_elements=None,
                  ic_amplifiers={},
@@ -75,7 +80,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         hhm.trajectory_progress.subscribe(self.update_progress)
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
-
+        self.settings = QSettings(self.window_title, 'XLive')
 
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs
@@ -103,6 +108,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                             self,
                                            )
         self.layout_run.addWidget(self.widget_run)
+
+        self.widget_camera = widget_camera.UICamera(camera_dict,
+                                                    sample_stage,
+                                                    RE,
+                                                    self
+                                                    )
+        self.layout_camera.addWidget(self.widget_camera)
+
+
 
         self.widget_batch_mode = widget_batch_mode.UIBatchMode(plan_funcs,
                                                                       service_plan_funcs,
@@ -154,7 +168,20 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         self.push_re_abort.clicked.connect(self.re_abort)
-        pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
+
+        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
+                                                                     hhm,
+                                                                     shutters_dict,
+                                                                     ic_amplifiers,
+                                                                     RE,
+                                                                     db,
+                                                                     self)
+        self.layout_general_info.addWidget(self.widget_general_info)
+
+        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self)
+        self.layout_autopilot.addWidget(self.widget_autopilot)
+
+        pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
         self.fly_token = self.RE.subscribe(pc, 'stop')
 
         # Redirect terminal output to GUI

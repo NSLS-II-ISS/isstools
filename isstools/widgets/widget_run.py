@@ -183,6 +183,8 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
+            print(run_parameters)
+            return
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
