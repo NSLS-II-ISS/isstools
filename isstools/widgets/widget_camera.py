@@ -21,7 +21,7 @@ from isstools.elements.parameter_handler import parse_plan_parameters, return_pa
 from isstools.widgets import widget_energy_selector
 from isstools.elements.batch_motion import SamplePositioner
 
-from isstools.process_callbacks.callback import run_router
+# from isstools.process_callbacks.callback import run_router
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_camera.ui')

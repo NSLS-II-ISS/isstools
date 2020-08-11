@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>50</y>
-     <width>386</width>
+     <width>301</width>
      <height>191</height>
     </rect>
    </property>
@@ -51,9 +51,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>410</x>
      <y>20</y>
-     <width>1201</width>
+     <width>1191</width>
      <height>881</height>
     </rect>
    </property>
@@ -549,6 +549,30 @@
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QComboBox" name="comboBox_autopilot_sample_number">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>90</y>
+     <width>81</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_info_from_autopilot">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>120</y>
+     <width>84</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>From
+ autopilot</string>
+   </property>
   </widget>
  </widget>
  <resources/>

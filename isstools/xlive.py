@@ -7,7 +7,7 @@ import math
 from PyQt5 import uic, QtGui, QtCore
 from PyQt5.QtCore import QThread, QSettings
 
-from isstools.widgets import (widget_info_general,
+from .widgets import (widget_info_general,
                               widget_trajectory_manager,
                               widget_processing,
                               widget_batch_mode,
@@ -20,8 +20,9 @@ from isstools.widgets import (widget_info_general,
                               widget_autopilot)
 
 
-from isstools.elements.emitting_stream import EmittingStream
-from isstools.process_callbacks.callback import ScanProcessingCallback
+from .elements.emitting_stream import EmittingStream
+from .process_callbacks.callback import ScanProcessingCallback
+from .elements.cloud_dispatcher import CloudDispatcher
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
@@ -169,19 +170,13 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
-        self.widget_general_info = widget_general_info.UIGeneralInfo(accelerator,
-                                                                     hhm,
-                                                                     shutters_dict,
-                                                                     ic_amplifiers,
-                                                                     RE,
-                                                                     db,
-                                                                     self)
-        self.layout_general_info.addWidget(self.widget_general_info)
-
-        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self)
+        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self, service_plan_funcs, plan_funcs)
         self.layout_autopilot.addWidget(self.widget_autopilot)
 
-        pc = FlyScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data, draw_func_bin=self.widget_processing.new_bin_df_arrived)
+        cloud_dispatcher = CloudDispatcher()
+        pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
+                                    draw_func_bin=self.widget_processing.new_bin_df_arrived,
+                                    cloud_dispatcher = cloud_dispatcher)
         self.fly_token = self.RE.subscribe(pc, 'stop')
 
         # Redirect terminal output to GUI

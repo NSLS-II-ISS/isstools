@@ -366,8 +366,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
         self.RE(self.service_plan_funcs['adjust_ic_gains'](detector_names=detectors, stdout = self.parent_gui.emitstream_out))
 
-    def prepare_beamline(self):
-        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=int(self.lineEdit_energy.text()),
+    def prepare_beamline(self, energy_setting=None):
+        if energy_setting:
+            self.lineEdit_energy.setText(str(energy_setting))
+        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
                                                                  stdout = self.parent_gui.emitstream_out))
 
     def enable_fb(self, value):

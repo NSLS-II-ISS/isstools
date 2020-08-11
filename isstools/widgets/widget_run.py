@@ -16,62 +16,11 @@ from isstools.elements.parameter_handler import parse_plan_parameters, return_pa
 from isstools.widgets import widget_energy_selector
 from bluesky.callbacks import LivePlot
 
-
+from ..elements.liveplots import XASPlot, XASPlotX
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
-class XASPlot(LivePlot):
-    def __init__(self, num_name, den_name, result_name, motor, log = False, *args, **kwargs):
-        #print(f'NormPlot *args: {args}')
-        #print(f'NormPlot **kwargs: {kwargs}')
-        super().__init__(result_name, x=motor, *args, **kwargs)
-        self.num_name = num_name
-        self.den_name = den_name
-        self.result_name = result_name
-        self.num_offset = None
-        self.den_offset = None
-        self.log = log
 
-    def descriptor(self, doc):
-        if self.num_name.startswith('apb'):
-            num_offset_name = self.num_name.replace("_mean", "_offset")
-            self.num_offset = doc["configuration"]['apb_ave']['data'][num_offset_name]
-        else:
-            self.num_offset = 0
-        if self.den_name.startswith('apb'):
-            den_offset_name = self.den_name.replace("_mean", "_offset")
-            self.den_offset = doc["configuration"]['apb_ave']['data'][den_offset_name]
-        else:
-            self.den_offset = 0
-        #print(f' Num off {self.num_offset}')
-        #rint(f' Den off {self.den_offset}')
-
-
-    def event(self, doc):
-        #print(f' Numerator {self.num_name}')
-        #print(f' Denominator {self.den_name}')
-        doc = dict(doc)
-        doc['data'] = dict(doc['data'])
-        #print(doc['data'])
-        try:
-            if self.den_name == '1':
-                denominator = 1
-            else:
-                denominator = np.abs(doc['data'][self.den_name]-self.den_offset)
-
-            ratio = np.abs(doc['data'][self.num_name] - self.num_offset) / denominator
-            if self.log:
-                #TODO
-                doc['data'][self.result_name] = np.log(ratio)
-            else:
-                doc['data'][self.result_name] = ratio
-
-            #print(' Num {}'.format(doc['data'][self.num_name] - self.num_offset))
-            #print(' Den {}'.format(denominator))
-        except KeyError:
-            print('Key error')
-        #print(f"after normalizing:\n{doc['data']}")
-        super().event(doc)
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -126,7 +75,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
 
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
-
+        self.push_info_from_autopilot.clicked.connect(self.get_info_from_autopilot)
         self.energy_grid = []
 
 
@@ -184,7 +133,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
             print(run_parameters)
-            return
+            # return
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
@@ -223,7 +172,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
 
             LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
-                        log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+                         log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+            # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
+            #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
 
 
 
@@ -301,3 +252,15 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def update_element(self, text):
         self.element = text
+
+    def get_info_from_autopilot(self):
+        batch_experiemnt =  self.parent_gui.widget_autopilot.batch_experiment
+        sample_number = self.comboBox_autopilot_sample_number.currentIndex()
+        name = batch_experiemnt[sample_number]['Sample label']
+        comment = batch_experiemnt[sample_number]['Comment']
+        name = name.replace('/','_')
+        self.parameter_values[0].setText(name)
+        self.parameter_values[1].setText(comment)
+
+
+

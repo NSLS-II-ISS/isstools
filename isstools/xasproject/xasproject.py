@@ -18,7 +18,7 @@ class XASDataSet:
         if md is not None:
             self._md = md
             if 'e0' in md:
-                self.larch.e0 = int(md['e0'])
+                self.larch.e0 = float(md['e0'])
             elif 'edge' in md:
                 edge = md['edge']
                 self.larch.e0 = int(edge[edge.find('(') + 1: edge.find(')')])

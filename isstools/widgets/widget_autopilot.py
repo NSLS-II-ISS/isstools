@@ -24,8 +24,6 @@ from pyzbar.pyzbar import decode as pzDecode
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 # plan_funcs,
-                 # service_plan_funcs,
                  motors_dict,
                  camera_dict,
                  hhm,
@@ -33,15 +31,16 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                  # db,
                  sample_stage,
                  parent_gui,
-
+                 service_plan_funcs,
+                 plan_funcs,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         #self.addCanvas()
         #
-        # self.plan_funcs = plan_funcs
-        # self.service_plan_funcs = service_plan_funcs
+        self.plan_funcs = plan_funcs
+        self.service_plan_funcs = service_plan_funcs
         # self.plan_funcs_names = plan_funcs.keys()
         # self.service_plan_funcs_names = service_plan_funcs.keys()
         #
@@ -68,7 +67,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.sheet = self.service_sheets.spreadsheets()
         # self.db = db
         # self.sample_stage = sample_stage
-        # self.parent_gui = parent_gui
+        self.parent_gui = parent_gui
         #
         # self.batch_mode_uids = []
         # self.sample_stage = sample_stage
@@ -240,6 +239,10 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                 self.tableWidget_sample_def.setItem(qtable_row_index, j, QtWidgets.QTableWidgetItem(item))
                             qtable_row_index += 1
 
+            combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number
+            combo_run.clear
+            for indx in range(len(self.batch_experiment)):
+                combo_run.addItem(str(indx + 1))
 
 
     def _check_entry(self, el, edge, energy, name, row):
@@ -272,11 +275,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         return False
 
 
+    def read_mirror_position(self):
+        mot = self.motors_dict['cm1_x']['object']
+        return mot.read()[mot.name]['value']
 
 
 
     def locate_samples(self):
-        self.get_qr_roi()
         full_stop = False
         for s in range(self.sample_positioner.n_stacks):
             for h in range(self.sample_positioner.n_holders):
@@ -289,7 +294,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 if holder_type == 2: # only one capillary holder is allowed per stack
                     break
             if full_stop:
-                print('no more holders found')
+                print('no more holders found', file=self.parent_gui.emitstream_out, flush=True)
                 break
 
         # mark samples that were not found:
@@ -299,13 +304,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
-        print(f'looking at stack:{idx_stack}, holder:{idx_holder}')
+        print(f'looking at stack:{idx_stack}, holder:{idx_holder}', file=self.parent_gui.emitstream_out, flush=True)
 
         self.sample_positioner.goto_holder(idx_stack, idx_holder)
         self.RE(bps.sleep(0.5))
         i_attempt = 0
         while i_attempt<n_attempts:
-            print('attempt:', i_attempt+1)
+            print('attempt:', i_attempt+1, file=self.parent_gui.emitstream_out, flush=True)
             qr_codes = self.read_qr_codes()
             if qr_codes:
                 for qr_code in qr_codes:
@@ -327,6 +332,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def read_qr_codes(self):
+        self.get_qr_roi()
         x1, x2, y1, y2 = self.qr_roi
         image_qr = self.camera_dict['camera_sample4'].image.image[y1:y2, x1:x2]
         return pzDecode(image_qr)
@@ -361,8 +367,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #               -mark the samples that were found in the table - done
         #               -mark the position of each sample - done
         # go through elements from low to high energy:
-        #               -prepare and tune the beamline for each energy
-        #               -(tbd) vibrations handling - done?
+        #               -prepare and tune the beamline for each energy - done
+        #               -(tbd) vibrations handling - done
         #               -set trajectory
         #               -sample optimization, aka gain setting, spiral scan etc
 
@@ -370,12 +376,18 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.locate_samples() # go through all samples on the holder and confirm that all of them are found
 
         # generate order
+
         exec_order = np.argsort([float(i['Energy']) for i in self.batch_experiment])
+        cm1_x_pos = self.read_mirror_position()
+        if cm1_x_pos>20:
+            exec_order = exec_order[::-1]
+        print(exec_order)
         n_measurements = len(self.batch_experiment)
 
         current_energy = None
-
-        for i in range(n_measurements):
+        print(current_energy, flush=True)
+        # for i in range(n_measurements):
+        for i in [8]:
             idx = exec_order[i]
             step = self.batch_experiment[idx]
             if step['found']:
@@ -390,24 +402,34 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 #        step['k-range'],
                 #        10, # t1
                 #        20 * float(step['k-range'])/16))
-                if ((not current_energy) or
-                        (abs(current_energy - step['Energy']) > 0.1 * current_energy)):
-                    current_energy = step['Energy']
-                    print(i, current_energy)
-                    # park stage before tuning?
-                    # tune beamline and whateverggg
-
-                if current_energy < 14000:
-                    mirror_position = 40
-                else:
-                    mirror_position = 0
-
-                self.RE(bps.mv(self.motors_dict['cm1_x'], mirror_position))
 
 
+                print(current_energy)
+                print(step['Energy'])
+                # if ((not current_energy) or
+                #         (abs(current_energy - step['Energy']) > 0.1 * current_energy)):
+                #     current_energy = step['Energy']
+                    # self.sample_positioner.goto_park()
+                    # self.parent_gui.widget_beamline_setup.prepare_beamline(energy_setting=int(current_energy))
 
+                    # if current_energy < 14000:
+                    #     mirror_position = 0
+                    # else:
+                    #     mirror_position = 40
+                    # print('Checking/Moving CM1 mirror X ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
+                    # self.RE(bps.mv(self.motors_dict['cm1_x']['object'], mirror_position))
+                    # print('complete', file=self.parent_gui.emitstream_out, flush=True)
+                    # self.parent_gui.widget_beamline_setup.tune_beamline()
+                    # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=current_energy,
+                    #                                                          stdout=self.parent_gui.emitstream_out))
+                    # self.RE(self.service_plan_funcs['tune_beamline_plan'](stdout=self.parent_gui.emitstream_out))
+                    # print('Enabling feedback ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
+                    # self.parent_gui.widget_beamline_setup.update_piezo_center()
+                    # if  not self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.isChecked:
+                    #     self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.toggle()
+                    #
+                    # print('complete', file=self.parent_gui.emitstream_out, flush=True)
 
-                #
                 # experiment = Experiment(step['Sample label'],
                 #                         step['Comment'],
                 #                         step['# of scans'],
@@ -421,7 +443,28 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 #                         20 * float(step['k-range'])/16) # t2
                 # self.traj_stack.set_traj(experiment.traj_signature)
 
-                # gain setting
+                self.sample_positioner.goto_sample(*step['position'])
+                print('seting gains/offsets ', file=self.parent_gui.emitstream_out, flush=True)
+                self.RE(self.service_plan_funcs['adjust_ic_gains']())
+                self.RE(self.service_plan_funcs['get_offsets'](time=2))
+                print('seting gains/offsets complete', file=self.parent_gui.emitstream_out, flush=True)
+                #
+                # plan_func = self.plan_funcs['Fly scan (new PB)']
+                #
+                # RE_args = [plan_func(**experiment.run_parameters,
+                #                      ignore_shutter=False,
+                #                      stdout=self.parent_gui.emitstream_out)]
+
+                # if plan_key.lower().endswith('pilatus'):
+                #     LivePlots.append(LivePlotPilatus)
+                #
+                # if plan_key.lower().startswith('step scan'):
+                #     RE_args.append(LivePlots)
+
+
+                self.RE(*RE_args)
+
+                # gains and offsets
                 # spiral scan
                 # measurement
 
