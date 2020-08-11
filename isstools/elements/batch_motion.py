@@ -100,6 +100,11 @@ class SamplePositioner:
         self.RE(bps.mv(self.sample_stage.y, giant_y))
 
 
+    def goto_xy(self, x, y):
+        self.RE(bps.mv(self.sample_stage.x, x))
+        self.RE(bps.mv(self.sample_stage.y, y))
+
+
     # def get_stack_holder_list(self):
     #     self.stack_holder_list = []
     #     for i in range(1, 10):
