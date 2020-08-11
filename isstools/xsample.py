@@ -42,6 +42,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  rga_masses = [],
                  temps = [],
                  temps_sp = [],
+                 heater_enable1 = [],
                  RE = [],
                  archiver = [],
                  *args, **kwargs):
@@ -54,6 +55,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.rga_masses = rga_masses
         self.temps = temps
         self.temps_sp = temps_sp
+        self.heater_enable1 = heater_enable1
+
         self.RE = RE
         self.archiver = archiver
         self.timer_update_time = QtCore.QTimer(self)
@@ -61,12 +64,13 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_update_time.timeout.connect(self.update_status)
         self.timer_update_time.start()
 
+        self.program_update_time = 1 # time interval at which program set point is updated
         self.timer_program = QtCore.QTimer(self)
-        self.timer_program.setInterval(1000)
+        self.timer_program.setInterval(self.program_update_time*1000)
         self.timer_program.timeout.connect(self.update_temp_sp)
 
-
-        self.push_temperature_program.clicked.connect(self.temperature_program)
+        self.push_visualize_program.clicked.connect(self.visualize_program)
+        self.push_start_program.clicked.connect(self.start_program)
 
         self.spinBox_CH4.valueChanged.connect(self.set_mfc_cart_flow)
         self.spinBox_CO.valueChanged.connect(self.set_mfc_cart_flow)
@@ -87,6 +91,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.tableWidget_program.setColumnCount(2)
         self.tableWidget_program.setRowCount(10)
         self.tableWidget_program.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
+
+        self.program_sps = None
         self.plot_program = False
 
 
@@ -187,9 +193,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
             self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
             if self.plot_program:
+                if self.program_plot_moving_flag:
+                    self.update_plot_program_data()
                 self.figure_temp.ax.plot(self.program_dataset['time'],
                                          self.program_dataset['data'], 'k:', label='T program')
-                XLIM[1] = self.program_dataset['time'].iloc[-1]
+                XLIM[1] = np.max([self.program_dataset['time'].iloc[-1], dataset1['time'].iloc[-1] + timedelta(hours=-4)])
 
 
             self.figure_temp.ax.xaxis.set_major_formatter(data_format)
@@ -216,8 +224,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         mfc_dict[sender_name].flow.put(value)
 
 
+    def visualize_program(self):
+        if self.program_sps is None:
+            self.read_program_data()
+        self.program_plot_moving_flag = True
+        self.update_status()
 
-    def temperature_program(self):
+
+
+    def read_program_data(self):
         print('Starting the Temperature program')
         table = self.tableWidget_program
         nrows = table.rowCount()
@@ -231,32 +246,35 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 try:
                     times.append(float(this_time.text()))
                 except:
-                    message_box('Error','Time must be numerical' )
+                    message_box('Error', 'Time must be numerical')
                     raise ValueError('time must be numerical')
                 try:
                     temps.append(float(this_temp.text()))
                 except:
                     message_box('Error', 'Temperature must be numerical')
                     raise ValueError('Temperature must be numerical')
-                
 
         times = np.hstack((0, np.array(times))) * 60
         temps = np.hstack((self.temps[0].get(), np.array(temps)))
         print('times', times, 'temperatures', temps)
-        self.program_time = np.arange(times[0], times[-1] + 1)
-        datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in (ttime.time() + self.program_time)]
-        self.program_sps = np.interp(self.program_time, times, temps)
-        self.program_dataset = pd.DataFrame({'time' : pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
-                                             'data' : self.program_sps})
+        self.program_time = np.arange(times[0], times[-1] + self.program_update_time, self.program_update_time)
 
+        self.program_sps = np.interp(self.program_time, times, temps)
         self.plot_program = True
+        self.update_plot_program_data()
+
+
+
+
+    def start_program(self):
+        if self.program_sps is None:
+            self.read_program_data()
+        self.program_plot_moving_flag = False
+
         self.program_idx = 0
         self.init_time = ttime.time()
+        self.RE(bps.mv(self.heater_enable1, 1))
         self.timer_program.start()
-
-        # plt.figure()
-        # plt.plot(times, temps, 'ko-')
-        # plt.plot(time_grid, self.programs_sps, 'r.-')
 
 
         # for this_time, this_temp in zip(times, temps):
@@ -267,6 +285,13 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         #     self.timer_program.start()
         #     while self.temps[0].get() - 7
 
+    def update_plot_program_data(self):
+        datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in
+                     (ttime.time() + self.program_time)]
+        self.program_dataset = pd.DataFrame({'time': pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
+                                             'data': self.program_sps})
+
+
 
     def update_temp_sp(self):
         current_time = ttime.time()
@@ -274,9 +299,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             this_sp = self.program_sps[self.program_idx]
         except IndexError:
             this_sp = self.program_sps[-1]
-        # print('time passed:', current_time - self.init_time, 'index:', self.program_idx, 'setpoint:', this_sp)
-        # self.temps_sp[0].put(this_sp)
+            self.timer_program.stop()
+        print('time passed:', current_time - self.init_time, 'index:', self.program_idx, 'setpoint:', this_sp)
+
+        self.temps_sp[0].put(this_sp)
         self.program_idx += 1
+
+
+
+
 
 
 

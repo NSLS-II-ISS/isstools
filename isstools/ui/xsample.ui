@@ -441,19 +441,19 @@ monoxide</string>
    <widget class="QTableWidget" name="tableWidget_program">
     <property name="geometry">
      <rect>
-      <x>1140</x>
-      <y>860</y>
+      <x>1130</x>
+      <y>850</y>
       <width>441</width>
       <height>301</height>
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_temperature_program">
+   <widget class="QPushButton" name="push_start_program">
     <property name="geometry">
      <rect>
-      <x>1140</x>
-      <y>1170</y>
-      <width>121</width>
+      <x>1130</x>
+      <y>1200</y>
+      <width>141</width>
       <height>31</height>
      </rect>
     </property>
@@ -464,9 +464,9 @@ monoxide</string>
    <widget class="QPushButton" name="push_pause_program">
     <property name="geometry">
      <rect>
-      <x>1300</x>
-      <y>1170</y>
-      <width>121</width>
+      <x>1280</x>
+      <y>1200</y>
+      <width>141</width>
       <height>31</height>
      </rect>
     </property>
@@ -480,14 +480,27 @@ monoxide</string>
    <widget class="QPushButton" name="push_stop_program">
     <property name="geometry">
      <rect>
-      <x>1460</x>
-      <y>1170</y>
-      <width>121</width>
+      <x>1430</x>
+      <y>1200</y>
+      <width>141</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Pause program</string>
+     <string>Stop program</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_visualize_program">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>1160</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Visualize program</string>
     </property>
    </widget>
   </widget>
