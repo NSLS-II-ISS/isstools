@@ -147,7 +147,7 @@
     <string>Send results</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_setup_cloud">
+  <widget class="QPushButton" name="push_cloud_setup">
    <property name="geometry">
     <rect>
      <x>570</x>
@@ -157,7 +157,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Set up Cloud</string>
+    <string>Cloud setup</string>
    </property>
   </widget>
  </widget>

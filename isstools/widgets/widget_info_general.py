@@ -51,7 +51,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             self.timer_update_user_info.singleShot(0, self.update_user_info)
             self.push_set_user_info.clicked.connect(self.set_user_info)
             self.push_send_results.clicked.connect(self.send_results)
-            self.push_setup_cloud.clicked.connect(self.setup_cloud)
+            self.push_cloud_setup.clicked.connect(self.cloud_setup)
 
         else:
             self.push_update_user.setEnabled(False)
@@ -143,10 +143,13 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         print('Email sent')
 
 
-    def setup_cloud(self):
+    def cloud_setup(self):
         year = self.RE.md['year']
         cycle = self.RE.md['cycle']
         proposal = self.RE.md['PROPOSAL']
+
+
+
 
 
 

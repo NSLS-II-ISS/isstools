@@ -16,8 +16,8 @@
   <widget class="QPushButton" name="push_run_autopilot">
    <property name="geometry">
     <rect>
-     <x>1410</x>
-     <y>800</y>
+     <x>1420</x>
+     <y>360</y>
      <width>196</width>
      <height>71</height>
     </rect>
