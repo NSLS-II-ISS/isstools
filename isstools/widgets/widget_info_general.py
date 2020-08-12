@@ -13,7 +13,9 @@ from isstools.dialogs.BasicDialogs import message_box
 import bluesky.plan_stubs as bps
 
 from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
+from isscloudtools.slack import *
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
+from isscloudtools.dropbox import *
 import uuid
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_general.ui')
@@ -55,6 +57,16 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
         else:
             self.push_update_user.setEnabled(False)
+
+        try:
+            self.slack_client_bot, self.slack_client_oath = get_slack_service()
+            self.gmail_service = get_gmail_service()
+            self.dropbox_service = get_dropbox_service()
+        except:
+            self.push_cloud_setup.setEnable(False)
+            self.push_send_results.setEnable(False)
+
+
 
     def update_weather(self):
         try:
@@ -121,25 +133,24 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             os.remove(zip_file)
 
         os.system(f'zip {zip_file} {working_directory}/*.dat ')
-        dropbox_service =  get_dropbox_service()
-        with open(zip_file,"rb") as f:
-            file_id = dropbox_service.files_upload(f.read(),f'/{year}/{cycle}/{zip_id_file}')
+        folder = f'/{year}/{cycle}/'
+        dropbox_upload_files(self.dropbox_service, zip_file,folder,zip_id_file)
 
-
-        file_link = dropbox_service.sharing_create_shared_link(f'/{year}/{cycle}/{zip_id_file}')
-        link_url =  file_link.url
+        link_url = dropbox_get_shared_link(self.dropbox_service, f'{folder}{zip_id_file}' )
         print('Upload succesful')
 
-        gmail_service = get_gmail_service()
+
         message = create_html_message(
             'staff08id@gmail.com',
             email_address,
             f'ISS beamline results Proposal {proposal}',
-            f' <p> Dear {PI},</p> <p>You can download the result of your experiment at ISS under proposal {proposal} here,</p> <p> {link_url} </p> <p> Sincerely, </p> <p> ISS Staff </p>'
+            f' <p> Dear {PI},</p> <p>You can download the result of your'
+            f' experiment at ISS under proposal {proposal} here,</p> <p> {link_url} '
+            f'</p> <p> Sincerely, </p> <p> ISS Staff </p>'
             )
 
-        draft = upload_draft(gmail_service, message)
-        sent = send_draft(gmail_service, draft)
+        draft = upload_draft(self.gmail_service, message)
+        sent = send_draft(self.gmail_service, draft)
         print('Email sent')
 
 
@@ -147,6 +158,54 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         year = self.RE.md['year']
         cycle = self.RE.md['cycle']
         proposal = self.RE.md['PROPOSAL']
+        PI = self.RE.md['PI']
+        slack_channel = f'{year}-{cycle}-{proposal}'
+        channel_id,channel_info = slack_channel_exists(self.slack_client_bot,slack_channel)
+        print(channel_id)
+        if not channel_id:
+            print('Slack channel not found, Creating new channel...')
+            channel_id, channel_info = slack_create_channel(self.slack_client_bot, slack_channel)
+            slack_invite_to_channel(self.slack_client_bot,channel_id)
+
+
+        slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
+
+        dropbox_folder =f'/{year}/{cycle}/{proposal}'
+        if not dropbox_folder_exists(self.dropbox_service,dropbox_folder):
+            dropbox_create_folder(self.dropbox_service, dropbox_folder)
+
+        dropbox_url = dropbox_get_shared_link(self.dropbox_service,dropbox_folder)
+
+        dlg = GetEmailAddress.GetEmailAddress('', parent=self)
+        if dlg.exec_():
+            email_address = dlg.getValue()
+            regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+            if re.search(regex, email_address):
+                 #print(f'email {email_address}')
+                pass
+            else:
+                message_box('Error', 'Invaild email')
+                return 0
+
+
+        message = create_html_message(
+            'staff08id@gmail.com',
+            email_address,
+            f'ISS beamline results Proposal {proposal}',
+            f'<p> Dear {PI},</p> '
+            f'<p>Slack channel to monitor yor experiemnt is {slack_url} </p>'
+            f'<p>Data files will be uploaded to Dropbox folder at {dropbox_url} </p>'
+            f'<p> Sincerely, </p> '
+            f'<p> ISS Staff </p>'
+            )
+
+        draft = upload_draft(self.gmail_service, message)
+        sent = send_draft(self.gmail_service, draft)
+        print('Email sent')
+
+
+
+
 
 
 

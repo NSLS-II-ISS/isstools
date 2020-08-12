@@ -1,2 +1,4 @@
 numexpr
+pyzbar
+slackclient
 
