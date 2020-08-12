@@ -137,7 +137,7 @@
   <widget class="QPushButton" name="push_send_results">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>460</x>
      <y>80</y>
      <width>101</width>
      <height>21</height>
@@ -145,6 +145,19 @@
    </property>
    <property name="text">
     <string>Send results</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_setup_cloud">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>80</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set up Cloud</string>
    </property>
   </widget>
  </widget>
