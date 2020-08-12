@@ -15,6 +15,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
 
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
 from xas.trajectory import trajectory, trajectory_manager
+from xas.image_analysis import analyze_spiral_scan
 
 import time as ttime
 from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
@@ -508,7 +509,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 #
                 # if plan_key.lower().startswith('step scan'):
                 #     RE_args.append(LivePlots)
-
+                self.optimize_sample_position()
 
                 self.RE(*RE_args)
 
@@ -516,6 +517,12 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 # spiral scan
                 # measurement
 
+    def optimize_sample_position(self, conc):
+        uid = self.RE(self.service_plan_funcs['spiral_scan']())
+        if type(uid) == tuple:
+            uid = uid[0]
+        x_opt, y_opt = analyze_spiral_scan(uid, conc)
+        self.sample_positioner.goto_xy(x_opt, y_opt)
 
 
 
