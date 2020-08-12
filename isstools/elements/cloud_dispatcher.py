@@ -1,4 +1,5 @@
 from isscloudtools.initialize import get_dropbox_service
+from isscloudtools.dropbox import *
 from xas.file_io import load_binned_df_from_file
 import os
 
@@ -21,10 +22,7 @@ class CloudDispatcher():
                 d[x[0]] = x[1]
 
         dn = '/{}/{}/{}/'.format(d['Year'], d['Cycle'], d['Proposal']).replace(' ', '')
-        fn = '{}{}'.format(dn, os.path.basename(path))
-        with open(path, "rb") as f:
-            file_id = self.dropbox_service.files_upload(f.read(), fn)
-
+        dropbox_upload_files(self.dropbox_service,path, dn, os.path.basename(path))
 
 
 
