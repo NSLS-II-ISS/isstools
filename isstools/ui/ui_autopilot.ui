@@ -110,6 +110,25 @@
     <string>Validate samples</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="push_export_as_batch">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>620</y>
+     <width>196</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="text">
+    <string>Export as batch</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

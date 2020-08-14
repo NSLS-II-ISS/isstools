@@ -58,7 +58,6 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.traj_stack = TrajectoryStack(self.hhm)
 
-
         self.RE = RE
 
         self.sample_stage = sample_stage
@@ -73,6 +72,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.push_select_proposals.clicked.connect(self.select_proposals)
         self.push_run_autopilot.clicked.connect(self.run_autopilot)
         self.push_validate_samples.clicked.connect(self.validate_samples)
+        self.push_export_as_batch.clicked.connect(self.export_as_batch)
 
         self.read_json_data()
         self.table_keys = ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
@@ -157,7 +157,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
     def select_proposals(self):
         self.tableWidget_sample_def.setRowCount(0)
-        self.sample_df = pd.DataFrame(self.table_keys)
+        self.sample_df = pd.DataFrame(columns=self.table_keys)
         selected_items = [i.data() for i in self.tableWidget_proposal.selectedIndexes() if i.column()==0]
         selected_file_ids = []
 
@@ -195,7 +195,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.sample_df_to_table_widget()
         combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number #???
         combo_run.clear
-        for indx in range(len(self.batch_experiment)):
+        for indx, _ in self.sample_df.iterrows():
             combo_run.addItem(str(indx + 1))
 
 
@@ -211,20 +211,36 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def update_sample_df(self, row, column):
-        print(row, column)
+        # print(row, column)
         self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
-    def export_to_batch(self):
-        # self.model_batch = self.parent_gui.widget_batch.widget_batch_manual.model_batch
-        # self.model_samples = self.parent_gui.widget_batch.widget_batch_manual.model_samples
-        # self.model_scans = self.parent_gui.widget_batch.widget_batch_manual.model_scans
+    def export_as_batch(self):
         self.model_batch = QtGui.QStandardItemModel(self)
         self.model_samples = QtGui.QStandardItemModel(self)
         self.model_scans = QtGui.QStandardItemModel(self)
 
+        # formatting dataframe
+        self.sample_df['Energy'] = self.sample_df['Energy'].astype(float)
+        self.sample_df['k-range'] = self.sample_df['k-range'].astype(float)
+        self.sample_df['# of scans'] = self.sample_df['# of scans'].astype(int)
+        self.sample_df = self.sample_df.replace({'True' : True, 'False': False})
+
+        ascending = (self.read_mirror_position() < 20)
+        self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
+
+        # for row in self.sample_df.rows:
+        #     if row['Found']:
+        #         self.
 
 
+
+        # self.model_batch = self.parent_gui.widget_batch.widget_batch_manual.model_batch
+        # self.model_samples = self.parent_gui.widget_batch.widget_batch_manual.model_samples
+        # self.model_scans = self.parent_gui.widget_batch.widget_batch_manual.model_scans
+        # self.model_batch = QtGui.QStandardItemModel(self)
+        # self.model_samples = QtGui.QStandardItemModel(self)
+        # self.model_scans = QtGui.QStandardItemModel(self)
 
 
 
