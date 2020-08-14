@@ -22,6 +22,10 @@ from isstools.batch.autopilot_routines import Experiment, TrajectoryStack
 from isstools.elements.batch_motion import SamplePositioner
 import bluesky.plan_stubs as bps
 from pyzbar.pyzbar import decode as pzDecode
+import pandas as pd
+
+from isstools.elements.batch_elements import *
+from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -54,114 +58,37 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.traj_stack = TrajectoryStack(self.hhm)
 
-        # self.traj_manager = trajectory_manager(hhm)
-        #
 
         self.RE = RE
 
         self.sample_stage = sample_stage
-        # self.sample_positioner = SamplePositioner() # define it somehow
         self.settings = parent_gui.settings
 
         self.service = initialize.get_gdrive_service()
         self.service_sheets = initialize.get_gsheets_service()
         self.sheet = self.service_sheets.spreadsheets()
-        # self.db = db
-        # self.sample_stage = sample_stage
-        self.parent_gui = parent_gui
-        #
-        # self.batch_mode_uids = []
-        # self.sample_stage = sample_stage
-        #
-        # self.widget_batch_manual = widget_batch_manual.UIBatchManual(self.plan_funcs,
-        #                                                              self.service_plan_funcs,
-        #                                                              self.hhm,
-        #                                                              self.motors_dict,
-        #                                                              sample_stage=self.sample_stage
-        #                                                             )
-        #
-        # self.layout_batch_manual.addWidget(self.widget_batch_manual)
-        #
-        #
-        #
 
-        #
-        # self.layout_batch_manual
-        #print
-        # self.batch_running = False
-        # self.batch_pause = False
-        # self.batch_abort = False
-        # self.batch_results = {}
-        #
-        #
-        #
+        self.parent_gui = parent_gui
         self.push_proposal_list.clicked.connect(self.get_proposal_list_gdrive)
         self.push_select_proposals.clicked.connect(self.select_proposals)
         self.push_run_autopilot.clicked.connect(self.run_autopilot)
-        #
-        #
+        self.push_validate_samples.clicked.connect(self.validate_samples)
 
         self.read_json_data()
-        #
-        # #setting up sample table
-        # pushButtons_load = [self.pushButton_load_sample_def_11,
-        #                     self.pushButton_load_sample_def_12,
-        #                     self.pushButton_load_sample_def_13,
-        #                     self.pushButton_load_sample_def_21,
-        #                     self.pushButton_load_sample_def_22,
-        #                     self.pushButton_load_sample_def_23,
-        #                     self.pushButton_load_sample_def_31,
-        #                     self.pushButton_load_sample_def_32,
-        #                     self.pushButton_load_sample_def_33
-        #                     ]
-        # for button in  pushButtons_load:
-        #     button.clicked.connect(self.load_sample_definition)
-        # #%getattr(self, f'pushButton_show_sample_def_{i}')
-        # pushButtons_show = [self.pushButton_show_sample_def_11,
-        #                     self.pushButton_show_sample_def_12,
-        #                     self.pushButton_show_sample_def_13,
-        #                     self.pushButton_show_sample_def_21,
-        #                     self.pushButton_show_sample_def_22,
-        #                     self.pushButton_show_sample_def_23,
-        #                     self.pushButton_show_sample_def_31,
-        #                     self.pushButton_show_sample_def_32,
-        #                     self.pushButton_show_sample_def_33
-        #                     ]
-        # for button in pushButtons_show:
-        #     button.clicked.connect(self.show_sample_definition)
-        #
-        # self.coordinates = ['11',
-        #                     '12',
-        #                     '13',
-        #                     '21',
-        #                     '22',
-        #                     '23',
-        #                     '31',
-        #                     '32',
-        #                     '33']
-        # for x in self.coordinates:
-        #     getattr(self,'pushButton_update_reference_{}'.format(x)).clicked.connect(self.update_reference)
-        #
-        # self.push_run_spreadsheet_batch.clicked.connect(self.run_spreadsheet_batch)
-        #
-        #
-        #
-        # self.tableWidget_sample_def.setColumnCount(7)
         self.table_keys = ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
-                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans' ]
+                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Found', 'Position', 'Holder type' ]
 
 
         self.tableWidget_sample_def.setColumnCount(len(self.table_keys))
         self.tableWidget_sample_def.setHorizontalHeaderLabels(self.table_keys)
-        # self.listWidget_proposals.itemSelectionChanged().connect(self.display_proposal_info)
+        self.tableWidget_sample_def.cellChanged.connect(self.update_sample_df)
+        self.sample_df = pd.DataFrame(columns=self.table_keys)
 
         self.tableWidget_proposal.setColumnCount(2)
         self.tableWidget_proposal.setHorizontalHeaderLabels(['Proposal', 'PI'])
         self.tableWidget_proposal.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.tableWidget_proposal.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        # for j in range(7):
-        #     self.tableWidget_sample_def.setColumnWidth(j,widths[j])
-        # #doen setting table
+
 
 
     def read_json_data(self):
@@ -188,13 +115,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
         if files:
-            # self.listWidget_proposals.clear()
             self.tableWidget_proposal.setRowCount(0)
             for file in files:
                 fn= file['name']
                 if str.isnumeric(fn) and len(fn)==6:
                     found_flag = True
-                    # self.listWidget_proposal.addItem(fn)
                     self.tableWidget_proposal.insertRow(ptable_row_index)
 
                     self.tableWidget_proposal.setItem(ptable_row_index, 0, QtWidgets.QTableWidgetItem(fn))
@@ -230,26 +155,19 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-    # def display_proposal_info(self):
-    #
-    #
-    #     self.label_proposal_info.setText('Here')
-
-
-
     def select_proposals(self):
         self.tableWidget_sample_def.setRowCount(0)
-        # selected_items = (self.listWidget_proposals.selectedItems())
+        self.sample_df = pd.DataFrame(self.table_keys)
         selected_items = [i.data() for i in self.tableWidget_proposal.selectedIndexes() if i.column()==0]
         selected_file_ids = []
 
         for item in selected_items:
-            # file_id = self.file_ids[item.text() == self.file_names]
             file_id = self.file_ids[item == self.file_names]
             selected_file_ids.append(file_id[0])
 
-        self.batch_experiment = []
+        # self.batch_experiment = []
         qtable_row_index = 0
+        df_row_index = 0
 
         for file_id, name in zip(selected_file_ids, selected_items):
             result = self.sheet.values().get(spreadsheetId=file_id, range='Sheet1').execute()
@@ -269,33 +187,44 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     nscanss = row[12::6]
 
                     for el, el_conc, edge, energy, krange, nscans in zip(els, el_concs, edges, energies, kranges, nscanss):
-                        # if self._check_entry(el, edge, float(energy), name.text(), i):
                         if self._check_entry(el, edge, float(energy), name, i):
-                            entry_list = sample_info + [el, el_conc, edge, energy, krange, nscans]
-                            entry = {}
-                            for key, value in zip(self.table_keys, entry_list):
-                                if key in ['Energy', 'k-range']:
-                                    entry[key] = float(value)
-                                elif key in ['# of scans']:
-                                    entry[key] = int(value)
-                                else:
-                                    entry[key] = value
-                            self.batch_experiment.append(entry)
+                            entry_list = sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '', '']
+                            self.sample_df.loc[df_row_index] = entry_list
+                            df_row_index += 1
 
-                            # update table in the widget
-                            self.tableWidget_sample_def.insertRow(qtable_row_index)
-                            for j, item in enumerate(entry_list):
-                                self.tableWidget_sample_def.setItem(qtable_row_index, j, QtWidgets.QTableWidgetItem(item))
-                            qtable_row_index += 1
-
-            combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number
-            combo_run.clear
-            for indx in range(len(self.batch_experiment)):
-                combo_run.addItem(str(indx + 1))
+        self.sample_df_to_table_widget()
+        combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number #???
+        combo_run.clear
+        for indx in range(len(self.batch_experiment)):
+            combo_run.addItem(str(indx + 1))
 
 
+    def sample_df_to_table_widget(self):
+        self.tableWidget_sample_def.cellChanged.disconnect()
+        nrows = self.sample_df.shape[0]
+        for i in range(nrows):
+            entry_list = list(self.sample_df.iloc[i])
+            self.tableWidget_sample_def.insertRow(i)
+            for j, item in enumerate(entry_list):
+                self.tableWidget_sample_def.setItem(i, j, QtWidgets.QTableWidgetItem(item))
+        self.tableWidget_sample_def.cellChanged.connect(self.update_sample_df)
 
-    # def export_to_batch(self):
+
+    def update_sample_df(self, row, column):
+        print(row, column)
+        self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
+
+
+    def export_to_batch(self):
+        # self.model_batch = self.parent_gui.widget_batch.widget_batch_manual.model_batch
+        # self.model_samples = self.parent_gui.widget_batch.widget_batch_manual.model_samples
+        # self.model_scans = self.parent_gui.widget_batch.widget_batch_manual.model_scans
+        self.model_batch = QtGui.QStandardItemModel(self)
+        self.model_samples = QtGui.QStandardItemModel(self)
+        self.model_scans = QtGui.QStandardItemModel(self)
+
+
+
 
 
 
@@ -337,7 +266,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-    def locate_samples(self):
+    def validate_samples(self):
+        self.get_sample_positioner()  # handle on sample positioner
         full_stop = False
         for s in range(self.sample_positioner.n_stacks):
             for h in range(self.sample_positioner.n_holders):
@@ -354,12 +284,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 break
 
         # mark samples that were not found:
-        for step in self.batch_experiment:
-            if 'found' not in step.keys():
-                step['found'] = False
+        for index, row in self.sample_df.iterrows():
+            if not row['Found']:
+                self.tableWidget_sample_def.setItem(index, 13, QtWidgets.QTableWidgetItem('False'))
 
 
     def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
+
         print(f'looking at stack:{idx_stack}, holder:{idx_holder}', file=self.parent_gui.emitstream_out, flush=True)
 
         self.sample_positioner.goto_holder(idx_stack, idx_holder)
@@ -373,13 +304,14 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     qr_text = qr_code.data.decode('utf8')
                     proposal, holder_type, holder_id = qr_text.split('-')
                     found_holder = False
-                    for step in self.batch_experiment:
-                        if ((step['Proposal'] == proposal) and
-                            (step['Sample holder ID'] == holder_id)):
+                    for index, row in self.sample_df.iterrows():
+                        if ((row['Proposal'] == proposal) and
+                            (row['Sample holder ID'] == holder_id)):
+                            position = str(idx_stack) + str(idx_holder) + row['Sample #']
+                            self.tableWidget_sample_def.setItem(index, 13, QtWidgets.QTableWidgetItem('True'))
+                            self.tableWidget_sample_def.setItem(index, 14, QtWidgets.QTableWidgetItem(position))
+                            self.tableWidget_sample_def.setItem(index, 15, QtWidgets.QTableWidgetItem(holder_type))
                             found_holder = True
-                            step['found'] = True
-                            step['position'] = [idx_stack, idx_holder, int(step['Sample #'])]
-                            step['holder type'] = holder_type
                     return found_holder, holder_type
 
             else:
