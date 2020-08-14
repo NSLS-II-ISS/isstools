@@ -5,14 +5,15 @@ from PyQt5 import uic
 from bluesky.plan_stubs import mv
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
+from isstools.widgets import widget_autopilot
 from isstools.dialogs.BasicDialogs import message_box
 from random import random
 
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_mode.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch.ui')
 
 
-class UIBatchMode(*uic.loadUiType(ui_path)):
+class UIBatch(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
                  service_plan_funcs,
@@ -20,6 +21,8 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                  RE,
                  sample_stage,
                  parent_gui,
+                 motors_dict,
+                 camera_dict,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -36,11 +39,22 @@ class UIBatchMode(*uic.loadUiType(ui_path)):
                                                                      hhm,
                                                                      sample_stage=sample_stage
                                                                      )
+        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict,
+                                                             camera_dict,
+                                                             hhm,
+                                                             RE,
+                                                             # db,
+                                                             sample_stage,
+                                                             parent_gui,
+                                                             service_plan_funcs,
+                                                             plan_funcs)
+
 
         self.layout_batch_manual.addWidget(self.widget_batch_manual)
-        self.push_run_batch_manual.clicked.connect(self.run_batch_manual)
+        self.layout_autopilot.addWidget(self.widget_autopilot)
+        self.push_run_batch.clicked.connect(self.run_batch)
 
-    def run_batch_manual(self):
+    def run_batch(self):
         print('[Batch scan] Starting...')
         batch = self.widget_batch_manual.treeView_batch.model()
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))

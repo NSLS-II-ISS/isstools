@@ -8,16 +8,16 @@ from PyQt5 import uic, QtGui, QtCore
 from PyQt5.QtCore import QThread, QSettings
 
 from .widgets import (widget_info_general,
-                              widget_trajectory_manager,
-                              widget_processing,
-                              widget_batch_mode,
-                              widget_run,
-                              widget_beamline_setup,
-                              widget_sdd_manager,
-                              widget_info_shutters,
-                              widget_info_beamline,
-                              widget_camera,
-                              widget_autopilot)
+                      widget_trajectory_manager,
+                      widget_processing,
+                      widget_batch,
+                      widget_run,
+                      widget_beamline_setup,
+                      widget_sdd_manager,
+                      widget_info_shutters,
+                      widget_info_beamline,
+                      widget_camera,
+                      widget_autopilot)
 
 
 from .elements.emitting_stream import EmittingStream
@@ -119,13 +119,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
 
-        self.widget_batch_mode = widget_batch_mode.UIBatchMode(plan_funcs,
-                                                                      service_plan_funcs,
-                                                                      hhm,
-                                                                      RE,
-                                                                      sample_stage,
-                                                                      self,
-                                                                      )
+        self.widget_batch_mode = widget_batch.UIBatch(plan_funcs,
+                                                      service_plan_funcs,
+                                                      hhm,
+                                                      RE,
+                                                      sample_stage,
+                                                      self,
+                                                      motors_dict,
+                                                      camera_dict,
+                                                      )
         self.layout_batch.addWidget(self.widget_batch_mode)
 
         self.widget_trajectory_manager.trajectoriesChanged.connect(self.widget_batch_mode.widget_batch_manual.update_batch_traj)
@@ -170,8 +172,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
-        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self, service_plan_funcs, plan_funcs)
-        self.layout_autopilot.addWidget(self.widget_autopilot)
+        # self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self, service_plan_funcs, plan_funcs)
+        # self.layout_autopilot.addWidget(self.widget_autopilot)
 
         cloud_dispatcher = CloudDispatcher()
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,

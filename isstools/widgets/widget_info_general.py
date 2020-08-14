@@ -169,6 +169,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
 
         slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
+        self.RE.md['slack_channel'] = channel_id
 
         dropbox_folder =f'/{year}/{cycle}/{proposal}'
         if not dropbox_folder_exists(self.dropbox_service,dropbox_folder):

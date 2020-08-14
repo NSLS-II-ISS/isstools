@@ -9,22 +9,8 @@ from xas.trajectory import trajectory_manager
 from isstools.dialogs.BasicDialogs import message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
-
-path_icon_experiment = pkg_resources.resource_filename('isstools', 'icons/experiment.png')
-icon_experiment = QtGui.QIcon()
-icon_experiment.addPixmap(QtGui.QPixmap(path_icon_experiment), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-
-path_icon_sample = pkg_resources.resource_filename('isstools', 'icons/sample.png')
-icon_sample = QtGui.QIcon()
-icon_sample.addPixmap(QtGui.QPixmap(path_icon_sample), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-
-path_icon_scan = pkg_resources.resource_filename('isstools', 'icons/scan.png')
-icon_scan = QtGui.QIcon()
-icon_scan.addPixmap(QtGui.QPixmap(path_icon_scan), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-
-path_icon_service = pkg_resources.resource_filename('isstools', 'icons/service.png')
-icon_service = QtGui.QIcon()
-icon_service.addPixmap(QtGui.QPixmap(path_icon_service), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+from isstools.elements.batch_elements import *
+from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 
 
 
@@ -95,17 +81,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     '''
 
     def create_batch_experiment(self):
-        parent = self.model_batch.invisibleRootItem()
-        batch_experiment = 'Batch experiment "{}" repeat {} times'\
-            .format(self.lineEdit_batch_experiment_name.text(), self.spinBox_sample_loop_rep.value())
-        new_item = QtGui.QStandardItem(batch_experiment)
-        new_item.name = batch_experiment
-        new_item.setEditable(False)
-        new_item.setDropEnabled(True)
-        new_item.item_type = 'experiment'
-        new_item.repeat=self.spinBox_sample_loop_rep.value()
-        new_item.setIcon(icon_experiment)
-        parent.appendRow(new_item)
+        experiment_name = self.lineEdit_batch_experiment_name.text()
+        experiment_rep = self.spinBox_exp_rep.value()
+        _create_batch_experiment(self.model_batch, experiment_name, experiment_rep)
+
+
 
     '''
     General methods used more than once
@@ -135,25 +115,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with samples
     '''
     def create_new_sample(self):
-        if self.lineEdit_sample_name.text():
-            x = self.spinBox_sample_x.value()
-            y = self.spinBox_sample_y.value()
-            name = self.lineEdit_sample_name.text()
-            comment = self.lineEdit_sample_comment.text()
-            item = QtGui.QStandardItem(f'{name} at X {x} Y {y}')
-            item.setDropEnabled(False)
-            item.item_type = 'sample'
-            item.setCheckable(True)
-            item.setEditable(False)
-
-            item.x = x
-            item.y = y
-            item.name = name
-            item.comment = comment
-            item.setIcon(icon_sample)
-
-            parent = self.model_samples.invisibleRootItem()
-            parent.appendRow(item)
+        sample_name = self.lineEdit_sample_name.text()
+        if sample_name:
+            sample_x = self.spinBox_sample_x.value()
+            sample_y = self.spinBox_sample_y.value()
+            sample_comment = self.lineEdit_sample_comment.text()
+            _create_new_sample(self.model_samples, sample_name, sample_comment, sample_x, sample_y)
+            
             self.listView_samples.setModel(self.model_samples)
         else:
             message_box('Warning','Sample name is empty')
@@ -176,26 +144,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             view.model().removeRows(index.row(), 1)
 
     def create_new_scan(self):
-        if self.lineEdit_scan_name.text():
+        scan_name = self.lineEdit_scan_name.text()
+        if scan_name:
             scan_type= self.comboBox_scans.currentText()
-            traj = self.comboBox_lut.currentText()
-            repeat =  self.spinBox_scan_repeat.value()
-            delay = self.spinBox_scan_delay.value()
-            name = self.lineEdit_scan_name.text()
-            item = QtGui.QStandardItem(f'{scan_type} with {traj}, {repeat} times with {delay} s delay')
-            item.setDropEnabled(False)
-            item.item_type = 'scan'
-            item.scan_type = scan_type
-            item.trajectory = self.comboBox_lut.currentIndex()
-            item.repeat = repeat
-            item.name = name
-            item.delay = delay
-            item.setCheckable(True)
-            item.setEditable(False)
-            item.setIcon(icon_scan)
-
-            parent = self.model_scans.invisibleRootItem()
-            parent.appendRow(item)
+            scan_traj = self.comboBox_lut.currentText()
+            scan_repeat =  self.spinBox_scan_repeat.value()
+            scan_delay = self.spinBox_scan_delay.value()
+            # name = self.lineEdit_scan_name.text()
+            _create_new_scan(self.model_scans, scan_name, scan_type, scan_traj, scan_repeat, scan_delay)
+            
             self.listView_scans.setModel(self.model_scans)
         else:
             message_box('Warning','Scan name is empty')
@@ -224,14 +181,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                             for index in range(self.listView_samples.model().rowCount()):
                                 item_sample = self.listView_samples.model().item(index)
                                 if item_sample.checkState():
-                                    new_item_sample = self.clone_sample_item(item_sample)
+                                    new_item_sample = _clone_sample_item(item_sample)
                                     if self.listView_scans.model() is not None:
                                         scans_selected = 0
                                         for index in range(self.listView_scans.model().rowCount()):
                                             item_scan = self.listView_scans.model().item(index)
                                             if item_scan.checkState():
                                                 scans_selected = 1
-                                                new_item_scan = self.clone_scan_item(item_scan)
+                                                new_item_scan = _clone_scan_item(item_scan)
                                                 new_item_sample.appendRow(new_item_scan)
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
@@ -245,7 +202,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                             for index in range(self.listView_scans.model().rowCount()):
                                 item_scan = self.listView_scans.model().item(index)
                                 if item_scan.checkState():
-                                    new_item_scan = self.clone_scan_item(item_scan)
+                                    new_item_scan = _clone_scan_item(item_scan)
                                     print(f' Repeat {new_item_scan.repeat}')
                                     if self.listView_samples.model() is not None:
                                         samples_selected=0
@@ -253,7 +210,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                             item_sample = self.listView_samples.model().item(index)
                                             if item_sample.checkState():
                                                 samples_selected = 1
-                                                new_item_sample = self.clone_sample_item(item_sample)
+                                                new_item_sample = _clone_sample_item(item_sample)
                                                 new_item_scan.appendRow(new_item_sample)
                                                 new_item_scan.setCheckable(False)
                                                 new_item_scan.setEditable(False)
@@ -271,24 +228,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 else:
                     message_box('Warning', 'Select experiment before adding measurements')
 
-    def clone_sample_item(self, item_sample):
-        new_item_sample = QtGui.QStandardItem(item_sample.text())
-        new_item_sample.item_type = 'sample'
-        new_item_sample.x = item_sample.x
-        new_item_sample.y = item_sample.y
-        new_item_sample.name = item_sample.name
-        new_item_sample.setIcon(icon_sample)
-        return new_item_sample
-
-    def clone_scan_item(self, item_scan):
-        new_item_scan = QtGui.QStandardItem(item_scan.text())
-        new_item_scan.item_type = 'scan'
-        new_item_scan.trajectory = item_scan.trajectory
-        new_item_scan.scan_type = item_scan.scan_type
-        new_item_scan.repeat = item_scan.repeat
-        new_item_scan.delay = item_scan.delay
-        new_item_scan.name = item_scan.name
-        return new_item_scan
 
     '''
     Dealing with services
@@ -362,7 +301,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 for index in range(self.listView_scans.model().rowCount()):
                     item_scan = self.listView_scans.model().item(index)
                     if item_scan.checkState():
-                        new_item_scan = self.clone_scan_item(item_scan)
+                        new_item_scan = _clone_scan_item(item_scan)
                         #calculate_map
 
                         if self.radioButton_sample_map_1D.isChecked():

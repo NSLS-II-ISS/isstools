@@ -294,6 +294,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 combo_run.addItem(str(indx + 1))
 
 
+
+    # def export_to_batch(self):
+
+
+
+
+
     def _check_entry(self, el, edge, energy, name, row):
         info = f'Proposal: {name}, row: {row}, element: {el}, edge: {edge}, energy: {energy}'
         if el in self.element_dict.keys():

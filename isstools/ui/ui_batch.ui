@@ -45,11 +45,11 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="push_run_batch_manual">
+  <widget class="QPushButton" name="push_run_batch">
    <property name="geometry">
     <rect>
-     <x>1230</x>
-     <y>850</y>
+     <x>1410</x>
+     <y>860</y>
      <width>196</width>
      <height>36</height>
     </rect>
@@ -61,7 +61,7 @@
     </sizepolicy>
    </property>
    <property name="text">
-    <string>Run manual batch</string>
+    <string>Run batch</string>
    </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
@@ -98,31 +98,24 @@
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
-     <string>Automated batch mode</string>
+     <string>Autopilot</string>
     </attribute>
+    <widget class="QWidget" name="verticalLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>1606</width>
+       <height>781</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="layout_autopilot">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetNoConstraint</enum>
+      </property>
+     </layout>
+    </widget>
    </widget>
-  </widget>
-  <widget class="QPushButton" name="push_run_batch_manual_2">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>1430</x>
-     <y>850</y>
-     <width>196</width>
-     <height>36</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Run automated batch</string>
-   </property>
   </widget>
  </widget>
  <resources/>

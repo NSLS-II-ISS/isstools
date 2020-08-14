@@ -49,7 +49,7 @@
      <string> repeat</string>
     </property>
    </widget>
-   <widget class="QSpinBox" name="spinBox_sample_loop_rep">
+   <widget class="QSpinBox" name="spinBox_exp_rep">
     <property name="geometry">
      <rect>
       <x>290</x>
