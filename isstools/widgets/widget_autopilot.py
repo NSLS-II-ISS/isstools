@@ -75,8 +75,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.push_export_as_batch.clicked.connect(self.export_as_batch)
 
         self.read_json_data()
-        self.table_keys = ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
-                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Found', 'Position', 'Holder type' ]
+        self.table_keys = ['Found','Run','Proposal', 'SAF', 'Holder ID', 'Sample #', 'Name', 'Comment', 'Composition',
+                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type' ]
 
 
         self.tableWidget_sample_def.setColumnCount(len(self.table_keys))
@@ -130,6 +130,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                         self.tableWidget_proposal.setItem(ptable_row_index, 1,
                                                             QtWidgets.QTableWidgetItem('staff'))
                     ptable_row_index += 1
+            for jj in range(2):
+                self.tableWidget_proposal.resizeColumnToContents(jj)
         else:
             message_box('Error','No proposal definition files found')
 
@@ -188,7 +190,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
                     for el, el_conc, edge, energy, krange, nscans in zip(els, el_concs, edges, energies, kranges, nscanss):
                         if self._check_entry(el, edge, float(energy), name, i):
-                            entry_list = sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '', '']
+                            entry_list = ['',''] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
                             self.sample_df.loc[df_row_index] = entry_list
                             df_row_index += 1
 
@@ -207,12 +209,39 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             self.tableWidget_sample_def.insertRow(i)
             for j, item in enumerate(entry_list):
                 self.tableWidget_sample_def.setItem(i, j, QtWidgets.QTableWidgetItem(item))
+
+        self.checkBoxes_found = []
+        self.checkBoxes_run = []
+        for  i in range(nrows):
+            chkBoxItem = QtWidgets.QTableWidgetItem()
+            chkBoxItem.setFlags( QtCore.Qt.ItemIsEnabled)
+            chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+            self.tableWidget_sample_def.setItem(i,0,chkBoxItem)
+            self.checkBoxes_found.append(chkBoxItem)
+            chkBoxItem = QtWidgets.QTableWidgetItem()
+            chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+            chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+            self.tableWidget_sample_def.setItem(i, 1, chkBoxItem)
+            self.checkBoxes_run.append(chkBoxItem)
+
+
+
+
+        for jj in range(len(self.table_keys)):
+            self.tableWidget_sample_def.resizeColumnToContents(jj)
+
         self.tableWidget_sample_def.cellChanged.connect(self.update_sample_df)
 
 
     def update_sample_df(self, row, column):
-        # print(row, column)
-        self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
+        print(row, column)
+        if column = 1:
+            if self.checkBoxes_run[column].checkState():
+                self.sample_df.iloc[row][column] = True
+            else:
+                self.sample_df.iloc[row][column] = False
+        if column >1:
+            self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
     def export_as_batch(self):
