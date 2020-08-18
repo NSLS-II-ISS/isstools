@@ -43,24 +43,27 @@ class TrajectoryStack:
     #     return False
 
 
-    def set_traj(self, traj_signature):
+    def set_traj(self, traj_signature, slot_number=1):
         # if exists, then initialize it on the controller
-        for traj_index, slot in enumerate(self.slots):
-            if slot == traj_signature:
-                self.traj_manager.init(traj_index + 1)
-                return
+        if traj_signature:
+            for traj_index, slot in enumerate(self.slots):
+                if slot == traj_signature:
+                    self.traj_manager.init(traj_index + 1)
+                    return
 
-        # if it does not exist, put it on the controller on the available slot
-        for traj_index, slot in enumerate(self.slots):
-            if slot is None:
-                self.slots[traj_index] = copy.deepcopy(traj_signature)
-                self.create_new_trajectory(traj_signature, traj_index)
-                return
+            # if it does not exist, put it on the controller on the available slot
+            for traj_index, slot in enumerate(self.slots):
+                if slot is None:
+                    self.slots[traj_index] = copy.deepcopy(traj_signature)
+                    self.create_new_trajectory(traj_signature, traj_index)
+                    return
 
-        # if all slots are filled then FIFO
-        self.slots[self.most_recent] = copy.deepcopy(traj_signature)
-        self.create_new_trajectory(traj_signature, self.most_recent)
-        self.update_most_recent()
+            # if all slots are filled then FIFO
+            self.slots[self.most_recent] = copy.deepcopy(traj_signature)
+            self.create_new_trajectory(traj_signature, self.most_recent)
+            self.update_most_recent()
+        else:
+            self.traj_manager.init(slot_number)
 
 
 

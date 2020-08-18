@@ -23,7 +23,7 @@ from isstools.elements.batch_motion import SamplePositioner
 import bluesky.plan_stubs as bps
 from pyzbar.pyzbar import decode as pzDecode
 import pandas as pd
-
+from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 
@@ -70,7 +70,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.parent_gui = parent_gui
         self.push_proposal_list.clicked.connect(self.get_proposal_list_gdrive)
         self.push_select_proposals.clicked.connect(self.select_proposals)
-        self.push_run_autopilot.clicked.connect(self.run_autopilot)
+        self.push_clear_table.clicked.connect(self.clear_table)
         self.push_validate_samples.clicked.connect(self.validate_samples)
         self.push_export_as_batch.clicked.connect(self.export_as_batch)
 
@@ -83,11 +83,18 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.tableWidget_sample_def.setHorizontalHeaderLabels(self.table_keys)
         self.tableWidget_sample_def.cellChanged.connect(self.update_sample_df)
         self.sample_df = pd.DataFrame(columns=self.table_keys)
+        for jj in range(len(self.table_keys)):
+            self.tableWidget_sample_def.resizeColumnToContents(jj)
+
 
         self.tableWidget_proposal.setColumnCount(2)
         self.tableWidget_proposal.setHorizontalHeaderLabels(['Proposal', 'PI'])
         self.tableWidget_proposal.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.tableWidget_proposal.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+
+
+
+        self.get_proposal_list_gdrive()
 
 
 
@@ -189,8 +196,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     nscanss = row[12::6]
 
                     for el, el_conc, edge, energy, krange, nscans in zip(els, el_concs, edges, energies, kranges, nscanss):
+                        energy = remove_ev_from_energy_str(energy)
+                        edge = remove_edge_from_edge_str(edge)
+
                         if self._check_entry(el, edge, float(energy), name, i):
-                            entry_list = ['',''] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
+                            entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
                             self.sample_df.loc[df_row_index] = entry_list
                             df_row_index += 1
 
@@ -200,9 +210,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         for indx, _ in self.sample_df.iterrows():
             combo_run.addItem(str(indx + 1))
 
+    def clear_table(self):
+        self.sample_df = pd.DataFrame(columns=self.table_keys)
+        self.sample_df_to_table_widget()
+
 
     def sample_df_to_table_widget(self):
         self.tableWidget_sample_def.cellChanged.disconnect()
+        self.tableWidget_sample_def.setRowCount(0)
+        self.tableWidget_sample_def.clearContents()
         nrows = self.sample_df.shape[0]
         for i in range(nrows):
             entry_list = list(self.sample_df.iloc[i])
@@ -212,20 +228,25 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         self.checkBoxes_found = []
         self.checkBoxes_run = []
-        for  i in range(nrows):
+        for i in range(nrows):
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags( QtCore.Qt.ItemIsEnabled)
-            chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+
+            if self.sample_df.iloc[i]['Run']:
+                chkBoxItem.setCheckState(QtCore.Qt.Checked)
+            else:
+                chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+
             self.tableWidget_sample_def.setItem(i,0,chkBoxItem)
             self.checkBoxes_found.append(chkBoxItem)
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
-            chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+            if self.sample_df.iloc[i]['Found']:
+                chkBoxItem.setCheckState(QtCore.Qt.Checked)
+            else:
+                chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
             self.tableWidget_sample_def.setItem(i, 1, chkBoxItem)
             self.checkBoxes_run.append(chkBoxItem)
-
-
-
 
         for jj in range(len(self.table_keys)):
             self.tableWidget_sample_def.resizeColumnToContents(jj)
@@ -235,19 +256,23 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
     def update_sample_df(self, row, column):
         print(row, column)
-        if column = 1:
-            if self.checkBoxes_run[column].checkState():
-                self.sample_df.iloc[row][column] = True
+        if column == 1:
+            print('Changing run?')
+            to_run =  int(self.checkBoxes_run[row].checkState())
+            print(f'New status {to_run}')
+            if to_run != 0:
+                self.sample_df['Run'][row] = True
             else:
-                self.sample_df.iloc[row][column] = False
+                self.sample_df['Run'][row] = False
+
         if column >1:
             self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
     def export_as_batch(self):
-        self.model_batch = QtGui.QStandardItemModel(self)
-        self.model_samples = QtGui.QStandardItemModel(self)
-        self.model_scans = QtGui.QStandardItemModel(self)
+        # self.model_batch = QtGui.QStandardItemModel(self)
+        # self.model_samples = QtGui.QStandardItemModel(self)
+        # self.model_scans = QtGui.QStandardItemModel(self)
 
         # formatting dataframe
         self.sample_df['Energy'] = self.sample_df['Energy'].astype(float)
@@ -258,10 +283,72 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         ascending = (self.read_mirror_position() < 20)
         self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
 
-        # for row in self.sample_df.rows:
-        #     if row['Found']:
-        #         self.
+        ## EXPERIMENT
+        # self._print('creating experiment', end=' ')
+        self.model_batch = QtGui.QStandardItemModel(self)
+        _create_batch_experiment(self.model_batch, 'experiment', 1)
+        # self._print('... done')
+        for ii, row in self.sample_df.iterrows():
+            if row['Found'] and row['Run']:
+                ## SAMPLE
+                # self._print('creating sample', end=' ')
+                model_sample = QtGui.QStandardItemModel()
+                i_stack, i_holder, i_sample = row['Position']
+                sample_x, sample_y = self.sample_positioner.get_sample_position(int(i_stack),
+                                                                                int(i_holder),
+                                                                                int(i_sample),
+                                                                                int(row['Holder type']))
+                _create_new_sample(model_sample,
+                                     row['Name'], # sample name
+                                     row['Comment'], #sample_comment,
+                                     sample_x, #sample_x,
+                                     sample_y) #sample_y
+                item_sample = _clone_sample_item(model_sample.item(0))
+                # self._print('... done')
+                ## SCAN
+                # self._print('creating scan', end=' ')
+                model_scan = QtGui.QStandardItemModel()
+                traj_signature = {'type' : 'Double Sine',
+                                  'parameters' : {'element': row['Element'],
+                                                   'edge': row['Edge'],
+                                                   'E0': row['Energy'],
+                                                   'Epreedge': -200,
+                                                   'kmax': row['k-range'],
+                                                   't1': 10,
+                                                   't2': 20 * float(row['k-range'])/16}}
+                _create_new_scan(model_scan,
+                                 row['Element']+'-'+row['Edge'], # scan name
+                                 'Fly scan (new PB)', # scan type, normally fly scan
+                                 traj_signature, # scan_traj
+                                 row['# of scans'], # n scans
+                                 0) # scan delay
+                item_scan = _clone_scan_item(model_scan.item(0))
+                # self._print('... done')
 
+                # self._print('appending item sample', end=' ')
+                item_scan.appendRow(item_sample)
+                # self._print('... done')
+                # self._print('appending item scan', end=' ')
+                self.model_batch.item(0).appendRow(item_scan)
+                # self._print('... done')
+
+
+        self.treeView_batch = self.parent_gui.widget_batch_mode.widget_batch_manual.treeView_batch
+        self.treeView_batch.setModel(self.model_batch)
+
+
+
+
+
+
+
+
+
+
+                # self.traj_stack.set_traj(experiment.traj_signature)
+
+                # self.table_keys = ['Found','Run','Proposal', 'SAF', 'Holder ID', 'Sample #', 'Name', 'Comment', 'Composition',
+        #                    'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type' ]
 
 
         # self.model_batch = self.parent_gui.widget_batch.widget_batch_manual.model_batch
@@ -327,11 +414,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             if full_stop:
                 print('no more holders found', file=self.parent_gui.emitstream_out, flush=True)
                 break
-
+        self.sample_df_to_table_widget()
         # mark samples that were not found:
-        for index, row in self.sample_df.iterrows():
-            if not row['Found']:
-                self.tableWidget_sample_def.setItem(index, 13, QtWidgets.QTableWidgetItem('False'))
+        #for index, row in self.sample_df.iterrows():
+        #    if not row['Found']:
+        #        self.tableWidget_sample_def.setItem(index, 13, QtWidgets.QTableWidgetItem('False'))
 
 
     def validate_holder(self, idx_stack, idx_holder, n_attempts=3):
@@ -351,11 +438,16 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     found_holder = False
                     for index, row in self.sample_df.iterrows():
                         if ((row['Proposal'] == proposal) and
-                            (row['Sample holder ID'] == holder_id)):
+                            (row['Holder ID'] == holder_id)):
                             position = str(idx_stack) + str(idx_holder) + row['Sample #']
-                            self.tableWidget_sample_def.setItem(index, 13, QtWidgets.QTableWidgetItem('True'))
-                            self.tableWidget_sample_def.setItem(index, 14, QtWidgets.QTableWidgetItem(position))
-                            self.tableWidget_sample_def.setItem(index, 15, QtWidgets.QTableWidgetItem(holder_type))
+                            row['Found'] = True
+                            row['Run'] = True
+                            row['Position'] = position
+                            row['Holder type'] = holder_type
+                            # self.sample_df['Found'].iloc[index] = True
+                            # self.sample_df['Run'].iloc[index] = True
+                            # self.sample_df['Position'].iloc[index] = position
+                            # self.sample_df['Holder type'].iloc[index] = holder_type
                             found_holder = True
                     return found_holder, holder_type
 
@@ -507,6 +599,9 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             uid = uid[0]
         x_opt, y_opt = analyze_spiral_scan(uid, conc)
         self.sample_positioner.goto_xy(x_opt, y_opt)
+
+    def _print(self, msg,  **kwargs):
+        print(msg, file=self.parent_gui.emitstream_out, flush=True, **kwargs)
 
 
 
@@ -719,6 +814,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             yield from plan(**kwargs)
                     elif step.item_type == 'service':
                         yield from step.service_plan(**step.service_params)
+
+
 
 
 

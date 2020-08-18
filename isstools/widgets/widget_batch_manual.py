@@ -229,6 +229,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     message_box('Warning', 'Select experiment before adding measurements')
 
 
+    # def _create_measurement(self, parent):
+
+
+
+
+
+
     '''
     Dealing with services
     '''

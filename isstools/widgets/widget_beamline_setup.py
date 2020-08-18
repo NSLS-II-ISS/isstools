@@ -481,25 +481,26 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             # getting center:
             centers = []
             for i in range(nmeasures):
+
                 image = self.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
     
                 image = image.astype(np.int16)
                 sum_lines = sum(image[:, [i for i in range(self.piezo_line - math.floor(self.piezo_nlines / 2),
                                                            self.piezo_line + math.ceil(
                                                                self.piezo_nlines / 2))]].transpose())
-    
+
                 if len(sum_lines) > 0:
                     sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
     
                 index_max = sum_lines.argmax()
                 max_value = sum_lines.max()
                 min_value = sum_lines.min()
-    
+
                 if max_value >= 10 and max_value <= self.piezo_nlines * 100 and (
                     (max_value - min_value) / self.piezo_nlines) > 5:
                     coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
                     centers.append(960 - coeff[1])
-    
+
             if len(centers) > 0:
                 self.piezo_center = float(sum(centers) / len(centers))
                 self.settings.setValue('piezo_center', self.piezo_center)

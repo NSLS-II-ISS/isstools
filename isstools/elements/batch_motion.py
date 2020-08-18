@@ -76,12 +76,20 @@ class SamplePositioner:
 
 
     def goto_sample(self, index_stack, index_holder, index_sample, holder_type=1):
+        giant_x, giant_y = self.get_sample_position(index_stack, index_holder, index_sample, holder_type=holder_type)
+
+        self.RE(bps.mv(self.sample_stage.x, giant_x))
+        self.RE(bps.mv(self.sample_stage.y, giant_y))
+
+
+
+    def get_sample_position(self, index_stack, index_holder, index_sample, holder_type=1):
         delta_holder_y = 15.44  # hight of the holder
 
         if holder_type == 1:
-            assert index_sample<5, 'sample index must be between 1 and 4'
+            assert index_sample < 5, 'sample index must be between 1 and 4'
             delta_holder_x = 15  # shift to the next sample wihtin the same holder
-        else: # other types of sample holders
+        else:  # other types of sample holders
             pass
 
         disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
@@ -96,8 +104,7 @@ class SamplePositioner:
                    (index_holder - 1) * delta_holder_y +
                    self.delta_stack_y * disp_stack_y)
 
-        self.RE(bps.mv(self.sample_stage.x, giant_x))
-        self.RE(bps.mv(self.sample_stage.y, giant_y))
+        return giant_x, giant_y
 
 
     def goto_xy(self, x, y):

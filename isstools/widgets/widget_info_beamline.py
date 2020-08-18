@@ -13,8 +13,7 @@ from timeit import default_timer as timer
 from isstools.dialogs.BasicDialogs import message_box
 import bluesky.plan_stubs as bps
 
-from isscloudtools.initialize import get_dropbox_service, get_gmail_service
-from isscloudtools.gmail import create_html_message, upload_draft, send_draft
+
 import uuid
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_beamline.ui')

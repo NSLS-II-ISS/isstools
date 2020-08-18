@@ -46,6 +46,7 @@ def generate_output_figures(filepath, imagepath=None, t_flag=True, f_flag=True, 
         plt.savefig(imagepath, dpi=300)
 
 
+
 def plot_xas_in_E(ds, ax, color):
     ds.normalize_force()
     # ds.extract_chi_force()

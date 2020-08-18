@@ -79,6 +79,33 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.energy_grid = []
 
 
+        ## Persistance of parameters:
+        # self.settings = parent_gui.settings
+        #
+        # self.edit_preedge_spacing.setText(self.settings.value('step_preedge_spacing', defaultValue='10', type=str))
+        # self.edit_xanes_spacing.setText(self.settings.value('step_xanes_spacing', defaultValue='10', type=str))
+        # self.edit_exafs_spacing.setText(self.settings.value('step_exafs_spacing', defaultValue='10', type=str))
+        # self.edit_preedge_start.setText(self.settings.value('step_preedge_start', defaultValue='10', type=str))
+        # self.edit_xanes_start.setText(self.settings.value('step_xanes_start', defaultValue='10', type=str))
+        # self.edit_xanes_end.setText(self.settings.value('step_xanes_end', defaultValue='10', type=str))
+        # self.edit_exafs_end.setText(self.settings.value('step_exafs_end', defaultValue='10', type=str))
+        # self.edit_preedge_dwell.setText(self.settings.value('step_preedge_dwell', defaultValue='10', type=str))
+        # self.edit_xanes_dwell.setText(self.settings.value('step_xanes_dwell', defaultValue='10', type=str))
+        # self.edit_exafs_dwell.setText(self.settings.value('step_exafs_dwell', defaultValue='10', type=str))
+        # self.comboBox_exafs_dwell_kpower.setCurrentIndex(self.settings.value('step_exafs_dwell_kpower', defaultValue=0, type=int))
+
+
+
+
+
+
+
+
+
+
+
+
+
     def addCanvas(self):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
@@ -254,10 +281,10 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.element = text
 
     def get_info_from_autopilot(self):
-        batch_experiemnt =  self.parent_gui.widget_autopilot.batch_experiment
+        sample_df =  self.parent_gui.widget_batch_mode.widget_autopilot.sample_df
         sample_number = self.comboBox_autopilot_sample_number.currentIndex()
-        name = batch_experiemnt[sample_number]['Sample label']
-        comment = batch_experiemnt[sample_number]['Comment']
+        name = sample_df.iloc[sample_number]['Sample label']
+        comment = sample_df.iloc[sample_number]['Comment']
         name = name.replace('/','_')
         self.parameter_values[0].setText(name)
         self.parameter_values[1].setText(comment)

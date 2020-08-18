@@ -65,3 +65,28 @@ class TreeView(QtWidgets.QTreeView):
             QtWidgets.QTreeView.dropEvent(self, event)
         '''
 
+
+def remove_ev_from_energy_str(energy):
+    if 'ev' in energy:
+        return energy.replace('ev', '')
+    if 'eV' in energy:
+        return energy.replace('eV', '')
+    if 'EV' in energy:
+        return energy.replace('EV', '')
+    return energy
+
+
+
+_edges_L1 = ['L1', 'L-1', 'L_1', 'L-I', 'L_I']
+_edges_L2 = ['L2', 'L-2', 'L_2', 'L-II', 'L_II']
+_edges_L3 = ['L3', 'L-3', 'L_3', 'L-III', 'L_III']
+def remove_edge_from_edge_str(edge):
+    if 'K' in edge:
+        return 'K'
+    if any([suf in edge for suf in _edges_L1]):
+        return 'L1'
+    if any([suf in edge for suf in _edges_L2]):
+        return 'L2'
+    if any([suf in edge for suf in _edges_L3]):
+        return 'L3'
+    return edge

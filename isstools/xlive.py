@@ -23,7 +23,8 @@ from .widgets import (widget_info_general,
 from .elements.emitting_stream import EmittingStream
 from .process_callbacks.callback import ScanProcessingCallback
 from .elements.cloud_dispatcher import CloudDispatcher
-
+from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
+from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
@@ -82,6 +83,22 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
+
+        try:
+            self.slack_client_bot, self.slack_client_oath = get_slack_service()
+            self.gmail_service = get_gmail_service()
+            self.dropbox_service = get_dropbox_service()
+        except:
+            print("Cloud services cannot be connected")
+            self.slack_client_bot = None
+            self.slack_client_oath = None
+            self.gmail_service = None
+            self.dropbox_service = None
+
+
+
+
+
 
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(hhm,
                                                                                        aux_plan_funcs= aux_plan_funcs
