@@ -83,7 +83,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def create_batch_experiment(self):
         experiment_name = self.lineEdit_batch_experiment_name.text()
         experiment_rep = self.spinBox_exp_rep.value()
-        _create_batch_experiment(self.model_batch, experiment_name, experiment_rep)
+        _create_batch_experiment(experiment_name, experiment_rep, model=self.model_batch)
 
 
 
@@ -120,8 +120,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             sample_x = self.spinBox_sample_x.value()
             sample_y = self.spinBox_sample_y.value()
             sample_comment = self.lineEdit_sample_comment.text()
-            _create_new_sample(self.model_samples, sample_name, sample_comment, sample_x, sample_y)
-            
+            _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=self.model_samples)
             self.listView_samples.setModel(self.model_samples)
         else:
             message_box('Warning','Sample name is empty')
@@ -151,7 +150,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             scan_repeat =  self.spinBox_scan_repeat.value()
             scan_delay = self.spinBox_scan_delay.value()
             # name = self.lineEdit_scan_name.text()
-            _create_new_scan(self.model_scans, scan_name, scan_type, scan_traj, scan_repeat, scan_delay)
+            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=self.model_scans)
             
             self.listView_scans.setModel(self.model_scans)
         else:
@@ -263,14 +262,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 parent = self.model_batch.itemFromIndex(selected_index)
                 if parent.item_type == 'experiment':
                     parent.appendRow(new_item_service)
-                    new_item_service.setCheckable(False)
-                    new_item_service.setEditable(False)
-                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
                 elif parent.item_type == 'sample':
-                    parent.insertRow(0,new_item_service)
-                    new_item_service.setCheckable(False)
-                    new_item_service.setEditable(False)
-                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+                    parent.insertRow(0, new_item_service)
+
+                new_item_service.setCheckable(False)
+                new_item_service.setEditable(False)
+                self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
 
     def batch_info(self):
         if self.treeView_batch.model().rowCount():

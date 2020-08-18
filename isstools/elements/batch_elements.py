@@ -22,38 +22,41 @@ icon_service = QtGui.QIcon()
 icon_service.addPixmap(QtGui.QPixmap(path_icon_service), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
 
-def _create_batch_experiment(model, experiment_name, experiment_rep):
-    parent = model.invisibleRootItem()
-    batch_experiment = 'Batch experiment "{}" repeat {} times' \
-        .format(experiment_name, experiment_rep)
-    new_item = QtGui.QStandardItem(batch_experiment)
-    new_item.name = batch_experiment
-    new_item.setEditable(False)
-    new_item.setDropEnabled(True)
-    new_item.item_type = 'experiment'
-    new_item.repeat = experiment_rep
-    new_item.setIcon(icon_experiment)
-    parent.appendRow(new_item)
+def _create_batch_experiment(experiment_name, experiment_rep, model=None):
+    item_name = 'Batch experiment "{}" repeat {} times'.format(experiment_name, experiment_rep)
+    item = QtGui.QStandardItem(item_name)
+    item.name = item_name
+    item.setEditable(False)
+    item.setDropEnabled(True)
+    item.item_type = 'experiment'
+    item.repeat = experiment_rep
+    item.setIcon(icon_experiment)
+    if model:
+        parent = model.invisibleRootItem()
+        parent.appendRow(item)
+    else:
+        return item
 
 
-def _create_new_sample(model, sample_name, sample_comment, sample_x, sample_y):
+def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=None):
     item = QtGui.QStandardItem(f'{sample_name} at X {sample_x} Y {sample_y}')
     item.setDropEnabled(False)
     item.item_type = 'sample'
     item.setCheckable(True)
     item.setEditable(False)
-
     item.x = sample_x
     item.y = sample_y
     item.name = sample_name
     item.comment = sample_comment
     item.setIcon(icon_sample)
+    if model:
+        parent = model.invisibleRootItem()
+        parent.appendRow(item)
+    else:
+        return item
 
-    parent = model.invisibleRootItem()
-    parent.appendRow(item)
 
-
-def _create_new_scan(model, scan_name, scan_type, scan_traj, scan_repeat, scan_delay):
+def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=None):
     item = QtGui.QStandardItem(f'{scan_type} with {scan_traj}, {scan_repeat} times with {scan_delay} s delay')
     item.setDropEnabled(False)
     item.item_type = 'scan'
@@ -65,8 +68,20 @@ def _create_new_scan(model, scan_name, scan_type, scan_traj, scan_repeat, scan_d
     item.setCheckable(True)
     item.setEditable(False)
     item.setIcon(icon_scan)
-    parent = model.invisibleRootItem()
-    parent.appendRow(item)
+    if model:
+        parent = model.invisibleRootItem()
+        parent.appendRow(item)
+    else:
+        return item
+
+
+def _create_service_item(name, service_plan, service_params):
+    item = QtGui.QStandardItem(f'Service: {name}')
+    item.setIcon(icon_service)
+    item.service_plan = service_plan
+    item.service_params = service_params
+    return item
+
 
 def _clone_sample_item(item_sample):
     new_item_sample = QtGui.QStandardItem(item_sample.text())
@@ -76,6 +91,7 @@ def _clone_sample_item(item_sample):
     new_item_sample.name = item_sample.name
     new_item_sample.setIcon(icon_sample)
     return new_item_sample
+
 
 def _clone_scan_item(item_scan):
     new_item_scan = QtGui.QStandardItem(item_scan.text())

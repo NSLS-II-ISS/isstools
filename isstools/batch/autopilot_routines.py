@@ -33,6 +33,7 @@ class TrajectoryStack:
         self.slots = [None]*8
         self.hhm = hhm
         self.traj_manager = trajectory_manager(hhm)
+        self.current_traj_slot = hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value']
     #
     #
     # def check_if_exists(self, traj_signature):
@@ -43,12 +44,26 @@ class TrajectoryStack:
     #     return False
 
 
-    def set_traj(self, traj_signature, slot_number=1):
-        # if exists, then initialize it on the controller
-        if traj_signature:
+    def which_slot_for_traj(self, input):
+        if type(input) == dict:
+            traj_signature = input
             for traj_index, slot in enumerate(self.slots):
                 if slot == traj_signature:
-                    self.traj_manager.init(traj_index + 1)
+                    return traj_index + 1
+        else:
+            return input
+        return None
+
+
+    def set_traj(self, input):
+        if type(input) == dict:
+            traj_signature = input
+            # if exists, then initialize it on the controller
+            for traj_index, slot in enumerate(self.slots):
+                if slot == traj_signature:
+                    if (traj_index + 1) != self.current_traj_slot:
+                        self.traj_manager.init(traj_index + 1)
+                        self.current_traj_slot = (traj_index + 1)
                     return
 
             # if it does not exist, put it on the controller on the available slot
@@ -56,14 +71,19 @@ class TrajectoryStack:
                 if slot is None:
                     self.slots[traj_index] = copy.deepcopy(traj_signature)
                     self.create_new_trajectory(traj_signature, traj_index)
+                    self.current_traj_slot = (traj_index + 1)
                     return
 
             # if all slots are filled then FIFO
             self.slots[self.most_recent] = copy.deepcopy(traj_signature)
             self.create_new_trajectory(traj_signature, self.most_recent)
+            self.current_traj_slot =  self.most_recent + 1
             self.update_most_recent()
         else:
-            self.traj_manager.init(slot_number)
+            slot_number = input
+            if self.current_traj_slot != slot_number:
+                self.traj_manager.init(slot_number)
+                self.current_traj_slot = slot_number
 
 
 
@@ -77,18 +97,24 @@ class TrajectoryStack:
     def create_new_trajectory(self, traj_signature, traj_index): # creates, saves, loads, and initializes trajectory with this signature
 
         traj_creator = trajectory(self.hhm)
-        traj_creator.elem = traj_signature['element']
-        traj_creator.edge = traj_signature['edge']
-        traj_creator.e0 = str(traj_signature['E0'])
+        if traj_signature['type'] == 'Double Sine':
+            traj_creator.elem = traj_signature['parameters']['element']
+            traj_creator.edge = traj_signature['parameters']['edge']
+            traj_creator.e0 = str(traj_signature['parameters']['E0'])
 
-        preedge_lo = traj_signature['Epreedge']
-        postedge_hi = xray.k2e(traj_signature['kmax'], traj_signature['E0']) - traj_signature['E0']
+            preedge_lo = traj_signature['parameters']['Epreedge']
+            postedge_hi = xray.k2e(traj_signature['parameters']['kmax'],
+                                   traj_signature['parameters']['E0']) - traj_signature['parameters']['E0']
 
-        traj_creator.define(edge_energy=traj_signature['E0'],
-                            offsets=[preedge_lo, -30, 50, postedge_hi],
-                            dsine_preedge_duration=traj_signature['t1'],
-                            dsine_postedge_duration=traj_signature['t2'],
-                            trajectory_type='Double Sine')
+            traj_creator.define(edge_energy=traj_signature['parameters']['E0'],
+                                offsets=[preedge_lo, -30, 50, postedge_hi],
+                                dsine_preedge_duration=traj_signature['parameters']['t1'],
+                                dsine_postedge_duration=traj_signature['parameters']['t2'],
+                                trajectory_type='Double Sine')
+        else:
+            raise KeyError('this type of trajectory is not currently supported')
+
+
         traj_creator.interpolate()
         traj_creator.revert()
 

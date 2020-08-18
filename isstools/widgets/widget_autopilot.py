@@ -25,7 +25,7 @@ from pyzbar.pyzbar import decode as pzDecode
 import pandas as pd
 from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str
 from isstools.elements.batch_elements import *
-from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
+from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _create_service_item, _clone_scan_item, _clone_sample_item)
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -281,65 +281,72 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.sample_df = self.sample_df.replace({'True' : True, 'False': False})
 
         ascending = (self.read_mirror_position() < 20)
-        self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
+        # self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
+        self.sample_df = self.sample_df.sort_values(['Energy', 'Position'],
+                                                    ascending=(ascending, True))
 
-        ## EXPERIMENT
-        # self._print('creating experiment', end=' ')
+
         self.model_batch = QtGui.QStandardItemModel(self)
-        _create_batch_experiment(self.model_batch, 'experiment', 1)
-        # self._print('... done')
+        _create_batch_experiment('experiment', 1, model=self.model_batch)
         for ii, row in self.sample_df.iterrows():
             if row['Found'] and row['Run']:
-                ## SAMPLE
-                # self._print('creating sample', end=' ')
-                model_sample = QtGui.QStandardItemModel()
-                i_stack, i_holder, i_sample = row['Position']
-                sample_x, sample_y = self.sample_positioner.get_sample_position(int(i_stack),
-                                                                                int(i_holder),
-                                                                                int(i_sample),
-                                                                                int(row['Holder type']))
-                _create_new_sample(model_sample,
-                                     row['Name'], # sample name
-                                     row['Comment'], #sample_comment,
-                                     sample_x, #sample_x,
-                                     sample_y) #sample_y
-                item_sample = _clone_sample_item(model_sample.item(0))
-                # self._print('... done')
-                ## SCAN
-                # self._print('creating scan', end=' ')
-                model_scan = QtGui.QStandardItemModel()
-                traj_signature = {'type' : 'Double Sine',
-                                  'parameters' : {'element': row['Element'],
-                                                   'edge': row['Edge'],
-                                                   'E0': row['Energy'],
-                                                   'Epreedge': -200,
-                                                   'kmax': row['k-range'],
-                                                   't1': 10,
-                                                   't2': 20 * float(row['k-range'])/16}}
-                _create_new_scan(model_scan,
-                                 row['Element']+'-'+row['Edge'], # scan name
-                                 'Fly scan (new PB)', # scan type, normally fly scan
-                                 traj_signature, # scan_traj
-                                 row['# of scans'], # n scans
-                                 0) # scan delay
-                item_scan = _clone_scan_item(model_scan.item(0))
-                # self._print('... done')
-
-                # self._print('appending item sample', end=' ')
+                item_sample = self._get_sample_item(row)
+                item_service = self._get_service_item()
+                item_scan = self._get_scan_item(row)
+                item_scan.appendRow(item_service)
                 item_scan.appendRow(item_sample)
-                # self._print('... done')
-                # self._print('appending item scan', end=' ')
                 self.model_batch.item(0).appendRow(item_scan)
-                # self._print('... done')
-
 
         self.treeView_batch = self.parent_gui.widget_batch_mode.widget_batch_manual.treeView_batch
         self.treeView_batch.setModel(self.model_batch)
+        self.parent_gui.widget_batch_mode.widget_batch_manual.model_batch = self.model_batch
+
+
+    def _get_sample_item(self, row):
+        # model_sample = QtGui.QStandardItemModel()
+        i_stack, i_holder, i_sample = row['Position']
+        sample_x, sample_y = self.sample_positioner.get_sample_position(int(i_stack),
+                                                                        int(i_holder),
+                                                                        int(i_sample),
+                                                                        int(row['Holder type']))
+        item_sample = _create_new_sample(row['Name'],  # sample name
+                                         row['Comment'],  # sample_comment,
+                                         sample_x,  # sample_x,
+                                         sample_y)  # sample_y
+        # item_sample = _clone_sample_item(model_sample.item(0))
+        item_sample.setCheckable(False)
+        item_sample.setEditable(False)
+        return item_sample
+
+
+    def _get_service_item(self):
+        item_service = _create_service_item('sleep',
+                                            self.service_plan_funcs['sleep'],
+                                            {'delay' : 0.1})
+        return item_service
 
 
 
+    def _get_scan_item(self, row):
+        model_scan = QtGui.QStandardItemModel()
+        traj_signature = {'type': 'Double Sine',
+                          'parameters': {'element': row['Element'],
+                                         'edge': row['Edge'],
+                                         'E0': row['Energy'],
+                                         'Epreedge': -200,
+                                         'kmax': row['k-range'],
+                                         't1': 10,
+                                         't2': 20 * float(row['k-range']) / 16}}
+        item_scan = _create_new_scan(row['Element'] + '-' + row['Edge'],  # scan name
+                         'Fly scan (new PB)',  # scan type, normally fly scan
+                         traj_signature,  # scan_traj
+                         row['# of scans'],  # n scans
+                         0)  # scan delay
+        # item_scan = _clone_scan_item(model_scan.item(0))
 
-
+        item_scan.setCheckable(False)
+        item_scan.setEditable(False)
+        return item_scan
 
 
 
@@ -497,8 +504,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         #               -set trajectory
         #               -sample optimization, aka gain setting, spiral scan etc
 
-        self.get_sample_positioner() # handle on sample positioner
-        self.locate_samples() # go through all samples on the holder and confirm that all of them are found
+        # self.get_sample_positioner() # handle on sample positioner
+        # self.locate_samples() # go through all samples on the holder and confirm that all of them are found
 
         # generate order
 

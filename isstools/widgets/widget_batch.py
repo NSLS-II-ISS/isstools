@@ -8,7 +8,7 @@ from isstools.widgets import widget_batch_manual
 from isstools.widgets import widget_autopilot
 from isstools.dialogs.BasicDialogs import message_box
 from random import random
-
+from isstools.batch.autopilot_routines import TrajectoryStack
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch.ui')
 
@@ -59,6 +59,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         batch = self.widget_batch_manual.treeView_batch.model()
         self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
 
+
     def randomize_position(self):
         if self.widget_batch_manual.checkBox_randomize.isChecked():
             delta_x = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
@@ -74,13 +75,14 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
     def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict):
         sys.stdout = self.parent_gui.emitstream_out
-        tm = trajectory_manager(hhm)
+        # tm = trajectory_manager(hhm)
+        traj_stack = TrajectoryStack(hhm)
         for ii in range(batch.rowCount()):
             experiment = batch.item(ii)
             repeat = experiment.repeat
             for indx in range(repeat):
                 if repeat > 1:
-                    exper_index = f'{(indx+1):04d}'
+                    exper_index = f'{(indx + 1):04d}'
                 else:
                     exper_index = ''
                 for jj in range(experiment.rowCount()):
@@ -94,7 +96,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
                             child_item = sample.child(kk)
                             if child_item.item_type == 'scan':
                                 scan=child_item
-                                traj_index = scan.trajectory
+
+
                                 plan = plans_dict[scan.scan_type]
                                 sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
                                 self.label_batch_step.setText(sample_name)
@@ -104,9 +107,13 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
 
+                                traj_stack.set_traj(scan.trajectory)
+                                # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
+                                # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
+                                #     if traj_index:
+                                #         traj_stack.set_traj(traj_index)
+                                #     else:
 
-                                if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index+1:
-                                    tm.init(traj_index+1)
                                 yield from plan(**kwargs)
                             elif child_item.item_type == 'service':
                                 service = child_item
@@ -115,9 +122,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
                     elif step.item_type == 'scan':
                         scan = step
-                        traj_index = scan.trajectory
-                        if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
-                            tm.init(traj_index + 1)
+                        # traj_index = scan.trajectory
+                        # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
+                        #     tm.init(traj_index + 1)
+                        traj_stack.set_traj(scan.trajectory)
                         for kk in range(step.rowCount()):
                             child_item = scan.child(kk)
                             if child_item.item_type == 'sample':
