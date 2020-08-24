@@ -192,7 +192,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         # self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict, camera_dict, hhm, RE, sample_stage, self, service_plan_funcs, plan_funcs)
         # self.layout_autopilot.addWidget(self.widget_autopilot)
 
-        cloud_dispatcher = CloudDispatcher()
+        cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
+
+
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=self.widget_processing.new_bin_df_arrived,
                                     cloud_dispatcher = cloud_dispatcher)

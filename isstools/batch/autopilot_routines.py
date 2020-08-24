@@ -3,6 +3,10 @@ import copy
 from isstools.conversions import xray
 import uuid
 from subprocess import call
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
+
+
+
 
 
 class Experiment:

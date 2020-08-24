@@ -12,10 +12,9 @@ class CloudDispatcher():
         else:
             self.dropbox_service = dropbox_service
         if slack_service==None:
-            self.slack_client, self.slack_client_oath = get_slack_service()
+            self.slack_service, self.slack_client_oath = get_slack_service()
         else:
             self.slack_service = slack_service
-
         self.email = ''
 
 
@@ -38,8 +37,11 @@ class CloudDispatcher():
 
     def post_to_slack(self,path,slack_channel):
         image_path = os.path.splitext(path)[0]+'.png'
+        print('image' + image_path)
         generate_output_figures(path,image_path)
-        slack_upload_image(self.slack_service, image_path,slack_channel)
+        slack_upload_image(self.slack_service,
+                           image_path,slack_channel,
+                           os.path.basename(path).split('.')[0])
 
 
 

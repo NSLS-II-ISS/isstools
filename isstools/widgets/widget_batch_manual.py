@@ -146,7 +146,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         scan_name = self.lineEdit_scan_name.text()
         if scan_name:
             scan_type= self.comboBox_scans.currentText()
-            scan_traj = self.comboBox_lut.currentText()
+            scan_traj = int(self.comboBox_lut.currentText()[0])
             scan_repeat =  self.spinBox_scan_repeat.value()
             scan_delay = self.spinBox_scan_delay.value()
             # name = self.lineEdit_scan_name.text()

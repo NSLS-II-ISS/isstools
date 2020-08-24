@@ -57,6 +57,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
         self.run_start.clicked.connect(self.run_scan)
+        self.run_start_test.clicked.connect(self.run_test_scan)
+
         # List with uids of scans created in the "run" mode:
         self.run_mode_uids = []
         self.rr_token = None
@@ -119,6 +121,19 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax3.grid(alpha = 0.4)
         self.canvas.draw_idle()
 
+
+    def run_test_scan(self):
+        name = self.parameter_values[0].text()
+        repeats = self.parameter_values[2].value()
+        self.parameter_values[0].setText(f'test {name}')
+        self.parameter_values[2].setValue(1)
+        self.run_scan()
+        self.parameter_values[0].setText(name)
+        self.parameter_values[2].setValue(repeats)
+
+
+
+
     def run_scan(self):
         ignore_shutter = False
         energy_grid = []
@@ -159,7 +174,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
-            print(run_parameters)
+            #print(run_parameters)
             # return
             # Run the scan using the dict created before
             self.run_mode_uids = []
@@ -283,8 +298,9 @@ class UIRun(*uic.loadUiType(ui_path)):
     def get_info_from_autopilot(self):
         sample_df =  self.parent_gui.widget_batch_mode.widget_autopilot.sample_df
         sample_number = self.comboBox_autopilot_sample_number.currentIndex()
-        name = sample_df.iloc[sample_number]['Sample label']
-        comment = sample_df.iloc[sample_number]['Comment']
+        # name = sample_df.iloc[sample_number]['Sample label']
+        name = sample_df.iloc[sample_number]['Name']
+        comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
         name = name.replace('/','_')
         self.parameter_values[0].setText(name)
         self.parameter_values[1].setText(comment)

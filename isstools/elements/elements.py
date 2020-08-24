@@ -1,5 +1,85 @@
-
+import pkg_resources
+import json
 from PyQt5 import QtWidgets, QtCore, QtGui
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
+
+
+def get_element_dict():
+    json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+    element_dict = {}
+
+    for i in json.loads(json_data):
+        element_dict[i['symbol']] = i
+    return element_dict
+
+element_dict = get_element_dict()
+
+def _check_entry(el, edge, energy, name, row):
+
+
+    info = f'Proposal: {name}, row: {row}, element: {el}, edge: {edge}, energy: {energy}'
+    if el in element_dict.keys():
+        if edge in element_dict[el].keys():
+            if abs(energy - float(
+                    element_dict[el][edge])) < 10:  # provided energy must be within 10 eV from the xray DB
+                if (energy > 4900) and (energy < 32000):
+                    return True
+                else:
+                    message_box('Energy outside of feasible range',
+                                ('Warning\nAn entry with energy outside of feasible range found!\n' +
+                                 'This measurement will be skipped.\n' +
+                                 info))
+            else:
+                message_box('Invalid energy',
+                            ('Warning\nAn entry with invalid energy was found!\n' +
+                             'This measurement will be skipped.\n' +
+                             info))
+        else:
+            message_box('Edge not found',
+                        ('Warning\nAn entry with invalid edge was found!\n' +
+                         'This measurement will be skipped.\n' +
+                         info))
+    else:
+        message_box('Element not found',
+                    ('Warning\nAn entry with invalid element was found!\n' +
+                     'This measurement will be skipped.\n' +
+                     info))
+    return False
+
+
+
+def remove_ev_from_energy_str(energy):
+    if 'ev' in energy:
+        return energy.replace('ev', '')
+    if 'eV' in energy:
+        return energy.replace('eV', '')
+    if 'EV' in energy:
+        return energy.replace('EV', '')
+    return energy
+
+
+
+_edges_L1 = ['L1', 'L-1', 'L_1', 'L-I', 'L_I']
+_edges_L2 = ['L2', 'L-2', 'L_2', 'L-II', 'L_II']
+_edges_L3 = ['L3', 'L-3', 'L_3', 'L-III', 'L_III']
+def remove_edge_from_edge_str(edge):
+    if 'K' in edge:
+        return 'K'
+    if any([suf in edge for suf in _edges_L1]):
+        return 'L1'
+    if any([suf in edge for suf in _edges_L2]):
+        return 'L2'
+    if any([suf in edge for suf in _edges_L3]):
+        return 'L3'
+    return edge
+
+def clean_el_str(el):
+    for i in element_dict.keys():
+        if i in el:
+            return i
+    return el
+
+
 
 
 class TreeView(QtWidgets.QTreeView):
@@ -65,28 +145,3 @@ class TreeView(QtWidgets.QTreeView):
             QtWidgets.QTreeView.dropEvent(self, event)
         '''
 
-
-def remove_ev_from_energy_str(energy):
-    if 'ev' in energy:
-        return energy.replace('ev', '')
-    if 'eV' in energy:
-        return energy.replace('eV', '')
-    if 'EV' in energy:
-        return energy.replace('EV', '')
-    return energy
-
-
-
-_edges_L1 = ['L1', 'L-1', 'L_1', 'L-I', 'L_I']
-_edges_L2 = ['L2', 'L-2', 'L_2', 'L-II', 'L_II']
-_edges_L3 = ['L3', 'L-3', 'L_3', 'L-III', 'L_III']
-def remove_edge_from_edge_str(edge):
-    if 'K' in edge:
-        return 'K'
-    if any([suf in edge for suf in _edges_L1]):
-        return 'L1'
-    if any([suf in edge for suf in _edges_L2]):
-        return 'L2'
-    if any([suf in edge for suf in _edges_L3]):
-        return 'L3'
-    return edge

@@ -57,7 +57,7 @@ def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=No
 
 
 def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=None):
-    item = QtGui.QStandardItem(f'{scan_type} with {scan_traj}, {scan_repeat} times with {scan_delay} s delay')
+    item = QtGui.QStandardItem(f'{scan_type} with {scan_name}, {scan_repeat} times with {scan_delay} s delay')
     item.setDropEnabled(False)
     item.item_type = 'scan'
     item.scan_type = scan_type
@@ -91,7 +91,6 @@ def _clone_sample_item(item_sample):
     new_item_sample.name = item_sample.name
     new_item_sample.setIcon(icon_sample)
     return new_item_sample
-
 
 def _clone_scan_item(item_scan):
     new_item_scan = QtGui.QStandardItem(item_scan.text())

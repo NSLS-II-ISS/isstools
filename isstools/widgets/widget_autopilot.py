@@ -23,9 +23,11 @@ from isstools.elements.batch_motion import SamplePositioner
 import bluesky.plan_stubs as bps
 from pyzbar.pyzbar import decode as pzDecode
 import pandas as pd
-from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str
+from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str, clean_el_str
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _create_service_item, _clone_scan_item, _clone_sample_item)
+from isstools.elements.elements import element_dict, _check_entry
+
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -74,7 +76,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.push_validate_samples.clicked.connect(self.validate_samples)
         self.push_export_as_batch.clicked.connect(self.export_as_batch)
 
-        self.read_json_data()
+        # self.read_json_data()
         self.table_keys = ['Found','Run','Proposal', 'SAF', 'Holder ID', 'Sample #', 'Name', 'Comment', 'Composition',
                            'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type' ]
 
@@ -98,12 +100,12 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-    def read_json_data(self):
-        json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
-        self.element_dict = {}
-
-        for i in json.loads(json_data):
-            self.element_dict[i['symbol']] = i
+    # def read_json_data(self):
+    #     json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+    #     self.element_dict = {}
+    #
+    #     for i in json.loads(json_data):
+    #         self.element_dict[i['symbol']] = i
 
 
     def get_proposal_list_gdrive(self):
@@ -196,10 +198,10 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     nscanss = row[12::6]
 
                     for el, el_conc, edge, energy, krange, nscans in zip(els, el_concs, edges, energies, kranges, nscanss):
-                        energy = remove_ev_from_energy_str(energy)
+                        el = clean_el_str(el)
                         edge = remove_edge_from_edge_str(edge)
-
-                        if self._check_entry(el, edge, float(energy), name, i):
+                        energy = remove_ev_from_energy_str(energy)
+                        if _check_entry(el, edge, float(energy), name, i):
                             entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
                             self.sample_df.loc[df_row_index] = entry_list
                             df_row_index += 1
@@ -300,6 +302,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.treeView_batch = self.parent_gui.widget_batch_mode.widget_batch_manual.treeView_batch
         self.treeView_batch.setModel(self.model_batch)
         self.parent_gui.widget_batch_mode.widget_batch_manual.model_batch = self.model_batch
+        self.treeView_batch.expandAll()
 
 
     def _get_sample_item(self, row):

@@ -97,7 +97,7 @@
   <widget class="QPushButton" name="run_start">
    <property name="geometry">
     <rect>
-     <x>35</x>
+     <x>40</x>
      <y>770</y>
      <width>181</width>
      <height>41</height>
@@ -572,6 +572,19 @@
    <property name="text">
     <string>From
  autopilot</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="run_start_test">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>720</y>
+     <width>181</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Test</string>
    </property>
   </widget>
  </widget>
