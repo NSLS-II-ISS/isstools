@@ -73,35 +73,59 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
-        self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
-        self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
 
-        self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
         self.push_info_from_autopilot.clicked.connect(self.get_info_from_autopilot)
         self.energy_grid = []
 
 
         ## Persistance of parameters:
-        # self.settings = parent_gui.settings
-        #
-        # self.edit_preedge_spacing.setText(self.settings.value('step_preedge_spacing', defaultValue='10', type=str))
-        # self.edit_xanes_spacing.setText(self.settings.value('step_xanes_spacing', defaultValue='10', type=str))
-        # self.edit_exafs_spacing.setText(self.settings.value('step_exafs_spacing', defaultValue='10', type=str))
-        # self.edit_preedge_start.setText(self.settings.value('step_preedge_start', defaultValue='10', type=str))
-        # self.edit_xanes_start.setText(self.settings.value('step_xanes_start', defaultValue='10', type=str))
-        # self.edit_xanes_end.setText(self.settings.value('step_xanes_end', defaultValue='10', type=str))
-        # self.edit_exafs_end.setText(self.settings.value('step_exafs_end', defaultValue='10', type=str))
-        # self.edit_preedge_dwell.setText(self.settings.value('step_preedge_dwell', defaultValue='10', type=str))
-        # self.edit_xanes_dwell.setText(self.settings.value('step_xanes_dwell', defaultValue='10', type=str))
-        # self.edit_exafs_dwell.setText(self.settings.value('step_exafs_dwell', defaultValue='10', type=str))
-        # self.comboBox_exafs_dwell_kpower.setCurrentIndex(self.settings.value('step_exafs_dwell_kpower', defaultValue=0, type=int))
+        self.settings = parent_gui.settings
+        self.widget_energy_selector.comboBox_element.setCurrentIndex(self.settings.value('step_element_index', defaultValue=0, type=int)) #
+        self.widget_energy_selector.comboBox_edge.setCurrentIndex(self.settings.value('step_edge_index', defaultValue=0, type=int))  #
+        self.edit_preedge_spacing.setText(self.settings.value('step_preedge_spacing', defaultValue='10', type=str)) #
+        self.edit_xanes_spacing.setText(self.settings.value('step_xanes_spacing', defaultValue='10', type=str)) #
+        self.edit_exafs_spacing.setText(self.settings.value('step_exafs_spacing', defaultValue='1', type=str)) #
+        self.edit_preedge_start.setText(self.settings.value('step_preedge_start', defaultValue='-100', type=str)) #
+        self.edit_xanes_start.setText(self.settings.value('step_xanes_start', defaultValue='-30', type=str)) #
+        self.edit_xanes_end.setText(self.settings.value('step_xanes_end', defaultValue='30', type=str)) #
+        self.edit_exafs_end.setText(self.settings.value('step_exafs_end', defaultValue='6', type=str)) #
+        self.edit_preedge_dwell.setText(self.settings.value('step_preedge_dwell', defaultValue='1', type=str)) #
+        self.edit_xanes_dwell.setText(self.settings.value('step_xanes_dwell', defaultValue='1', type=str))
+        self.edit_exafs_dwell.setText(self.settings.value('step_exafs_dwell', defaultValue='1', type=str))
+        self.comboBox_exafs_dwell_kpower.setCurrentIndex(self.settings.value('step_exafs_dwell_kpower_index', defaultValue=0, type=int))
 
+        ## connect energy_selector layout
+        self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
+        self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
+        self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
 
-
-
-
-
-
+    def _save_step_scan_settings(self):
+        step_element_index = self.widget_energy_selector.comboBox_element.currentIndex()
+        self.settings.setValue('step_element_index', step_element_index)
+        step_edge_index = self.widget_energy_selector.comboBox_edge.currentIndex()
+        self.settings.setValue('step_edge_index', step_edge_index)
+        step_preedge_spacing = self.edit_preedge_spacing.text()
+        self.settings.setValue('step_preedge_spacing', step_preedge_spacing)
+        step_xanes_spacing = self.edit_xanes_spacing.text()
+        self.settings.setValue('step_xanes_spacing', step_xanes_spacing)
+        step_exafs_spacing = self.edit_exafs_spacing.text()
+        self.settings.setValue('step_exafs_spacing', step_exafs_spacing)
+        step_preedge_start = self.edit_preedge_start.text()
+        self.settings.setValue('step_preedge_start', step_preedge_start)
+        step_xanes_start = self.edit_xanes_start.text()
+        self.settings.setValue('step_xanes_start', step_xanes_start)
+        step_xanes_end = self.edit_xanes_end.text()
+        self.settings.setValue('step_xanes_end', step_xanes_end)
+        step_exafs_end = self.edit_exafs_end.text()
+        self.settings.setValue('step_exafs_end', step_exafs_end)
+        step_preedge_dwell = self.edit_preedge_dwell.text()
+        self.settings.setValue('step_preedge_dwell', step_preedge_dwell)
+        step_xanes_dwell = self.edit_xanes_dwell.text()
+        self.settings.setValue('step_xanes_dwell', step_xanes_dwell)
+        step_exafs_dwell = self.edit_exafs_dwell.text()
+        self.settings.setValue('step_exafs_dwell', step_exafs_dwell)
+        step_exafs_dwell_kpower_index = self.comboBox_exafs_dwell_kpower.currentIndex()
+        self.settings.setValue('step_exafs_dwell_kpower_index', step_exafs_dwell_kpower_index)
 
 
 
@@ -235,6 +259,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             if plan_key.lower().startswith('step scan'):
                 RE_args.append(LivePlots)
+                self._save_step_scan_settings()
 
 
 
@@ -287,13 +312,17 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def update_E0(self, text):
         self.e0 = text
+        # print('saving settings')
+        self._save_step_scan_settings()
 
     def update_edge(self, text):
-        print(text)
+        # print(text)
         self.edge = text
+        # self._save_step_scan_settings()
 
     def update_element(self, text):
         self.element = text
+        # self._save_step_scan_settings()
 
     def get_info_from_autopilot(self):
         sample_df =  self.parent_gui.widget_batch_mode.widget_autopilot.sample_df

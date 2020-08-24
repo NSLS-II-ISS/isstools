@@ -86,6 +86,10 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.beam_x_position_on_camera = self.settings.value('beam_x_position_on_camera', defaultValue=250)
         self.beam_y_position_on_camera = self.settings.value('beam_y_position_on_camera', defaultValue=250)
 
+        self.spinBox_index_stack.setValue(self.settings.value('index_stack', defaultValue=1, type=int))
+        self.spinBox_index_holder.setValue(self.settings.value('index_holder', defaultValue=1, type=int))
+        self.spinBox_index_sample.setValue(self.settings.value('index_sample', defaultValue=1, type=int))
+
         x1 = self.settings.value('qr_roi_x1', defaultValue=0, type=int)
         x2 = self.settings.value('qr_roi_x2', defaultValue=0, type=int)
         y1 = self.settings.value('qr_roi_y1', defaultValue=0, type=int)
@@ -104,6 +108,11 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.show_image()
         #self.timer_track_camera.start()
 
+
+    def _save_sample_index_settings(self):
+        self.settings.setValue('index_stack', self.spinBox_index_stack.value())
+        self.settings.setValue('index_holder', self.spinBox_index_holder.value())
+        self.settings.setValue('index_sample', self.spinBox_index_sample.value())
 
 
 
@@ -303,6 +312,7 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
     def move_to_sample(self):
+        self._save_sample_index_settings()
         index_stack = self.spinBox_index_stack.value()
         index_holder = self.spinBox_index_holder.value()
         index_sample = self.spinBox_index_sample.value()
