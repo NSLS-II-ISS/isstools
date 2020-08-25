@@ -293,7 +293,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         for ii, row in self.sample_df.iterrows():
             if row['Found'] and row['Run']:
                 item_sample = self._get_sample_item(row)
-                item_service = self._get_service_item()
+                item_service = self._get_service_item(row)
                 item_scan = self._get_scan_item(row)
                 item_scan.appendRow(item_service)
                 item_scan.appendRow(item_sample)
@@ -322,10 +322,10 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         return item_sample
 
 
-    def _get_service_item(self):
-        item_service = _create_service_item('sleep',
-                                            self.service_plan_funcs['sleep'],
-                                            {'delay' : 0.1})
+    def _get_service_item(self, row):
+        item_service = _create_service_item('optimize beamline',
+                                            self.service_plan_funcs['optimize_beamline_plan'],
+                                            {'energy' : row['Energy']})
         return item_service
 
 
