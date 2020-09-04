@@ -20,7 +20,7 @@ from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
 from isstools.elements.batch_motion import SamplePositioner
-
+import time as ttime
 # from isstools.process_callbacks.callback import run_router
 
 
@@ -161,16 +161,18 @@ class UICamera(*uic.loadUiType(ui_path)):
             self.timer_track_camera.singleShot(0, self.track_camera)
 
     def track_camera(self):
+        init_time = ttime.time()
         camera1 = self.camera_dict['camera_sample1']
         camera2 = self.camera_dict['camera_sample2']
         camera_qr = self.camera_dict['camera_sample4']
         image1 = camera1.image.image
         image2 = camera2.image.image
         image_qr = camera_qr.image.image
+        print(f'Got images from PV {ttime.time()-init_time}')
         self.figure_c1.ax.imshow(image1, cmap='gray')
         self.figure_c2.ax.imshow(image2, cmap='gray')
         self.figure_qr.ax.imshow(image_qr, cmap='gray', origin='lower')
-
+        print(f'Imshow {ttime.time() - init_time}')
         # beam position from previous session
         self._set_vcursor()
         self._set_hcursor()
@@ -181,6 +183,7 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.canvas_c1.draw_idle()
         self.canvas_c2.draw_idle()
         self.canvas_qr.draw_idle()
+        print(f'Done with images {ttime.time() - init_time}')
 
 
     def stage_up(self):
