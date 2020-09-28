@@ -41,6 +41,11 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
     <property name="text">
      <string>Read Detectors</string>
     </property>
@@ -350,15 +355,13 @@
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>901</width>
+      <width>931</width>
       <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
+      <pointsize>8</pointsize>
      </font>
     </property>
     <property name="text">
@@ -708,7 +711,7 @@ position</string>
      <rect>
       <x>1050</x>
       <y>90</y>
-      <width>175</width>
+      <width>202</width>
       <height>31</height>
      </rect>
     </property>
