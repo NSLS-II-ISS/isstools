@@ -11,6 +11,7 @@ from isstools.dialogs.BasicDialogs import message_box
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
+import json
 
 
 
@@ -75,7 +76,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_parameter_descriptions = []
         self.populate_service_parameters(0)
         self.update_batch_traj()
-
+        self.push_save_samples.clicked.connect(self.save_samples)
+        self.push_load_samples.clicked.connect(self.load_samples)
     '''
     Dealing with batch experiemnts
     '''
@@ -130,6 +132,40 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         index = view.currentIndex()
         if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
             view.model().removeRows(index.row(), 1)
+
+    def save_samples(self):
+        samples = []
+        for index in range(self.listView_samples.model().rowCount()):
+            b = self.listView_samples.model().item(index)
+            sample = {}
+            sample['name'] = b.name
+            sample['comment'] = b.comment
+            sample['x'] = b.x
+            sample['y'] = b.y
+            samples.append(sample)
+
+        print(samples)
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', '/nsls2/xf08id/Sandbox', '*.smpl',
+                                                         options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
+        print(filename)
+        if not filename.endswith('.smpl'):
+            filename = filename + '.smpl'
+
+        with open(filename, 'w') as f:
+            f.write(json.dumps(samples))
+
+
+    def load_samples(self):
+        filename = QtWidgets.QFileDialog.getOpenFileName(directory='/nsls2/xf08id/Sandbox',
+                                                         filter='*.smpl', parent=self)[0]
+        print(filename)
+        if filename:
+            with open(filename, 'r') as f:
+                samples = json.loads(f.read())
+            print(samples)
+            for sample in samples:
+                _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=self.model_samples)
+            self.listView_samples.setModel(self.model_samples)
 
     '''
     Dealing with scans

@@ -52,6 +52,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  db=None,
                  accelerator=None,
                  hhm=None,
+                 sdd = None,
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
@@ -186,6 +187,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
 
+        self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
+        self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
+
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
@@ -196,7 +200,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
-                                    draw_func_bin=self.widget_processing.new_bin_df_arrived,
+                                    draw_func_bin=None,
                                     cloud_dispatcher = cloud_dispatcher)
         self.fly_token = self.RE.subscribe(pc, 'stop')
 

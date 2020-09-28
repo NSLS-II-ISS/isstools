@@ -77,6 +77,8 @@ def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, m
 
 def _create_service_item(name, service_plan, service_params):
     item = QtGui.QStandardItem(f'Service: {name}')
+    item.item_type = 'service'
+    item.name = name
     item.setIcon(icon_service)
     item.service_plan = service_plan
     item.service_params = service_params
