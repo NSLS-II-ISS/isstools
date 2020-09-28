@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -69,7 +69,7 @@
     </widget>
     <widget class="QWidget" name="tab_sdd_manager">
      <attribute name="title">
-      <string>Silicon Drift Detector Setup</string>
+      <string>SDD Manager</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_7">
       <property name="geometry">

@@ -67,9 +67,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.parameter_descriptions = []
         self.populate_parameter_grid(0)
 
-        self.element = 'Scandium (21)'
-        self.e0 = '4492'
-        self.edge = 'K'
+
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
@@ -98,6 +96,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
+
+        self.element = self.widget_energy_selector.comboBox_element.currentText()
+        self.edge = self.widget_energy_selector.comboBox_edge.currentText()
+        self.e0 = self.widget_energy_selector.edit_E0.text
+
+
 
     def _save_step_scan_settings(self):
         step_element_index = self.widget_energy_selector.comboBox_element.currentIndex()
@@ -155,9 +159,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.parameter_values[0].setText(name)
         self.parameter_values[2].setValue(repeats)
 
-
-
-
     def run_scan(self):
         ignore_shutter = False
         energy_grid = []
@@ -207,6 +208,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             if plan_key.lower().startswith('step scan'):
                 update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
+                print(f'E0 {self.e0}')
                 energy_grid, time_grid = generate_energy_grid(float(self.e0),
                                                               float(self.edit_preedge_start.text()),
                                                               float(self.edit_xanes_start.text()),
@@ -235,10 +237,10 @@ class UIRun(*uic.loadUiType(ui_path)):
                          ]
 
 
-            self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
+            #self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
 
-            LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
-                         log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+            #LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
+            #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
             # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
             #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
 
@@ -301,8 +303,9 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         energy = np.array(df['energy'])
         edge = int(len(energy) * 0.02)
-
+        print(f'Before drawing in draw_interpolated_data:{__file__}')
         self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
+        print(f'After drawing in draw_interpolated_data:{__file__}')
         self.figure.ax1.legend(loc=2)
         self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g', label='Total fluorescence')
         self.figure.ax2.legend(loc=1)

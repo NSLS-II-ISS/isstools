@@ -12,4 +12,9 @@ class ScanProcessingCallback(CallbackBase):
         super().__init__()
 
     def stop(self, doc):
-        process_interpolate_bin(doc, self.db, self.draw_func_interp, self.draw_func_bin, self.cloud_dispatcher)
+        if doc['exit_status'] == 'success':
+            process_interpolate_bin(doc, self.db, self.draw_func_interp, self.draw_func_bin, self.cloud_dispatcher)
+        else:
+            reason = doc['reason']
+            print(f'Scan failed, reason: {reason}')
+

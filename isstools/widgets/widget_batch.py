@@ -54,10 +54,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.layout_autopilot.addWidget(self.widget_autopilot)
         self.push_run_batch.clicked.connect(self.run_batch)
 
-    def run_batch(self):
+    def run_batch(self, testing=False):
         print('[Batch scan] Starting...')
         batch = self.widget_batch_manual.treeView_batch.model()
-        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
+        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs, testing=testing))
 
 
     def randomize_position(self):
@@ -73,25 +73,30 @@ class UIBatch(*uic.loadUiType(ui_path)):
         return delta_x, delta_y
 
 
-    def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict):
+    def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict, testing=False):
+        #sample_stage = None
         sys.stdout = self.parent_gui.emitstream_out
         # tm = trajectory_manager(hhm)
         traj_stack = TrajectoryStack(hhm)
-        for ii in range(batch.rowCount()):
+        for ii in range(batch.rowCount()): # go through all experiments
             experiment = batch.item(ii)
             repeat = experiment.repeat
-            for indx in range(repeat):
+            for indx in range(repeat): # repeat as needed
                 if repeat > 1:
                     exper_index = f'{(indx + 1):04d}'
                 else:
                     exper_index = ''
-                for jj in range(experiment.rowCount()):
+                for jj in range(experiment.rowCount()): # go inside expeirmrnt and go through its contents
                     step = experiment.child(jj)
                     if step.item_type == 'sample':
                         sample = step
                         #randomization
                         delta_x, delta_y = self.randomize_position()
-                        yield from mv(sample_stage.x, sample.x+delta_x, sample_stage.y, sample.y+delta_y)
+                        if testing:
+                            print('would have moved there', sample.x + delta_x, sample.y + delta_y)
+                        else:
+                            yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y)
+
                         for kk in range(sample.rowCount()):
                             child_item = sample.child(kk)
                             if child_item.item_type == 'scan':
@@ -106,26 +111,40 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                           'delay': 0,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
+                                if testing:
+                                    print('would have changed traj', scan.trajectory)
 
-                                traj_stack.set_traj(scan.trajectory)
+                                else:
+                                    traj_stack.set_traj(scan.trajectory)
+
                                 # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
                                 # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
                                 #     if traj_index:
                                 #         traj_stack.set_traj(traj_index)
                                 #     else:
+                                if testing:
+                                    print('would have done the plan', scan.name)
+                                else:
+                                    yield from plan(**kwargs)
 
-                                yield from plan(**kwargs)
                             elif child_item.item_type == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                yield from service.service_plan(**service.service_params, **kwargs)
+                                if testing:
+                                    print('would have done service', service.name)
+                                else:
+                                    yield from service.service_plan(**service.service_params, **kwargs)
 
                     elif step.item_type == 'scan':
                         scan = step
                         # traj_index = scan.trajectory
                         # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
                         #     tm.init(traj_index + 1)
-                        traj_stack.set_traj(scan.trajectory)
+                        if testing:
+                            print('would have set the traj', scan.trajectory)
+                        else:
+                            traj_stack.set_traj(scan.trajectory)
+
                         for kk in range(step.rowCount()):
                             child_item = scan.child(kk)
                             if child_item.item_type == 'sample':
@@ -133,8 +152,11 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 # randomization
                                 delta_x, delta_y = self.randomize_position()
 
-
-                                yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y)
+                                if testing:
+                                    print('would have moved there', sample.x + delta_x, sample.y + delta_y)
+                                else:
+                                    yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y,
+                                                  sample.y + delta_y)
 
                                 plan = plans_dict[scan.scan_type]
 
@@ -145,12 +167,24 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                           'delay': 0,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
-                                yield from plan(**kwargs)
+                                if testing:
+                                    print('would have done the scan', sample.name)
+                                else:
+                                    yield from plan(**kwargs)
+
                             elif child_item == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                yield from service.service_plan(**service.service_params,**kwargs)
+                                if testing:
+                                    print('would have done service', child_item.name)
+                                else:
+                                    yield from service.service_plan(**service.service_params, **kwargs)
+
                     elif step.item_type == 'service':
                         kwargs = {'stdout': self.parent_gui.emitstream_out}
-                        yield from step.service_plan(**step.service_params,**kwargs)
+                        if testing:
+                            print('would have done service', step.name)
+                        else:
+                            yield from step.service_plan(**step.service_params, **kwargs)
+
         self.label_batch_step.setText('idle')

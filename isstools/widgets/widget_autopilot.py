@@ -271,6 +271,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
+    def export_as_batch_testing(self):
+        self.sample_df['Position'] = '111'
+        self.sample_df['Holder type'] = '1'
+        self.sample_df['Found'] = True
+        self.sample_df['Run'] = True
+        self.get_sample_positioner()
+        self.export_as_batch()
+
+
     def export_as_batch(self):
         # self.model_batch = QtGui.QStandardItemModel(self)
         # self.model_samples = QtGui.QStandardItemModel(self)
