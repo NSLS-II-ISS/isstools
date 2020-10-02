@@ -26,7 +26,7 @@ import pandas as pd
 from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str, clean_el_str
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _create_service_item, _clone_scan_item, _clone_sample_item)
-from isstools.elements.elements import element_dict, _check_entry
+from isstools.elements.elements import element_dict, _check_entry, remove_special_characters
 
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
@@ -295,7 +295,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
         self.sample_df = self.sample_df.sort_values(['Energy', 'Position'],
                                                     ascending=(ascending, True))
-        self.unique_traj_df = self.sample_df.drop_duplicates(['Element', 'Edge', 'Energy', 'k-range'])
+        traj_columns = ['Element', 'Edge', 'Energy', 'k-range', '# of scans']
+        self.unique_traj_df = self.sample_df.drop_duplicates(traj_columns)
 
         self.model_batch = QtGui.QStandardItemModel(self)
         _create_batch_experiment('experiment', 1, model=self.model_batch)
@@ -305,7 +306,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             item_service = self._get_service_item(scan_row, 'optimize beamline')
             item_scan.appendRow(item_service)
 
-            idx = (self.sample_df == scan_row)[['Element', 'Edge', 'Energy', 'k-range']].all(1)
+            idx = (self.sample_df == scan_row)[traj_columns].all(1)
 
 
             for _, sample_row in self.sample_df[idx].iterrows():
@@ -344,12 +345,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                                                         int(i_holder),
                                                                         int(i_sample),
                                                                         int(row['Holder type']))
-        item_sample = _create_new_sample(row['Name'],  # sample name
+
+        name = remove_special_characters(row['Name'])
+        item_sample = _create_new_sample(name,  # sample name
                                          row['Comment'],  # sample_comment,
                                          sample_x,  # sample_x,
-                                         sample_y)  # sample_y
+                                         sample_y,
+                                         setCheckable=False)  # sample_y
         # item_sample = _clone_sample_item(model_sample.item(0))
-        item_sample.setCheckable(False)
+        # item_sample.setCheckable(False)
         item_sample.setEditable(False)
         return item_sample
 
@@ -368,7 +372,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def _get_scan_item(self, row):
-        model_scan = QtGui.QStandardItemModel()
+        # model_scan = QtGui.QStandardItemModel()
         traj_signature = {'type': 'Double Sine',
                           'parameters': {'element': row['Element'],
                                          'edge': row['Edge'],
@@ -381,10 +385,11 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                          'Fly scan (new PB)',  # scan type, normally fly scan
                          traj_signature,  # scan_traj
                          row['# of scans'],  # n scans
-                         0)  # scan delay
+                         0,
+                         setCheckable=False)  # scan delay
         # item_scan = _clone_scan_item(model_scan.item(0))
 
-        item_scan.setCheckable(False)
+        # item_scan.setCheckable(False)
         item_scan.setEditable(False)
         return item_scan
 

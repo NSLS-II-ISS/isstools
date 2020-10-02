@@ -123,7 +123,7 @@ class TrajectoryStack:
         traj_creator.revert()
 
 
-        fname = str(uuid.uuid4())[:8] + '.txt'
+        fname = traj_signature['parameters']['element'] + '_' + str(uuid.uuid4())[:8] + '.txt'
         fpath = self.hhm.traj_filepath + fname
         traj_creator.save(fpath)
 
