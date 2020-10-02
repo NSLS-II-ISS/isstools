@@ -295,18 +295,41 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
         self.sample_df = self.sample_df.sort_values(['Energy', 'Position'],
                                                     ascending=(ascending, True))
-
+        self.unique_traj_df = self.sample_df.drop_duplicates(['Element', 'Edge', 'Energy', 'k-range'])
 
         self.model_batch = QtGui.QStandardItemModel(self)
         _create_batch_experiment('experiment', 1, model=self.model_batch)
-        for ii, row in self.sample_df.iterrows():
-            if row['Found'] and row['Run']:
-                item_sample = self._get_sample_item(row)
-                item_service = self._get_service_item(row)
-                item_scan = self._get_scan_item(row)
-                item_scan.appendRow(item_service)
-                item_scan.appendRow(item_sample)
+        for _, scan_row in self.unique_traj_df.iterrows():
+            any_samples_found = False
+            item_scan = self._get_scan_item(scan_row)
+            item_service = self._get_service_item(scan_row, 'optimize beamline')
+            item_scan.appendRow(item_service)
+
+            idx = (self.sample_df == scan_row)[['Element', 'Edge', 'Energy', 'k-range']].all(1)
+
+
+            for _, sample_row in self.sample_df[idx].iterrows():
+                if sample_row['Found'] and sample_row['Run']:
+                    any_samples_found = True
+                    item_service = self._get_service_item(scan_row, 'optimize sample')
+                    item_sample = self._get_sample_item(sample_row)
+                    item_scan.appendRow(item_service)
+                    item_scan.appendRow(item_sample)
+
+            if any_samples_found:
                 self.model_batch.item(0).appendRow(item_scan)
+
+
+
+        # for ii, row in self.sample_df.iterrows():
+        #     if row['Found'] and row['Run']:
+        #         item_sample = self._get_sample_item(row)
+        #         item_service = self._get_service_item(row)
+        #         item_scan = self._get_scan_item(row)
+        #         item_scan.appendRow(item_service)
+        #         item_scan.appendRow(item_sample)
+        #
+        #         self.model_batch.item(0).appendRow(item_scan)
 
         self.treeView_batch = self.parent_gui.widget_batch_mode.widget_batch_manual.treeView_batch
         self.treeView_batch.setModel(self.model_batch)
@@ -331,10 +354,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         return item_sample
 
 
-    def _get_service_item(self, row):
-        item_service = _create_service_item('optimize beamline',
-                                            self.service_plan_funcs['optimize_beamline_plan'],
-                                            {'energy' : row['Energy']})
+    def _get_service_item(self, row, service_type):
+        if service_type == 'optimize beamline':
+            item_service = _create_service_item('optimize beamline',
+                                                self.service_plan_funcs['optimize_beamline_plan'],
+                                                {'energy' : row['Energy']})
+        elif service_type == 'optimize sample':
+            item_service = _create_service_item('optimize sample',
+                                                self.service_plan_funcs['optimize_sample_plan'],
+                                                {})
         return item_service
 
 
@@ -349,7 +377,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                          'kmax': row['k-range'],
                                          't1': 10,
                                          't2': 20 * float(row['k-range']) / 16}}
-        item_scan = _create_new_scan(row['Element'] + '-' + row['Edge'],  # scan name
+        item_scan = _create_new_scan(row['Element'] + '-' + row['Edge'] + ' kmax ' + str(row['k-range']),  # scan name
                          'Fly scan (new PB)',  # scan type, normally fly scan
                          traj_signature,  # scan_traj
                          row['# of scans'],  # n scans

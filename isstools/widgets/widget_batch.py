@@ -172,7 +172,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 else:
                                     yield from plan(**kwargs)
 
-                            elif child_item == 'service':
+                            elif child_item.item_type == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
                                 if testing:

@@ -104,7 +104,7 @@ class SamplePositioner:
                    (index_holder - 1) * delta_holder_y +
                    self.delta_stack_y * disp_stack_y)
 
-        return giant_x, giant_y
+        return np.round(giant_x, 3), np.round(giant_y, 3)
 
 
     def goto_xy(self, x, y):
