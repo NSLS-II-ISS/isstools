@@ -57,7 +57,7 @@ def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=No
         return item
 
 
-def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=None, setCheckable=True):
+def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=None, setCheckable=True):
     item = QtGui.QStandardItem(f'{scan_type} with {scan_name}, {scan_repeat} times with {scan_delay} s delay')
     item.setDropEnabled(False)
     item.item_type = 'scan'
@@ -66,6 +66,7 @@ def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, m
     item.repeat = scan_repeat
     item.name = scan_name
     item.delay = scan_delay
+    item.autofoil = scan_autofoil
     if setCheckable:
         item.setCheckable(True)
     item.setEditable(False)

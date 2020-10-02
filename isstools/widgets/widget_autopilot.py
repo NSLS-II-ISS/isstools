@@ -78,7 +78,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         # self.read_json_data()
         self.table_keys = ['Found','Run','Proposal', 'SAF', 'Holder ID', 'Sample #', 'Name', 'Comment', 'Composition',
-                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type' ]
+                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type', 'Autofoil' ]
 
 
         self.tableWidget_sample_def.setColumnCount(len(self.table_keys))
@@ -202,7 +202,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                         edge = remove_edge_from_edge_str(edge)
                         energy = remove_ev_from_energy_str(energy)
                         if _check_entry(el, edge, float(energy), name, i):
-                            entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
+                            entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '', True]
                             self.sample_df.loc[df_row_index] = entry_list
                             df_row_index += 1
 
@@ -230,17 +230,18 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         self.checkBoxes_found = []
         self.checkBoxes_run = []
+        self.checkBoxes_autofoil = []
         for i in range(nrows):
+            ######## THIS IS REALLY UNCLEAR: WHY 'RUN' UPDATES 0-th COLUMN??!
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags( QtCore.Qt.ItemIsEnabled)
-
             if self.sample_df.iloc[i]['Run']:
                 chkBoxItem.setCheckState(QtCore.Qt.Checked)
             else:
                 chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
-
             self.tableWidget_sample_def.setItem(i,0,chkBoxItem)
             self.checkBoxes_found.append(chkBoxItem)
+
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
             if self.sample_df.iloc[i]['Found']:
@@ -249,6 +250,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
             self.tableWidget_sample_def.setItem(i, 1, chkBoxItem)
             self.checkBoxes_run.append(chkBoxItem)
+
+            chkBoxItem = QtWidgets.QTableWidgetItem()
+            chkBoxItem.setFlags(QtCore.Qt.ItemIsEnabled)
+            if self.sample_df.iloc[i]['Autofoil']:
+                chkBoxItem.setCheckState(QtCore.Qt.Checked)
+            else:
+                chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+            self.tableWidget_sample_def.setItem(i, 17, chkBoxItem)
+            self.checkBoxes_autofoil.append(chkBoxItem)
 
         for jj in range(len(self.table_keys)):
             self.tableWidget_sample_def.resizeColumnToContents(jj)
@@ -266,8 +276,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 self.sample_df['Run'][row] = True
             else:
                 self.sample_df['Run'][row] = False
-
-        if column >1:
+        elif column == 17:
+            to_autofoil = int(self.checkBoxes_autofoil[row].checkState())
+            if to_autofoil != 0:
+                self.sample_df['Autofoil'][row] = True
+            else:
+                self.sample_df['Autofoil'][row] = False
+        else:
             self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
@@ -386,6 +401,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                          traj_signature,  # scan_traj
                          row['# of scans'],  # n scans
                          0,
+                         row['Autofoil'],
                          setCheckable=False)  # scan delay
         # item_scan = _clone_scan_item(model_scan.item(0))
 

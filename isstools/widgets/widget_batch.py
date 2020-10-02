@@ -110,7 +110,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                           'comment': '',
                                           'delay': scan.delay,
                                           'n_cycles': scan.repeat,
-                                          'stdout': self.parent_gui.emitstream_out}
+                                          'stdout': self.parent_gui.emitstream_out,
+                                          'autofoil' : scan.autofoil}
                                 if testing:
                                     print('would have changed traj', scan.trajectory)
 
