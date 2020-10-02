@@ -99,7 +99,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.element = self.widget_energy_selector.comboBox_element.currentText()
         self.edge = self.widget_energy_selector.comboBox_edge.currentText()
-        self.e0 = self.widget_energy_selector.edit_E0.text
+        self.e0 = self.widget_energy_selector.edit_E0.text()
 
 
 
