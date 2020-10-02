@@ -108,7 +108,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 self.label_batch_step.setText(sample_name)
                                 kwargs = {'name': sample_name,
                                           'comment': '',
-                                          'delay': 0,
+                                          'delay': scan.delay,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
                                 if testing:
@@ -164,7 +164,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 self.label_batch_step.setText(sample_name)
                                 kwargs = {'name': sample_name,
                                           'comment': '',
-                                          'delay': 0,
+                                          'delay': scan.delay,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
                                 if testing:
