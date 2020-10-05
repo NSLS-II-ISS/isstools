@@ -64,58 +64,20 @@
     <string>Run batch</string>
    </property>
   </widget>
-  <widget class="QTabWidget" name="tabWidget">
+  <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>15</y>
-     <width>1621</width>
-     <height>821</height>
+     <y>30</y>
+     <width>1606</width>
+     <height>781</height>
     </rect>
    </property>
-   <property name="currentIndex">
-    <number>1</number>
-   </property>
-   <widget class="QWidget" name="tab">
-    <attribute name="title">
-     <string>Manual batch setup</string>
-    </attribute>
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>5</x>
-       <y>5</y>
-       <width>1606</width>
-       <height>781</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="layout_batch_manual">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
-     </layout>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>Autopilot</string>
-    </attribute>
-    <widget class="QWidget" name="verticalLayoutWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>10</y>
-       <width>1606</width>
-       <height>781</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="layout_autopilot">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
-     </layout>
-    </widget>
-   </widget>
+   <layout class="QVBoxLayout" name="layout_batch_manual">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetNoConstraint</enum>
+    </property>
+   </layout>
   </widget>
  </widget>
  <resources/>

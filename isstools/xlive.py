@@ -190,6 +190,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
         self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
+        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict,
+                                                             camera_dict,
+                                                             hhm,
+                                                             RE,
+                                                             # db,
+                                                             sample_stage,
+                                                             self,
+                                                             service_plan_funcs,
+                                                             plan_funcs)
+        self.layout_autopilot.addWidget(self.widget_autopilot)
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
