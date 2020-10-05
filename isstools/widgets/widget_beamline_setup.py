@@ -76,7 +76,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.piezo_nlines = int(self.hhm.fb_nlines.get())
             self.piezo_nmeasures = int(self.hhm.fb_nmeasures.get())
             self.piezo_kp = float(self.hhm.fb_pcoeff.get())
-            self.hhm.fb_status.subscribe(self.update_fb_status)
+            self.hhm.fb_status.subscribe(self.update_fb_status, run=False)
             self.piezo_thread = piezo_fb_thread(self) 
             self.push_update_piezo.clicked.connect(self.update_piezo_params)
             self.push_increase_center.clicked.connect(self.fb_center_increase)
