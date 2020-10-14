@@ -157,7 +157,7 @@
     </widget>
     <widget class="QWidget" name="tab_10">
      <attribute name="title">
-      <string>Double Sine with  Edge</string>
+      <string>Double Sine/Constant Edge</string>
      </attribute>
      <widget class="QWidget" name="gridLayoutWidget_24">
       <property name="geometry">
@@ -172,7 +172,7 @@
        <item row="0" column="1">
         <widget class="QLineEdit" name="edit_ds2_pree_duration">
          <property name="text">
-          <string>10</string>
+          <string>2</string>
          </property>
         </widget>
        </item>
@@ -184,9 +184,9 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="edit_ds2_poste_duration">
+        <widget class="QLineEdit" name="edit_ds2_edge_duration">
          <property name="text">
-          <string>20</string>
+          <string>8</string>
          </property>
         </widget>
        </item>
@@ -198,16 +198,16 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="edit_vel_edge">
+        <widget class="QLineEdit" name="edit_ds2_poste_duration">
          <property name="text">
-          <string>10</string>
+          <string>20</string>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
         <widget class="QLabel" name="label_137">
          <property name="text">
-          <string>eV/s</string>
+          <string>s</string>
          </property>
         </widget>
        </item>
@@ -221,14 +221,14 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label_134">
          <property name="text">
-          <string>Postedge Duration</string>
+          <string>Edge Duration</string>
          </property>
         </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_136">
          <property name="text">
-          <string>Edge Velocity</string>
+          <string>Postedge Duration</string>
          </property>
         </widget>
        </item>
@@ -290,6 +290,46 @@
         <widget class="QLabel" name="label_31">
          <property name="text">
           <string>Regions</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_25">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>40</y>
+        <width>131</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_35">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_postedge_flex_frac">
+         <property name="text">
+          <string>0.85</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="edit_preedge_flex_frac">
+         <property name="text">
+          <string>0.15</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_95">
+         <property name="text">
+          <string>Preedge flex</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_141">
+         <property name="text">
+          <string>Postedge flex</string>
          </property>
         </widget>
        </item>
