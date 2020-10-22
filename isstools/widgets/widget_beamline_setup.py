@@ -252,7 +252,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
-        self.push_gen_scan.setEnabled(False)
+        #self.push_gen_scan.setEnabled(False)
         uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
                                                                curr_mot,
                                                                rel_start,
@@ -269,7 +269,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.draw_idle()
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
-        self.push_gen_scan.setEnabled(True)
+        #self.push_gen_scan.setEnabled(True)
         self.last_gen_scan_uid = self.db[-1]['start']['uid']
         self.push_gen_scan_save.setEnabled(True)
 
