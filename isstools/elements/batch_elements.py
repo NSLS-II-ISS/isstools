@@ -38,11 +38,12 @@ def _create_batch_experiment(experiment_name, experiment_rep, model=None):
         return item
 
 
-def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=None):
+def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=None, setCheckable=True):
     item = QtGui.QStandardItem(f'{sample_name} at X {sample_x} Y {sample_y}')
     item.setDropEnabled(False)
     item.item_type = 'sample'
-    item.setCheckable(True)
+    if setCheckable:
+        item.setCheckable(True)
     item.setEditable(False)
     item.x = sample_x
     item.y = sample_y
@@ -56,7 +57,7 @@ def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=No
         return item
 
 
-def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=None):
+def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=None, setCheckable=True):
     item = QtGui.QStandardItem(f'{scan_type} with {scan_name}, {scan_repeat} times with {scan_delay} s delay')
     item.setDropEnabled(False)
     item.item_type = 'scan'
@@ -65,7 +66,9 @@ def _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, m
     item.repeat = scan_repeat
     item.name = scan_name
     item.delay = scan_delay
-    item.setCheckable(True)
+    item.autofoil = scan_autofoil
+    if setCheckable:
+        item.setCheckable(True)
     item.setEditable(False)
     item.setIcon(icon_scan)
     if model:

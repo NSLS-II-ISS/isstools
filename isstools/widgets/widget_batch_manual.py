@@ -185,8 +185,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             scan_traj = int(self.comboBox_lut.currentText()[0])
             scan_repeat =  self.spinBox_scan_repeat.value()
             scan_delay = self.spinBox_scan_delay.value()
+            scan_autofoil = False
             # name = self.lineEdit_scan_name.text()
-            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, model=self.model_scans)
+            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=self.model_scans)
             
             self.listView_scans.setModel(self.model_scans)
         else:

@@ -26,7 +26,7 @@ import pandas as pd
 from isstools.elements.elements import remove_ev_from_energy_str, remove_edge_from_edge_str, clean_el_str
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _create_service_item, _clone_scan_item, _clone_sample_item)
-from isstools.elements.elements import element_dict, _check_entry
+from isstools.elements.elements import element_dict, _check_entry, remove_special_characters
 
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
@@ -78,7 +78,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         # self.read_json_data()
         self.table_keys = ['Found','Run','Proposal', 'SAF', 'Holder ID', 'Sample #', 'Name', 'Comment', 'Composition',
-                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type' ]
+                           'Element', 'Concentration', 'Edge','Energy', 'k-range', '# of scans', 'Position', 'Holder type', 'Autofoil' ]
 
 
         self.tableWidget_sample_def.setColumnCount(len(self.table_keys))
@@ -202,7 +202,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                         edge = remove_edge_from_edge_str(edge)
                         energy = remove_ev_from_energy_str(energy)
                         if _check_entry(el, edge, float(energy), name, i):
-                            entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '']
+                            entry_list = [False,False] + sample_info + [el, el_conc, edge, energy, krange, nscans] + ['', '', True]
                             self.sample_df.loc[df_row_index] = entry_list
                             df_row_index += 1
 
@@ -230,17 +230,18 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
         self.checkBoxes_found = []
         self.checkBoxes_run = []
+        self.checkBoxes_autofoil = []
         for i in range(nrows):
+            ######## THIS IS REALLY UNCLEAR: WHY 'RUN' UPDATES 0-th COLUMN??!
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags( QtCore.Qt.ItemIsEnabled)
-
             if self.sample_df.iloc[i]['Run']:
                 chkBoxItem.setCheckState(QtCore.Qt.Checked)
             else:
                 chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
-
             self.tableWidget_sample_def.setItem(i,0,chkBoxItem)
             self.checkBoxes_found.append(chkBoxItem)
+
             chkBoxItem = QtWidgets.QTableWidgetItem()
             chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
             if self.sample_df.iloc[i]['Found']:
@@ -249,6 +250,15 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
             self.tableWidget_sample_def.setItem(i, 1, chkBoxItem)
             self.checkBoxes_run.append(chkBoxItem)
+
+            chkBoxItem = QtWidgets.QTableWidgetItem()
+            chkBoxItem.setFlags(QtCore.Qt.ItemIsEnabled)
+            if self.sample_df.iloc[i]['Autofoil']:
+                chkBoxItem.setCheckState(QtCore.Qt.Checked)
+            else:
+                chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
+            self.tableWidget_sample_def.setItem(i, 17, chkBoxItem)
+            self.checkBoxes_autofoil.append(chkBoxItem)
 
         for jj in range(len(self.table_keys)):
             self.tableWidget_sample_def.resizeColumnToContents(jj)
@@ -266,8 +276,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                 self.sample_df['Run'][row] = True
             else:
                 self.sample_df['Run'][row] = False
-
-        if column >1:
+        elif column == 17:
+            to_autofoil = int(self.checkBoxes_autofoil[row].checkState())
+            if to_autofoil != 0:
+                self.sample_df['Autofoil'][row] = True
+            else:
+                self.sample_df['Autofoil'][row] = False
+        else:
             self.sample_df.iloc[row][column] = self.tableWidget_sample_def.item(row, column).text()
 
 
@@ -295,18 +310,42 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.sample_df = self.sample_df.sort_values('Energy', ascending=ascending)
         self.sample_df = self.sample_df.sort_values(['Energy', 'Position'],
                                                     ascending=(ascending, True))
-
+        traj_columns = ['Element', 'Edge', 'Energy', 'k-range', '# of scans']
+        self.unique_traj_df = self.sample_df.drop_duplicates(traj_columns)
 
         self.model_batch = QtGui.QStandardItemModel(self)
         _create_batch_experiment('experiment', 1, model=self.model_batch)
-        for ii, row in self.sample_df.iterrows():
-            if row['Found'] and row['Run']:
-                item_sample = self._get_sample_item(row)
-                item_service = self._get_service_item(row)
-                item_scan = self._get_scan_item(row)
-                item_scan.appendRow(item_service)
-                item_scan.appendRow(item_sample)
+        for _, scan_row in self.unique_traj_df.iterrows():
+            any_samples_found = False
+            item_scan = self._get_scan_item(scan_row)
+            item_service = self._get_service_item(scan_row, 'optimize beamline')
+            item_scan.appendRow(item_service)
+
+            idx = (self.sample_df == scan_row)[traj_columns].all(1)
+
+
+            for _, sample_row in self.sample_df[idx].iterrows():
+                if sample_row['Found'] and sample_row['Run']:
+                    any_samples_found = True
+                    item_service = self._get_service_item(scan_row, 'optimize sample')
+                    item_sample = self._get_sample_item(sample_row)
+                    item_scan.appendRow(item_service)
+                    item_scan.appendRow(item_sample)
+
+            if any_samples_found:
                 self.model_batch.item(0).appendRow(item_scan)
+
+
+
+        # for ii, row in self.sample_df.iterrows():
+        #     if row['Found'] and row['Run']:
+        #         item_sample = self._get_sample_item(row)
+        #         item_service = self._get_service_item(row)
+        #         item_scan = self._get_scan_item(row)
+        #         item_scan.appendRow(item_service)
+        #         item_scan.appendRow(item_sample)
+        #
+        #         self.model_batch.item(0).appendRow(item_scan)
 
         self.treeView_batch = self.parent_gui.widget_batch_mode.widget_batch_manual.treeView_batch
         self.treeView_batch.setModel(self.model_batch)
@@ -321,26 +360,34 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                                                         int(i_holder),
                                                                         int(i_sample),
                                                                         int(row['Holder type']))
-        item_sample = _create_new_sample(row['Name'],  # sample name
+
+        name = remove_special_characters(row['Name'])
+        item_sample = _create_new_sample(name,  # sample name
                                          row['Comment'],  # sample_comment,
                                          sample_x,  # sample_x,
-                                         sample_y)  # sample_y
+                                         sample_y,
+                                         setCheckable=False)  # sample_y
         # item_sample = _clone_sample_item(model_sample.item(0))
-        item_sample.setCheckable(False)
+        # item_sample.setCheckable(False)
         item_sample.setEditable(False)
         return item_sample
 
 
-    def _get_service_item(self, row):
-        item_service = _create_service_item('optimize beamline',
-                                            self.service_plan_funcs['optimize_beamline_plan'],
-                                            {'energy' : row['Energy']})
+    def _get_service_item(self, row, service_type):
+        if service_type == 'optimize beamline':
+            item_service = _create_service_item('optimize beamline',
+                                                self.service_plan_funcs['optimize_beamline_plan'],
+                                                {'energy' : row['Energy']})
+        elif service_type == 'optimize sample':
+            item_service = _create_service_item('optimize sample',
+                                                self.service_plan_funcs['optimize_sample_plan'],
+                                                {})
         return item_service
 
 
 
     def _get_scan_item(self, row):
-        model_scan = QtGui.QStandardItemModel()
+        # model_scan = QtGui.QStandardItemModel()
         traj_signature = {'type': 'Double Sine',
                           'parameters': {'element': row['Element'],
                                          'edge': row['Edge'],
@@ -349,14 +396,16 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                                          'kmax': row['k-range'],
                                          't1': 10,
                                          't2': 20 * float(row['k-range']) / 16}}
-        item_scan = _create_new_scan(row['Element'] + '-' + row['Edge'],  # scan name
+        item_scan = _create_new_scan(row['Element'] + '-' + row['Edge'] + ' kmax ' + str(row['k-range']),  # scan name
                          'Fly scan (new PB)',  # scan type, normally fly scan
                          traj_signature,  # scan_traj
                          row['# of scans'],  # n scans
-                         0)  # scan delay
+                         0,
+                         row['Autofoil'],
+                         setCheckable=False)  # scan delay
         # item_scan = _clone_scan_item(model_scan.item(0))
 
-        item_scan.setCheckable(False)
+        # item_scan.setCheckable(False)
         item_scan.setEditable(False)
         return item_scan
 

@@ -58,6 +58,13 @@ def remove_ev_from_energy_str(energy):
     return energy
 
 
+special_char_list = [' ', '!', '@', '#', '$', '%','^', '&', '*', '(', ')', '/', '\\']
+def remove_special_characters(input):
+    for c in special_char_list:
+        input = input.replace(c, '_')
+    return input
+
+
 
 _edges_L1 = ['L1', 'L-1', 'L_1', 'L-I', 'L_I']
 _edges_L2 = ['L2', 'L-2', 'L_2', 'L-II', 'L_II']

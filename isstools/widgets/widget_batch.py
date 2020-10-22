@@ -39,19 +39,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                                                      hhm,
                                                                      sample_stage=sample_stage
                                                                      )
-        self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict,
-                                                             camera_dict,
-                                                             hhm,
-                                                             RE,
-                                                             # db,
-                                                             sample_stage,
-                                                             parent_gui,
-                                                             service_plan_funcs,
-                                                             plan_funcs)
-
-
         self.layout_batch_manual.addWidget(self.widget_batch_manual)
-        self.layout_autopilot.addWidget(self.widget_autopilot)
+
         self.push_run_batch.clicked.connect(self.run_batch)
 
     def run_batch(self, testing=False):
@@ -108,9 +97,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 self.label_batch_step.setText(sample_name)
                                 kwargs = {'name': sample_name,
                                           'comment': '',
-                                          'delay': 0,
+                                          'delay': scan.delay,
                                           'n_cycles': scan.repeat,
-                                          'stdout': self.parent_gui.emitstream_out}
+                                          'stdout': self.parent_gui.emitstream_out,
+                                          'autofoil' : scan.autofoil}
                                 if testing:
                                     print('would have changed traj', scan.trajectory)
 
@@ -164,7 +154,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 self.label_batch_step.setText(sample_name)
                                 kwargs = {'name': sample_name,
                                           'comment': '',
-                                          'delay': 0,
+                                          'delay': scan.delay,
                                           'n_cycles': scan.repeat,
                                           'stdout': self.parent_gui.emitstream_out}
                                 if testing:
@@ -172,7 +162,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 else:
                                     yield from plan(**kwargs)
 
-                            elif child_item == 'service':
+                            elif child_item.item_type == 'service':
                                 service = child_item
                                 kwargs = {'stdout': self.parent_gui.emitstream_out}
                                 if testing:
