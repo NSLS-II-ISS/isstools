@@ -36,6 +36,7 @@ class XASPlot(LivePlot):
         self.den_offset = None
         self.norm_name = norm_name
         self.log = log
+        self.norm_name = norm_name
 
     def descriptor(self, doc):
         if self.num_name.startswith('apb'):
