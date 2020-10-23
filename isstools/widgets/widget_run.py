@@ -243,7 +243,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
             # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
             #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
-
+#
             _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
             _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
             LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
