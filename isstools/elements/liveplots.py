@@ -25,7 +25,7 @@ class NormPlot(LivePlot):
 
 
 class XASPlot(LivePlot):
-    def __init__(self, num_name, den_name, result_name, motor, log = False, *args, **kwargs):
+    def __init__(self, num_name, den_name, result_name, motor, log = False, norm_name='1', *args, **kwargs):
         #print(f'NormPlot *args: {args}')
         #print(f'NormPlot **kwargs: {kwargs}')
         super().__init__(result_name, x=motor, *args, **kwargs)
@@ -34,6 +34,7 @@ class XASPlot(LivePlot):
         self.result_name = result_name
         self.num_offset = None
         self.den_offset = None
+        self.norm_name = norm_name
         self.log = log
 
     def descriptor(self, doc):
@@ -58,12 +59,18 @@ class XASPlot(LivePlot):
         doc['data'] = dict(doc['data'])
         #print(doc['data'])
         try:
+            if self.norm_name == '1':
+                normalization = 1
+            else:
+                normalization = doc['data'][self.norm_name]
+
+
             if self.den_name == '1':
                 denominator = 1
             else:
                 denominator = np.abs(doc['data'][self.den_name]-self.den_offset)
 
-            ratio = np.abs(doc['data'][self.num_name] - self.num_offset) / denominator
+            ratio = np.abs(doc['data'][self.num_name] - self.num_offset) / denominator / normalization
             if self.log:
                 #TODO
                 doc['data'][self.result_name] = np.log(ratio)

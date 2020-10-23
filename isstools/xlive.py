@@ -187,8 +187,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
 
-        # self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
-        # self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
+        self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
+        self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
         self.widget_autopilot = widget_autopilot.UIAutopilot(motors_dict,
                                                              camera_dict,
