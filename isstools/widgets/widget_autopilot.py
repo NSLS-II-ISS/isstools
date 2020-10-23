@@ -149,20 +149,23 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
     def read_proposal_info(self, year, cycle):
-        info_file_name = str(year) + '-' + str(cycle) + ' Proposal list'
-        file_id = self.file_ids[self.file_names == info_file_name][0]
         try:
-            result = self.sheet.values().get(spreadsheetId=file_id, range='Sheet1').execute()
-        except:
-            result = self.sheet.values().get(spreadsheetId=file_id, range='8-ID').execute()
-        sheet_data = result['values']
+            info_file_name = str(year) + '-' + str(cycle) + ' Proposal list'
+            file_id = self.file_ids[self.file_names == info_file_name][0]
+            try:
+                result = self.sheet.values().get(spreadsheetId=file_id, range='Sheet1').execute()
+            except:
+                result = self.sheet.values().get(spreadsheetId=file_id, range='8-ID').execute()
+            sheet_data = result['values']
 
-        proposal_info = {}
-        for i, row in enumerate(sheet_data):
-            if i > 0:  # skip the header
-                proposal_info[row[0]] = {'name' : row[2] + ', ' + row[1],
-                                         'email' : row[3]}
-        return proposal_info
+            proposal_info = {}
+            for i, row in enumerate(sheet_data):
+                if i > 0:  # skip the header
+                    proposal_info[row[0]] = {'name' : row[2] + ', ' + row[1],'email' : row[3]}
+            return proposal_info
+        except:
+            return None
+
 
 
 
