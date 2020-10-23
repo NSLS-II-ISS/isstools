@@ -761,6 +761,22 @@ position</string>
      <string>-</string>
     </property>
    </widget>
+   <widget class="QCheckBox" name="checkBox_autoEnableFeedback">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>90</y>
+      <width>171</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Auto-enable feedback</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">

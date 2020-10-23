@@ -317,6 +317,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             previous_motor = motor.name
 
         self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
+        if self.checkBox_autoEnableFeedback.isChecked():
+            self.pushEnableHHMFeedback.setChecked(True)
+
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def process_detsig(self):
