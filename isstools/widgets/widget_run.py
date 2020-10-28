@@ -237,17 +237,17 @@ class UIRun(*uic.loadUiType(ui_path)):
                          ]
 
 
-            #self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
+            self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
 
-            #LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
-            #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+            LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
+                        log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
             # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
             #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
 #
-            _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
-            _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
-            LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
-                                                  log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD'])
+            # _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
+            # _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
+            # LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
+            #                                       log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD'])
 
 
             RE_args = [plan_func(**run_parameters,
