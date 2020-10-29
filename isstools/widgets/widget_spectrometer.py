@@ -60,6 +60,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def addCanvas(self):
         self.figure_scan = Figure()
         self.figure_scan.set_facecolor(color='#FcF9F6')
+        # self.figure_scan.stale_callback = lambda art, val: art.canvas.draw_idle()
         self.canvas_scan = FigureCanvas(self.figure_scan)
         self.figure_scan.ax = self.figure_scan.add_subplot(111)
         self.toolbar_scan = NavigationToolbar(self.canvas_scan, self, coordinates=True)
@@ -154,6 +155,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
 
         uid = self.RE(plan, live_scatter)
+        self.figure_scan.ax.set_aspect('auto')
         self.figure_scan.tight_layout()
         self.canvas_scan.draw_idle()
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
