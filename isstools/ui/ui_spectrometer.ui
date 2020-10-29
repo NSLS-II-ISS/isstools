@@ -16,10 +16,10 @@
   <widget class="QGroupBox" name="groupBox_7">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>20</x>
      <y>10</y>
      <width>471</width>
-     <height>231</height>
+     <height>211</height>
     </rect>
    </property>
    <property name="font">
@@ -101,15 +101,15 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>60</y>
+      <x>70</x>
+      <y>80</y>
       <width>261</width>
       <height>120</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_step_x">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -161,7 +161,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_xrange">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_range_x">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -185,7 +185,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_range_y">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -195,7 +195,7 @@
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_step_y">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -219,7 +219,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_6">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_range_pitch">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -229,7 +229,7 @@
       </widget>
      </item>
      <item row="3" column="2">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_step_pitch">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -248,12 +248,12 @@
         </font>
        </property>
        <property name="text">
-        <string>Pitch</string>
+        <string>Yaw</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_7">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_range_yaw">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -263,7 +263,7 @@
       </widget>
      </item>
      <item row="4" column="2">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_8">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_step_yaw">
        <property name="decimals">
         <number>3</number>
        </property>
@@ -274,12 +274,12 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="push_gen_scan">
+   <widget class="QPushButton" name="push_1D_scan">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>190</y>
-      <width>81</width>
+      <x>340</x>
+      <y>90</y>
+      <width>121</width>
       <height>31</height>
      </rect>
     </property>
@@ -287,52 +287,12 @@
      <string>1D scan</string>
     </property>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="QPushButton" name="push_xy_scan">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>80</y>
-      <width>21</width>
-      <height>101</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QRadioButton" name="radio_x">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radio_y">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radio_pitch">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radio_yaw">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QPushButton" name="push_gen_scan_2">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>190</y>
-      <width>81</width>
+      <x>340</x>
+      <y>130</y>
+      <width>121</width>
       <height>31</height>
      </rect>
     </property>
@@ -340,17 +300,67 @@
      <string>X-Y scan</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="push_gen_scan_3">
+   <widget class="QPushButton" name="push_py_scan">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>190</y>
+      <x>340</x>
+      <y>170</y>
       <width>121</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>Pitch-Yaw scan</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox_motor">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>50</y>
+      <width>111</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>PCL x</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PCL y</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PCL pitch</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PCL yaw</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_115">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Motor</string>
     </property>
    </widget>
   </widget>
@@ -363,7 +373,7 @@
      <height>641</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_gen_scan"/>
+   <layout class="QVBoxLayout" name="plot_scan"/>
   </widget>
  </widget>
  <resources/>

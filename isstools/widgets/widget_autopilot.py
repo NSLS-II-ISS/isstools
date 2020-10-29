@@ -151,6 +151,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
     def read_proposal_info(self, year, cycle):
         try:
             info_file_name = str(year) + '-' + str(cycle) + ' Proposal list'
+            print(info_file_name)
+            print(self.file_names)
             file_id = self.file_ids[self.file_names == info_file_name][0]
             try:
                 result = self.sheet.values().get(spreadsheetId=file_id, range='Sheet1').execute()
