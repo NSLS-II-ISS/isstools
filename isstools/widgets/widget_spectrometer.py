@@ -7,7 +7,10 @@ import numpy as np
 import pkg_resources
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
+from PyQt5.Qt import  QObject
 from bluesky.callbacks import LivePlot
+from bluesky.callbacks.mpl_plotting import LiveScatter
+
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure
@@ -44,8 +47,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
         # self.parent_gui = parent_gui
-        self.last_motor_used = ''
+        self.last_motor_used = None
         self.push_1D_scan.clicked.connect(self.run_scan)
+        self.push_xy_scan.clicked.connect(self.run_2dscan)
+        self.push_py_scan.clicked.connect(self.run_2dscan)
         self.det_list = list(detector_dictionary.keys())
         self.comboBox_detectors.addItems(self.det_list)
         self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
@@ -94,19 +99,89 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
         self.last_motor_used = self.motor
 
-    def run_2dscan(self, detectors, motor1, motor2):
 
-        plan = rel_spiral_square(detectors, giantxy.x, giantxy.y, 15, 15, 15, 15)
-        RE()
+    # def _range_step_2_start_stop_nsteps(self, _range, _step):
+    #     rel_start = -float(_range)/2
+    #     rel_stop = float(_range) / 2
+    #     num_steps = int(round(range / float(_step))) + 1
+    #     return rel_start, rel_stop
+
+    def run_2dscan(self):
+        sender = QObject()
+        sender_object = sender.sender().objectName()
+        if 'xy' in sender_object:
+            m1 = 'x'
+            m2 = 'y'
+        elif 'py' in sender_object:
+            m1 = 'pitch'
+            m2 = 'yaw'
+        
+        self.canvas_scan.mpl_disconnect(self.cid_scan)
+        detector_name = self.comboBox_detectors.currentText()
+        detector = self.detector_dictionary[detector_name]['device']
+        channels = self.detector_dictionary[detector_name]['channels']
+        channel = channels[self.comboBox_channels.currentIndex()]
+
+
+        motor1 = self.motor_dictionary[f'six_axes_stage_{m1}']['object']
+        motor2 = self.motor_dictionary[f'six_axes_stage_{m2}']['object']
+        m1_pos = motor1.read()[motor1.name]['value']
+        m2_pos = motor2.read()[motor2.name]['value']
+
+
+        motor1_range = getattr(self, f'doubleSpinBox_range_{m1}').value()
+        motor2_range = getattr(self, f'doubleSpinBox_range_{m2}').value()
+
+        motor1_step = getattr(self, f'doubleSpinBox_step_{m1}').value()
+        motor2_step = getattr(self, f'doubleSpinBox_step_{m2}').value()
+
+        motor1_nsteps = int(round(motor1_range / float(motor1_step))) + 1
+        motor2_nsteps = int(round(motor2_range / float(motor2_step))) + 1
+
+        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+
+        plan = self.aux_plan_funcs['general_spiral_scan']([detector],
+                                                          motor1=motor1, motor2=motor2,
+                                                          motor1_range=motor1_range, motor2_range=motor2_range,
+                                                          motor1_nsteps=motor1_nsteps, motor2_nsteps=motor2_nsteps)
+
+        # xlim =
+
+        live_scatter = LiveScatter(motor1.name, motor2.name, channel, ax=self.figure_scan.ax,
+                                   xlim=(m1_pos - motor1_range / 2, m1_pos + motor1_range / 2),
+                                   ylim=(m2_pos - motor2_range / 2, m2_pos + motor2_range / 2),
+                                   **{'s' : 100, 'marker' : 's'})
+        # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
+
+        uid = self.RE(plan, live_scatter)
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        self.last_motor_used = [motor1, motor2]
+
+
 
     def getX_scan(self, event):
         print(f'Event {event.button}')
         if event.button == 3:
-            if self.last_motor_used != '':
-                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.last_motor_used,
-                                                      parent=self.canvas_scan)
-                if dlg.exec_():
-                    pass
+            if self.last_motor_used:
+                if type(self.last_motor_used) == list:
+                    motor1, motor2 = self.last_motor_used
+                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=motor1,
+                                                          parent=self.canvas_scan)
+                    if dlg.exec_():
+                        pass
+
+                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.ydata, motor=motor2,
+                                                          parent=self.canvas_scan)
+                    if dlg.exec_():
+                        pass
+
+                else:
+                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.last_motor_used,
+                                                          parent=self.canvas_scan)
+                    if dlg.exec_():
+                        pass
 
     def detector_selected(self):
         self.comboBox_channels.clear()
