@@ -151,7 +151,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         live_scatter = LiveScatter(motor1.name, motor2.name, channel, ax=self.figure_scan.ax,
                                    xlim=(m1_pos - motor1_range / 2, m1_pos + motor1_range / 2),
                                    ylim=(m2_pos - motor2_range / 2, m2_pos + motor2_range / 2),
-                                   **{'s' : 100, 'marker' : 's'})
+                                   **{'s' : 100, 'marker' : 's','cmap':'jet'})
         # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
 
         uid = self.RE(plan, live_scatter)

@@ -16,7 +16,7 @@ from isstools.elements.parameter_handler import parse_plan_parameters, return_pa
 from isstools.widgets import widget_energy_selector
 from bluesky.callbacks import LivePlot
 
-from ..elements.liveplots import XASPlot, XASPlotX
+from ..elements.liveplots import XASPlot#, XASPlotX
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 

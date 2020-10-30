@@ -103,8 +103,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         )
         self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
-        self.widget_trajectory_manager.trajectoriesChanged.connect(
-            self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         self.widget_processing = widget_processing.UIProcessing(
             hhm,
@@ -211,6 +209,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
             aux_plan_funcs,
         )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
+
+        self.widget_trajectory_manager.trajectoriesChanged.connect(
+            self.widget_batch_mode.widget_batch_manual.update_batch_traj)
+
+
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
