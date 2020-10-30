@@ -141,27 +141,31 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                     ptable_row_index += 1
             for jj in range(2):
                 self.tableWidget_proposal.resizeColumnToContents(jj)
-        else:
-            message_box('Error','No proposal definition files found')
-
-        if not found_flag:
-            message_box('Error', 'No proposal definition files found')
+        # else:
+        #     message_box('Error','No proposal definition files found')
+        #
+        # if not found_flag:
+        #     message_box('Error', 'No proposal definition files found')
 
 
     def read_proposal_info(self, year, cycle):
         try:
             info_file_name = str(year) + '-' + str(cycle) + ' Proposal list'
+            # print(info_file_name)
+            # print(self.file_names)
+            # print(self.file_names == info_file_name)
             file_id = self.file_ids[self.file_names == info_file_name][0]
             try:
                 result = self.sheet.values().get(spreadsheetId=file_id, range='Sheet1').execute()
             except:
                 result = self.sheet.values().get(spreadsheetId=file_id, range='8-ID').execute()
             sheet_data = result['values']
-
+            # print(sheet_data)
             proposal_info = {}
             for i, row in enumerate(sheet_data):
                 if i > 0:  # skip the header
                     proposal_info[row[0]] = {'name' : row[2] + ', ' + row[1],'email' : row[3]}
+            # print(proposal_info)
             return proposal_info
         except:
             return None

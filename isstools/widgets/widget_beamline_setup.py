@@ -276,6 +276,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
     def getX_gen_scan(self, event):
+
         if event.button == 3:
             if self.canvas_gen_scan.motor != '':
                 dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_gen_scan.motor,
