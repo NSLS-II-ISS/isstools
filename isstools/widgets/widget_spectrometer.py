@@ -13,7 +13,7 @@ from bluesky.callbacks.mpl_plotting import LiveScatter
 
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from isstools.dialogs.BasicDialogs import question_message_box
-from isstools.elements.figure_update import update_figure
+from isstools.elements.figure_update import update_figure_with_colorbar, update_figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -139,7 +139,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         motor1_nsteps = int(round(motor1_range / float(motor1_step))) + 1
         motor2_nsteps = int(round(motor2_range / float(motor2_step))) + 1
 
-        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+        #self.figure_scan.clf()
+        update_figure_with_colorbar([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan,self.figure_scan)
 
         plan = self.aux_plan_funcs['general_spiral_scan']([detector],
                                                           motor1=motor1, motor2=motor2,
@@ -151,7 +152,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         live_scatter = LiveScatter(motor1.name, motor2.name, channel, ax=self.figure_scan.ax,
                                    xlim=(m1_pos - motor1_range / 2, m1_pos + motor1_range / 2),
                                    ylim=(m2_pos - motor2_range / 2, m2_pos + motor2_range / 2),
-                                   **{'s' : 100, 'marker' : 's','cmap':'jet'})
+                                   **{'s' : 100, 'marker' : 's','cmap': 'nipy_spectral'})
         # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
 
         uid = self.RE(plan, live_scatter)

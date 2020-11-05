@@ -104,7 +104,7 @@
       <x>70</x>
       <y>80</y>
       <width>261</width>
-      <height>120</height>
+      <height>125</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -112,6 +112,9 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_x">
        <property name="decimals">
         <number>3</number>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.025000000000000</double>
@@ -165,6 +168,9 @@
        <property name="decimals">
         <number>3</number>
        </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
        <property name="value">
         <double>0.300000000000000</double>
        </property>
@@ -189,6 +195,9 @@
        <property name="decimals">
         <number>3</number>
        </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
        <property name="value">
         <double>0.300000000000000</double>
        </property>
@@ -198,6 +207,9 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_y">
        <property name="decimals">
         <number>3</number>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.025000000000000</double>
@@ -223,6 +235,9 @@
        <property name="decimals">
         <number>3</number>
        </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
        <property name="value">
         <double>0.100000000000000</double>
        </property>
@@ -232,6 +247,9 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_pitch">
        <property name="decimals">
         <number>3</number>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.010000000000000</double>
@@ -257,6 +275,9 @@
        <property name="decimals">
         <number>3</number>
        </property>
+       <property name="singleStep">
+        <double>0.001000000000000</double>
+       </property>
        <property name="value">
         <double>0.010000000000000</double>
        </property>
@@ -266,6 +287,9 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_yaw">
        <property name="decimals">
         <number>3</number>
+       </property>
+       <property name="singleStep">
+        <double>0.001000000000000</double>
        </property>
        <property name="value">
         <double>0.001000000000000</double>

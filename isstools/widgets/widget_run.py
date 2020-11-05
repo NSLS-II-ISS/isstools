@@ -251,7 +251,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                 _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
                 _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
                 LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
-                                                      log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD'])
+                                                      log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD ch1-roi1'])
             except:
                 LivePlotXspress3 = None
 
@@ -277,9 +277,6 @@ class UIRun(*uic.loadUiType(ui_path)):
             if plan_key.lower().startswith('step scan'):
                 RE_args.append(LivePlots)
                 self._save_step_scan_settings()
-
-
-
 
             self.run_mode_uids = self.RE(*RE_args)
 
