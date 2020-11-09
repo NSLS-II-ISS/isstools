@@ -9,7 +9,7 @@ from matplotlib.widgets import Cursor
 def update_figure(axes, toolbar, canvas):
     for ax in axes:
         ax.clear()
-        cursor = Cursor(ax, useblit=True, color='green', linewidth=0.75)
+        # cursor = Cursor(ax, useblit=True, color='green', linewidth=0.75)
     toolbar.update()
     canvas.draw_idle()
     axes[-1].grid(alpha=0.4)
@@ -20,7 +20,7 @@ def update_figure_with_colorbar(axes, toolbar, canvas,figure):
         figure.axes[-1].remove()
     for ax in axes:
         ax.clear()
-        cursor = Cursor(ax, useblit=True, color='green', linewidth=0.75)
+        # cursor = Cursor(ax, useblit=True, color='green', linewidth=0.75)
 
     toolbar.update()
     canvas.draw_idle()
@@ -38,7 +38,7 @@ def setup_figure(parent, layout):
     canvas.draw_idle()
     cursor = Cursor(figure.ax, useblit=True, color='green', linewidth=0.75)
     figure.ax.grid(alpha=0.4)
-    figure.tight_layout()
+    #figure.tight_layout()
 
     return figure, canvas,toolbar
 
