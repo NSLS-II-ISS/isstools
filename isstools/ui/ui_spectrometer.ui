@@ -16,9 +16,9 @@
   <widget class="QGroupBox" name="groupBox_7">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>10</y>
-     <width>471</width>
+     <width>421</width>
      <height>211</height>
     </rect>
    </property>
@@ -32,79 +32,13 @@
    <property name="title">
     <string>PCL alignment</string>
    </property>
-   <widget class="QLabel" name="label_108">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>71</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Detector</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_channels">
-    <property name="geometry">
-     <rect>
-      <x>270</x>
-      <y>20</y>
-      <width>111</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_detectors">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>20</y>
-      <width>180</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-   </widget>
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>80</y>
+      <x>10</x>
+      <y>70</y>
       <width>261</width>
-      <height>125</height>
+      <height>120</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -112,9 +46,6 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_x">
        <property name="decimals">
         <number>3</number>
-       </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.025000000000000</double>
@@ -168,9 +99,6 @@
        <property name="decimals">
         <number>3</number>
        </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
        <property name="value">
         <double>0.300000000000000</double>
        </property>
@@ -195,9 +123,6 @@
        <property name="decimals">
         <number>3</number>
        </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
        <property name="value">
         <double>0.300000000000000</double>
        </property>
@@ -207,9 +132,6 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_y">
        <property name="decimals">
         <number>3</number>
-       </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.025000000000000</double>
@@ -235,9 +157,6 @@
        <property name="decimals">
         <number>3</number>
        </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
        <property name="value">
         <double>0.100000000000000</double>
        </property>
@@ -247,9 +166,6 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_pitch">
        <property name="decimals">
         <number>3</number>
-       </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>0.010000000000000</double>
@@ -275,9 +191,6 @@
        <property name="decimals">
         <number>3</number>
        </property>
-       <property name="singleStep">
-        <double>0.001000000000000</double>
-       </property>
        <property name="value">
         <double>0.010000000000000</double>
        </property>
@@ -287,9 +200,6 @@
       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_yaw">
        <property name="decimals">
         <number>3</number>
-       </property>
-       <property name="singleStep">
-        <double>0.001000000000000</double>
        </property>
        <property name="value">
         <double>0.001000000000000</double>
@@ -301,8 +211,8 @@
    <widget class="QPushButton" name="push_1D_scan">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>90</y>
+      <x>280</x>
+      <y>70</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -314,8 +224,8 @@
    <widget class="QPushButton" name="push_xy_scan">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>130</y>
+      <x>280</x>
+      <y>110</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -327,8 +237,8 @@
    <widget class="QPushButton" name="push_py_scan">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>170</y>
+      <x>280</x>
+      <y>150</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -337,11 +247,11 @@
      <string>Pitch-Yaw scan</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox_motor">
+   <widget class="QComboBox" name="comboBox__pcl_motors">
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>50</y>
+      <y>40</y>
       <width>111</width>
       <height>22</height>
      </rect>
@@ -371,7 +281,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>50</y>
+      <y>20</y>
       <width>71</width>
       <height>20</height>
      </rect>
@@ -397,7 +307,286 @@
      <height>641</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_scan"/>
+   <layout class="QVBoxLayout" name="layout_plot_scan"/>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>230</y>
+     <width>701</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Spectrometer alignment</string>
+   </property>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>551</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_119">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Motor</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox_motors">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_118">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Scan Range</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_range">
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_120">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Step Size</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_step">
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="value">
+        <double>0.025000000000000</double>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="push_scan">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>25</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Scan</string>
+    </property>
+   </widget>
+   <zorder>horizontalLayoutWidget</zorder>
+   <zorder>push_1D_scan</zorder>
+   <zorder>push_scan</zorder>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>10</y>
+     <width>221</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Pilatus</string>
+   </property>
+   <widget class="QPushButton" name="push_single_shot">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>50</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Single shot</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="doubleSpinBox_exposure">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>20</y>
+      <width>83</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="decimals">
+     <number>3</number>
+    </property>
+    <property name="value">
+     <double>1.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_116">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>20</y>
+      <width>82</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Exposure</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_121">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>20</y>
+      <width>16</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>s</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="label_108">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>340</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Detector</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_detectors">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>340</y>
+     <width>180</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_channels">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>340</y>
+     <width>111</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_11">
+   <property name="geometry">
+    <rect>
+     <x>730</x>
+     <y>680</y>
+     <width>869</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="layout_plot_integ"/>
   </widget>
  </widget>
  <resources/>
