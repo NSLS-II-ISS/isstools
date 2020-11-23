@@ -248,10 +248,10 @@ class UIRun(*uic.loadUiType(ui_path)):
             # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
             #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
             try:
-                _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
+                _xs = self.detectors_list['Xspress3']['device'].channel2.rois.roi01.value
                 _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
                 LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
-                                                      log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD ch1-roi1'])
+                                                      log=False, norm_name=_xs_at.name, ax=self.figure.ax1, color='m', legend_keys=['SDD ch2-roi1'])
             except:
                 LivePlotXspress3 = None
 
@@ -315,9 +315,9 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         energy = np.array(df['energy'])
         edge = int(len(energy) * 0.02)
-        print(f'Before drawing in draw_interpolated_data:{__file__}')
+        #print(f'Before drawing in draw_interpolated_data:{__file__}')
         self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
-        print(f'After drawing in draw_interpolated_data:{__file__}')
+        #print(f'After drawing in draw_interpolated_data:{__file__}')
         self.figure.ax1.legend(loc=2)
         self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g', label='Total fluorescence')
         self.figure.ax2.legend(loc=1)

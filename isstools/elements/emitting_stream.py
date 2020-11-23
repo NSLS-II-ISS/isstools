@@ -77,6 +77,12 @@ class EmittingStream(QtCore.QObject):
             fmt.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
+        elif text.lower().find('storing') >= 0 or text.lower().find('moving') >= 0:
+            fmt = cursor.charFormat()
+            fmt.setForeground(QtCore.Qt.darkGray)
+            fmt.setFontWeight(QtGui.QFont.Bold)
+            cursor.setCharFormat(fmt)
+            cursor.insertText(text)
         else:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.black)
