@@ -15,7 +15,7 @@ from PyQt5.Qt import QSplashScreen, QObject
 import numpy
 
 
-from isstools.elements.figure_update import update_figure
+from isstools.elements.figure_update import update_figure, setup_figure
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sdd_manager.ui')
@@ -33,7 +33,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.addCanvas()
+        self.figure_mca, self.canvas_mca,self.toolbar_mca = setup_figure(self, self.layout_plot_mca)
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
         self.xs = xs
@@ -83,7 +83,9 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                 for indx_lo_hi in range(2):
                     spinbox_name = self.spinbox_roi.format(indx_ch + 1, indx_roi + 1, self.lo_hi[indx_lo_hi])
                     spinbox_object = getattr(self, spinbox_name)
-                    spinbox_object.valueChanged.connect(self.set_roi_value)
+                    spinbox_object.editingFinished.connect(self.set_roi_value)
+
+
 
     def fix_rois(self):
         sender = QObject()
@@ -98,6 +100,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                         spinbox_name_ch1 = self.spinbox_roi.format(1, indx_roi + 1, self.lo_hi[indx_lo_hi])
                         spinbox_object_ch1 = getattr(self, spinbox_name_ch1)
                         value = spinbox_object_ch1.value()
+
                         spinbox_name = self.spinbox_roi.format(indx_ch, indx_roi + 1, self.lo_hi[indx_lo_hi])
                         spinbox_object = getattr(self, spinbox_name)
                         spinbox_object.setValue(value)
@@ -110,8 +113,6 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     spinbox_object.setEnabled(True)
 
     def set_roi_value(self):
-        print('Setting Roi')
-        proceed = False
         sender = QObject()
         sender_object = sender.sender().objectName()
         indx_ch = sender_object[10]
@@ -119,22 +120,9 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         lo_hi = sender_object[17:]
         signal = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index(lo_hi))
         value = sender.sender().value()
-        #validate  limits
-        if lo_hi == 'lo':
-            counter_signal = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index('hi'))
-            counter_value = counter_signal.get()*10
-            if value < counter_value:
-                proceed = True
-        elif lo_hi == 'hi':
-            counter_signal = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index('lo'))
-            counter_value = counter_signal.get()*10
-            if value > counter_value:
-                proceed = True
-        if proceed:
-            signal.put(int(value/10))
-            self.roi_values[int(indx_ch)-1, int(indx_roi)-1, self.lo_hi.index(lo_hi)] = value
-        else:
-            sender.sender().setValue(counter_value)
+        signal.put(int(value/10))
+        print(f' Value {value}')
+        self.roi_values[int(indx_ch)-1, int(indx_roi)-1, self.lo_hi.index(lo_hi)]= value
         self.update_roi_plot()
 
     def get_roi_signal(self, indx_ch,indx_roi,indx_lo_hi):
@@ -155,22 +143,22 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
 
     def update_spinboxes(self):
-        print('Updating spinboxes')
+       # print('Updating spinboxes')
         for indx_ch in range(self.num_channels):
             for indx_roi in range(self.num_rois):
                 for indx_lo_hi in range(2):
                     spinbox_name = self.spinbox_roi.format(indx_ch+1,indx_roi+1,self.lo_hi[indx_lo_hi])
                     spinbox_object = getattr(self,spinbox_name)
-                    value = self.get_roi_signal(indx_ch+1, indx_roi+1, indx_lo_hi).get()
-                    spinbox_object.setValue(value*10)
+                    value = self.get_roi_signal(indx_ch+1, indx_roi+1, indx_lo_hi).get() * 10
+                    spinbox_object.setValue(value)
                     self.roi_values[indx_ch,indx_roi,indx_lo_hi] = value
         self.update_roi_plot()
 
     def update_roi_plot(self):
         for roi_plot in self.roi_plots:
-            self.figure_xs3_mca.ax.lines.remove(roi_plot[0])
+            self.figure_mca.ax.lines.remove(roi_plot[0])
         self.roi_plots = []
-        ylims=self.figure_xs3_mca.ax.get_ylim()
+        ylims=self.figure_mca.ax.get_ylim()
         for indx_ch in range(self.num_channels):
             show_ch = getattr(self, 'checkBox_ch{}_show'.format(indx_ch + 1)).isChecked()
             for indx_roi in range(self.num_rois):
@@ -180,45 +168,34 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                         #print('plotting')
                         color = self.colors[indx_ch]
                         value = self.roi_values[indx_ch,indx_roi,indx_hi_lo]
-                        h = self.figure_xs3_mca.ax.plot([value, value], [0, ylims[1] * 0.85], color, linestyle='dashed',
+                        h = self.figure_mca.ax.plot([value, value], [0, ylims[1] * 0.85], color, linestyle='dashed',
                                                         linewidth=0.5)
                         self.roi_plots.append(h)
 
-        self.canvas_xs3_mca.draw_idle()
-
-    def addCanvas(self):
-        self.figure_xs3_mca = Figure()
-        self.figure_xs3_mca.set_facecolor(color='#FcF9F6')
-        self.canvas_xs3_mca = FigureCanvas(self.figure_xs3_mca)
-        self.figure_xs3_mca.ax = self.figure_xs3_mca.add_subplot(111)
-        self.toolbar_xs3_mca = NavigationToolbar(self.canvas_xs3_mca, self, coordinates=True)
-        self.plot_xs3_mca.addWidget(self.toolbar_xs3_mca)
-        self.plot_xs3_mca.addWidget(self.canvas_xs3_mca)
-        self.canvas_xs3_mca.draw_idle()
-        #self.cursor_xs3_mca = Cursor(self.figure_xia_all_graphs.ax, useblit=True, color='green', linewidth=0.75)
-        self.figure_xs3_mca.ax.clear()
+        self.canvas_mca.draw_idle()
 
     def xs3_acquire(self):
         self.roi_plots = []
-        print('acquiring...')
+        print('Xspress3 acquisition starting...')
         plan = self.service_plan_funcs['xs_count']
         acq_time = self.spinBox_acq_time.value()
         self.RE(plan(acq_time = acq_time))
         self.acquired = True
         self.plot_traces()
         self.update_roi_plot()
-        self.canvas_xs3_mca.draw_idle()
+        self.canvas_mca.draw_idle()
+        print('Xspress3 acquisition complete')
 
     def plot_traces(self):
         #THis method plot the MCA signal
-        update_figure([self.figure_xs3_mca.ax], self.toolbar_xs3_mca, self.canvas_xs3_mca)
+        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
         self.roi_plots = []
         if self.acquired:
             for indx in range(self.num_channels):
                 if getattr(self, self.checkbox_ch.format(indx+1)).isChecked():
-                    ch = getattr(self.xs,'mca{}_sum'.format(indx+1))
+                    ch = getattr(self.xs,'mca{}'.format(indx+1))
                     mca = ch.get()
                     energy = np.array(list(range(len(mca))))*10
-                    self.figure_xs3_mca.ax.plot(energy,mca,self.colors[indx], label = 'Channel {}'.format(indx+1))
-                    self.figure_xs3_mca.ax.legend(loc=1)
+                    self.figure_mca.ax.plot(energy[10:],mca[10:],self.colors[indx], label = 'Channel {}'.format(indx+1))
+                    self.figure_mca.ax.legend(loc=1)
         self.update_roi_plot()
