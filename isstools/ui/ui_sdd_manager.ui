@@ -113,7 +113,7 @@
      <height>651</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plot_xs3_mca"/>
+   <layout class="QVBoxLayout" name="layout_plot_mca"/>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
