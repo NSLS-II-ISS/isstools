@@ -104,7 +104,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         preedge_lo = int(self.edit_preedge_lo.text())
         preedge_hi = int(self.edit_preedge_hi.text())
         edge_hi = int(self.edit_edge_hi.text())
-
+        pad_time = float(self.edit_pad_time.text())
         postedge_k = float(self.edit_postedge_hi.text())
         postedge_hi = xray.k2e(postedge_k,
                                E0) - E0  # (1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
@@ -159,7 +159,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                                  dsine_postedge_duration=dsine_postedge_duration,
                                  dsine_preedge_frac=dsine_preedge_flex_frac,
                                  dsine_postedge_frac=dsine_postedge_flex_frac,
-                                 trajectory_type=traj_type)
+                                 trajectory_type=traj_type,
+                                 pad_time=pad_time)
 
         self.traj_creator_ref.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
                                  velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
