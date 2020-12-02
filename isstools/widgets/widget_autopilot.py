@@ -325,7 +325,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         for _, scan_row in self.unique_traj_df.iterrows():
             any_samples_found = False
             item_scan = self._get_scan_item(scan_row)
-            item_service = self._get_service_item(scan_row, 'optimize beamline')
+            item_service = self._get_service_item(scan_row, None, 'optimize beamline')
             item_scan.appendRow(item_service)
 
             idx = (self.sample_df == scan_row)[traj_columns].all(1)
@@ -334,7 +334,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             for _, sample_row in self.sample_df[idx].iterrows():
                 if sample_row['Found'] and sample_row['Run']:
                     any_samples_found = True
-                    item_service = self._get_service_item(scan_row, 'optimize sample')
+                    item_service = self._get_service_item(scan_row, sample_row, 'optimize sample')
                     item_sample = self._get_sample_item(sample_row)
                     item_scan.appendRow(item_service)
                     item_scan.appendRow(item_sample)
@@ -362,12 +362,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
     def _get_sample_item(self, row):
         # model_sample = QtGui.QStandardItemModel()
-        i_stack, i_holder, i_sample = row['Position']
-        sample_x, sample_y = self.sample_positioner.get_sample_position(int(i_stack),
-                                                                        int(i_holder),
-                                                                        int(i_sample),
-                                                                        int(row['Holder type']))
-
+        sample_x, sample_y = self._get_sample_position(row)
         name = remove_special_characters(row['Name'])
         item_sample = _create_new_sample(name,  # sample name
                                          row['Comment'],  # sample_comment,
@@ -380,15 +375,20 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         return item_sample
 
 
-    def _get_service_item(self, row, service_type):
+    def _get_service_item(self, row_scan, row_sample, service_type):
         if service_type == 'optimize beamline':
             item_service = _create_service_item('optimize beamline',
                                                 self.service_plan_funcs['optimize_beamline_plan'],
-                                                {'energy' : row['Energy']})
+                                                {'energy' : row_scan['Energy']})
         elif service_type == 'optimize sample':
+            sample_x, sample_y = self._get_sample_position(row_sample)
             item_service = _create_service_item('optimize sample',
                                                 self.service_plan_funcs['optimize_sample_plan'],
-                                                {})
+                                                {'sample_x' : sample_x,
+                                                 'sample_y' : sample_y,
+                                                 'energy' : row_scan['Energy'],
+                                                 'concentration' : float(row_sample['Concentration']),
+                                                 'name' :  f"{row_sample['Name']}_{row_sample['Position']}"})
         return item_service
 
 
@@ -434,8 +434,13 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         # self.model_scans = QtGui.QStandardItemModel(self)
 
 
-
-
+    def _get_sample_position(self, row):
+        i_stack, i_holder, i_sample = row['Position']
+        sample_x, sample_y = self.sample_positioner.get_sample_position(int(i_stack),
+                                                                        int(i_holder),
+                                                                        int(i_sample),
+                                                                        int(row['Holder type']))
+        return sample_x, sample_y
 
     def _check_entry(self, el, edge, energy, name, row):
         info = f'Proposal: {name}, row: {row}, element: {el}, edge: {edge}, energy: {energy}'

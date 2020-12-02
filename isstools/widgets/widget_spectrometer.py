@@ -41,7 +41,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.service_plan_funcs = service_plan_funcs
         # self.parent_gui = parent_gui
         self.last_motor_used = None
-        self.push_1D_scan.clicked.connect(self.run_scan)
+        self.push_1D_scan.clicked.connect(self.run_pcl_scan)
         self.push_xy_scan.clicked.connect(self.run_2dscan)
         self.push_py_scan.clicked.connect(self.run_2dscan)
         self.push_scan.clicked.connect(self.run_scan)
@@ -96,7 +96,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         channel = channels[self.comboBox_channels.currentIndex()]
         update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
 
-        motor_suffix = self.comboBox_motor.currentText().split(' ')[-1]
+        motor_suffix = self.comboBox__pcl_motors.currentText().split(' ')[-1]
         motor_name = f'six_axes_stage_{motor_suffix}'
         self.motor = self.motor_dictionary[motor_name]['object']
 
