@@ -54,6 +54,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
         self.listView_samples.setDragEnabled(True)
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        # self.listView_samples.doubleClicked.connect(self.update_sample_info)
 
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
@@ -166,6 +167,32 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             for sample in samples:
                 _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=self.model_samples)
             self.listView_samples.setModel(self.model_samples)
+
+    # def update_sample_info(self):
+    #     view = self.listView_samples
+    #     selection = view.selectedIndexes()
+    #     if selection != []:
+    #         index = view.currentIndex()
+    #         item = view.model().item(index.row())
+    #         name = item.name
+
+
+
+
+
+    # def rename_dataset(self):
+    #     selection = self.list_project.selectedIndexes()
+    #     if selection != []:
+    #
+    #
+    #
+    #         name = self.parent.project._datasets[selection[0].row()].name
+    #         new_name, ok = QtWidgets.QInputDialog.getText(self, 'Rename dataset', 'Enter new name:',
+    #                                                       QtWidgets.QLineEdit.Normal, name)
+    #         if ok:
+    #             self.parent.project._datasets[selection[0].row()].name = new_name
+    #             self.parent.project.project_changed()
+
 
     '''
     Dealing with scans

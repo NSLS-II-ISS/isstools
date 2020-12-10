@@ -168,7 +168,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         #Info general
         self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
                                                                      db=db,
-                                                                     parent=self)
+                                                                      parent=self)
 
         self.layout_info_general.addWidget(self.widget_info_general)
 
