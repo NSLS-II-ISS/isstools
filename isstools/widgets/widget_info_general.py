@@ -7,6 +7,7 @@ import numpy as np
 import os
 import re
 
+from isscloudtools.initialize import get_slack_service, get_gmail_service, get_dropbox_service
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
 from timeit import default_timer as timer
 from isstools.dialogs.BasicDialogs import message_box
@@ -40,14 +41,14 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.timer_update_weather.singleShot(0, self.update_weather)
         self.timer_update_weather.setInterval(1000*60*5)
         self.timer_update_weather.timeout.connect(self.update_weather)
-        self.timer_update_weather.start()
+        # self.timer_update_weather.start()
         self.db = db
         self.parent = parent
         self.RE = RE
 
         if parent.gmail_service is None:
-            self.push_cloud_setup.setEnable(False)
-            self.push_send_results.setEnable(False)
+            self.push_cloud_setup.setEnabled(False)
+            self.push_send_results.setEnabled(False)
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -62,13 +63,13 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         else:
             self.push_update_user.setEnabled(False)
 
-        # try:
-        #     self.slack_client_bot, self.slack_client_oath = get_slack_service()
-        #     self.gmail_service = get_gmail_service()
-        #     self.dropbox_service = get_dropbox_service()
-        # except:
-        #     self.push_cloud_setup.setEnable(False)
-        #     self.push_send_results.setEnable(False)
+        try:
+            self.slack_client_bot, self.slack_client_oath = get_slack_service()
+            self.gmail_service = get_gmail_service()
+            self.dropbox_service = get_dropbox_service()
+        except:
+            self.push_cloud_setup.setEnable(False)
+            self.push_send_results.setEnable(False)
 
 
 

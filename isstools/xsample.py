@@ -96,6 +96,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.plot_program = False
 
 
+
     # a.setRowCount(2)
     # a.setRowCount(12)
     # a.setVerticalHeaderLabels('sd', 'sdsd')
@@ -169,7 +170,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 dataset = df[rga_ch.name]
                 indx = rga_ch.name[-1]
                 if getattr(self, f'checkBox_rga{indx}').isChecked():
-                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-4),dataset['data'], label = f'{mass} amu')
+                    # put -5 in the winter, -4 in the summer
+                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-5),dataset['data'], label = f'{mass} amu')
             self.figure_rga.ax.grid(alpha=0.4)
             self.figure_rga.ax.xaxis.set_major_formatter(data_format)
             self.figure_rga.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
@@ -190,8 +192,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             XLIM = [dataset1['time'].iloc[0] + timedelta(hours=-4),
                     dataset1['time'].iloc[-1] + timedelta(hours=-4)]
 
-            self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
-            self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
+            self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-5), dataset1['data'], label='T readback')
+            self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-5), dataset2['data'], label='T setpoint')
             if self.plot_program:
                 if self.program_plot_moving_flag:
                     self.update_plot_program_data()
