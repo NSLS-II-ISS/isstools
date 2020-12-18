@@ -301,10 +301,10 @@
   <widget class="QWidget" name="verticalLayoutWidget_10">
    <property name="geometry">
     <rect>
-     <x>730</x>
-     <y>20</y>
-     <width>871</width>
-     <height>641</height>
+     <x>630</x>
+     <y>10</y>
+     <width>971</width>
+     <height>531</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_plot_scan"/>
@@ -314,7 +314,7 @@
     <rect>
      <x>10</x>
      <y>230</y>
-     <width>701</width>
+     <width>611</width>
      <height>81</height>
     </rect>
    </property>
@@ -326,7 +326,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>551</width>
+      <width>461</width>
       <height>41</height>
      </rect>
     </property>
@@ -415,8 +415,8 @@
    <widget class="QPushButton" name="push_scan">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>25</y>
+      <x>480</x>
+      <y>20</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -425,16 +425,13 @@
      <string>Scan</string>
     </property>
    </widget>
-   <zorder>horizontalLayoutWidget</zorder>
-   <zorder>push_1D_scan</zorder>
-   <zorder>push_scan</zorder>
   </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>430</x>
      <y>10</y>
-     <width>221</width>
+     <width>191</width>
      <height>211</height>
     </rect>
    </property>
@@ -444,7 +441,7 @@
    <widget class="QPushButton" name="push_single_shot">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>60</x>
       <y>50</y>
       <width>121</width>
       <height>31</height>
@@ -580,13 +577,261 @@
   <widget class="QWidget" name="verticalLayoutWidget_11">
    <property name="geometry">
     <rect>
-     <x>730</x>
-     <y>680</y>
-     <width>869</width>
-     <height>221</height>
+     <x>710</x>
+     <y>570</y>
+     <width>881</width>
+     <height>311</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_plot_integ"/>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>670</y>
+     <width>361</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label_126">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string> </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_roi1">
+        <property name="text">
+         <string>RO1 1</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_roi2">
+        <property name="text">
+         <string>RO1 2</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_roi3">
+        <property name="text">
+         <string>RO1 3</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_roi4">
+        <property name="text">
+         <string>RO1 4</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_122">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QSpinBox" name="spinBox_roi1_x">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinBox_roi1_y">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinBox_roi3_y">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QSpinBox" name="spinBox_roi4_x">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QSpinBox" name="spinBox_roi3_h">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="spinBox_roi2_y">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QSpinBox" name="spinBox_roi1_w">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QSpinBox" name="spinBox_roi4_h">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="spinBox_roi4_y">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QSpinBox" name="spinBox_roi2_h">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_123">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Y</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label_125">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Width</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QSpinBox" name="spinBox_roi2_w">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QSpinBox" name="spinBox_roi4_w">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QSpinBox" name="spinBox_roi2_x">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QSpinBox" name="spinBox_roi1_h">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_124">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Height</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QSpinBox" name="spinBox_roi3_w">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QSpinBox" name="spinBox_roi3_x">
+        <property name="maximum">
+         <number>40960</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

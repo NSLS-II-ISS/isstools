@@ -217,6 +217,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget spectrometer loading', ttime.ctime())
         self.widget_spectrometer = widget_spectrometer.UISpectrometer(
             RE,
+            db,
             det_dict,
             motors_dict,
             aux_plan_funcs,

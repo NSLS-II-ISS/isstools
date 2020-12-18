@@ -4,6 +4,7 @@ from PyQt5.QtCore import QThread, QSettings
 from PyQt5.Qt import  QObject
 from bluesky.callbacks import LivePlot
 from bluesky.callbacks.mpl_plotting import LiveScatter
+import numpy as np
 
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from isstools.dialogs.BasicDialogs import question_message_box
@@ -17,7 +18,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def __init__(self,
                  RE,
                  # hhm,
-                 # db,
+                 db,
                  detector_dictionary,
                  motor_dictionary,
                  aux_plan_funcs,
@@ -32,9 +33,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.setupUi(self)
 
         self.RE = RE
-        # self.db = db
+        self.db = db
         self.detector_dictionary = detector_dictionary
-        pilatus = detector_dictionary['Pilatus 100k']['device']
+        self.pilatus = detector_dictionary['Pilatus 100k']['device']
 
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -62,6 +63,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+
+
+
+        # self.roi_dict = {'roi1': {'radioButton': self.radioButton_roi1,
+        #                           'x':self.pilatus.roi}}
 
     def run_scan(self):
         self.canvas_scan.mpl_disconnect(self.cid_scan)
@@ -137,12 +143,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         channels = self.detector_dictionary[detector_name]['channels']
         channel = channels[self.comboBox_channels.currentIndex()]
 
-
         motor1 = self.motor_dictionary[f'six_axes_stage_{m1}']['object']
         motor2 = self.motor_dictionary[f'six_axes_stage_{m2}']['object']
         m1_pos = motor1.read()[motor1.name]['value']
         m2_pos = motor2.read()[motor2.name]['value']
-
 
         motor1_range = getattr(self, f'doubleSpinBox_range_{m1}').value()
         motor2_range = getattr(self, f'doubleSpinBox_range_{m2}').value()
@@ -179,9 +183,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def single_shot(self):
         plan = self.service_plan_funcs['pil_count']
         self.pilatus.cam.acquire_time.set(self.doubleSpinBox_exposure.value())
-        uid = self.RE(plan)
+        uid = self.RE(plan())
 
-
+        data = np.array(list(self.db[uid][0].data(field='pil100k_image')))[0]
+        self.figure_scan.ax.imshow(data, cmap ='nipy_spectral')
+        self.canvas_scan.draw_idle()
 
 
     def getX_scan(self, event):
