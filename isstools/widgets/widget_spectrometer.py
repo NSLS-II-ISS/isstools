@@ -34,6 +34,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.db = db
+        self.vmax = None
+        self.pil_image = None
         self.detector_dictionary = detector_dictionary
         self.pilatus = detector_dictionary['Pilatus 100k']['device']
 
@@ -63,6 +65,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        self.spinBox_image_max.valueChanged.connect(self.rescale_image)
+        self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
 
 
@@ -70,9 +74,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         #                           'x':self.pilatus.roi}}
 
     def run_scan(self):
+
         self.canvas_scan.mpl_disconnect(self.cid_scan)
         update_figure([self.figure_scan.ax], self.toolbar_scan,self.canvas_scan)
-
+        self.figure_scan.ax.set_aspect('auto')
         for motor in self.motor_dictionary:
             if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
                 self.motor = self.motor_dictionary[motor]['object']
@@ -96,6 +101,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def run_pcl_scan(self, **kwargs):
         self.canvas_scan.mpl_disconnect(self.cid_scan)
+        self.figure_scan.ax.set_aspect('auto')
         detector_name = self.comboBox_detectors.currentText()
         detector = self.detector_dictionary[detector_name]['device']
         channels = self.detector_dictionary[detector_name]['channels']
@@ -128,6 +134,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
 
     def run_2dscan(self):
+        self.figure_scan.ax.set_aspect('auto')
         sender = QObject()
         sender_object = sender.sender().objectName()
         if 'xy' in sender_object:
@@ -184,10 +191,24 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan = self.service_plan_funcs['pil_count']
         self.pilatus.cam.acquire_time.set(self.doubleSpinBox_exposure.value())
         uid = self.RE(plan())
-
-        data = np.array(list(self.db[uid][0].data(field='pil100k_image')))[0]
-        self.figure_scan.ax.imshow(data, cmap ='nipy_spectral')
+        self.pil_image = np.array(list(self.db[uid][0].data(field='pil100k_image')))[0]
+        max_image = self.pil_image.max()
+        min_image = self.pil_image.min()
+        self.label_max_count.setText(f'Max counts: {max_image}')
+        if self.vmax is None:
+            self.vmax = max_image
+            self.vmax = min_image
+            self.spinBox_image_max.setValue(max_image)
+            self.spinBox_image_min.setValue(min_image)
+        self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax)
         self.canvas_scan.draw_idle()
+
+    def rescale_image(self):
+        if self.pil_image is not None:
+            self.vmax = self.spinBox_image_max.value()
+            self.vmin = self.spinBox_image_min.value()
+            self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax)
+            self.canvas_scan.draw_idle()
 
 
     def getX_scan(self, event):
