@@ -26,7 +26,7 @@ from .process_callbacks.callback import ScanProcessingCallback
 from .elements.cloud_dispatcher import CloudDispatcher
 from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
-
+import time as ttime
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
 
@@ -85,18 +85,24 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
-
+        print('cloud starting', ttime.ctime())
         try:
+            print('starting slackbot', ttime.ctime())
             self.slack_client_bot, self.slack_client_oath = get_slack_service()
+            print('done slackbot', ttime.ctime())
             self.gmail_service = get_gmail_service()
+            #self.gmail_service = None
+            print('starting dropbox', ttime.ctime())
             self.dropbox_service = get_dropbox_service()
+            print('done dropbox', ttime.ctime())
         except:
             print("Cloud services cannot be connected")
             self.slack_client_bot = None
             self.slack_client_oath = None
             self.gmail_service = None
             self.dropbox_service = None
-
+        print('cloud complete', ttime.ctime())
+        print('widget trajectory loading', ttime.ctime())
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(
             hhm,
             aux_plan_funcs=aux_plan_funcs
@@ -104,13 +110,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
         )
         self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
+        print('widget processing loading', ttime.ctime())
         self.widget_processing = widget_processing.UIProcessing(
             hhm,
             db,
             parent_gui=self,
         )
         self.layout_processing.addWidget(self.widget_processing)
-
+        print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(
             plan_funcs,
             aux_plan_funcs,
@@ -123,7 +130,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self,
         )
         self.layout_run.addWidget(self.widget_run)
-
+        print('widget camera loading', ttime.ctime())
         self.widget_camera = widget_camera.UICamera(
             camera_dict,
             sample_stage,
@@ -131,7 +138,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self
         )
         self.layout_camera.addWidget(self.widget_camera)
-
+        print('widget batch loading', ttime.ctime())
         self.widget_batch_mode = widget_batch.UIBatch(
             plan_funcs,
             service_plan_funcs,
@@ -147,6 +154,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         #Beamline setup
+        print('widget beamline setup loading', ttime.ctime())
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(
             RE,
             hhm,
@@ -166,6 +174,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_info_shutters.addWidget(widget_info_shutters.UIInfoShutters(shutters_dict))
 
         #Info general
+        print('widget info general loading', ttime.ctime())
         self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
                                                                      db=db,
                                                                       parent=self)
@@ -173,6 +182,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_info_general.addWidget(self.widget_info_general)
 
         #Info beamline
+        print('widget info beamline loading', ttime.ctime())
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(
             accelerator=accelerator,
             hhm=hhm,
@@ -188,9 +198,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         if sdd is not None:
+            print('widget sdd manager loading', ttime.ctime())
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
-
+        print('widget autopilot loading', ttime.ctime())
         self.widget_autopilot = widget_autopilot.UIAutopilot(
             motors_dict,
             camera_dict,
@@ -203,7 +214,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             plan_funcs
         )
         self.layout_autopilot.addWidget(self.widget_autopilot)
-
+        print('widget spectrometer loading', ttime.ctime())
         self.widget_spectrometer = widget_spectrometer.UISpectrometer(
             RE,
             det_dict,
@@ -216,18 +227,18 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_trajectory_manager.trajectoriesChanged.connect(
             self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
-
+        print('widget loading done', ttime.ctime())
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
         cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
 
-
+        print(' cloud dispatcher done', ttime.ctime())
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
                                     cloud_dispatcher = cloud_dispatcher)
         self.fly_token = self.RE.subscribe(pc, 'stop')
-
+        print(' scan processgin callback done', ttime.ctime())
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream(self.textEdit_terminal)
         self.emitstream_err = EmittingStream(self.textEdit_terminal)

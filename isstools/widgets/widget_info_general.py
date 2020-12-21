@@ -10,6 +10,7 @@ import re
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
 from timeit import default_timer as timer
 from isstools.dialogs.BasicDialogs import message_box
+from isscloudtools.initialize import get_slack_service, get_dropbox_service, get_gmail_service
 import bluesky.plan_stubs as bps
 
 
@@ -46,8 +47,8 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.RE = RE
 
         if parent.gmail_service is None:
-            self.push_cloud_setup.setEnable(False)
-            self.push_send_results.setEnable(False)
+            self.push_cloud_setup.setEnabled(False)
+            self.push_send_results.setEnabled(False)
 
         if self.RE is not None:
             self.RE.is_aborted = False
@@ -62,13 +63,13 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         else:
             self.push_update_user.setEnabled(False)
 
-        # try:
-        #     self.slack_client_bot, self.slack_client_oath = get_slack_service()
-        #     self.gmail_service = get_gmail_service()
-        #     self.dropbox_service = get_dropbox_service()
-        # except:
-        #     self.push_cloud_setup.setEnable(False)
-        #     self.push_send_results.setEnable(False)
+        try:
+            self.slack_client_bot, self.slack_client_oath = get_slack_service()
+            self.gmail_service = get_gmail_service()
+            self.dropbox_service = get_dropbox_service()
+        except:
+            self.push_cloud_setup.setEnable(False)
+            self.push_send_results.setEnable(False)
 
 
 
@@ -136,7 +137,8 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         if os.path.exists(zip_file):
             os.remove(zip_file)
 
-        os.system(f'zip {zip_file} {working_directory}/*.dat ')
+        os.system(f'zip {zip_file} {working_directory}/*.* ')
+
         folder = f'/{year}/{cycle}/'
         dropbox_upload_files(self.parent.dropbox_service, zip_file,folder,zip_id_file)
 

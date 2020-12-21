@@ -96,7 +96,7 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-        self.get_proposal_list_gdrive()
+        # self.get_proposal_list_gdrive()
 
 
 
