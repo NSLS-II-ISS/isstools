@@ -192,6 +192,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.pilatus.cam.acquire_time.set(self.doubleSpinBox_exposure.value())
         uid = self.RE(plan())
         self.pil_image = np.array(list(self.db[uid][0].data(field='pil100k_image')))[0]
+        self.pil_image = self.pil_image[::-1, :]
         max_image = self.pil_image.max()
         min_image = self.pil_image.min()
         self.label_max_count.setText(f'Max counts: {max_image}')
@@ -200,14 +201,14 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.vmax = min_image
             self.spinBox_image_max.setValue(max_image)
             self.spinBox_image_min.setValue(min_image)
-        self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax)
+        self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax, origin='bottom')
         self.canvas_scan.draw_idle()
 
     def rescale_image(self):
         if self.pil_image is not None:
             self.vmax = self.spinBox_image_max.value()
             self.vmin = self.spinBox_image_min.value()
-            self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax)
+            self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax, origin='bottom')
             self.canvas_scan.draw_idle()
 
 
