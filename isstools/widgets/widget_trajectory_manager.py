@@ -32,8 +32,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.addCanvas()
 
-        self.element = 'Scandium (21)'
-        self.e0 = '4492'
+        self.element = 'Titanium (22)'
+        self.e0 = '4966'
         self.edge = 'K'
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
