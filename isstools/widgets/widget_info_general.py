@@ -137,7 +137,8 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         if os.path.exists(zip_file):
             os.remove(zip_file)
 
-        os.system(f'zip {zip_file} {working_directory}/*.* ')
+        # os.system(f'zip {zip_file} {working_directory}/*.* ')
+        os.system(f'zip {zip_file} {working_directory}/*.dat')
 
         folder = f'/{year}/{cycle}/'
         dropbox_upload_files(self.parent.dropbox_service, zip_file,folder,zip_id_file)

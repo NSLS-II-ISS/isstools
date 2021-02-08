@@ -181,7 +181,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.layout_info_general.addWidget(self.widget_info_general)
 
-        #Info beamline
+        # Info beamline
         print('widget info beamline loading', ttime.ctime())
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(
             accelerator=accelerator,

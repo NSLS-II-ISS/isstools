@@ -164,16 +164,16 @@ class UIRun(*uic.loadUiType(ui_path)):
         energy_grid = []
         time_grid = []
 
-        for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
-                        self.shutter_dictionary[shutter].shutter_type != 'SP']:
-            if shutter.state.value:
-                ret = question_message_box(self,'Shutter closed',
-                                           'Would you like to run the scan with the shutter closed?')
-                if not ret:
-                    print('Aborted!')
-                    return False
-                ignore_shutter=True
-                break
+        # for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
+        #                 self.shutter_dictionary[shutter].shutter_type != 'SP']:
+        #     if shutter.state.value:
+        #         ret = question_message_box(self,'Shutter closed',
+        #                                    'Would you like to run the scan with the shutter closed?')
+        #         if not ret:
+        #             print('Aborted!')
+        #             return False
+        #         ignore_shutter=True
+        #         break
         #
         # # Send sampling time to the pizzaboxes:
         # value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
