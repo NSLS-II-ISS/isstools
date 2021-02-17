@@ -399,6 +399,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.pushEnableHHMFeedback.setChecked(False)
         else:
             if self.fb_master:
+                print('starting piezo thread')
                 self.piezo_thread.start()
                 self.hhm.fb_status.put(1)
                 self.fb_master = -1
