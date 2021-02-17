@@ -540,13 +540,9 @@ class piezo_fb_thread(QThread):
         self.pid.windup_guard = 3
         self.go = 0
 
+        self.truncate_data = True
 
-
-    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
-
-        # Eli's comment - that's where the check for the intensity should go.
-        # if the feedback is too slow, check the max retries value in the piezo IOC or maybe the network load.
-        #print("Here all the time? 2")
+    def determine_beam_position_from_image(self, line = 420, center_point = 655, n_lines = 1):
         try:
 
             image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
@@ -556,56 +552,61 @@ class piezo_fb_thread(QThread):
             return
 
         image = image.astype(np.int16)
+        print(f'Line {line}')
+        print(f'N lines {n_lines}')
+        print(f'Center point {center_point}')
+
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
         # Eli's comment - need some work here
         #remove background (do it better later)
         if len(sum_lines) > 0:
-            sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+            # sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
+            sum_lines = sum_lines - np.mean(sum_lines[:200]) # empirically we determined that first 200 pixels are BKG
         index_max = sum_lines.argmax()
         max_value = sum_lines.max()
         min_value = sum_lines.min()
+        idx_to_fit = np.where(sum_lines > max_value / 2)
+        x = np.arange(960)
 
         #print("Here all the time? 3")
         if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-            coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
+            if self.truncate_data:
+                coeff, var_matrix = curve_fit(gauss, x[idx_to_fit], sum_lines[idx_to_fit], p0=[1, index_max, 5])
+            else:
+                coeff, var_matrix = curve_fit(gauss, x, sum_lines, p0=[1, index_max, 5])
+            return coeff[1]
+        else:
+            return None
+
+
+    def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
+
+        current_position = self.determine_beam_position_from_image(line = line, center_point = center_point, n_lines = n_lines)
+        if current_position:
             self.pid.SetPoint = 960 - center_point
-            self.pid.update(coeff[1])
+            self.pid.update(current_position)
             deviation = self.pid.output
             # deviation = -(coeff[1] - center_point)
             piezo_diff = deviation  # * 0.0855
 
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            #print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}, coeff[1]: {coeff[1]}")
+            print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}")
             self.gui.hhm.pitch.move(curr_value - piezo_diff)
 
     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
         # getting center:
         centers = []
+        print(f'center_point INITIALLY is {center_point}')
         for i in range(n_measures):
-            try:
-                image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-            except Exception as e:
-                print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
-                return
-
-            image = image.astype(np.int16)
-            sum_lines = sum(
-                image[:, [i for i in range(line - math.floor(n_lines / 2), line + math.ceil(n_lines / 2))]].transpose())
-            # remove background (do it better later)
-            if len(sum_lines) > 0:
-                sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
-
-            index_max = sum_lines.argmax()
-            max_value = sum_lines.max()
-            min_value = sum_lines.min()
-            # print('n_lines * 100: {} | max_value: {} | ((max_value - min_value) / n_lines): {}'.format(n_lines, max_value, ((max_value - min_value) / n_lines)))
-            if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-                coeff, var_matrix = curve_fit(gauss, list(range(960)), sum_lines, p0=[1, index_max, 5])
-                centers.append(960 - coeff[1])
+            current_position = self.determine_beam_position_from_image(line=line, center_point=center_point,
+                                                                       n_lines=n_lines)
+            if current_position:
+                centers.append(960 - current_position)
         # print('Centers: {}'.format(centers))
         # print('Old Center Point: {}'.format(center_point))
         if len(centers) > 0:
-            center_point = float(sum(centers) / len(centers))
+            center_point = np.mean(centers)
+            print(f'center_point DETERMINED is {center_point}')
             self.gui.settings.setValue('piezo_center', center_point)
             self.gui.piezo_center = center_point
             self.gui.hhm.fb_center.put(self.gui.piezo_center)
