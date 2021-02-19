@@ -20,6 +20,7 @@ from scipy.optimize import curve_fit
 from xas.pid import PID
 from xas.math import gauss
 from isstools.elements.liveplots import NormPlot
+import json
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
@@ -147,8 +148,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         # self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
         #                      if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
 
-        reference_foils = ['Ti', 'V','Cr', 'Mn', 'Fe','Co', 'Ni','Cu', 'Zn','Pt', 'Au', 'Se', 'Pb', 'Nb','Mo','Ru',
-                           'Rh', 'Pd','Ag','Sn','Sb', '--']
+        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+            reference_foils = [item['element'] for item in json.load(fp)]
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
