@@ -399,7 +399,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.pushEnableHHMFeedback.setChecked(False)
         else:
             if self.fb_master:
-                print('starting piezo thread')
+                #print('starting piezo thread')
                 self.piezo_thread.start()
                 self.hhm.fb_status.put(1)
                 self.fb_master = -1
@@ -458,13 +458,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def fb_center_increase(self):
         a = self.hhm.fb_center.get()
-        print(a)
+        #print(a)
         self.RE(self.change_fb_center_plan(self.hhm,a + 1))
 
 
     def fb_center_decrease(self):
         a = self.hhm.fb_center.get()
-        print(a)
+        #print(a)
         self.RE(self.change_fb_center_plan(self.hhm, a - 1))
 
 
@@ -552,9 +552,9 @@ class piezo_fb_thread(QThread):
             return
 
         image = image.astype(np.int16)
-        print(f'Line {line}')
-        print(f'N lines {n_lines}')
-        print(f'Center point {center_point}')
+        #print(f'Line {line}')
+        #print(f'N lines {n_lines}')
+        #print(f'Center point {center_point}')
 
         sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
         # Eli's comment - need some work here
@@ -590,13 +590,13 @@ class piezo_fb_thread(QThread):
             piezo_diff = deviation  # * 0.0855
 
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-            print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}")
+           # print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}")
             self.gui.hhm.pitch.move(curr_value - piezo_diff)
 
     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
         # getting center:
         centers = []
-        print(f'center_point INITIALLY is {center_point}')
+        #print(f'center_point INITIALLY is {center_point}')
         for i in range(n_measures):
             current_position = self.determine_beam_position_from_image(line=line, center_point=center_point,
                                                                        n_lines=n_lines)

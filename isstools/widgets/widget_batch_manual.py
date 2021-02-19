@@ -374,23 +374,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
                         if self.radioButton_sample_map_1D.isChecked():
                             x_coord = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
-                                                self.spinBox_sample_x_map_steps.value())
+                                                int(self.spinBox_sample_x_map_steps.value()))
                             y_coord = np.linspace(self.spinBox_sample_y_map_start.value(),self.spinBox_sample_y_map_end.value(),
-                                                self.spinBox_sample_x_map_steps.value())
+                                                int(self.spinBox_sample_x_map_steps.value()))
                             xy_coord = np.column_stack((x_coord,y_coord))
 
                         elif self.radioButton_sample_map_2D.isChecked():
                             x_coord = np.ndarray(0)
                             y_coord = np.ndarray(0)
                             y_points = np.linspace(self.spinBox_sample_y_map_start.value(), self.spinBox_sample_y_map_end.value(),
-                                                  self.spinBox_sample_y_map_steps.value())
+                                                  int(self.spinBox_sample_y_map_steps.value()))
 
                             if int(self.spinBox_sample_y_map_steps.value()) == 0:
                                 message_box('Warning', 'Select nonzero number of steps ')
                                 return
                             for i in range(int(self.spinBox_sample_y_map_steps.value())):
                                 x_line = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
-                                                self.spinBox_sample_x_map_steps.value())
+                                                int(self.spinBox_sample_x_map_steps.value()))
 
                                 y_line = np.ones(len(x_line))*(y_points[i])
 
@@ -404,7 +404,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                             for index in range(len(xy_coord)):
                                 x = xy_coord[index, 0]
                                 y = xy_coord[index, 1]
-                                name = f'{self.lineEdit_map_name.text()} at {x:.3f} {y:.3}'
+                                name = f'{self.lineEdit_map_name.text()} at {x:.3f} {y:.3f}'
 
                                 item = QtGui.QStandardItem(name)
                                 new_item_scan.appendRow(item)
