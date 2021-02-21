@@ -150,6 +150,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
             reference_foils = [item['element'] for item in json.load(fp)]
+            reference_foils.append('--')
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
