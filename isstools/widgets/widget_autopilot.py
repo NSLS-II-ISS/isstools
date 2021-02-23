@@ -127,14 +127,17 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
             self.tableWidget_proposal.setRowCount(0)
             for file in files:
                 fn= file['name']
-                if str.isnumeric(fn) and len(fn)==6:
+                proposal_num = fn[-6:]
+                # if str.isnumeric(fn) and len(fn)==6:
+                if str.isnumeric(proposal_num):
                     found_flag = True
                     self.tableWidget_proposal.insertRow(ptable_row_index)
 
-                    self.tableWidget_proposal.setItem(ptable_row_index, 0, QtWidgets.QTableWidgetItem(fn))
+                    self.tableWidget_proposal.setItem(ptable_row_index, 0, QtWidgets.QTableWidgetItem(proposal_num))
+
                     try:
                         self.tableWidget_proposal.setItem(ptable_row_index, 1,
-                                                            QtWidgets.QTableWidgetItem(proposal_info[fn]['name']))
+                                                            QtWidgets.QTableWidgetItem(proposal_info[proposal_num]['name']))
                     except KeyError:
                         self.tableWidget_proposal.setItem(ptable_row_index, 1,
                                                             QtWidgets.QTableWidgetItem('staff'))
@@ -539,6 +542,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
     def read_qr_codes(self):
         self.get_qr_roi()
         x1, x2, y1, y2 = self.qr_roi
+        x1, x2 = np.sort([x1, x2])
+        y1, y2 = np.sort([y1, y2])
         image_qr = self.camera_dict['camera_sample4'].image.image[y1:y2, x1:x2]
         return pzDecode(image_qr)
 

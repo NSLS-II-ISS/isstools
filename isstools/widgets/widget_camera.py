@@ -168,10 +168,13 @@ class UICamera(*uic.loadUiType(ui_path)):
         image1 = camera1.image.image
         image2 = camera2.image.image
         image_qr = camera_qr.image.image
+        vmin1, vmax1 = np.percentile(image1, 5), np.percentile(image1, 90)
+        vmin2, vmax2 = np.percentile(image2, 5), np.percentile(image2, 90)
+        vminqr, vmaxqr = np.percentile(image_qr, 5), np.percentile(image_qr, 90)
         print(f'Got images from PV {ttime.time()-init_time}')
-        self.figure_c1.ax.imshow(image1, cmap='gray')
-        self.figure_c2.ax.imshow(image2, cmap='gray')
-        self.figure_qr.ax.imshow(image_qr, cmap='gray', origin='lower')
+        self.figure_c1.ax.imshow(image1, cmap='gray', vmin=vmin1, vmax=vmax1)
+        self.figure_c2.ax.imshow(image2, cmap='gray', vmin=vmin2, vmax=vmax2)
+        self.figure_qr.ax.imshow(image_qr, cmap='gray', origin='lower', vmin=vminqr, vmax=vmaxqr)
         print(f'Imshow {ttime.time() - init_time}')
         # beam position from previous session
         self._set_vcursor()

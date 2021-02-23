@@ -8,6 +8,7 @@ delta_stack_y = 132.4
 
 
 
+
 # def move_to_sample(zero_x, zero_y, delta_first_holder_x, delta_first_holder_y, index_stack, index_holder, index_sample):
 #     delta_sample_x = 15 # 28.4
 #     delta_stack_x = 109.2 # 101.55 + 7.65
@@ -64,6 +65,8 @@ class SamplePositioner:
         self.n_stacks = 9
         self.n_holders = 4
 
+        self.delta_holder = {'type_1' : {'x' : 15, 'y': 18},
+                             'type_2' : {'x' : 1, 'y': 1}}
 
 
     def goto_park(self):
@@ -84,13 +87,15 @@ class SamplePositioner:
 
 
     def get_sample_position(self, index_stack, index_holder, index_sample, holder_type=1):
-        delta_holder_y = 15.44  # hight of the holder
 
         if holder_type == 1:
             assert index_sample < 5, 'sample index must be between 1 and 4'
-            delta_holder_x = 15  # shift to the next sample wihtin the same holder
+            delta_holder_x = self.delta_holder['type_1']['x']  # shift to the next sample wihtin the same holder
+            delta_holder_y = self.delta_holder['type_1']['y']
         else:  # other types of sample holders
             pass
+
+        print(f'delta_holder_x = {delta_holder_x}')
 
         disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
         disp_stack_y = np.floor((index_stack - 1) / 3)

@@ -21,7 +21,7 @@ from xas.pid import PID
 from xas.math import gauss
 from isstools.elements.liveplots import NormPlot
 import json
-
+from xas.image_analysis import determine_beam_position_from_fb_image
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -321,6 +321,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
         if self.checkBox_autoEnableFeedback.isChecked():
+            self.update_piezo_center()
             self.pushEnableHHMFeedback.setChecked(True)
 
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
@@ -490,7 +491,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             for i in range(nmeasures):
 
                 image = self.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-    
+
                 image = image.astype(np.int16)
                 sum_lines = sum(image[:, [i for i in range(self.piezo_line - math.floor(self.piezo_nlines / 2),
                                                            self.piezo_line + math.ceil(
@@ -553,32 +554,7 @@ class piezo_fb_thread(QThread):
             print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
             return
 
-        image = image.astype(np.int16)
-        #print(f'Line {line}')
-        #print(f'N lines {n_lines}')
-        #print(f'Center point {center_point}')
-
-        sum_lines = sum(image[:, [i for i in range(line - math.floor(n_lines/2), line + math.ceil(n_lines/2))]].transpose())
-        # Eli's comment - need some work here
-        #remove background (do it better later)
-        if len(sum_lines) > 0:
-            # sum_lines = sum_lines - (sum(sum_lines) / len(sum_lines))
-            sum_lines = sum_lines - np.mean(sum_lines[:200]) # empirically we determined that first 200 pixels are BKG
-        index_max = sum_lines.argmax()
-        max_value = sum_lines.max()
-        min_value = sum_lines.min()
-        idx_to_fit = np.where(sum_lines > max_value / 2)
-        x = np.arange(960)
-
-        #print("Here all the time? 3")
-        if max_value >= 10 and max_value <= n_lines * 100 and ((max_value - min_value) / n_lines) > 5:
-            if self.truncate_data:
-                coeff, var_matrix = curve_fit(gauss, x[idx_to_fit], sum_lines[idx_to_fit], p0=[1, index_max, 5])
-            else:
-                coeff, var_matrix = curve_fit(gauss, x, sum_lines, p0=[1, index_max, 5])
-            return coeff[1]
-        else:
-            return None
+        return determine_beam_position_from_fb_image(image, line=line, center_point=center_point, n_lines=n_lines, truncate_data=self.truncate_data)
 
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
