@@ -110,6 +110,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
         )
         self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
 
+        cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
+        print(' cloud dispatcher done', ttime.ctime())
+
+
         print('widget processing loading', ttime.ctime())
         self.widget_processing = widget_processing.UIProcessing(
             hhm,
@@ -177,7 +181,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget info general loading', ttime.ctime())
         self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
                                                                      db=db,
-                                                                      parent=self)
+                                                                     cloud_dispatcher=cloud_dispatcher,
+                                                                      parent=self,
+                                                                     )
 
         self.layout_info_general.addWidget(self.widget_info_general)
 
@@ -232,9 +238,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
-        cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
 
-        print(' cloud dispatcher done', ttime.ctime())
+
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
                                     cloud_dispatcher = cloud_dispatcher)

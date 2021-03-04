@@ -12,6 +12,7 @@ from timeit import default_timer as timer
 from isstools.dialogs.BasicDialogs import message_box
 from isscloudtools.initialize import get_slack_service, get_dropbox_service, get_gmail_service
 import bluesky.plan_stubs as bps
+from PyQt5 import uic, QtWidgets
 
 
 from isscloudtools.slack import *
@@ -27,6 +28,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
                  RE = None,
                  db = None,
                  parent = None,
+                 cloud_dispatcher = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -44,6 +46,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.timer_update_weather.start()
         self.db = db
         self.parent = parent
+        self.cloud_dispatcher = cloud_dispatcher
         self.RE = RE
 
         if parent.gmail_service is None:
@@ -59,6 +62,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             self.push_set_user_info.clicked.connect(self.set_user_info)
             self.push_send_results.clicked.connect(self.send_results)
             self.push_cloud_setup.clicked.connect(self.cloud_setup)
+            self.push_send_to_dropbox.clicked.connect(self.send_to_dropbox)
 
         else:
             self.push_update_user.setEnabled(False)
@@ -70,6 +74,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         except:
             self.push_cloud_setup.setEnable(False)
             self.push_send_results.setEnable(False)
+            self.push_send_to_dropbox.setEnable(False)
 
 
 
@@ -210,6 +215,27 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         draft = upload_draft(self.parent.gmail_service, message)
         sent = send_draft(self.parent.gmail_service, draft)
         print('Email sent')
+
+    def send_to_dropbox(self):
+        year = self.RE.md['year']
+        cycle = self.RE.md['cycle']
+        proposal = self.RE.md['PROPOSAL']
+        working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+        list_files_to_send = QtWidgets.QFileDialog.getOpenFileNames(directory = working_directory,
+                                                           parent = self)[0]
+        if list_files_to_send:
+            for file in list_files_to_send:
+                print(file)
+                #self.cloud_dispatcher.load_to_dropbox(file)
+
+
+
+
+
+
+
+
+
 
 
 
