@@ -234,7 +234,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
 
-        print(' cloud dispatcher done', ttime.ctime())
+        print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
+
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
                                     cloud_dispatcher = cloud_dispatcher)

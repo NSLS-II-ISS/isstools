@@ -543,7 +543,7 @@ class piezo_fb_thread(QThread):
         self.pid.windup_guard = 3
         self.go = 0
 
-        self.truncate_data = True
+        self.truncate_data = False
 
     def determine_beam_position_from_image(self, line = 420, center_point = 655, n_lines = 1):
         try:
