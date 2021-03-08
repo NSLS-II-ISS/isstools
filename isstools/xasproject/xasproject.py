@@ -13,7 +13,7 @@ class XASDataSet:
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, *args, **kwargs):
+    def __init__(self, name=None, md=None, energy = None, mu=None, filename=None, datatype=None, *args, **kwargs):
         self.larch = xafsgroup()
         if md is not None:
             self._md = md
@@ -25,6 +25,7 @@ class XASDataSet:
 
         if mu is not None:
             self.larch.mu = np.array(mu)
+            # self._mu = np.array(mu)
         if energy is not None:
             self.larch.energy = np.array(energy)
         if filename is not None:
@@ -40,7 +41,9 @@ class XASDataSet:
             self.deriv()
             self.extract_chi()
             self.kmin_ft = 3
-            self.kmax_ft = self.kmax
+            self.kmax_ft = self.kmax - 1
+            self.kweight = 2
+            self.rbkg = 1
 
     def update_larch(self):
         if self.mu is not None:
@@ -96,17 +99,19 @@ class XASDataSet:
         self.bkg = self.larch.bkg
         self.kmin = self.larch.autobk_details.kmin
         self.kmax = self.larch.autobk_details.kmax
-        self.nclamp = 2
-        self.rbkg = 1
+        # self.nclamp = 2
+        # self.rbkg = 1
 
         #self.kmin_ft = self.kmin
 
 
     def extract_chi_force(self):
         print('chi force reporting')
-        # autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax)
-        autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax,
-               nclamp=2, clamp_hi=10)
+        autobk(self.larch, group=self.larch, _larch=self._larch,
+               e0=self.e0, kmin=self.kmin, kmax=self.kmax,
+               rbkg=self.rbkg, clamp_lo=self.clamp_lo, clamp_hi=self.clamp_hi)
+        # autobk(self.larch, group=self.larch, _larch=self._larch, e0=self.e0, kmin=self.kmin, kmax=self.kmax,
+        #        nclamp=2, clamp_hi=10)
         self.k = self.larch.k
         self.chi = self.larch.chi
         self.bkg = self.larch.bkg
@@ -115,7 +120,8 @@ class XASDataSet:
     def extract_ft(self):
         print('ft reporting')
         print(self.kmin_ft)
-        xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax)
+        # xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax)
+        xftf(self.larch, group=self.larch, _larch=self._larch,kmin=self.kmin_ft, kmax=self.kmax_ft)
 
         self.r = self.larch.r
         self.chir = self.larch.chir
@@ -129,13 +135,15 @@ class XASDataSet:
     def extract_ft_force(self, window={}):
         print('ft force reporting')
         if not window:
-            xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax_ft)
+            xftf(self.larch, group=self.larch,  _larch=self._larch,
+                 kmin=self.kmin_ft, kmax=self.kmax_ft, kweight=self.kweight)
         else:
             window_type = window['window_type']
             tapering = window['tapering']
             r_weight = window['r_weight']
             print('setting window')
-            xftf(self.larch, group=self.larch, _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax_ft,
+            xftf(self.larch, group=self.larch, _larch=self._larch,
+                 kmin=self.kmin_ft, kmax=self.kmax_ft, kweight=self.kweight,
                  window=window_type, dk=tapering,rweight=r_weight)
         self.r = self.larch.r
         self.chir = self.larch.chir
