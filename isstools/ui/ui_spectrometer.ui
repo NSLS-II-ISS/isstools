@@ -389,7 +389,7 @@
       <x>10</x>
       <y>20</y>
       <width>591</width>
-      <height>711</height>
+      <height>721</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -408,7 +408,7 @@
         <x>0</x>
         <y>10</y>
         <width>581</width>
-        <height>671</height>
+        <height>681</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_johann_tools"/>

@@ -47,6 +47,11 @@ def _check_entry(el, edge, energy, name, row):
     return False
 
 
+elements_lines_dict = {'Co' : ['Ka1', 'Ka2', 'Kb1', 'Kb5'],
+                       'Cu' : ['Ka1', 'Ka2', 'Kb1', 'Kb5'],
+                       'Pt' : ['La1']}
+
+
 
 def remove_ev_from_energy_str(energy):
     if 'ev' in energy:

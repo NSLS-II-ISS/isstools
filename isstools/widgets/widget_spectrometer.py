@@ -10,7 +10,7 @@ from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps
-
+from isstools.widgets import widget_johann_tools
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
@@ -26,7 +26,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                  service_plan_funcs,
                  # tune_elements,
                  # shutter_dictionary,
-                 # parent_gui,
+                 parent=None,
                  *args, **kwargs
                  ):
         super().__init__(*args, **kwargs)
@@ -38,6 +38,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.pil_image = None
         self.detector_dictionary = detector_dictionary
         self.pilatus = detector_dictionary['Pilatus 100k']['device']
+        self.parent = parent
 
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -47,11 +48,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_1D_scan.clicked.connect(self.run_pcl_scan)
         self.push_xy_scan.clicked.connect(self.run_2dscan)
         self.push_py_scan.clicked.connect(self.run_2dscan)
-        self.push_scan.clicked.connect(self.run_scan)
-        self.push_single_shot.clicked.connect(self.single_shot)
+        # self.push_scan.clicked.connect(self.run_scan)
+        # self.push_single_shot.clicked.connect(self.single_shot)
 
         self.det_list = list(detector_dictionary.keys())
         self.comboBox_detectors.addItems(self.det_list)
+        self.comboBox_detectors.setCurrentIndex(3) # make it PIPS by default!
         self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
         self.detector_selected()
 
@@ -59,19 +61,19 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                          if ('group' in  self.motor_dictionary[motor].keys())
                          and (self.motor_dictionary[motor]['group']=='spectrometer')]
 
-        self.comboBox_motors.addItems(self.motor_list)
+        # self.comboBox_motors.addItems(self.motor_list)
 
         self.figure_scan, self.canvas_scan,self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
-        self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
+        # self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.spinBox_image_max.valueChanged.connect(self.rescale_image)
-        self.spinBox_image_min.valueChanged.connect(self.rescale_image)
+        # self.spinBox_image_max.valueChanged.connect(self.rescale_image)
+        # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
 
+        self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self)
+        self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
-        # self.roi_dict = {'roi1': {'radioButton': self.radioButton_roi1,
-        #                           'x':self.pilatus.roi}}
 
     def run_scan(self):
 

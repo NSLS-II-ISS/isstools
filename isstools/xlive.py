@@ -222,6 +222,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             motors_dict,
             aux_plan_funcs,
             service_plan_funcs,
+            parent=self
         )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
