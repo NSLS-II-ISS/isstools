@@ -71,7 +71,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
 
-        self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self)
+        self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
+                                                                     motor_dictionary=motor_dictionary,
+                                                                     RE=RE)
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
 
