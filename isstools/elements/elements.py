@@ -47,9 +47,39 @@ def _check_entry(el, edge, energy, name, row):
     return False
 
 
-elements_lines_dict = {'Co' : ['Ka1', 'Ka2', 'Kb1', 'Kb5'],
-                       'Cu' : ['Ka1', 'Ka2', 'Kb1', 'Kb5'],
-                       'Pt' : ['La1']}
+elements_lines_dict = {
+    # 3d
+    'Ti' : ['Ka1', 'Kb1', 'Kb5'],
+    'V' :  ['Ka1', 'Kb1', 'Kb5'],
+    'Cr' : ['Ka1', 'Kb1', 'Kb5'],
+    'Mn' : ['Ka1', 'Kb1', 'Kb5'],
+    'Fe' : ['Ka1', 'Kb1', 'Kb5'],
+    'Co' : ['Ka1', 'Kb1', 'Kb5'],
+    'Ni' : ['Ka1', 'Kb1', 'Kb5'],
+    'Cu' : ['Ka1', 'Kb1', 'Kb5'],
+    'Zn' : ['Ka1', 'Kb1', 'Kb5'],
+    # misc
+    'Br' : ['Ka1', 'Kb1'],
+    'Kr' : ['Ka1', 'Kb1'],
+    # 4d
+    'Nb' : ['Ka1', 'Kb1', 'Kb5'],
+    'Mo' : ['Ka1', 'Kb1', 'Kb5'],
+    'Ru' : ['Ka1', 'Kb1', 'Kb5'],
+    'Rh' : ['Ka1', 'Kb1', 'Kb5'],
+    'Pd' : ['Ka1', 'Kb1', 'Kb5'],
+    'Ag' : ['Ka1', 'Kb1', 'Kb5'],
+    'Cd' : ['Ka1', 'Kb1', 'Kb5'],
+    # 5d
+    'W' : ['La1'],
+    'Re' : ['La1'],
+    'Os' : ['La1'],
+    'Ir' : ['La1'],
+    'Pt' : ['La1'],
+    'Au' : ['La1'],
+    'Hg' : ['La1'],
+    'Pb' : ['La1'],
+    'Bi' : ['La1'],
+    }
 
 
 

@@ -29,6 +29,9 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.push_park_crystal.clicked.connect(self.park_crystal)
         self.push_set_default_soft_limits.clicked.connect(self.set_default_soft_limits)
         self.push_compute_crystal_position.clicked.connect(self.compute_crystal_position)
+        self.push_move_crystal.clicked.connect(self.move_crystal)
+        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.update_tweak_motor)
+
 
         self.spinBox_crystal_park_x.setValue(self.settings.value('johann_crystal_park_x', defaultValue=0, type=float))
         self.spinBox_crystal_park_y.setValue(self.settings.value('johann_crystal_park_y', defaultValue=0, type=float))
@@ -40,6 +43,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.spinBox_crystal_stage_nom_x.setValue(self.settings.value('crystal_stage_nom_x', defaultValue=0))
         self.spinBox_crystal_stage_nom_y.setValue(self.settings.value('crystal_stage_nom_y', defaultValue=0))
 
+        self.update_tweak_motor()
 
 
     def update_crystal_parking(self):
@@ -53,7 +57,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def park_crystal(self):
         x = self.spinBox_crystal_park_x.value()
-        y = self.spinBox_crystal_park_x.value()
+        y = self.spinBox_crystal_park_y.value()
 
         self.RE(bps.mv(self.motor_dictionary['auxxy_x']['object'], x))
         self.RE(bps.mv(self.motor_dictionary['auxxy_y']['object'], y))
@@ -78,7 +82,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         kind = self.widget_emission_energy.comboBox_crystal_kind.currentText()
         _reflection = self.widget_emission_energy.lineEdit_reflection.text()
         hkl = [int(i) for i in _reflection[1:-1].split(',')]
-        R = float(self.edit_crystal_R.text())
+        R = float(self.widget_emission_energy.edit_crystal_R.text())
         cr = Crystal(R, 100, hkl, kind)
         cr.place_E(energy)
         bragg_angle = cr.ba_deg
@@ -103,4 +107,31 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         self.settings.setValue('crystal_stage_nom_x', cr_x_stage)
         self.settings.setValue('crystal_stage_nom_y', cr_y_stage)
+
+
+    def move_crystal(self):
+        motor_x = self.motor_dictionary['auxxy_x']['object']
+        motor_y = self.motor_dictionary['auxxy_y']['object']
+
+        x = self.spinBox_crystal_stage_nom_x.value()
+        y = self.spinBox_crystal_stage_nom_y.value()
+
+        self.RE(bps.mv(motor_x, x))
+        self.RE(bps.mv(motor_y, y))
+
+    def update_tweak_motor(self):
+        value = self.comboBox_johann_tweak_motor.currentText()
+        if value == 'Crystal X':
+            pos = self.motor_dictionary['auxxy_x']['object'].user_readback.get()
+            self.doubleSpinBox_tweak_motor_step.setValue(3)
+            self.doubleSpinBox_tweak_motor_pos.setValue(pos)
+        elif value == 'Bender':
+            pos = self.motor_dictionary['bender']['object'].user_readback.get()
+            self.doubleSpinBox_tweak_motor_step.setValue(5)
+            self.doubleSpinBox_tweak_motor_pos.setValue(pos)
+        elif value == 'Crystal Z':
+            pos = self.motor_dictionary['usermotor1']['object'].user_readback.get()
+            self.doubleSpinBox_tweak_motor_step.setValue(3)
+            self.doubleSpinBox_tweak_motor_pos.setValue(pos)
+
 

@@ -52,8 +52,11 @@ class UIEmissionEnergySelector(*uic.loadUiType(ui_path)):
         if self.comboBox_line.count() > 0:
             element = self.comboBox_element.currentText()
             line = self.comboBox_line.currentText()
-            self.edit_E.setText(
-                str(xray_line(element, line).energy))
+            try:
+                self.edit_E.setText(
+                    str(xray_line(element, line).energy))
+            except:
+                pass
 
         if save_settings:
             self._save_johann_settings()
