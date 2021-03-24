@@ -48,7 +48,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_1D_scan.clicked.connect(self.run_pcl_scan)
         self.push_xy_scan.clicked.connect(self.run_2dscan)
         self.push_py_scan.clicked.connect(self.run_2dscan)
-        # self.push_scan.clicked.connect(self.run_scan)
+        # self.push_general_scan.clicked.connect(self.run_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
 
         self.det_list = list(detector_dictionary.keys())
@@ -61,7 +61,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                          if ('group' in  self.motor_dictionary[motor].keys())
                          and (self.motor_dictionary[motor]['group']=='spectrometer')]
 
-        # self.comboBox_motors.addItems(self.motor_list)
+        self.comboBox_motors.addItems(self.motor_list)
 
         self.figure_scan, self.canvas_scan,self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
         # self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
@@ -73,8 +73,52 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
                                                                      motor_dictionary=motor_dictionary,
-                                                                     RE=RE)
+                                                                     RE=RE,
+                                                                     detector_dictionary=detector_dictionary,
+                                                                     aux_plan_funcs=aux_plan_funcs,
+                                                                     service_plan_funcs=service_plan_funcs,
+                                                                     embedded_run_scan_func=self._run_any_scan)
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
+
+
+    def _run_any_scan(self, detector, channel, motor, scan_range, scan_step):
+        self.canvas_scan.mpl_disconnect(self.cid_scan)
+        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+        self.figure_scan.ax.set_aspect('auto')
+
+        rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
+
+        uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
+                                                               motor,
+                                                               rel_start,
+                                                               rel_stop,
+                                                               num_steps, ),
+                           LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        self.last_motor_used = motor
+        return uid_list
+
+
+    def run_pcl_scan(self, **kwargs):
+
+
+        detector_name = self.comboBox_detectors.currentText()
+        detector = self.detector_dictionary[detector_name]['device']
+        channels = self.detector_dictionary[detector_name]['channels']
+        channel = channels[self.comboBox_channels.currentIndex()]
+
+        motor_suffix = self.comboBox__pcl_motors.currentText().split(' ')[-1]
+        motor_name = f'six_axes_stage_{motor_suffix}'
+        motor = self.motor_dictionary[motor_name]['object']
+
+        scan_range = getattr(self, f'doubleSpinBox_range_{motor_suffix}').value()
+        scan_step = getattr(self, f'doubleSpinBox_step_{motor_suffix}').value()
+
+        uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+
+
 
 
     def run_scan(self):
@@ -103,37 +147,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.last_motor_used = self.motor
 
 
-    def run_pcl_scan(self, **kwargs):
-        self.canvas_scan.mpl_disconnect(self.cid_scan)
-        self.figure_scan.ax.set_aspect('auto')
-        detector_name = self.comboBox_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
-        channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_channels.currentIndex()]
-        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
 
-        motor_suffix = self.comboBox__pcl_motors.currentText().split(' ')[-1]
-        motor_name = f'six_axes_stage_{motor_suffix}'
-        self.motor = self.motor_dictionary[motor_name]['object']
-
-        range = getattr(self, f'doubleSpinBox_range_{motor_suffix}').value()
-        step = getattr(self, f'doubleSpinBox_step_{motor_suffix}').value()
-        ''
-        rel_start = -float(range) / 2
-        rel_stop = float(range) / 2
-        num_steps = int(round(range / float(step))) + 1
-
-        uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
-                                                               self.motor,
-                                                               rel_start,
-                                                               rel_stop,
-                                                               num_steps, ),
-                           LivePlot(channel, self.motor.name, ax=self.figure_scan.ax))
-
-        self.figure_scan.tight_layout()
-        self.canvas_scan.draw_idle()
-        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.last_motor_used = self.motor
 
 
 

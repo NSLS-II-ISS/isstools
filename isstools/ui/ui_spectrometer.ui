@@ -443,7 +443,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QComboBox" name="comboBox__pcl_motors_2">
+         <widget class="QComboBox" name="comboBox_motors">
           <item>
            <property name="text">
             <string>PCL x</string>
@@ -577,7 +577,7 @@
          </widget>
         </item>
         <item row="7" column="2">
-         <widget class="QPushButton" name="push_1D_scan_2">
+         <widget class="QPushButton" name="push_general_scan">
           <property name="text">
            <string>Scan</string>
           </property>
@@ -703,8 +703,11 @@
           <property name="decimals">
            <number>3</number>
           </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
           <property name="value">
-           <double>0.300000000000000</double>
+           <double>120.000000000000000</double>
           </property>
          </widget>
         </item>
