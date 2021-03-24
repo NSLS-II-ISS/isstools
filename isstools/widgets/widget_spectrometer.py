@@ -11,6 +11,7 @@ from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
+from xas.spectrometer import analyze_elastic_scan
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
@@ -63,21 +64,27 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.comboBox_motors.addItems(self.motor_list)
 
-        self.figure_scan, self.canvas_scan,self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
+        self.figure_scan, self.canvas_scan, self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
+        self.figure_proc, self.canvas_proc, self.toolbar_proc = setup_figure(self, self.layout_plot_processed)
         # self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
         # self.spinBox_image_max.valueChanged.connect(self.rescale_image)
         # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
 
         self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
                                                                      motor_dictionary=motor_dictionary,
+                                                                     db=db,
                                                                      RE=RE,
                                                                      detector_dictionary=detector_dictionary,
                                                                      aux_plan_funcs=aux_plan_funcs,
                                                                      service_plan_funcs=service_plan_funcs,
-                                                                     embedded_run_scan_func=self._run_any_scan)
+                                                                     embedded_run_scan_func=self._run_any_scan,
+                                                                     figure_proc=self.figure_proc,
+                                                                     canvas_proc=self.canvas_proc,
+                                                                     toolbar_proc=self.toolbar_proc)
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
 
@@ -263,6 +270,49 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.channel = channels[self.comboBox_channels.currentIndex()]
 
 
+    def getX_proc(self, event):
+        print(f'Event {event.button}')
+        if event.button == 3:
+            if self.widget_johann_tools._cur_alignment_motor:
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata,
+                                                      motor=self.widget_johann_tools._cur_alignment_motor,
+                                                      parent=self.canvas_proc)
+                if dlg.exec_():
+                    pass
 
+
+
+    def update_scan_figure_for_energy_scan(self, E, I_fit_raw):
+        # managing figures
+        self.canvas_scan.mpl_disconnect(self.cid_scan)
+
+        self.figure_scan.ax.plot(E, I_fit_raw, 'r-')
+
+        # managing figures
+
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+
+
+    def update_proc_figure(self, x_key):
+        # managing figures
+        self.canvas_proc.mpl_disconnect(self.cid_proc)
+
+        motor_pos = self.widget_johann_tools._alignment_data[x_key].values
+        fwhm = self.widget_johann_tools._alignment_data['fwhm'].values
+        ecen = self.widget_johann_tools._alignment_data['ecen'].values
+        res = np.sqrt(fwhm**2 - (1.3e-4 * ecen)**2)
+
+        for each_pos, each_fwhm, each_res in zip(motor_pos, fwhm, res):
+            self.figure_proc.ax.plot(each_pos, each_fwhm, 'o')
+            self.figure_proc.ax.plot(each_pos, each_res, '+')
+
+        self.figure_proc.ax.set_ylabel('FWHM/resolution, eV')
+        self.figure_proc.ax.set_xlabel(x_key)
+
+        self.figure_proc.tight_layout()
+        self.canvas_proc.draw_idle()
+        self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
 
 

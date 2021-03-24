@@ -6,29 +6,39 @@ import bluesky.plan_stubs as bps
 from xas.spectrometer import Crystal
 import pandas as pd
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_johann_spectrometer.ui')
-from xraydb import xray_line
+from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
+from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
+from xas.spectrometer import analyze_elastic_scan
 
 class UIJohannTools(*uic.loadUiType(ui_path)):
     def __init__(self, parent=None,
+                 db=None,
                  RE=None,
                  motor_dictionary=None,
                  detector_dictionary=None,
                  aux_plan_funcs=None,
                  service_plan_funcs=None,
                  embedded_run_scan_func=None,
+                 figure_proc=None,
+                 canvas_proc=None,
+                 toolbar_proc=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.parent=parent
+        self.parent = parent
         self.motor_dictionary = motor_dictionary
         self.detector_dictionary = detector_dictionary
         self.aux_plan_funcs = aux_plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
+        self.db = db
+
+        self.figure_proc = figure_proc,
+        self.canvas_proc = canvas_proc,
+        self.toolbar_proc = toolbar_proc
 
         self._run_any_scan = embedded_run_scan_func
-
 
         self.settings = parent.parent.settings
         self._cur_alignment_motor = None
@@ -69,7 +79,11 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         _tweak_motor_list = [self.comboBox_johann_tweak_motor.itemText(i)
                              for i in range(self.comboBox_johann_tweak_motor.count())]
-        self._alignment_data = pd.DataFrame(columns=_tweak_motor_list)
+        self._alignment_data = pd.DataFrame(columns=_tweak_motor_list + ['fwhm', 'ecen', 'uid'])
+
+        self.align_motor_dict = {'Crystal X' : 'auxxy_x',
+                                 'Bender' : 'bender',
+                                 'Crystal Z' : 'usermotor1'}
 
 
 
@@ -161,7 +175,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.doubleSpinBox_tweak_motor_step.setValue(step_size)
         pos = motor.user_readback.get()
         self.doubleSpinBox_tweak_motor_pos.setValue(pos)
-        self._cur_alignment_motor = {'motor' : motor, 'name' : value}
+        self._cur_alignment_motor = motor
 
     def update_pilatus_channel_selection(self):
         idx = self.comboBox_pilatus_channels.currentIndex()
@@ -174,7 +188,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self._tweak(-1)
 
     def _tweak(self, direction):
-        motor = self._cur_alignment_motor['motor']
+        motor = self._cur_alignment_motor
         step = self.doubleSpinBox_tweak_motor_step.value()
         self.RE(bps.mvr(motor, direction * step))
         pos = motor.user_readback.get()
@@ -188,11 +202,38 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         scan_step = self.doubleSpinBox_step_crystal_y.value()
         self._run_any_scan(detector, channel, motor, scan_range, scan_step)
 
+
     def scan_energy(self):
         detector = self.detector_dictionary['Pilatus 100k']['device']
         channel = self.comboBox_pilatus_channels.currentText()
         motor = self.motor_dictionary['hhm_energy']['object']
         scan_range = self.doubleSpinBox_range_energy.value()
         scan_step = self.doubleSpinBox_step_energy.value()
-        self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+        uids = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+        self.analyze_resolution_scan(uids)
+
+
+
+    def analyze_resolution_scan(self, uids):
+        uid = uids[0]
+        Ecen, fwhm, I_cor, I_fit, I_fit_raw, E = analyze_elastic_scan(self.db, uid)
+        data_dict = {}
+        for k in self.align_motor_dict.keys():
+            proper_key = self.align_motor_dict[k]
+            motor = self.motor_dictionary[proper_key]['object']
+            data_dict[k] = motor.user_readback.get()
+        data_dict['fwhm'] = fwhm
+        data_dict['ecen'] = Ecen
+        data_dict['uid'] = uid
+
+        self._alignment_data = self._alignment_data.append(data_dict, ignore_index=True)
+
+        self.parent.update_scan_figure_for_energy_scan(E, I_fit_raw)
+        key = self.comboBox_johann_tweak_motor.currentText()
+        self.parent.update_proc_figure(key)
+
+
+
+
+
 
