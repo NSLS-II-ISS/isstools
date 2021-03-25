@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1619</width>
-    <height>908</height>
+    <height>959</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -377,7 +377,7 @@
      <x>10</x>
      <y>150</y>
      <width>611</width>
-     <height>751</height>
+     <height>781</height>
     </rect>
    </property>
    <property name="title">
@@ -389,7 +389,7 @@
       <x>10</x>
       <y>20</y>
       <width>591</width>
-      <height>721</height>
+      <height>751</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -727,8 +727,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>581</width>
-        <height>691</height>
+        <width>591</width>
+        <height>731</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_johann_tools"/>

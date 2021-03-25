@@ -1,6 +1,6 @@
 import json
 import pkg_resources
-from PyQt5 import uic
+from PyQt5 import uic, QtWidgets, QtCore
 from isstools.widgets import widget_emission_energy_selector
 import bluesky.plan_stubs as bps
 from xas.spectrometer import Crystal
@@ -9,6 +9,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_johann_spectrometer
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from xas.spectrometer import analyze_elastic_scan
+import os
 
 class UIJohannTools(*uic.loadUiType(ui_path)):
     def __init__(self, parent=None,
@@ -97,6 +98,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         self.push_initialize_emission_motor.clicked.connect(self.initialize_emission_motor)
         self.push_save_emission_motor.clicked.connect(self.save_emission_motor)
+        self.push_select_config_file.clicked.connect(self.select_config_file)
         self.push_load_emission_motor.clicked.connect(self.load_emission_motor)
 
         self._update_crystal_info()
@@ -274,17 +276,9 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.settings.setValue('johann_registration_file_str', value)
 
     def _initialize_emission_motor(self, registration_energy, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
-        define_spectrometer_motor = self.aux_plan_funcs['define_spectrometer_motor']
-        cr_x0 = cr_x0
-        cr_y0 = cr_y0
-        det_y0 = det_y0
-        energy_limits = energy_limits
-
-        define_spectrometer_motor(registration_energy, kind, hkl,
+        motor_emission = self.motor_dictionary['motor_emission']['object']
+        motor_emission.define_motor_coordinates(registration_energy, kind, hkl,
                                   cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
-
-        update_dicts_with_johann_tools_plan = self.aux_plan_funcs['update_dicts_with_johann_tools_plan']
-        update_dicts_with_johann_tools_plan()
 
 
     def initialize_emission_motor(self):
@@ -300,11 +294,55 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         print('Successfully initialized the emission motor')
 
     def save_emission_motor(self):
-        pass
+        user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
+                                 f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.scfg',
+                                                         options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
+        if not filename.endswith('.scfg'):
+            filename = filename + '.scfg'
+        print(filename)
 
+        motor = self.motor_dictionary['motor_emission']['object']
+        spectrometer_dict = {}
+
+        spectrometer_dict['registration_energy'] = motor.energy0
+        spectrometer_dict['kind'] = motor.crystal.kind
+        spectrometer_dict['hkl'] = motor.crystal.hkl
+        spectrometer_dict['cr_x0'] = motor.cr_x0
+        spectrometer_dict['cr_y0'] = motor.cr_y0
+        spectrometer_dict['det_y0'] = motor.det_y0
+        spectrometer_dict['energy_limits_lo'] = motor.energy.limits[0]
+        spectrometer_dict['energy_limits_hi'] = motor.energy.limits[1]
+
+        with open(filename, 'w') as f:
+            f.write(json.dumps(spectrometer_dict))
+        print('Successfully saved the spectrometer config')
+        self.lineEdit_current_spectrometer_file.setText(filename)
+        self.settings.setValue('johann_registration_file_str', filename)
+
+    def select_config_file(self):
+        user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+        filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
+                                                         filter='*.scfg', parent=self)[0]
+        self.lineEdit_current_spectrometer_file.setText(filename)
+        self.settings.setValue('johann_registration_file_str', filename)
 
     def load_emission_motor(self):
-        pass
+        filename = self.lineEdit_current_spectrometer_file.text()
+        print(filename)
+        if filename:
+            with open(filename, 'r') as f:
+                spectrometer_dict = json.loads(f.read())
+                energy_limits = (spectrometer_dict['energy_limits_lo'], spectrometer_dict['energy_limits_hi'])
+                self._initialize_emission_motor(spectrometer_dict['registration_energy'],
+                                                spectrometer_dict['kind'],
+                                                spectrometer_dict['hkl'],
+                                                cr_x0=spectrometer_dict['cr_x0'],
+                                                cr_y0=spectrometer_dict['cr_y0'],
+                                                det_y0=spectrometer_dict['det_y0'],
+                                                energy_limits=energy_limits)
 
+            print('Successfully loaded the spectrometer config')
 
 
