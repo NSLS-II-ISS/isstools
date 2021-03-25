@@ -81,9 +81,25 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
                              for i in range(self.comboBox_johann_tweak_motor.count())]
         self._alignment_data = pd.DataFrame(columns=_tweak_motor_list + ['fwhm', 'ecen', 'uid'])
 
+        self.edit_reg_E.setText(self.settings.value('johann_registration_energy', defaultValue='9000'))
+        self.edit_reg_E_lo.setText(self.settings.value('johann_registration_energy_lo', defaultValue='8900'))
+        self.edit_reg_E_hi.setText(self.settings.value('johann_registration_energy_hi', defaultValue='9100'))
+        self.edit_reg_E.textChanged.connect(self.update_soft_energy_limits)
+        self.edit_reg_E_lo.textChanged.connect(self.update_settings_reg_E_lo)
+        self.edit_reg_E_hi.textChanged.connect(self.update_settings_reg_E_hi)
+
+        self.lineEdit_current_spectrometer_file.setText(self.settings.value('johann_registration_file_str', defaultValue=''))
+        self.lineEdit_current_spectrometer_file.textChanged.connect(self.update_settings_current_spectrometer_file)
+
         self.align_motor_dict = {'Crystal X' : 'auxxy_x',
                                  'Bender' : 'bender',
                                  'Crystal Z' : 'usermotor1'}
+
+        self.push_initialize_emission_motor.clicked.connect(self.initialize_emission_motor)
+        self.push_save_emission_motor.clicked.connect(self.save_emission_motor)
+        self.push_load_emission_motor.clicked.connect(self.load_emission_motor)
+
+        self._update_crystal_info()
 
 
 
@@ -120,11 +136,9 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def compute_crystal_position(self):
         energy = float(self.widget_emission_energy.edit_E.text())
-        kind = self.widget_emission_energy.comboBox_crystal_kind.currentText()
-        _reflection = self.widget_emission_energy.lineEdit_reflection.text()
-        hkl = [int(i) for i in _reflection[1:-1].split(',')]
+        self._update_crystal_info()
         R = float(self.widget_emission_energy.edit_crystal_R.text())
-        cr = Crystal(R, 100, hkl, kind)
+        cr = Crystal(R, 100, self._hkl, self._kind)
         cr.place_E(energy)
         bragg_angle = cr.ba_deg
         cr_x = cr.x
@@ -148,6 +162,11 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         self.settings.setValue('crystal_stage_nom_x', cr_x_stage)
         self.settings.setValue('crystal_stage_nom_y', cr_y_stage)
+
+    def _update_crystal_info(self):
+        self._kind = self.widget_emission_energy.comboBox_crystal_kind.currentText()
+        _reflection = self.widget_emission_energy.lineEdit_reflection.text()
+        self._hkl = [int(i) for i in _reflection[1:-1].split(',')]
 
 
     def move_crystal(self):
@@ -232,8 +251,60 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         key = self.comboBox_johann_tweak_motor.currentText()
         self.parent.update_proc_figure(key)
 
+    def update_soft_energy_limits(self, *, dE_lo=50, dE_hi=50):
+        current_value = float(self.edit_reg_E.text())
+        e_lo = current_value - dE_lo
+        e_hi = current_value + dE_hi
+        self.edit_reg_E_lo.setText(str(e_lo))
+        self.edit_reg_E_hi.setText(str(e_hi))
+        self.settings.setValue('johann_registration_energy', str(current_value))
 
 
+    def update_settings_reg_E_lo(self):
+        e_lo = self.edit_reg_E_lo.text()
+        self.settings.setValue('johann_registration_energy_lo', str(e_lo))
+
+    def update_settings_reg_E_hi(self):
+        e_hi = self.edit_reg_E_hi.text()
+        self.settings.setValue('johann_registration_energy_hi', str(e_hi))
+
+
+    def update_settings_current_spectrometer_file(self):
+        value = self.lineEdit_current_spectrometer_file.text()
+        self.settings.setValue('johann_registration_file_str', value)
+
+    def _initialize_emission_motor(self, registration_energy, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
+        define_spectrometer_motor = self.aux_plan_funcs['define_spectrometer_motor']
+        cr_x0 = cr_x0
+        cr_y0 = cr_y0
+        det_y0 = det_y0
+        energy_limits = energy_limits
+
+        define_spectrometer_motor(registration_energy, kind, hkl,
+                                  cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
+
+        update_dicts_with_johann_tools_plan = self.aux_plan_funcs['update_dicts_with_johann_tools_plan']
+        update_dicts_with_johann_tools_plan()
+
+
+    def initialize_emission_motor(self):
+        registration_energy = float(self.edit_reg_E.text())
+        kind = self._kind
+        hkl = self._hkl
+
+        energy_limits_lo = float(self.edit_reg_E_lo.text())
+        energy_limits_hi = float(self.edit_reg_E_hi.text())
+        energy_limits = (energy_limits_lo, energy_limits_hi)
+
+        self._initialize_emission_motor(registration_energy, kind, hkl, energy_limits=energy_limits)
+        print('Successfully initialized the emission motor')
+
+    def save_emission_motor(self):
+        pass
+
+
+    def load_emission_motor(self):
+        pass
 
 
 
