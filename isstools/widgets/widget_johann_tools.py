@@ -10,6 +10,12 @@ from isstools.elements.figure_update import update_figure_with_colorbar, update_
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
 from xas.spectrometer import analyze_elastic_scan
 import os
+from isstools.dialogs.BasicDialogs import message_box
+import numpy as np
+from xas.spectrometer import analyze_many_elastic_scans
+from xas.fitting import Nominal2ActualConverter
+from bluesky.callbacks import LivePlot
+
 
 class UIJohannTools(*uic.loadUiType(ui_path)):
     def __init__(self, parent=None,
@@ -34,6 +40,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
         self.db = db
+
+        self.motor_emission = self.motor_dictionary['motor_emission']['object']
 
         self.figure_proc = figure_proc,
         self.canvas_proc = canvas_proc,
@@ -81,6 +89,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         _tweak_motor_list = [self.comboBox_johann_tweak_motor.itemText(i)
                              for i in range(self.comboBox_johann_tweak_motor.count())]
         self._alignment_data = pd.DataFrame(columns=_tweak_motor_list + ['fwhm', 'ecen', 'uid'])
+        self._calibration_data = pd.DataFrame(columns=['energy_nom', 'energy_act', 'fwhm', 'uid'])
+
 
         self.edit_reg_E.setText(self.settings.value('johann_registration_energy', defaultValue='9000'))
         self.edit_reg_E_lo.setText(self.settings.value('johann_registration_energy_lo', defaultValue='8900'))
@@ -100,6 +110,10 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.push_save_emission_motor.clicked.connect(self.save_emission_motor)
         self.push_select_config_file.clicked.connect(self.select_config_file)
         self.push_load_emission_motor.clicked.connect(self.load_emission_motor)
+        self.push_calibrate_energy.clicked.connect(self.calibrate_energy)
+
+        self.lineEdit_current_calibration_file.setText(self.settings.value('johann_calibration_file_str', defaultValue=''))
+        self.lineEdit_current_calibration_file.textChanged.connect(self.update_settings_current_calibration_file)
 
         self._update_crystal_info()
 
@@ -276,10 +290,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.settings.setValue('johann_registration_file_str', value)
 
     def _initialize_emission_motor(self, registration_energy, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
-        motor_emission = self.motor_dictionary['motor_emission']['object']
-        motor_emission.define_motor_coordinates(registration_energy, kind, hkl,
+        self.motor_emission.define_motor_coordinates(registration_energy, kind, hkl,
                                   cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
-
 
     def initialize_emission_motor(self):
         registration_energy = float(self.edit_reg_E.text())
@@ -296,37 +308,36 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
     def save_emission_motor(self):
         user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
                                  f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.scfg',
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.jcfg',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
-        if not filename.endswith('.scfg'):
-            filename = filename + '.scfg'
+        if not filename.endswith('.jcfg'):
+            filename = filename + '.jcfg'
         print(filename)
 
-        motor = self.motor_dictionary['motor_emission']['object']
         spectrometer_dict = {}
 
-        spectrometer_dict['registration_energy'] = motor.energy0
-        spectrometer_dict['kind'] = motor.crystal.kind
-        spectrometer_dict['hkl'] = motor.crystal.hkl
-        spectrometer_dict['cr_x0'] = motor.cr_x0
-        spectrometer_dict['cr_y0'] = motor.cr_y0
-        spectrometer_dict['det_y0'] = motor.det_y0
-        spectrometer_dict['energy_limits_lo'] = motor.energy.limits[0]
-        spectrometer_dict['energy_limits_hi'] = motor.energy.limits[1]
+        spectrometer_dict['registration_energy'] = self.motor_emission.energy0
+        spectrometer_dict['kind'] = self.motor_emission.crystal.kind
+        spectrometer_dict['hkl'] = self.motor_emission.crystal.hkl
+        spectrometer_dict['cr_x0'] = self.motor_emission.cr_x0
+        spectrometer_dict['cr_y0'] = self.motor_emission.cr_y0
+        spectrometer_dict['det_y0'] = self.motor_emission.det_y0
+        spectrometer_dict['energy_limits_lo'] = self.motor_emission.energy.limits[0]
+        spectrometer_dict['energy_limits_hi'] = self.motor_emission.energy.limits[1]
 
         with open(filename, 'w') as f:
             f.write(json.dumps(spectrometer_dict))
         print('Successfully saved the spectrometer config')
         self.lineEdit_current_spectrometer_file.setText(filename)
-        self.settings.setValue('johann_registration_file_str', filename)
+        # self.settings.setValue('johann_registration_file_str', filename)
 
     def select_config_file(self):
-        user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
+        user_folder_path = (self.motor_emission.spectrometer_root_path +
                             f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
-                                                         filter='*.scfg', parent=self)[0]
+                                                         filter='*.jcfg', parent=self)[0]
         self.lineEdit_current_spectrometer_file.setText(filename)
-        self.settings.setValue('johann_registration_file_str', filename)
+        # self.settings.setValue('johann_registration_file_str', filename)
 
     def load_emission_motor(self):
         filename = self.lineEdit_current_spectrometer_file.text()
@@ -344,5 +355,79 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
                                                 energy_limits=energy_limits)
 
             print('Successfully loaded the spectrometer config')
+
+
+    def calibrate_energy(self):
+        # update the data
+        self._calibration_data = pd.DataFrame(columns=['energy_nom', 'energy_act', 'fwhm', 'uid'])
+
+        e_min = float(self.edit_E_calib_min.text())
+        e_max = float(self.edit_E_calib_max.text())
+        e_step = float(self.edit_E_calib_step.text())
+        if e_min>e_max:
+            message_box('Incorrect energy range','Calibration energy min should be less than max')
+        if (e_max - e_min) > e_step:
+            message_box('Incorrect energy range','energy step size bigger than range')
+
+        energies = np.arange(e_min, e_max + e_step, e_step)
+        each_scan_range = self.doubleSpinBox_range_energy.value()
+        each_scan_step = self.doubleSpinBox_step_energy.value()
+
+        plan = self.service_plan_funcs['johann_calibration_scan_plan'](energies, DE=each_scan_range, dE=each_scan_step)
+        channel = self.comboBox_pilatus_channels.currentText()
+        motor = self.motor_dictionary['hhm_energy']['object']
+        uids = self.RE(plan, LivePlot(channel,  motor.name, ax=self.parent.figure_scan.ax))
+
+        energy_converter, energies_act, fwhms, I_fit_raws = analyze_many_elastic_scans(self.db, uids, energies, short_output=False)
+        self.motor_emission.append_energy_converter(energy_converter)
+
+        for each_energy_nom, each_energy_act, each_fwhm, each_uid in zip(energies, energies_act, fwhms, uids):
+            data_dict = {'energy_nom' : each_energy_nom,
+                         'energy_act' : each_energy_act,
+                         'fwhm' : each_fwhm,
+                         'uid' : each_uid}
+            self._alignment_data = self._alignment_data.append(data_dict, ignore_index=True)
+
+
+    def save_energy_calibration(self):
+        user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.jcalib',
+                                                         options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
+        if not filename.endswith('.jcalib'):
+            filename = filename + '.jcalib'
+        print(filename)
+
+        self._alignment_data.to_json(filename)
+        print('Successfully saved the spectrometer calibration')
+
+    def select_calibration_file(self):
+        user_folder_path = (self.motor_emission.spectrometer_root_path +
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+        filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
+                                                         filter='*.jcalib', parent=self)[0]
+        self.lineEdit_current_calibration_file.setText(filename)
+
+    def update_settings_current_calibration_file(self):
+        value = self.lineEdit_current_calibration_file.text()
+        self.settings.setValue('johann_calibration_file_str', value)
+
+    def load_energy_calibration(self):
+        filename = self.lineEdit_current_calibration_file.text()
+        self._alignment_data = pd.read_json(filename)
+        energies_nom = self._alignment_data['energy_nom'].values()
+        energies_act = self._alignment_data['energy_act'].values()
+        energy_converter = Nominal2ActualConverter(energies_nom, energies_act)
+        self.motor_emission.append_energy_converter(energy_converter)
+        print('Successfully loaded the spectrometer calibration')
+
+
+
+
+
+
+
+
+
 
 
