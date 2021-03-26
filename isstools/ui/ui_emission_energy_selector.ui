@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>181</width>
+    <height>176</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="gridLayoutWidget_17">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>183</width>
+     <height>152</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_20">
+    <item row="0" column="1">
+     <widget class="QComboBox" name="comboBox_element"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_12">
+      <property name="text">
+       <string>E</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QComboBox" name="comboBox_crystal_kind">
+      <item>
+       <property name="text">
+        <string>Si</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Ge</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>SiO2</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_129">
+      <property name="text">
+       <string>Line</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="comboBox_line"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_105">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Element</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLabel" name="label_13">
+      <property name="text">
+       <string>eV</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="edit_E">
+      <property name="text">
+       <string>11470</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_qrcode_9">
+      <property name="text">
+       <string>Kind</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_qrcode_10">
+      <property name="text">
+       <string>Reflection</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="lineEdit_reflection"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_140">
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Curvature R</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="edit_crystal_R">
+      <property name="text">
+       <string>1000</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QLabel" name="label_141">
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>mm</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
