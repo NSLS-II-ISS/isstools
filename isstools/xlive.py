@@ -126,6 +126,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             hhm,
             det_dict,
             shutters_dict,
+            motors_dict,
             apb,
             self,
         )

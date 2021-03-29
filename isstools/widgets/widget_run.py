@@ -31,7 +31,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                  hhm,
                  detectors_list,
                  shutter_dictionary,
-
+                 motor_dictionary,
 
                  apb,
                  parent_gui,
@@ -50,14 +50,14 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.hhm=hhm,
         self.detectors_list = detectors_list
         self.shutter_dictionary = shutter_dictionary
-
+        self.motor_dictionary = motor_dictionary
 
         self.apb = apb
         self.parent_gui = parent_gui
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
-        self.run_start.clicked.connect(self.run_scan)
-        self.run_start_test.clicked.connect(self.run_test_scan)
+        self.push_run_scan.clicked.connect(self.run_scan)
+        self.push_run_test_scan.clicked.connect(self.run_test_scan)
 
         # List with uids of scans created in the "run" mode:
         self.run_mode_uids = []
@@ -164,32 +164,6 @@ class UIRun(*uic.loadUiType(ui_path)):
         energy_grid = []
         time_grid = []
 
-        # for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
-        #                 self.shutter_dictionary[shutter].shutter_type != 'SP']:
-        #     if shutter.state.value:
-        #         ret = question_message_box(self,'Shutter closed',
-        #                                    'Would you like to run the scan with the shutter closed?')
-        #         if not ret:
-        #             print('Aborted!')
-        #             return False
-        #         ignore_shutter=True
-        #         break
-        #
-        # # Send sampling time to the pizzaboxes:
-        # value = int(round(float(self.analog_samp_time) / self.adc_list[0].sample_rate.get() * 100000))
-        #
-        # for adc in self.adc_list:
-        #     adc.averaging_points.put(str(value))
-        #
-        # for enc in self.enc_list:
-        #     enc.filter_dt.put(float(self.enc_samp_time) * 100000)
-        #
-        # # not needed at QAS this is a detector
-        # if self.xia is not None:
-        #     if self.xia.input_trigger is not None:
-        #         self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-        #         self.xia.input_trigger.period_sp.put(int(self.xia_samp_time))
-
         name_provided = self.parameter_values[0].text()
         if name_provided:
             timenow = datetime.datetime.now()
@@ -199,8 +173,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             # Get parameters from the widgets and organize them in a dictionary (run_params)
             run_parameters = return_parameters_from_widget(self.parameter_descriptions,self.parameter_values,
                                                             self.parameter_types)
-            #print(run_parameters)
-            # return
+
             # Run the scan using the dict created before
             self.run_mode_uids = []
             self.parent_gui.run_mode = 'run'
@@ -223,9 +196,6 @@ class UIRun(*uic.loadUiType(ui_path)):
                                                               int(self.comboBox_exafs_dwell_kpower.currentText())
                                                               )
 
-                #print(energy_grid)
-
-
             plan_func = self.plan_funcs[plan_key]
 
             LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
@@ -245,8 +215,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             except:
                 LivePlotPilatus = None
 
-            # LivePlotPilatus = XASPlotX(self.pil100k.name, self.apb.ch1_mean.name, self.hhm[0].enc.pos_I.name, 'HERFD', self.hhm[0].energy.name,
-            #             log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
+
             try:
                 _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
                 _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
@@ -297,12 +266,32 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.parameter_values[i].deleteLater()
             self.parameter_descriptions[i].deleteLater()
 
-        plan_func = self.plan_funcs[self.comboBox_scan_type.currentText()]
+        plan_key = self.comboBox_scan_type.currentText()
+        plan_func = self.plan_funcs[plan_key]
         [self.parameter_values, self.parameter_descriptions, self.parameter_types] = parse_plan_parameters(plan_func)
 
         for i in range(len(self.parameter_values)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_parameters.addWidget(self.parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
+
+        if plan_key.lower().startswith('step scan'):
+            self.groupBox_stepscan.setEnabled(True)
+        else:
+            self.groupBox_stepscan.setEnabled(False)
+
+        if plan_key.lower().startswith('johann emission'):
+            motor_emission = self.motor_dictionary['motor_emission']['object']
+            if motor_emission._initialized:
+                self.push_run_scan.setEnabled(True)
+                self.push_run_test_scan.setEnabled(True)
+                self.parameter_values[4].setValue(motor_emission.energy.limits[0])
+                self.parameter_values[5].setValue(motor_emission.energy.limits[1])
+            else:
+                self.push_run_scan.setEnabled(False)
+                self.push_run_test_scan.setEnabled(False)
+        else:
+            self.push_run_scan.setEnabled(True)
+            self.push_run_test_scan.setEnabled(True)
 
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
