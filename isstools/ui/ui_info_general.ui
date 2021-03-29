@@ -170,7 +170,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Send results</string>
+    <string>Send to Dropbox</string>
    </property>
   </widget>
  </widget>
