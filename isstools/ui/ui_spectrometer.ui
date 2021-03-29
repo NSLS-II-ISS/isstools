@@ -36,7 +36,7 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>20</y>
+      <y>10</y>
       <width>231</width>
       <height>111</height>
      </rect>
@@ -258,7 +258,7 @@
     </property>
     <layout class="QGridLayout" name="gridLayout_4">
      <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox__pcl_motors">
+      <widget class="QComboBox" name="comboBox_pcl_motors">
        <item>
         <property name="text">
          <string>PCL x</string>
@@ -296,7 +296,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QComboBox" name="comboBox_detectors">
+      <widget class="QComboBox" name="comboBox_pcl_detectors">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -341,7 +341,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QComboBox" name="comboBox_channels">
+      <widget class="QComboBox" name="comboBox_pcl_channels">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -393,7 +393,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_8">
      <attribute name="title">
@@ -403,7 +403,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>10</y>
+        <y>20</y>
         <width>241</width>
         <height>181</height>
        </rect>
@@ -443,31 +443,10 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QComboBox" name="comboBox_motors">
-          <item>
-           <property name="text">
-            <string>PCL x</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PCL y</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PCL pitch</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PCL yaw</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="comboBox_gen_motors"/>
         </item>
         <item row="1" column="2">
-         <widget class="QComboBox" name="comboBox_detectors_2">
+         <widget class="QComboBox" name="comboBox_gen_detectors">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -512,7 +491,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QComboBox" name="comboBox_channels_2">
+         <widget class="QComboBox" name="comboBox_gen_channels">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -529,7 +508,7 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_range_x_2">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_gen_motor_range">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -553,7 +532,7 @@
          </widget>
         </item>
         <item row="6" column="2">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_range_pitch_2">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_gen_motor_step">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -577,7 +556,7 @@
          </widget>
         </item>
         <item row="7" column="2">
-         <widget class="QPushButton" name="push_general_scan">
+         <widget class="QPushButton" name="push_gen_scan">
           <property name="text">
            <string>Scan</string>
           </property>
@@ -592,7 +571,7 @@
         <x>310</x>
         <y>20</y>
         <width>241</width>
-        <height>141</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="font">
@@ -603,7 +582,7 @@
        </font>
       </property>
       <property name="title">
-       <string>Time scanning</string>
+       <string>Time scan of Pilatus</string>
       </property>
       <widget class="QWidget" name="gridLayoutWidget_6">
        <property name="geometry">
@@ -611,80 +590,31 @@
          <x>10</x>
          <y>20</y>
          <width>226</width>
-         <height>111</height>
+         <height>51</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_7">
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_129">
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Channel</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QComboBox" name="comboBox_channels_4">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QPushButton" name="push_1D_scan_4">
+        <item row="3" column="2">
+         <widget class="QPushButton" name="push_time_scan">
           <property name="text">
            <string>Scan</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_130">
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
+        <item row="1" column="2">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_nframes">
+          <property name="decimals">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>Detector</string>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
           </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QComboBox" name="comboBox_detectors_4">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
+          <property name="value">
+           <double>120.000000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
+        <item row="1" column="0">
          <widget class="QLabel" name="label_122">
           <property name="font">
            <font>
@@ -694,20 +624,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_range_x_4">
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="maximum">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>120.000000000000000</double>
+           <string>N frames</string>
           </property>
          </widget>
         </item>

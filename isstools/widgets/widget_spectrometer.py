@@ -4,6 +4,8 @@ from PyQt5.QtCore import QThread, QSettings
 from PyQt5.Qt import  QObject
 from bluesky.callbacks import LivePlot
 from bluesky.callbacks.mpl_plotting import LiveScatter
+import bluesky.plan_stubs as bps
+import bluesky.plans as bp
 import numpy as np
 
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
@@ -12,6 +14,7 @@ from isstools.elements.figure_update import update_figure_with_colorbar, update_
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
+from ..elements.liveplots import XASPlot#, XASPlotX
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
@@ -22,6 +25,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                  db,
                  detector_dictionary,
                  motor_dictionary,
+                 shutter_dictionary,
                  aux_plan_funcs,
                  # ic_amplifiers,
                  service_plan_funcs,
@@ -43,26 +47,35 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
+        self.shutter_dictionary = shutter_dictionary
         self.service_plan_funcs = service_plan_funcs
         # self.parent_gui = parent_gui
         self.last_motor_used = None
         self.push_1D_scan.clicked.connect(self.run_pcl_scan)
-        self.push_xy_scan.clicked.connect(self.run_2dscan)
-        self.push_py_scan.clicked.connect(self.run_2dscan)
-        # self.push_general_scan.clicked.connect(self.run_scan)
+        self.push_xy_scan.clicked.connect(self.run_2d_pcl_scan)
+        self.push_py_scan.clicked.connect(self.run_2d_pcl_scan)
+        self.push_gen_scan.clicked.connect(self.run_gen_scan)
+        self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
 
         self.det_list = list(detector_dictionary.keys())
-        self.comboBox_detectors.addItems(self.det_list)
-        self.comboBox_detectors.setCurrentIndex(3) # make it PIPS by default!
-        self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
-        self.detector_selected()
+        self.comboBox_pcl_detectors.addItems(self.det_list)
+        self.comboBox_pcl_detectors.setCurrentIndex(3) # make it PIPS by default!
+        self.comboBox_pcl_detectors.currentIndexChanged.connect(self.pcl_detector_selected)
+        self.pcl_detector_selected()
+
+        self.comboBox_gen_detectors.addItems(self.det_list)
+        self.comboBox_gen_detectors.setCurrentIndex(7) # make it Pilatus by default!
+        self.comboBox_gen_detectors.currentIndexChanged.connect(self.gen_detector_selected)
+        self.gen_detector_selected()
+
+        self.comboBox_pcl_detectors.addItems(self.det_list)
 
         self.motor_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary
                          if ('group' in  self.motor_dictionary[motor].keys())
                          and (self.motor_dictionary[motor]['group']=='spectrometer')]
 
-        self.comboBox_motors.addItems(self.motor_list)
+        self.comboBox_gen_motors.addItems(self.motor_list)
 
         self.figure_scan, self.canvas_scan, self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
         self.figure_proc, self.canvas_proc, self.toolbar_proc = setup_figure(self, self.layout_plot_processed)
@@ -110,13 +123,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def run_pcl_scan(self, **kwargs):
 
-
-        detector_name = self.comboBox_detectors.currentText()
+        detector_name = self.comboBox_pcl_detectors.currentText()
         detector = self.detector_dictionary[detector_name]['device']
         channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_channels.currentIndex()]
+        channel = channels[self.comboBox_pcl_channels.currentIndex()]
 
-        motor_suffix = self.comboBox__pcl_motors.currentText().split(' ')[-1]
+        motor_suffix = self.comboBox_pcl_motors.currentText().split(' ')[-1]
         motor_name = f'six_axes_stage_{motor_suffix}'
         motor = self.motor_dictionary[motor_name]['object']
 
@@ -125,40 +137,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
 
-
-
-
-    def run_scan(self):
-
-        self.canvas_scan.mpl_disconnect(self.cid_scan)
-        update_figure([self.figure_scan.ax], self.toolbar_scan,self.canvas_scan)
-        self.figure_scan.ax.set_aspect('auto')
-        for motor in self.motor_dictionary:
-            if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
-                self.motor = self.motor_dictionary[motor]['object']
-                break
-
-        rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(
-                            self.doubleSpinBox_range.value(),
-                            self.doubleSpinBox_step.value())
-
-        uid_list = self.RE(self.aux_plan_funcs['general_scan']([self.detector],
-                                                               self.motor,
-                                                               rel_start,
-                                                               rel_stop,
-                                                               num_steps, ),
-                           LivePlot(self.channel,  self.motor.name, ax=self.figure_scan.ax))
-
-        self.canvas_scan.draw_idle()
-        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.last_motor_used = self.motor
-
-
-
-
-
-
-    def run_2dscan(self):
+    def run_2d_pcl_scan(self):
         self.figure_scan.ax.set_aspect('auto')
         sender = QObject()
         sender_object = sender.sender().objectName()
@@ -168,7 +147,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         elif 'py' in sender_object:
             m1 = 'pitch'
             m2 = 'yaw'
-        
+
         self.canvas_scan.mpl_disconnect(self.cid_scan)
         detector_name = self.comboBox_detectors.currentText()
         detector = self.detector_dictionary[detector_name]['device']
@@ -211,6 +190,49 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.canvas_scan.draw_idle()
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
         self.last_motor_used = [motor1, motor2]
+
+
+    def run_gen_scan(self):
+
+        detector_name = self.comboBox_gen_detectors.currentText()
+        detector = self.detector_dictionary[detector_name]['device']
+        channels = self.detector_dictionary[detector_name]['channels']
+        channel = channels[self.comboBox_gen_channels.currentIndex()]
+
+        motor_name = self.comboBox_gen_motors.currentText()
+        for k in self.motor_dictionary.keys():
+            if self.motor_dictionary[k]['description'] == motor_name:
+                motor = self.motor_dictionary[k]['object']
+                break
+
+        scan_range = self.doubleSpinBox_gen_motor_range.value()
+        scan_step = self.doubleSpinBox_gen_motor_step.value()
+
+        uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+
+
+    def run_time_scan(self):
+        self.canvas_scan.mpl_disconnect(self.cid_scan)
+        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+        self.figure_scan.ax.set_aspect('auto')
+
+        nframes = int(self.doubleSpinBox_nframes.value())
+
+        lp = XASPlot('pil100k_stats1_total', 'apb_ave_ch1_mean', 'normalized I', 'time',
+                     log=False, ax=self.figure_scan.ax, color='k', legend_keys=['I'])
+        plan = self.service_plan_funcs['n_pil100k_exposures_plan'](nframes)
+        self.RE(plan, lp)
+
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        self.last_motor_used = None
+
+
+
+
+
+
 
     def single_shot(self):
         plan = self.service_plan_funcs['pil_count']
@@ -259,15 +281,17 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                     if dlg.exec_():
                         pass
 
-    def detector_selected(self):
-        self.comboBox_channels.clear()
-        detector = self.comboBox_detectors.currentText()
-        self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
 
-        detector_name = self.comboBox_detectors.currentText()
-        self.detector = self.detector_dictionary[detector_name]['device']
-        channels = self.detector_dictionary[detector_name]['channels']
-        self.channel = channels[self.comboBox_channels.currentIndex()]
+    def _detector_selected(self, cb_det, cb_chan):
+        cb_chan.clear()
+        detector_name = cb_det.currentText()
+        cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
+
+    def pcl_detector_selected(self):
+        self._detector_selected(self.comboBox_pcl_detectors, self.comboBox_pcl_channels)
+
+    def gen_detector_selected(self):
+        self._detector_selected(self.comboBox_gen_detectors, self.comboBox_gen_channels)
 
 
     def getX_proc(self, event):

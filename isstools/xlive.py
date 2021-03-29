@@ -221,6 +221,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             db,
             det_dict,
             motors_dict,
+            shutters_dict,
             aux_plan_funcs,
             service_plan_funcs,
             parent=self
