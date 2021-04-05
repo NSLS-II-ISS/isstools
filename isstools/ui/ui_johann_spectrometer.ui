@@ -358,7 +358,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>500</y>
+     <y>480</y>
      <width>581</width>
      <height>92</height>
     </rect>
@@ -467,7 +467,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>280</y>
+     <y>270</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -480,7 +480,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>610</y>
+     <y>580</y>
      <width>201</width>
      <height>20</height>
     </rect>
@@ -493,7 +493,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>610</y>
+     <y>580</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -506,7 +506,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>280</y>
+     <y>270</y>
      <width>221</width>
      <height>21</height>
     </rect>
@@ -529,7 +529,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>300</y>
+     <y>290</y>
      <width>581</width>
      <height>162</height>
     </rect>
@@ -844,7 +844,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>480</y>
+     <y>460</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -857,7 +857,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>480</y>
+     <y>460</y>
      <width>241</width>
      <height>21</height>
     </rect>
@@ -880,7 +880,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>610</y>
+     <y>580</y>
      <width>221</width>
      <height>21</height>
     </rect>
@@ -903,7 +903,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>420</x>
-     <y>480</y>
+     <y>460</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -916,7 +916,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>280</y>
+     <y>270</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -929,7 +929,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>630</y>
+     <y>600</y>
      <width>581</width>
      <height>98</height>
     </rect>
