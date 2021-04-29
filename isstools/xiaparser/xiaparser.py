@@ -1,13 +1,15 @@
+from pathlib import Path
+import os
+import os.path
+import warnings
+
 from netCDF4 import Dataset
+from scipy.optimize import curve_fit
+import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import h5py
-import os
-import os.path
-from scipy.optimize import curve_fit
-import warnings
-from pathlib import Path
+
 
 
 '''
