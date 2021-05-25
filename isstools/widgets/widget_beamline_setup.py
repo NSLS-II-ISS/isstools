@@ -538,7 +538,8 @@ class piezo_fb_thread(QThread):
         I = 0  # 0.02
         D = 0  # 0.01
         self.pid = PID(P, I, D)
-        self.sampleTime = 0.00025
+        # self.sampleTime = 0.00025
+        self.sampleTime = 0.001
         self.pid.setSampleTime(self.sampleTime)
         self.pid.windup_guard = 3
         self.go = 0
@@ -560,6 +561,7 @@ class piezo_fb_thread(QThread):
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
 
         current_position = self.determine_beam_position_from_image(line = line, center_point = center_point, n_lines = n_lines)
+        # print(f'current position: {current_position}')
         if current_position:
             self.pid.SetPoint = 960 - center_point
             self.pid.update(current_position)
@@ -568,8 +570,11 @@ class piezo_fb_thread(QThread):
             piezo_diff = deviation  # * 0.0855
 
             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-           # print(f"curr_value: {curr_value}, piezo_diff: {piezo_diff}")
-            self.gui.hhm.pitch.move(curr_value - piezo_diff)
+            # print(f"{ttime.ctime()} curr_value: {curr_value}, piezo_diff: {piezo_diff}, delta: {curr_value - piezo_diff}")
+            try:
+                self.gui.hhm.pitch.move(curr_value - piezo_diff)
+            except:
+                print('failed to correct pitch due to controller bug (DSSI works on it)')  # TODO: Denis 5/25/2021
 
     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
         # getting center:
@@ -595,18 +600,18 @@ class piezo_fb_thread(QThread):
         # self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
 
         while (self.go):
-            #print("Here all the time? 1")
+            # print("Here all the time? 1")
             if len([self.gui.shutter_dictionary[shutter] for shutter in self.gui.shutter_dictionary if
                     self.gui.shutter_dictionary[shutter].shutter_type != 'SP' and
                                     self.gui.shutter_dictionary[shutter].state.read()['{}_state'.format(shutter)][
                                         'value'] != 0]) == 0:
                 self.gaussian_piezo_feedback(line=self.gui.piezo_line, center_point=self.gui.piezo_center,
                                              n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)
-                #print("Here all the time? 4")
+                # print("Here all the time? 4")
                 ttime.sleep(self.sampleTime)
-                #print("Here all the time? 5")
+                # print("Here all the time? 5")
             else:
-                #print("Here all the time? Not here!")
+                # print("Here all the time? Not here!")
                 ttime.sleep(self.sampleTime)
 
 
