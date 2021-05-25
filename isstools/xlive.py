@@ -126,6 +126,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             hhm,
             det_dict,
             shutters_dict,
+            motors_dict,
             apb,
             self,
         )
@@ -220,8 +221,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
             db,
             det_dict,
             motors_dict,
+            shutters_dict,
             aux_plan_funcs,
             service_plan_funcs,
+            parent=self
         )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 

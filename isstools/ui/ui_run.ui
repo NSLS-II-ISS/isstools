@@ -19,7 +19,7 @@
      <x>10</x>
      <y>50</y>
      <width>301</width>
-     <height>191</height>
+     <height>271</height>
     </rect>
    </property>
    <property name="title">
@@ -94,7 +94,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="run_start">
+  <widget class="QPushButton" name="push_run_scan">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -107,11 +107,11 @@
     <string>Run</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox_13">
+  <widget class="QGroupBox" name="groupBox_stepscan">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>240</y>
+     <y>330</y>
      <width>386</width>
      <height>291</height>
     </rect>
@@ -574,7 +574,7 @@
  autopilot</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="run_start_test">
+  <widget class="QPushButton" name="push_run_test_scan">
    <property name="geometry">
     <rect>
      <x>40</x>

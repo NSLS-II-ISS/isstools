@@ -193,7 +193,6 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         # Convert to encoder counts
         self.traj_creator.e2encoder(float(self.label_angle_offset.text()))
 
-
         self._update_figures()
 
         self.push_save_trajectory.setEnabled(True)
@@ -266,7 +265,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                     return
             np.savetxt(filename,
                        self.traj_creator.energy_grid, fmt='%.6f',
-                       header = f'element: {self.traj_creator.elem}, edge: {self.traj_creator.edge}, E0: {self.traj_creator.e0}')
+                       header = f'element: {self.traj_creator.elem}, edge: {self.traj_creator.edge}, E0: {self.traj_creator.e0}')#, scan_direction: {self.traj_creator.direction}')
             call(['chmod', '666', filename])
             self.trajectory_path = filename[:filename.rfind('/')] + '/'
             self.label_current_trajectory.setText(filename.rsplit('/', 1)[1])

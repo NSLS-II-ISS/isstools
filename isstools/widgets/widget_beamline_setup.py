@@ -70,20 +70,20 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_get_readouts.clicked.connect(self.get_readouts)
         self.push_adjust_gains.clicked.connect(self.adjust_gains)
 
-        if hasattr(hhm, 'fb_line'):
-            self.fb_master = 0
-            self.piezo_line = int(self.hhm.fb_line.get())
-            self.piezo_center = float(self.hhm.fb_center.get())
-            self.piezo_nlines = int(self.hhm.fb_nlines.get())
-            self.piezo_nmeasures = int(self.hhm.fb_nmeasures.get())
-            self.piezo_kp = float(self.hhm.fb_pcoeff.get())
-            self.hhm.fb_status.subscribe(self.update_fb_status, run=False)
-            self.piezo_thread = piezo_fb_thread(self) 
-            self.push_update_piezo.clicked.connect(self.update_piezo_params)
-            self.push_increase_center.clicked.connect(self.fb_center_increase)
-            self.push_decrease_center.clicked.connect(self.fb_center_decrease)
-            self.push_update_piezo_center.clicked.connect(self.update_piezo_center)            
-            self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
+        # if hasattr(hhm, 'fb_line'):
+        #     self.fb_master = 0
+        #     self.piezo_line = int(self.hhm.fb_line.get())
+        #     self.piezo_center = float(self.hhm.fb_center.get())
+        #     self.piezo_nlines = int(self.hhm.fb_nlines.get())
+        #     self.piezo_nmeasures = int(self.hhm.fb_nmeasures.get())
+        #     self.piezo_kp = float(self.hhm.fb_pcoeff.get())
+        #     self.hhm.fb_status.subscribe(self.update_fb_status, run=False)
+        #     self.piezo_thread = piezo_fb_thread(self)
+        #     self.push_update_piezo.clicked.connect(self.update_piezo_params)
+        #     self.push_increase_center.clicked.connect(self.fb_center_increase)
+        #     self.push_decrease_center.clicked.connect(self.fb_center_decrease)
+        #     self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
+        #     self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
         # # Populate analog detectors setup section with adcs:
         # self.adc_checkboxes = []
@@ -117,7 +117,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
 
-        self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
+        # self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
+        self.pushEnableHHMFeedback.setChecked(0)
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
         if 'Endstation BPM' in self.detector_dictionary:
