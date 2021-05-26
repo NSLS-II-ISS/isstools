@@ -82,7 +82,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
+        # self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
         # self.spinBox_image_max.valueChanged.connect(self.rescale_image)
         # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
@@ -322,18 +322,34 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def update_proc_figure(self, x_key):
         # managing figures
         self.canvas_proc.mpl_disconnect(self.cid_proc)
+        if x_key == 'calibration':
+            update_figure([self.figure_proc.ax], self.toolbar_proc, self.canvas_proc)
+            data = self.widget_johann_tools._calibration_data
+            energy_nom = data['energy_nom'].values
+            energy_act = data['energy_act'].values
+            energy_error = energy_act - energy_nom
+            resolution = data['resolution'].values
+            ax = self.figure_proc.ax
+            ax.plot(energy_nom, energy_error, 'k.-')
+            ax.set_xlabel('nominal energy, eV')
+            ax.set_ylabel('energy error, eV')
+            ax2 = self.figure_proc.ax.twinx()
+            ax2.plot(energy_nom, resolution, 'rs-')
+            ax2.set_ylabel('resolution, eV', color='r')
+            ax.set_xlim(energy_nom.min() - 10, energy_nom.max() + 10)
 
-        motor_pos = self.widget_johann_tools._alignment_data[x_key].values
-        fwhm = self.widget_johann_tools._alignment_data['fwhm'].values
-        ecen = self.widget_johann_tools._alignment_data['ecen'].values
-        res = np.sqrt(fwhm**2 - (1.3e-4 * ecen)**2)
+        else:
+            motor_pos = self.widget_johann_tools._alignment_data[x_key].values
+            fwhm = self.widget_johann_tools._alignment_data['fwhm'].values
+            ecen = self.widget_johann_tools._alignment_data['ecen'].values
+            res = np.sqrt(fwhm**2 - (1.3e-4 * ecen)**2)
 
-        for each_pos, each_fwhm, each_res in zip(motor_pos, fwhm, res):
-            self.figure_proc.ax.plot(each_pos, each_fwhm, 'o')
-            self.figure_proc.ax.plot(each_pos, each_res, '+')
+            for each_pos, each_fwhm, each_res in zip(motor_pos, fwhm, res):
+                self.figure_proc.ax.plot(each_pos, each_fwhm, 'o')
+                self.figure_proc.ax.plot(each_pos, each_res, '+')
 
-        self.figure_proc.ax.set_ylabel('FWHM/resolution, eV')
-        self.figure_proc.ax.set_xlabel(x_key)
+            self.figure_proc.ax.set_ylabel('FWHM/resolution, eV')
+            self.figure_proc.ax.set_xlabel(x_key)
 
         self.figure_proc.tight_layout()
         self.canvas_proc.draw_idle()

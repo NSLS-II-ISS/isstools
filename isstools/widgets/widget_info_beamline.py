@@ -84,15 +84,15 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         energy = self.hhm.energy.read()['hhm_energy']['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
-        # if ((self.hhm.fb_status.get()==1) and
-        #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
-        #     self.label_feedback_status.setText('Feedback on')
-        #     self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
-        #     self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
-        # else:
-        self.label_feedback_status.setText('Feedback off')
-        self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')
-        self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
+        if ((self.hhm.fb_status.get()==1) and
+                (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+            self.label_feedback_status.setText('Feedback on')
+            self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
+            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
+        else:
+            self.label_feedback_status.setText('Feedback off')
+            self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')
+            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
 
         i0_gain = self.ic_amplifiers['i0_amp'].get_gain()[0]
         it_gain = self.ic_amplifiers['it_amp'].get_gain()[0]

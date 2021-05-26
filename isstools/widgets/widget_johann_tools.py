@@ -111,6 +111,14 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.push_select_config_file.clicked.connect(self.select_config_file)
         self.push_load_emission_motor.clicked.connect(self.load_emission_motor)
         self.push_calibrate_energy.clicked.connect(self.calibrate_energy)
+        self.push_save_calibration.clicked.connect(self.save_energy_calibration)
+        self.push_select_calibration.clicked.connect(self.select_energy_calibration_file)
+        self.push_load_calibration.clicked.connect(self.load_energy_calibration)
+
+        self.edit_E_calib_min.textChanged.connect(self.update_settings_calib_E_min)
+
+
+
 
         self.lineEdit_current_calibration_file.setText(self.settings.value('johann_calibration_file_str', defaultValue=''))
         self.lineEdit_current_calibration_file.textChanged.connect(self.update_settings_current_calibration_file)
@@ -252,6 +260,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
     def analyze_resolution_scan(self, uids):
         uid = uids[0]
         Ecen, fwhm, I_cor, I_fit, I_fit_raw, E = analyze_elastic_scan(self.db, uid)
+        print(f'Peak width: {fwhm}\n Estimated resolution: {np.sqrt(fwhm**2 - (1.3e-4 * Ecen)**2)}')
         data_dict = {}
         for k in self.align_motor_dict.keys():
             proper_key = self.align_motor_dict[k]
@@ -356,18 +365,32 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
             print('Successfully loaded the spectrometer config')
 
+    def update_settings_calib_E_min(self):
+        value = self.edit_E_calib_min.text()
+        self.settings.setValue('johann_calibration_energy_min', str(value))
+
+    def update_settings_calib_E_max(self):
+        value = self.edit_E_calib_max.text()
+        self.settings.setValue('johann_calibration_energy_max', str(value))
+
+    def update_settings_calib_E_step(self):
+        value = self.edit_E_calib_step.text()
+        self.settings.setValue('johann_calibration_energy_step', str(value))
+
 
     def calibrate_energy(self):
         # update the data
-        self._calibration_data = pd.DataFrame(columns=['energy_nom', 'energy_act', 'fwhm', 'uid'])
+        self._calibration_data = pd.DataFrame(columns=['energy_nom', 'energy_act', 'resolution', 'uid'])
 
         e_min = float(self.edit_E_calib_min.text())
         e_max = float(self.edit_E_calib_max.text())
         e_step = float(self.edit_E_calib_step.text())
         if e_min>e_max:
             message_box('Incorrect energy range','Calibration energy min should be less than max')
-        if (e_max - e_min) > e_step:
+            return
+        if (e_max - e_min) < e_step:
             message_box('Incorrect energy range','energy step size bigger than range')
+            return
 
         energies = np.arange(e_min, e_max + e_step, e_step)
         each_scan_range = self.doubleSpinBox_range_energy.value()
@@ -378,15 +401,17 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         motor = self.motor_dictionary['hhm_energy']['object']
         uids = self.RE(plan, LivePlot(channel,  motor.name, ax=self.parent.figure_scan.ax))
 
-        energy_converter, energies_act, fwhms, I_fit_raws = analyze_many_elastic_scans(self.db, uids, energies, short_output=False)
+        energy_converter, energies_act, resolutions, I_fit_raws = analyze_many_elastic_scans(self.db, uids, energies, short_output=False)
         self.motor_emission.append_energy_converter(energy_converter)
 
-        for each_energy_nom, each_energy_act, each_fwhm, each_uid in zip(energies, energies_act, fwhms, uids):
+        for each_energy_nom, each_energy_act, each_resolution, each_uid in zip(energies, energies_act, resolutions, uids):
             data_dict = {'energy_nom' : each_energy_nom,
                          'energy_act' : each_energy_act,
-                         'fwhm' : each_fwhm,
+                         'resolution' : each_resolution,
                          'uid' : each_uid}
-            self._alignment_data = self._alignment_data.append(data_dict, ignore_index=True)
+            self._calibration_data = self._calibration_data.append(data_dict, ignore_index=True)
+        self.parent.update_proc_figure('calibration')
+
 
 
     def save_energy_calibration(self):
@@ -401,7 +426,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self._alignment_data.to_json(filename)
         print('Successfully saved the spectrometer calibration')
 
-    def select_calibration_file(self):
+    def select_energy_calibration_file(self):
         user_folder_path = (self.motor_emission.spectrometer_root_path +
                             f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
