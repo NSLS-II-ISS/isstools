@@ -79,6 +79,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.update_batch_traj()
         self.push_save_samples.clicked.connect(self.save_samples)
         self.push_load_samples.clicked.connect(self.load_samples)
+        self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
+
+
     '''
     Dealing with batch experiemnts
     '''
@@ -167,6 +170,30 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             for sample in samples:
                 _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=self.model_samples)
             self.listView_samples.setModel(self.model_samples)
+
+    def create_sample_grid(self):
+        step_size = self.spinBox_grid_spacing.value()
+        n_x = self.spinBox_grid_x_points.value()
+        n_y = self.spinBox_grid_y_points.value()
+        x_array = np.arange(n_x, dtype=float)
+        x_array -= np.median(x_array)
+        y_array = np.arange(n_y, dtype=float)
+        y_array -= np.median(y_array)
+        x_mesh, y_mesh = np.meshgrid(x_array*step_size, y_array*step_size)
+        xs = self.spinBox_sample_x.value() + x_mesh.ravel()
+        ys = self.spinBox_sample_y.value() + y_mesh.ravel()
+
+        base_name = self.lineEdit_sample_name.text()
+        counter = 1
+        for _x, _y in zip(xs, ys):
+            _name = f'{base_name} pos {counter}'
+            self.lineEdit_sample_name.setText(_name)
+            self.spinBox_sample_x.setValue(_x)
+            self.spinBox_sample_y.setValue(_y)
+            self.create_new_sample()
+            counter += 1
+        self.lineEdit_sample_name.setText(base_name)
+
 
     # def update_sample_info(self):
     #     view = self.listView_samples

@@ -82,7 +82,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.figure_integ, self.canvas_integ,self.toolbar_integ = setup_figure(self, self.layout_plot_integ)
 
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        # self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
+        self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
         # self.spinBox_image_max.valueChanged.connect(self.rescale_image)
         # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
 
