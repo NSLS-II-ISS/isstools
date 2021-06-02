@@ -87,8 +87,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.push_check_all.clicked.connect(self.check_all_samples)
         self.push_uncheck_all.clicked.connect(self.uncheck_all_samples)
+        self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
 
         self.sample_positioner = sample_positioner
+        self.parent_gui = parent_gui.parent_gui
         self.settings = parent_gui.parent_gui.settings
         self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
                                                                                     settings=self.settings,
@@ -218,6 +220,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         for i in range(self.model_samples.rowCount()):
             item = self.model_samples.item(i)
             item.setCheckState(0)
+
+    def get_info_from_autopilot(self):
+        sample_df =  self.parent_gui.widget_autopilot.sample_df
+        sample_number = int(self.lineEdit_autopilot.text())
+        # name = sample_df.iloc[sample_number]['Sample label']
+        name = sample_df.iloc[sample_number]['Name']
+        comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
+        name = name.replace('/','_')
+        self.lineEdit_sample_name.setText(name)
+        self.lineEdit_sample_comment.setText(comment)
 
     # def update_sample_info(self):
     #     view = self.listView_samples

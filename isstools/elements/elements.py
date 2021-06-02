@@ -17,7 +17,7 @@ element_dict = get_element_dict()
 def _check_entry(el, edge, energy, name, row):
 
 
-    info = f'Proposal: {name}, row: {row}, element: {el}, edge: {edge}, energy: {energy}'
+    info = f'Proposal: {name}, row: {row+1}, element: {el}, edge: {edge}, energy: {energy}'
     if el in element_dict.keys():
         if edge in element_dict[el].keys():
             if abs(energy - float(
