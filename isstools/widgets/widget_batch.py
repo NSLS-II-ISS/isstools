@@ -23,6 +23,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                  parent_gui,
                  motors_dict,
                  camera_dict,
+                 sample_positioner,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -37,7 +38,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.widget_batch_manual = widget_batch_manual.UIBatchManual(plan_funcs,
                                                                      service_plan_funcs,
                                                                      hhm,
-                                                                     sample_stage=sample_stage
+                                                                     sample_stage=sample_stage,
+                                                                     parent_gui=self,
+                                                                     sample_positioner=sample_positioner,
+                                                                     RE=RE,
                                                                      )
         self.layout_batch_manual.addWidget(self.widget_batch_manual)
 

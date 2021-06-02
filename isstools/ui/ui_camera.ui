@@ -126,106 +126,6 @@
     <double>20000.000000000000000</double>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_index_stack">
-   <property name="geometry">
-    <rect>
-     <x>1400</x>
-     <y>700</y>
-     <width>54</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="minimum">
-    <number>1</number>
-   </property>
-   <property name="maximum">
-    <number>9</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_stack">
-   <property name="geometry">
-    <rect>
-     <x>1290</x>
-     <y>700</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Stack number</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_holder">
-   <property name="geometry">
-    <rect>
-     <x>1290</x>
-     <y>730</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Holder number</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spinBox_index_holder">
-   <property name="geometry">
-    <rect>
-     <x>1400</x>
-     <y>730</y>
-     <width>54</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="minimum">
-    <number>1</number>
-   </property>
-   <property name="maximum">
-    <number>4</number>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spinBox_index_sample">
-   <property name="geometry">
-    <rect>
-     <x>1400</x>
-     <y>760</y>
-     <width>54</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="minimum">
-    <number>1</number>
-   </property>
-   <property name="maximum">
-    <number>4</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_sample">
-   <property name="geometry">
-    <rect>
-     <x>1290</x>
-     <y>760</y>
-     <width>131</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sample number</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_move_to_sample">
-   <property name="geometry">
-    <rect>
-     <x>1470</x>
-     <y>730</y>
-     <width>101</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Move</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="push_park_stage">
    <property name="geometry">
     <rect>
@@ -511,6 +411,17 @@ coordnates</string>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>1280</x>
+     <y>650</y>
+     <width>251</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="layout_sample_positioner"/>
   </widget>
  </widget>
  <resources/>

@@ -19,7 +19,7 @@
      <x>10</x>
      <y>895</y>
      <width>971</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -48,8 +48,8 @@
   <widget class="QPushButton" name="push_run_batch">
    <property name="geometry">
     <rect>
-     <x>1410</x>
-     <y>860</y>
+     <x>1420</x>
+     <y>880</y>
      <width>196</width>
      <height>36</height>
     </rect>
@@ -68,9 +68,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>30</y>
+     <y>10</y>
      <width>1606</width>
-     <height>781</height>
+     <height>871</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_batch_manual">

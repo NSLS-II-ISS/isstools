@@ -21,6 +21,7 @@ from isstools.elements.parameter_handler import parse_plan_parameters, return_pa
 from isstools.widgets import widget_energy_selector
 from isstools.elements.batch_motion import SamplePositioner
 import time as ttime
+from isstools.widgets import widget_sample_positioner
 # from isstools.process_callbacks.callback import run_router
 
 
@@ -30,6 +31,7 @@ class UICamera(*uic.loadUiType(ui_path)):
     def __init__(self,
                  camera_dict={},
                  sample_stage = {},
+                 sample_positioner=None,
                  RE = None,
                  parent_gui = None,
                  *args, **kwargs):
@@ -40,6 +42,7 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.camera_dict = camera_dict
         self.sample_stage = sample_stage
         self.RE = RE
+        self.parent = parent_gui
 
         # figure management
         self.addCanvas()
@@ -67,28 +70,36 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.push_update_stage_parking.clicked.connect(self.update_stage_parking)
         self.push_park_stage.clicked.connect(self.park_stage)
         self.push_update_sample_parking.clicked.connect(self.update_sample_parking)
-        self.push_move_to_sample.clicked.connect(self.move_to_sample)
 
+
+        self.sample_positioner = sample_positioner
+        self.settings = parent_gui.settings
+        self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
+                                                                     settings=self.settings,
+                                                                     RE=RE,
+                                                                     sample_positioner=sample_positioner)
+        self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
 
         # persistence management
-        self.settings = parent_gui.settings
 
-        stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
-        stage_park_y = self.settings.value('stage_park_y', defaultValue=0, type=float)
+        # stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
+        # stage_park_y = self.settings.value('stage_park_y', defaultValue=0, type=float)
+
+        stage_park_x = sample_positioner.stage_park_x
+        stage_park_y = sample_positioner.stage_park_y
         self.spinBox_stage_x.setValue(stage_park_x)
         self.spinBox_stage_y.setValue(stage_park_y)
 
-        sample_park_x = self.settings.value('sample_park_x', defaultValue=0, type=float)
-        sample_park_y = self.settings.value('sample_park_y', defaultValue=0, type=float)
+        # sample_park_x = self.settings.value('sample_park_x', defaultValue=0, type=float)
+        # sample_park_y = self.settings.value('sample_park_y', defaultValue=0, type=float)
+        sample_park_x = sample_positioner.stage_park_x + sample_positioner.delta_first_holder_x
+        sample_park_y = sample_positioner.stage_park_y + sample_positioner.delta_first_holder_y
         self.spinBox_sample_x.setValue(sample_park_x)
         self.spinBox_sample_y.setValue(sample_park_y)
 
         self.beam_x_position_on_camera = self.settings.value('beam_x_position_on_camera', defaultValue=250)
         self.beam_y_position_on_camera = self.settings.value('beam_y_position_on_camera', defaultValue=250)
 
-        self.spinBox_index_stack.setValue(self.settings.value('index_stack', defaultValue=1, type=int))
-        self.spinBox_index_holder.setValue(self.settings.value('index_holder', defaultValue=1, type=int))
-        self.spinBox_index_sample.setValue(self.settings.value('index_sample', defaultValue=1, type=int))
 
         x1 = self.settings.value('qr_roi_x1', defaultValue=0, type=int)
         x2 = self.settings.value('qr_roi_x2', defaultValue=0, type=int)
@@ -97,22 +108,17 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.qr_roi = [(x1, y1), [x2, y2]]
 
         # sample positioner handle
-        self.sample_positioner = SamplePositioner(self.RE,
-                                                  self.sample_stage,
-                                                  stage_park_x,
-                                                  stage_park_y,
-                                                  offset_x=sample_park_x - stage_park_x,
-                                                  offset_y=sample_park_y - stage_park_y)
+
 
         # get pictures on the GUI upon opening
         self.show_image()
         #self.timer_track_camera.start()
 
 
-    def _save_sample_index_settings(self):
-        self.settings.setValue('index_stack', self.spinBox_index_stack.value())
-        self.settings.setValue('index_holder', self.spinBox_index_holder.value())
-        self.settings.setValue('index_sample', self.spinBox_index_sample.value())
+    # def _save_sample_index_settings(self):
+    #     self.settings.setValue('index_stack', self.spinBox_index_stack.value())
+    #     self.settings.setValue('index_holder', self.spinBox_index_holder.value())
+    #     self.settings.setValue('index_sample', self.spinBox_index_sample.value())
 
 
 

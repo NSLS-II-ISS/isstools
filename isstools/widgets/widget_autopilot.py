@@ -116,7 +116,14 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         fid_cycle = gdrive.folder_exists(self.service, fid_year, cycle)
         files = gdrive.get_file_list(self.service, fid_cycle)['files']
         # TODO: one day please make a decent dict to store the important info!!
-        self.file_names = np.array([i['name'] for i in files])
+        self.file_names = []
+        for f in files:
+            proposal_num = f['name'][-6:]
+            if str.isnumeric(proposal_num):
+                self.file_names.append(proposal_num)
+            else:
+                self.file_names.append(f['name'])
+        self.file_names = np.array(self.file_names)
         self.file_ids = np.array([i['id'] for i in files])
         ptable_row_index = 0
 

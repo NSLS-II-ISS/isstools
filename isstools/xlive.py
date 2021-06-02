@@ -20,7 +20,7 @@ from .widgets import (widget_info_general,
                       widget_autopilot,
                       widget_spectrometer)
 
-
+from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
 from .process_callbacks.callback import ScanProcessingCallback
 from .elements.cloud_dispatcher import CloudDispatcher
@@ -85,6 +85,20 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
+
+        # define sample positioner to pass it to widget camera and further
+        stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
+        stage_park_y = self.settings.value('stage_park_y', defaultValue=0, type=float)
+        sample_park_x = self.settings.value('sample_park_x', defaultValue=0, type=float)
+        sample_park_y = self.settings.value('sample_park_y', defaultValue=0, type=float)
+        self.sample_positioner = SamplePositioner(self.RE,
+                                                  sample_stage,
+                                                  stage_park_x,
+                                                  stage_park_y,
+                                                  delta_first_holder_x=sample_park_x - stage_park_x,
+                                                  delta_first_holder_y=sample_park_y - stage_park_y)
+
+
         print('cloud starting', ttime.ctime())
         try:
             print('starting slackbot', ttime.ctime())
@@ -135,8 +149,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_camera = widget_camera.UICamera(
             camera_dict,
             sample_stage,
+            self.sample_positioner,
             RE,
-            self
+            parent_gui=self
         )
         self.layout_camera.addWidget(self.widget_camera)
         print('widget batch loading', ttime.ctime())
@@ -149,6 +164,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self,
             motors_dict,
             camera_dict,
+            self.sample_positioner
         )
         self.layout_batch.addWidget(self.widget_batch_mode)
 
@@ -232,6 +248,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         print('widget loading done', ttime.ctime())
+
 
         self.push_re_abort.clicked.connect(self.re_abort)
 

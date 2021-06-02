@@ -36,10 +36,10 @@ class SamplePositioner:
     def __init__(self,
                  RE,
                  sample_stage,
-                 zero_x,
-                 zero_y,
-                 offset_x=0,
-                 offset_y=0):
+                 stage_park_x,
+                 stage_park_y,
+                 delta_first_holder_x=0,
+                 delta_first_holder_y=0):
 
         '''
         :param zero_x: zero position of the giant stage x
@@ -53,10 +53,10 @@ class SamplePositioner:
         self.sample_stage = sample_stage
 
         # this comes from our calibration
-        self.zero_x = zero_x
-        self.zero_y = zero_y
-        self.delta_first_holder_x = offset_x
-        self.delta_first_holder_y = offset_y
+        self.stage_park_x = stage_park_x
+        self.stage_park_y = stage_park_y
+        self.delta_first_holder_x = delta_first_holder_x
+        self.delta_first_holder_y = delta_first_holder_y
 
         # distances between stacks
         self.delta_stack_x = delta_stack_x
@@ -68,10 +68,9 @@ class SamplePositioner:
         self.delta_holder = {'type_1' : {'x' : 15, 'y': 18},
                              'type_2' : {'x' : 1, 'y': 1}}
 
-
     def goto_park(self):
-        self.RE(bps.mv(self.sample_stage.x, self.zero_x))
-        self.RE(bps.mv(self.sample_stage.y, self.zero_y))
+        self.RE(bps.mv(self.sample_stage.x, self.stage_park_x))
+        self.RE(bps.mv(self.sample_stage.y, self.stage_park_y))
 
 
     def goto_holder(self, index_stack, index_holder):
@@ -100,11 +99,11 @@ class SamplePositioner:
         disp_stack_x = index_stack - 1 - (np.floor((index_stack - 1) / 3)) * 3
         disp_stack_y = np.floor((index_stack - 1) / 3)
 
-        giant_x = (self.zero_x +
+        giant_x = (self.stage_park_x +
                    self.delta_first_holder_x +
                    delta_holder_x * (index_sample - 1) +
                    self.delta_stack_x * disp_stack_x)
-        giant_y = (self.zero_y +
+        giant_y = (self.stage_park_y +
                    self.delta_first_holder_y -
                    (index_holder - 1) * delta_holder_y +
                    self.delta_stack_y * disp_stack_y)

@@ -12,7 +12,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
-
+from isstools.widgets import widget_sample_positioner
 
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
@@ -20,7 +20,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  plan_funcs,
                  service_plan_funcs,
                  hhm,
-                 sample_stage = None, *args, **kwargs):
+                 sample_stage = None,
+                 parent_gui = None,
+                 sample_positioner = None,
+                 RE = None,
+                 *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -80,6 +84,17 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_save_samples.clicked.connect(self.save_samples)
         self.push_load_samples.clicked.connect(self.load_samples)
         self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
+
+        self.push_check_all.clicked.connect(self.check_all_samples)
+        self.push_uncheck_all.clicked.connect(self.uncheck_all_samples)
+
+        self.sample_positioner = sample_positioner
+        self.settings = parent_gui.parent_gui.settings
+        self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
+                                                                                    settings=self.settings,
+                                                                                    RE=RE,
+                                                                                    sample_positioner=sample_positioner)
+        self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
 
 
     '''
@@ -194,6 +209,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             counter += 1
         self.lineEdit_sample_name.setText(base_name)
 
+    def check_all_samples(self):
+        for i in range(self.model_samples.rowCount()):
+            item = self.model_samples.item(i)
+            item.setCheckState(2)
+
+    def uncheck_all_samples(self):
+        for i in range(self.model_samples.rowCount()):
+            item = self.model_samples.item(i)
+            item.setCheckState(0)
 
     # def update_sample_info(self):
     #     view = self.listView_samples
