@@ -73,7 +73,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         self.push_save_trajectory.setDisabled(True)
         self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
 
-        self.edit_pad_time.setText('0.5')
+        # self.edit_pad_time.setText('0.5')
 
         # self.checkBox_traj_single_dir.stateChanged.connect(self.checkBox_traj_revert.setEnabled)
 

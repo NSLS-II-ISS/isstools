@@ -119,6 +119,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+        # if self.hhm.fb_status.get() == 1:
+        #     self.enable_fb(0)
+        #     self.enable_fb(1)
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
@@ -154,6 +157,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
+        # this is a terrible hack!
+        # TODO: remove this to make it work properly
+        self.pushEnableHHMFeedback.click()
+        self.pushEnableHHMFeedback.click()
 
     def addCanvas(self):
         self.figure_gen_scan = Figure()
