@@ -247,8 +247,8 @@ class UICamera(*uic.loadUiType(ui_path)):
                                                       self.sample_stage,
                                                       stage_park_x,
                                                       stage_park_y,
-                                                      offset_x=sample_park_x - stage_park_x,
-                                                      offset_y=sample_park_y - stage_park_y)
+                                                      delta_first_holder_x=sample_park_x - stage_park_x,
+                                                      delta_first_holder_y=sample_park_y - stage_park_y)
 
     def update_sample_parking(self):
 
@@ -272,8 +272,8 @@ class UICamera(*uic.loadUiType(ui_path)):
                                                       self.sample_stage,
                                                       stage_park_x,
                                                       stage_park_y,
-                                                      offset_x=sample_park_x - stage_park_x,
-                                                      offset_y=sample_park_y - stage_park_y)
+                                                      delta_first_holder_x=sample_park_x - stage_park_x,
+                                                      delta_first_holder_y=sample_park_y - stage_park_y)
 
     # def zero_stage(self):
     #     camera_qr = self.camera_dict['camera_sample4']

@@ -65,7 +65,7 @@ class SamplePositioner:
         self.n_stacks = 9
         self.n_holders = 4
 
-        self.delta_holder = {'type_1' : {'x' : 15, 'y': 18},
+        self.delta_holder = {'type_1' : {'x' : 14.9, 'y': 17.5},
                              'type_2' : {'x' : 1, 'y': 1}}
 
     def goto_park(self):
