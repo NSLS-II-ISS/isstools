@@ -164,6 +164,21 @@ class UIRun(*uic.loadUiType(ui_path)):
         energy_grid = []
         time_grid = []
 
+        for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
+                        self.shutter_dictionary[shutter].shutter_type != 'SP']:
+            if type(shutter.state) == str:
+                isclosed = (shutter.state == 'closed')
+            else:
+                isclosed = (shutter.state.value == 1)
+            if isclosed:
+                ret = question_message_box(self, 'Shutter closed',
+                                           'Would you like to run the scan with the shutter closed?')
+                if not ret:
+                    print('Aborted!')
+                    return False
+                ignore_shutter = True
+                break
+
         name_provided = self.parameter_values[0].text()
         if name_provided:
             timenow = datetime.datetime.now()
