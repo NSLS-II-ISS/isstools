@@ -223,7 +223,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def get_info_from_autopilot(self):
         sample_df =  self.parent_gui.widget_autopilot.sample_df
-        sample_number = int(self.lineEdit_autopilot.text())
+        sample_number = int(self.lineEdit_autopilot.text()) - 1 # pandas is confusing
         # name = sample_df.iloc[sample_number]['Sample label']
         name = sample_df.iloc[sample_number]['Name']
         comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
