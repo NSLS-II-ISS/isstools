@@ -159,8 +159,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.comboBox_reference_foils.addItem(foil)
         # this is a terrible hack!
         # TODO: remove this to make it work properly
-        self.pushEnableHHMFeedback.click()
-        self.pushEnableHHMFeedback.click()
+        # self.pushEnableHHMFeedback.click()
+        # self.pushEnableHHMFeedback.click()
 
     def addCanvas(self):
         self.figure_gen_scan = Figure()

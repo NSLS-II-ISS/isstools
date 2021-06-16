@@ -220,13 +220,16 @@ class UIRun(*uic.loadUiType(ui_path)):
                          XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence',self.hhm[0].energy.name,
                                  log=False,ax=self.figure.ax1, color='g', legend_keys=['Fluorescence']),
                          ]
-
             try:
                 self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
 
+                if 'emission' in plan_key.lower():
+                    label = 'XES'
+                else:
+                    label = 'HERFD'
+                LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, label, self.hhm[0].energy.name,
+                            log=False, ax=self.figure.ax1, color='k', legend_keys=[label])
 
-                LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, 'HERFD', self.hhm[0].energy.name,
-                            log=False, ax=self.figure.ax1, color='k', legend_keys=['HERFD'])
             except:
                 LivePlotPilatus = None
 
@@ -289,7 +292,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.gridLayout_parameters.addWidget(self.parameter_values[i], i, 0, QtCore.Qt.AlignTop)
             self.gridLayout_parameters.addWidget(self.parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
 
-        if plan_key.lower().startswith('step scan'):
+        if plan_key.lower().startswith('step scan') and (not 'emission' in plan_key.lower()):
             self.groupBox_stepscan.setEnabled(True)
         else:
             self.groupBox_stepscan.setEnabled(False)

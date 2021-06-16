@@ -423,7 +423,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
             filename = filename + '.jcalib'
         print(filename)
 
-        self._alignment_data.to_json(filename)
+        self._calibration_data.to_json(filename)
         print('Successfully saved the spectrometer calibration')
 
     def select_energy_calibration_file(self):
