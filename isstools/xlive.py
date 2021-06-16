@@ -27,6 +27,9 @@ from .elements.cloud_dispatcher import CloudDispatcher
 from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 import time as ttime
+from xas.process import process_interpolate_bin
+
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
 
@@ -85,6 +88,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progress_sig.connect(self.update_progressbar)
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
+
+        self.processing_thread = processing_thread(self)
 
         # define sample positioner to pass it to widget camera and further
         stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -252,13 +257,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.push_re_abort.clicked.connect(self.re_abort)
 
-        cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
+        self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
 
         print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
 
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
-                                    cloud_dispatcher = cloud_dispatcher)
+                                    cloud_dispatcher = self.cloud_dispatcher, thread = self.processing_thread)
+
+
         self.fly_token = self.RE.subscribe(pc, 'stop')
         print(' scan processgin callback done', ttime.ctime())
         # Redirect terminal output to GUI
@@ -268,6 +275,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         sys.stdout = self.emitstream_out
         sys.stderr = self.emitstream_err
         self.setWindowTitle(window_title)
+        #self.processing_thread.start()
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()
@@ -301,5 +309,26 @@ class XliveGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_RE_state.setPalette(palette)
         self.label_RE_state.setText(self.RE.state)
+
+class processing_thread(QThread):
+    def __init__(self, gui):
+        QThread.__init__(self)
+        self.gui = gui
+        self.doc = None
+
+    def run(self):
+        attempt = 0
+        while self.doc:
+            try:
+                attempt += 1
+                uid = self.doc['run_start']
+                print(f'File received {uid}')
+                process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher)
+                self.doc = None
+            except:
+                print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+                ttime.sleep(1)
+            if attempt == 5:
+                break
 
 
