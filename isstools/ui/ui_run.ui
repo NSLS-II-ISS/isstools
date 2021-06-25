@@ -19,7 +19,7 @@
      <x>10</x>
      <y>50</y>
      <width>301</width>
-     <height>271</height>
+     <height>331</height>
     </rect>
    </property>
    <property name="title">
@@ -97,8 +97,8 @@
   <widget class="QPushButton" name="push_run_scan">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>770</y>
+     <x>30</x>
+     <y>820</y>
      <width>181</width>
      <height>41</height>
     </rect>
@@ -111,9 +111,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>330</y>
+     <y>410</y>
      <width>386</width>
-     <height>291</height>
+     <height>351</height>
     </rect>
    </property>
    <property name="title">
@@ -125,7 +125,7 @@
       <x>10</x>
       <y>140</y>
       <width>181</width>
-      <height>131</height>
+      <height>190</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_6">
@@ -269,7 +269,7 @@
       <x>240</x>
       <y>20</y>
       <width>141</width>
-      <height>112</height>
+      <height>148</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_15">
@@ -393,7 +393,7 @@
       <x>240</x>
       <y>140</y>
       <width>169</width>
-      <height>131</height>
+      <height>190</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_17">
@@ -577,8 +577,8 @@
   <widget class="QPushButton" name="push_run_test_scan">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>720</y>
+     <x>30</x>
+     <y>770</y>
      <width>181</width>
      <height>41</height>
     </rect>

@@ -111,6 +111,15 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 else:
                                     traj_stack.set_traj(scan.trajectory)
 
+                                # check if there are child services
+                                if scan.rowCount() != 0:
+                                    for i in range(scan.rowCount()):
+                                        child_service = scan.child(i)
+                                        kwargs = {'stdout': self.parent_gui.emitstream_out}
+                                        if testing:
+                                            print('would have done service', child_service.name)
+                                        else:
+                                            yield from child_service.service_plan(**child_service.service_params, **kwargs)
                                 # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
                                 # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
                                 #     if traj_index:
@@ -120,6 +129,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                     print('would have done the plan', scan.name)
                                 else:
                                     yield from plan(**kwargs)
+
 
                             elif child_item.item_type == 'service':
                                 service = child_item
@@ -151,6 +161,16 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 else:
                                     yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y,
                                                   sample.y + delta_y)
+
+                                # see if there is child service
+                                if sample.rowCount() != 0:
+                                    for i in range(sample.rowCount()):
+                                        child_service = sample.child(i)
+                                        kwargs = {'stdout': self.parent_gui.emitstream_out}
+                                        if testing:
+                                            print('would have done service', child_service.name)
+                                        else:
+                                            yield from child_service.service_plan(**child_service.service_params, **kwargs)
 
                                 plan = plans_dict[scan.scan_type]
 

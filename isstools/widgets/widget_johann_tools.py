@@ -439,9 +439,9 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def load_energy_calibration(self):
         filename = self.lineEdit_current_calibration_file.text()
-        self._alignment_data = pd.read_json(filename)
-        energies_nom = self._alignment_data['energy_nom'].values()
-        energies_act = self._alignment_data['energy_act'].values()
+        self._calibration_data = pd.read_json(filename)
+        energies_nom = self._calibration_data['energy_nom'].values
+        energies_act = self._calibration_data['energy_act'].values
         energy_converter = Nominal2ActualConverter(energies_nom, energies_act)
         self.motor_emission.append_energy_converter(energy_converter)
         print('Successfully loaded the spectrometer calibration')

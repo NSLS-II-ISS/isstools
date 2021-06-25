@@ -671,6 +671,26 @@
     <double>0.100000000000000</double>
    </property>
   </widget>
+  <widget class="QLabel" name="label_gains_8">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>50</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Reference foil: </string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

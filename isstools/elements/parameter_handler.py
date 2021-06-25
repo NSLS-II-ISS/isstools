@@ -8,6 +8,7 @@ def create_parameter(description, annotation, units=None):
     qitem = None
     qlabel = None
     def_val = ''
+
     if description.find('=') != -1:
         def_val = re.sub(r'.*=', '', description)
     if annotation == int:
@@ -24,7 +25,8 @@ def create_parameter(description, annotation, units=None):
         qitem.setValue(def_val)
     elif annotation == bool:
         qitem = QtWidgets.QCheckBox()
-        if def_val == 'True':
+        # if def_val == 'True':
+        if 'True' in def_val:
             def_val = True
         else:
             def_val = False

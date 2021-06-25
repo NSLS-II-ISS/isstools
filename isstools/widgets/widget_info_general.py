@@ -79,19 +79,21 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
 
     def update_weather(self):
-        try:
-            current_weather = requests.get(
-                'http://api.openweathermap.org/data/2.5/weather?zip=11973&APPID=a3be6bc4eaf889b154327fadfd9d6532').json()
-            string_current_weather  = current_weather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.0f} °F outside,\
-                humidity is {1:.0f}%'\
-                .format(((current_weather['main']['temp']-273)*1.8+32), current_weather['main']['humidity'])
-            icon_url = 'http://openweathermap.org/img/w/' + current_weather['weather'][0]['icon'] + '.png'
-            image = QtGui.QImage()
-            image.loadFromData(urllib.request.urlopen(icon_url).read())
-            self.label_current_weather_icon.setPixmap(QtGui.QPixmap(image))
-        except:
-            string_current_weather = 'Weather information not available'
-        self.label_current_weather.setText(string_current_weather)
+        weather = True
+        if weather:
+            try:
+                current_weather = requests.get(
+                    'http://api.openweathermap.org/data/2.5/weather?zip=11973&APPID=a3be6bc4eaf889b154327fadfd9d6532').json()
+                string_current_weather  = current_weather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.0f} °F outside,\
+                    humidity is {1:.0f}%'\
+                    .format(((current_weather['main']['temp']-273)*1.8+32), current_weather['main']['humidity'])
+                icon_url = 'http://openweathermap.org/img/w/' + current_weather['weather'][0]['icon'] + '.png'
+                image = QtGui.QImage()
+                image.loadFromData(urllib.request.urlopen(icon_url).read())
+                self.label_current_weather_icon.setPixmap(QtGui.QPixmap(image))
+            except:
+                string_current_weather = 'Weather information not available'
+            self.label_current_weather.setText(string_current_weather)
 
     def update_time(self):
         self.label_current_time.setText(

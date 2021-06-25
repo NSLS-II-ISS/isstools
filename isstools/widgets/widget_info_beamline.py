@@ -31,6 +31,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  apb = None,
                  RE = None,
                  db = None,
+                 foil_camera=None,
                  parent = None,
                  *args, **kwargs):
 
@@ -50,6 +51,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.apb = apb
         self.hhm= hhm
+        self.foil_camera = foil_camera
 
         # Initialize general settings
         self.accelerator = accelerator
@@ -115,6 +117,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         elif (self.RE.state == 'abort'):
             self.label_RE.setText('Run Engine is aborted')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
+
+
 
 
     def update_beam_current(self, **kwargs):

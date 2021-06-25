@@ -550,7 +550,7 @@ class piezo_fb_thread(QThread):
         self.pid.setSampleTime(self.sampleTime)
         self.pid.windup_guard = 3
         self.go = 0
-
+        self.should_print_diagnostics = True
         self.truncate_data = False
 
     def determine_beam_position_from_image(self, line = 420, center_point = 655, n_lines = 1):
@@ -562,7 +562,8 @@ class piezo_fb_thread(QThread):
             print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
             return
 
-        return determine_beam_position_from_fb_image(image, line=line, center_point=center_point, n_lines=n_lines, truncate_data=self.truncate_data)
+        return determine_beam_position_from_fb_image(image, line=line, center_point=center_point, n_lines=n_lines, truncate_data=self.truncate_data,
+                                                     should_print_diagnostics=self.should_print_diagnostics)
 
 
     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
@@ -580,8 +581,13 @@ class piezo_fb_thread(QThread):
             # print(f"{ttime.ctime()} curr_value: {curr_value}, piezo_diff: {piezo_diff}, delta: {curr_value - piezo_diff}")
             try:
                 self.gui.hhm.pitch.move(curr_value - piezo_diff)
+                self.should_print_diagnostics = True
             except:
-                print('failed to correct pitch due to controller bug (DSSI works on it)')  # TODO: Denis 5/25/2021
+                if self.should_print_diagnostics:
+                    print('failed to correct pitch due to controller bug (DSSI works on it)')  # TODO: Denis 5/25/2021
+                    self.should_print_diagnostics = False
+        else:
+            self.should_print_diagnostics = False
 
     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
         # getting center:

@@ -66,6 +66,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  ic_amplifiers={},
                  window_title=" ",
                  apb = None,
+                 sample_registry=None,
                  *args, **kwargs):
 
 
@@ -102,6 +103,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                   stage_park_y,
                                                   delta_first_holder_x=sample_park_x - stage_park_x,
                                                   delta_first_holder_y=sample_park_y - stage_park_y)
+        self.sample_registry = sample_registry
 
 
         print('cloud starting', ttime.ctime())
@@ -156,7 +158,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             sample_stage,
             self.sample_positioner,
             RE,
-            parent_gui=self
+            parent_gui=self,
+            sample_registry=self.sample_registry
         )
         self.layout_camera.addWidget(self.widget_camera)
         print('widget batch loading', ttime.ctime())
@@ -213,6 +216,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             apb=apb,
             RE=RE,
             db=None,
+            foil_camera=det_dict['Camera SP5']['device'],
             parent=self
         )
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
