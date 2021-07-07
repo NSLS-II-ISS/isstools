@@ -13,7 +13,10 @@ class XASDataSet:
     _filename = ''
     _larch = Interpreter(with_plugins=False)
 
-    def __init__(self, name=None, md=None, energy = None, mu=None, filename=None, datatype=None, *args, **kwargs):
+    def __init__(self, name=None, md=None, energy = None, mu=None,
+                 filename=None, datatype=None, process=True,
+                 xasdataset=None,
+                 *args, **kwargs):
         self.larch = xafsgroup()
         if md is not None:
             self._md = md
@@ -25,9 +28,10 @@ class XASDataSet:
 
         if mu is not None:
             self.larch.mu = np.array(mu)
-            # self._mu = np.array(mu)
+            self._mu = np.array(mu)
         if energy is not None:
             self.larch.energy = np.array(energy)
+            self.energy = self.larch.energy
         if filename is not None:
             self._filename = filename
         if name is not None:
@@ -35,15 +39,34 @@ class XASDataSet:
         if datatype is not None:
             self.datatype = datatype
         if mu is not None and energy is not None:
-            self.clamp_hi = 0
-            self.clamp_lo = 0
-            self.normalize()
-            self.deriv()
-            self.extract_chi()
-            self.kmin_ft = 3
-            self.kmax_ft = self.kmax - 1
-            self.kweight = 2
-            self.rbkg = 1
+            if process:
+                self.clamp_hi = 0
+                self.clamp_lo = 0
+                self.normalize()
+                self.deriv()
+                self.extract_chi()
+                self.kmin_ft = 3
+                self.kmax_ft = self.kmax - 1
+                self.kweight = 2
+                self.rbkg = 1
+            else:
+                self.clamp_hi = xasdataset.clamp_hi
+                self.clamp_lo = xasdataset.clamp_lo
+                self.kmin = xasdataset.kmin
+                self.kmax = xasdataset.kmax
+                self.kmin_ft = xasdataset.kmin_ft
+                self.kmax_ft = xasdataset.kmax_ft
+                self.kweight = xasdataset.kweight
+                self.rbkg = xasdataset.rbkg
+                self.pre1 = xasdataset.pre1
+                self.pre2 = xasdataset.pre2
+                self.norm1 = xasdataset.norm1
+                self.norm2 = xasdataset.norm2
+                self.e0 = xasdataset.e0
+                self.pre_edge = xasdataset.pre_edge
+                self.post_edge = xasdataset.post_edge
+                self.edge_step = xasdataset.edge_step
+                # self.update_larch()
 
     def update_larch(self):
         if self.mu is not None:
@@ -52,7 +75,8 @@ class XASDataSet:
             self.larch.energy = np.array(self.energy)
 
     def deriv(self):
-        mu_deriv=np.diff(np.transpose(self.mu.values))/np.diff(self.energy)
+        # mu_deriv=np.diff(np.transpose(self.mu.values))/np.diff(self.energy)
+        mu_deriv = np.diff(np.transpose(self.mu)) / np.diff(self.energy)
         self.mu_deriv=mu_deriv[0]
         self.energy_deriv=(self.energy[1:]+self.energy[:-1])/2
 
@@ -162,7 +186,8 @@ class XASDataSet:
     def md(self, md):
         self._md = md
         if 'e0' in md:
-            self.larch.e0 = int(md['e0'])
+            # self.larch.e0 = int(md['e0'])
+            self.larch.e0 = float(md['e0'])
             pass
         elif 'edge' in md:
             edge = md['edge']
@@ -178,8 +203,9 @@ class XASDataSet:
             values = mu.values
         else:
             values = mu
-        self._mu = pd.DataFrame(values, columns=['mu'])
-        self.larch.mu = self._mu
+        # self._mu = pd.DataFrame(values, columns=['mu'])
+        # self.larch.mu = self._mu
+        self.larch.mu = values
 
     @property
     def filename(self):
