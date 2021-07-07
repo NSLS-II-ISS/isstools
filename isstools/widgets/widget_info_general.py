@@ -189,7 +189,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         if not dropbox_folder_exists(self.parent.dropbox_service,dropbox_folder):
             dropbox_create_folder(self.parent.dropbox_service, dropbox_folder)
 
-        dropbox_url = dropbox_get_shared_link(self.parent.dropbox_service,dropbox_folder)
+        dropbox_url = dropbox_get_shared_link(self.parent.dropbox_service, dropbox_folder)
 
         dlg = GetEmailAddress.GetEmailAddress('', parent=self)
         if dlg.exec_():

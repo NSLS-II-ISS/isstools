@@ -118,6 +118,19 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             self.label_RE.setText('Run Engine is aborted')
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
 
+        #reference foil
+        barcode1 = str(self.foil_camera.bar1.get()[:-1],encoding ='UTF-8')
+        barcode2 = str(self.foil_camera.bar2.get()[:-1],encoding ='UTF-8')
+
+        if (barcode1 == 'empty' and  barcode2 != 'empty'):
+            self.label_reference_foil.setText(f'Reference: {barcode2}')
+        elif (barcode2 == 'empty' and  barcode1 != 'empty'):
+            self.label_reference_foil.setText(f'Reference: {barcode1}')
+        elif (barcode2 == 'empty' and barcode1 == 'empty'):
+             self.label_reference_foil.setText(f'No reference foil set')
+        else:
+            self.label_reference_foil.setText(f'Check reference foil')
+
 
 
 

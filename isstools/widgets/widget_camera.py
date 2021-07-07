@@ -488,8 +488,13 @@ class UICamera(*uic.loadUiType(ui_path)):
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.json', parent=self)[0]
         self.lineEdit_sreg_file.setText(filename)
+        self._sreg_load_file()
+
+    def _sreg_load_file(self):
+        filename = self.lineEdit_sreg_file.text()
         self.sample_registry.load(filename)
         self.sample_registry.set_dump_file(filename)
+
 
 
     # def set_qr_cursor(self):

@@ -329,10 +329,13 @@ class processing_thread(QThread):
                 print(f'File received {uid}')
                 process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher)
                 self.doc = None
-            except:
+            except Exception as e:
+                print(e)
                 print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
                 ttime.sleep(1)
             if attempt == 5:
                 break
+
+
 
 
