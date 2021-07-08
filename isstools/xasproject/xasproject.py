@@ -76,8 +76,8 @@ class XASDataSet:
 
     def deriv(self):
         # mu_deriv=np.diff(np.transpose(self.mu.values))/np.diff(self.energy)
-        mu_deriv = np.diff(np.transpose(self.mu)) / np.diff(self.energy)
-        self.mu_deriv=mu_deriv[0]
+        mu_deriv = np.diff(self.mu) / np.diff(self.energy)
+        self.mu_deriv = mu_deriv
         self.energy_deriv=(self.energy[1:]+self.energy[:-1])/2
 
     def flatten(self):

@@ -57,6 +57,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  accelerator=None,
                  hhm=None,
                  sdd = None,
+                 encoder_pb = None,
                  shutters_dict={},
                  det_dict={},
                  motors_dict={},
@@ -76,8 +77,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.db = db
         self.apb = apb
+        self.encoder_pb = encoder_pb
         self.token = None
         self.window_title = window_title
+
         
         if RE is not None:
             RE.is_aborted = False
@@ -217,6 +220,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             RE=RE,
             db=None,
             foil_camera=det_dict['Camera SP5']['device'],
+            encoder_pb = self.encoder_pb,
             parent=self
         )
         self.layout_info_beamline.addWidget(self.widget_info_beamline)

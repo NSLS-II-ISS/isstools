@@ -675,7 +675,7 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>50</y>
+     <y>40</y>
      <width>181</width>
      <height>20</height>
     </rect>
@@ -689,6 +689,26 @@
    </property>
    <property name="text">
     <string>Reference foil: </string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_offset_error">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>60</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Offset error:</string>
    </property>
   </widget>
  </widget>

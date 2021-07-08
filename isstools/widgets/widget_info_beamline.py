@@ -32,6 +32,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  RE = None,
                  db = None,
                  foil_camera=None,
+                 encoder_pb=None,
                  parent = None,
                  *args, **kwargs):
 
@@ -52,6 +53,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.apb = apb
         self.hhm= hhm
         self.foil_camera = foil_camera
+        self.encoder_pb = encoder_pb
 
         # Initialize general settings
         self.accelerator = accelerator
@@ -131,7 +133,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         else:
             self.label_reference_foil.setText(f'Check reference foil')
 
-
+        #show encoder readout error
+        error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
+        self.label_offset_error.setText(f'Encoder error: {int(error)}')
 
 
     def update_beam_current(self, **kwargs):
