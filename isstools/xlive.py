@@ -165,6 +165,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             sample_registry=self.sample_registry
         )
         self.layout_camera.addWidget(self.widget_camera)
+
         print('widget batch loading', ttime.ctime())
         self.widget_batch_mode = widget_batch.UIBatch(
             plan_funcs,

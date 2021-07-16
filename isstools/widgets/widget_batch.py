@@ -103,8 +103,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                           'comment': '',
                                           'delay': scan.delay,
                                           'n_cycles': scan.repeat,
-                                          'stdout': self.parent_gui.emitstream_out,
-                                          'autofoil' : scan.autofoil}
+                                          'stdout': self.parent_gui.emitstream_out}
+                                          # 'autofoil' : scan.autofoil}
                                 if testing:
                                     print('would have changed traj', scan.trajectory)
 
@@ -115,11 +115,11 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 if scan.rowCount() != 0:
                                     for i in range(scan.rowCount()):
                                         child_service = scan.child(i)
-                                        kwargs = {'stdout': self.parent_gui.emitstream_out}
+                                        child_kwargs = {'stdout': self.parent_gui.emitstream_out}
                                         if testing:
                                             print('would have done service', child_service.name)
                                         else:
-                                            yield from child_service.service_plan(**child_service.service_params, **kwargs)
+                                            yield from child_service.service_plan(**child_service.service_params, **child_kwargs)
                                 # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
                                 # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
                                 #     if traj_index:

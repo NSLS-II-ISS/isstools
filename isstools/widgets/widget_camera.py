@@ -23,6 +23,7 @@ from isstools.widgets import widget_energy_selector
 from isstools.elements.batch_motion import SamplePositioner
 import time as ttime
 from isstools.widgets import widget_sample_positioner
+from isstools.widgets import widget_sample_registry
 # from isstools.process_callbacks.callback import run_router
 
 
@@ -83,6 +84,12 @@ class UICamera(*uic.loadUiType(ui_path)):
                                                                      sample_positioner=sample_positioner)
         self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
 
+        self.widget_sample_registry = widget_sample_registry.UISampleRegistry(parent=self,
+                                                                              settings=self.settings,
+                                                                              RE=RE,
+                                                                              sample_registry=sample_registry)
+        self.layout_sample_registry.addWidget(self.widget_sample_registry)
+
         # persistence management
 
         # stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -117,15 +124,15 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.show_image()
         #self.timer_track_camera.start()
 
-        self.pushButton_sreg_get_start.clicked.connect(self.set_start_sreg_points)
-        self.pushButton_sreg_get_end.clicked.connect(self.set_end_sreg_points)
-        self.pushButton_sreg_initialize.clicked.connect(self.sreg_initialize)
-        self.pushButton_sreg_reset.clicked.connect(self.sreg_reset)
-        self.pushButton_sreg_move_to_beg.clicked.connect(self.sreg_move_to_beginning)
-        self.pushButton_sreg_move_to_next.clicked.connect(self.sreg_move_to_next)
-        self.pushButton_sreg_move_to_unexposed.clicked.connect(self.sreg_move_to_unexposed)
-        self.pushButton_sreg_save.clicked.connect(self.sreg_save_to_file)
-        self.pushButton_sreg_load.clicked.connect(self.sreg_load_file)
+        # self.pushButton_sreg_get_start.clicked.connect(self.set_start_sreg_points)
+        # self.pushButton_sreg_get_end.clicked.connect(self.set_end_sreg_points)
+        # self.pushButton_sreg_initialize.clicked.connect(self.sreg_initialize)
+        # self.pushButton_sreg_reset.clicked.connect(self.sreg_reset)
+        # self.pushButton_sreg_move_to_beg.clicked.connect(self.sreg_move_to_beginning)
+        # self.pushButton_sreg_move_to_next.clicked.connect(self.sreg_move_to_next)
+        # self.pushButton_sreg_move_to_unexposed.clicked.connect(self.sreg_move_to_unexposed)
+        # self.pushButton_sreg_save.clicked.connect(self.sreg_save_to_file)
+        # self.pushButton_sreg_load.clicked.connect(self.sreg_load_file)
     # def _save_sample_index_settings(self):
     #     self.settings.setValue('index_stack', self.spinBox_index_stack.value())
     #     self.settings.setValue('index_holder', self.spinBox_index_holder.value())
@@ -424,76 +431,7 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.canvas_c1.draw_idle()
 
 
-    def get_current_stage_values(self):
-        x = self.sample_registry.sample_x.user_readback.get()
-        y = self.sample_registry.sample_y.user_readback.get()
-        z = self.sample_registry.sample_z.user_readback.get()
-        return x, y, z
 
-    def set_start_sreg_points(self):
-        x, y, z = self.get_current_stage_values()
-        self.spinBox_sreg_x_start.setValue(x)
-        self.spinBox_sreg_y_start.setValue(y)
-        self.spinBox_sreg_z_start.setValue(z)
-
-    def set_end_sreg_points(self):
-        x, y, z = self.get_current_stage_values()
-        self.spinBox_sreg_x_end.setValue(x)
-        self.spinBox_sreg_y_end.setValue(y)
-        self.spinBox_sreg_z_end.setValue(z)
-
-    def sreg_initialize(self):
-        x1 = self.spinBox_sreg_x_start.value()
-        y1 = self.spinBox_sreg_y_start.value()
-        z1 = self.spinBox_sreg_z_start.value()
-
-        x2 = self.spinBox_sreg_x_end.value()
-        y2 = self.spinBox_sreg_y_end.value()
-        z2 = self.spinBox_sreg_z_end.value()
-
-        step = self.spinBox_sreg_step.value()
-
-        self.sample_registry.initialize(x1, y1, z1, x2, y2, z2, step=step)
-
-    def sreg_reset(self):
-        self.sample_registry.reset()
-
-    def sreg_move_to_beginning(self):
-        plan = self.sample_registry.goto_start_plan()
-        self.RE(plan)
-
-    def sreg_move_to_next(self):
-        plan = self.sample_registry.goto_next_point_plan()
-        self.RE(plan)
-
-    def sreg_move_to_unexposed(self):
-        plan = self.sample_registry.goto_unexposed_point_plan()
-        self.RE(plan)
-
-    def sreg_save_to_file(self):
-        user_folder_path = (self.sample_registry.root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save sample registry...', user_folder_path, '*.json',
-                                              options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
-        if not filename.endswith('.json'):
-            filename += '.json'
-
-        self.lineEdit_sreg_file.setText(filename)
-        self.sample_registry.save(filename)
-        self.sample_registry.set_dump_file(filename)
-
-    def sreg_load_file(self):
-        user_folder_path = (self.sample_registry.root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
-        filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
-                                                         filter='*.json', parent=self)[0]
-        self.lineEdit_sreg_file.setText(filename)
-        self._sreg_load_file()
-
-    def _sreg_load_file(self):
-        filename = self.lineEdit_sreg_file.text()
-        self.sample_registry.load(filename)
-        self.sample_registry.set_dump_file(filename)
 
 
 

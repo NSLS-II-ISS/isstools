@@ -31,8 +31,9 @@ class CloudDispatcher():
             if ':' in element:
                 x = element.split(':')
                 d[x[0]] = x[1]
-
-        dn = '/{}/{}/{}/'.format(d['Year'], d['Cycle'], d['Proposal']).replace(' ', '')
+        year, cycle = d['Facility.cycle'].split('-')
+        proposal = d['Facility.GUP']
+        dn = '/{}/{}/{}/'.format(year, cycle, proposal).replace(' ', '')
         dropbox_upload_files(self.dropbox_service,path, dn, os.path.basename(path))
 
     def post_to_slack(self,path,slack_channel):

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1632</width>
-    <height>1216</height>
+    <height>922</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,8 +78,8 @@
   <widget class="QPushButton" name="push_update_stage_parking">
    <property name="geometry">
     <rect>
-     <x>1410</x>
-     <y>210</y>
+     <x>1390</x>
+     <y>60</y>
      <width>161</width>
      <height>25</height>
     </rect>
@@ -94,8 +94,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>240</y>
+     <x>1280</x>
+     <y>90</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -113,8 +113,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>210</y>
+     <x>1280</x>
+     <y>60</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -129,8 +129,8 @@
   <widget class="QPushButton" name="push_park_stage">
    <property name="geometry">
     <rect>
-     <x>1410</x>
-     <y>240</y>
+     <x>1390</x>
+     <y>90</y>
      <width>161</width>
      <height>25</height>
     </rect>
@@ -142,8 +142,8 @@
   <widget class="QLabel" name="label_qrcode_4">
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>160</y>
+     <x>1280</x>
+     <y>10</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -159,8 +159,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_up">
    <property name="geometry">
     <rect>
-     <x>1370</x>
-     <y>10</y>
+     <x>260</x>
+     <y>620</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -172,8 +172,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_down">
    <property name="geometry">
     <rect>
-     <x>1370</x>
-     <y>50</y>
+     <x>260</x>
+     <y>660</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -185,8 +185,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_right">
    <property name="geometry">
     <rect>
-     <x>1490</x>
-     <y>30</y>
+     <x>380</x>
+     <y>640</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -198,8 +198,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_left">
    <property name="geometry">
     <rect>
-     <x>1250</x>
-     <y>30</y>
+     <x>140</x>
+     <y>640</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -211,8 +211,8 @@ coordinates</string>
   <widget class="QDoubleSpinBox" name="spinBox_ver_step">
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>130</y>
+     <x>210</x>
+     <y>740</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -230,8 +230,8 @@ coordinates</string>
   <widget class="QDoubleSpinBox" name="spinBox_hor_step">
    <property name="geometry">
     <rect>
-     <x>1430</x>
-     <y>130</y>
+     <x>320</x>
+     <y>740</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -249,8 +249,8 @@ coordinates</string>
   <widget class="QLabel" name="label_qrcode_5">
    <property name="geometry">
     <rect>
-     <x>1320</x>
-     <y>80</y>
+     <x>210</x>
+     <y>690</y>
      <width>91</width>
      <height>51</height>
     </rect>
@@ -266,8 +266,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_6">
    <property name="geometry">
     <rect>
-     <x>1430</x>
-     <y>80</y>
+     <x>320</x>
+     <y>690</y>
      <width>91</width>
      <height>51</height>
     </rect>
@@ -283,8 +283,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_7">
    <property name="geometry">
     <rect>
-     <x>1260</x>
-     <y>210</y>
+     <x>1240</x>
+     <y>60</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -299,8 +299,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_8">
    <property name="geometry">
     <rect>
-     <x>1260</x>
-     <y>240</y>
+     <x>1240</x>
+     <y>90</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -315,8 +315,8 @@ step</string>
   <widget class="QPushButton" name="push_update_sample_parking">
    <property name="geometry">
     <rect>
-     <x>1410</x>
-     <y>330</y>
+     <x>1390</x>
+     <y>170</y>
      <width>161</width>
      <height>25</height>
     </rect>
@@ -331,8 +331,8 @@ step</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>330</y>
+     <x>1280</x>
+     <y>170</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -350,8 +350,8 @@ step</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>360</y>
+     <x>1280</x>
+     <y>200</y>
      <width>101</width>
      <height>22</height>
     </rect>
@@ -366,8 +366,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_9">
    <property name="geometry">
     <rect>
-     <x>1260</x>
-     <y>330</y>
+     <x>1240</x>
+     <y>170</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -382,8 +382,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_10">
    <property name="geometry">
     <rect>
-     <x>1260</x>
-     <y>360</y>
+     <x>1240</x>
+     <y>200</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -398,8 +398,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_11">
    <property name="geometry">
     <rect>
-     <x>1300</x>
-     <y>280</y>
+     <x>1280</x>
+     <y>120</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -415,329 +415,24 @@ coordnates</string>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>1250</x>
-     <y>390</y>
-     <width>251</width>
+     <x>1240</x>
+     <y>240</y>
+     <width>261</width>
      <height>161</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_sample_positioner"/>
   </widget>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QWidget" name="verticalLayoutWidget_5">
    <property name="geometry">
     <rect>
-     <x>1230</x>
-     <y>560</y>
-     <width>401</width>
-     <height>341</height>
+     <x>1240</x>
+     <y>430</y>
+     <width>361</width>
+     <height>471</height>
     </rect>
    </property>
-   <property name="title">
-    <string>Sample Registry</string>
-   </property>
-   <widget class="QWidget" name="gridLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>20</y>
-      <width>391</width>
-      <height>111</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_y_end">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_y_start">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="label_qrcode_16">
-       <property name="text">
-        <string>X end</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QLabel" name="label_qrcode_17">
-       <property name="text">
-        <string>X end</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_z_end">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_qrcode_12">
-       <property name="text">
-        <string>X start</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_x_start">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QLabel" name="label_qrcode_14">
-       <property name="text">
-        <string>Z start</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_qrcode_15">
-       <property name="text">
-        <string>X end</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_x_end">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="spinBox_sreg_z_start">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <double>-20000.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label_qrcode_13">
-       <property name="text">
-        <string>Y start</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="pushButton_sreg_get_start">
-       <property name="text">
-        <string>*</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="3">
-      <widget class="QPushButton" name="pushButton_sreg_get_end">
-       <property name="text">
-        <string>*</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_initialize">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>200</y>
-      <width>161</width>
-      <height>36</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Initialize</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_move_to_beg">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>180</y>
-      <width>171</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Move to beginning</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_move_to_next">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>220</y>
-      <width>171</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Move to next</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_move_to_unexposed">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>255</y>
-      <width>171</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Move to first unexposed</string>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="spinBox_sreg_step">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>140</y>
-      <width>95</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <double>-20000.000000000000000</double>
-    </property>
-    <property name="maximum">
-     <double>20000.000000000000000</double>
-    </property>
-    <property name="value">
-     <double>0.200000000000000</double>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_qrcode_18">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>140</y>
-      <width>71</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Step</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_reset">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>240</y>
-      <width>161</width>
-      <height>36</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Reset</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit_sreg_file">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>310</y>
-      <width>211</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_save">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>300</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>save</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_sreg_load">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>300</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>load</string>
-    </property>
-   </widget>
+   <layout class="QVBoxLayout" name="layout_sample_registry"/>
   </widget>
  </widget>
  <resources/>
