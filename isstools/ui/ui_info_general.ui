@@ -124,7 +124,7 @@
   <widget class="QPushButton" name="push_set_user_info">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>220</x>
      <y>80</y>
      <width>101</width>
      <height>21</height>
@@ -137,9 +137,9 @@
   <widget class="QPushButton" name="push_send_results">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>320</x>
      <y>80</y>
-     <width>101</width>
+     <width>121</width>
      <height>21</height>
     </rect>
    </property>
@@ -150,7 +150,7 @@
   <widget class="QPushButton" name="push_cloud_setup">
    <property name="geometry">
     <rect>
-     <x>580</x>
+     <x>570</x>
      <y>80</y>
      <width>101</width>
      <height>21</height>
@@ -163,9 +163,9 @@
   <widget class="QPushButton" name="push_send_to_dropbox">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>440</x>
      <y>80</y>
-     <width>101</width>
+     <width>131</width>
      <height>21</height>
     </rect>
    </property>

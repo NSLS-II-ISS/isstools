@@ -135,9 +135,30 @@ for h5_file in h5_files:
 
 
 
+####
 
+# pil_data = []
+# ts_data = []
 
+plt.figure(1);
+plt.clf()
 
+for i in range(-10, 0):
+    hdr = db[i]
+    df, _ = load_interpolated_df_from_file(hdr.start['interp_filename'])
+    e = df['energy'].values
+    d = df['pil100k_ROI1'].values
+    plt.plot(e, d/np.mean(d[-100:]))
+    # t = hdr.table(stream_name='pil100k_hdf5_stream', fill=True)
+    # _d = np.array([i['pil100k_ROI1'] for i in t['pil100k_hdf5_stream']])
+    #
+    #
+    # _ts = load_apb_trig_dataset_from_db(db, i, use_fall=True, stream_name = 'apb_trigger_pil100k')
+    #
+    # plt.plot(_ts[:len(_d)] - _ts[0], _d / np.mean(_d[:100]))
+    #
+    # pil_data.append(_d)
+    # ts_data.append(_d)
 
 
 

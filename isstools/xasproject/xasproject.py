@@ -116,7 +116,7 @@ class XASDataSet:
         self.flatten()
 
     def extract_chi(self):
-        print('chi reporting')
+        #print('chi ing')
         autobk(self.larch, group=self.larch,  _larch=self._larch)
 
         self.chi = self.larch.chi
@@ -130,7 +130,7 @@ class XASDataSet:
 
 
     def extract_chi_force(self):
-        print('chi force reporting')
+        #print('chi force reporting')
         autobk(self.larch, group=self.larch, _larch=self._larch,
                e0=self.e0, kmin=self.kmin, kmax=self.kmax,
                rbkg=self.rbkg, clamp_lo=self.clamp_lo, clamp_hi=self.clamp_hi)
@@ -142,8 +142,8 @@ class XASDataSet:
 
 
     def extract_ft(self):
-        print('ft reporting')
-        print(self.kmin_ft)
+        #print('ft reporting')
+        #print(self.kmin_ft)
         # xftf(self.larch, group=self.larch,  _larch=self._larch, kmin=self.kmin_ft, kmax=self.kmax)
         xftf(self.larch, group=self.larch, _larch=self._larch,kmin=self.kmin_ft, kmax=self.kmax_ft)
 
@@ -157,7 +157,7 @@ class XASDataSet:
         self.kwin = self.larch.kwin
 
     def extract_ft_force(self, window={}):
-        print('ft force reporting')
+        #print('ft force reporting')
         if not window:
             xftf(self.larch, group=self.larch,  _larch=self._larch,
                  kmin=self.kmin_ft, kmax=self.kmax_ft, kweight=self.kweight)
@@ -165,7 +165,7 @@ class XASDataSet:
             window_type = window['window_type']
             tapering = window['tapering']
             r_weight = window['r_weight']
-            print('setting window')
+            # print('setting window')
             xftf(self.larch, group=self.larch, _larch=self._larch,
                  kmin=self.kmin_ft, kmax=self.kmax_ft, kweight=self.kweight,
                  window=window_type, dk=tapering,rweight=r_weight)

@@ -30,9 +30,12 @@ class UISampleRegistry(*uic.loadUiType(ui_path)):
         self.pushButton_sreg_move_to_next.clicked.connect(self.sreg_move_to_next)
         self.pushButton_sreg_move_to_unexposed.clicked.connect(self.sreg_move_to_unexposed)
         self.pushButton_sreg_set_current_as_exposed.clicked.connect(self.sreg_set_current_as_exposed)
+        self.pushButton_sreg_select_file.clicked.connect(self.sreg_select_load_file)
+
 
         self.pushButton_detach.clicked.connect(self.detach)
 
+        self.lineEdit_sreg_file.setText(self.settings.value('sample_registry_filename', defaultValue=''))
 
     def detach(self):
         self.detached_ui = UISampleRegistry(self.parent, self.settings, self.RE, self.sample_registry)
@@ -91,19 +94,29 @@ class UISampleRegistry(*uic.loadUiType(ui_path)):
         self.lineEdit_sreg_file.setText(filename)
         self.sample_registry.save(filename)
         self.sample_registry.set_dump_file(filename)
+        self.settings.setValue('sample_registry_filename', filename)
 
-    def sreg_load_file(self):
+
+    def sreg_select_load_file(self):
         user_folder_path = (self.sample_registry.root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+                           f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.json', parent=self)[0]
         self.lineEdit_sreg_file.setText(filename)
-        self._sreg_load_file()
 
-    def _sreg_load_file(self):
+    # def sreg_load_file(self):
+    #     user_folder_path = (self.sample_registry.root_path +
+    #                         f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+    #     filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
+    #                                                      filter='*.json', parent=self)[0]
+    #     self.lineEdit_sreg_file.setText(filename)
+    #     self._sreg_load_file()
+
+    def sreg_load_file(self):
         filename = self.lineEdit_sreg_file.text()
         self.sample_registry.load(filename)
         self.sample_registry.set_dump_file(filename)
+        self.settings.setValue('sample_registry_filename', filename)
 
 
     def sreg_move_to_beginning(self):
