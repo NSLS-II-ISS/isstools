@@ -1,4 +1,4 @@
-from isstools.xasproject.xasproject import XASDataSet
+from xas.xasproject import XASDataSet
 from xas.file_io import load_binned_df_from_file
 import numpy as np
 from matplotlib import pyplot as plt
