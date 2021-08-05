@@ -59,7 +59,7 @@ for sample_name, sreg_path in zip(sample_name_list, sample_reg_path_list):
         x_run.run_scan()
         points_left -= 1
 
-
+dump_data_to_json()
 
 
 #####
@@ -134,6 +134,7 @@ for h5_file in h5_files:
         # '{}-{}{:04d}{}'.format(path, prefix, iterator, extension)
 
 
+#####
 
 ####
 
@@ -160,5 +161,15 @@ for i in range(-10, 0):
     # pil_data.append(_d)
     # ts_data.append(_d)
 
+def c():
+    file = '/nsls2/xf08id/users/2021/2/308230/Co4O4Ground_RIXS_2_data.json'
+    d = {}
+    for k in x.rixs_dict.keys():
+        if type(x.rixs_dict[k]) == np.ndarray:
+            d[k] = x.rixs_dict[k].tolist()
+        else:
+            d[k] = x.rixs_dict[k]
+        with open(file, 'w') as fp:
+            json.dump(d, fp)
 
 
