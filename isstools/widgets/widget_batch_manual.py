@@ -13,6 +13,7 @@ from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
 from isstools.widgets import widget_sample_positioner
+from isstools.dialogs import UpdateSampleInfo
 
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
@@ -43,13 +44,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
 
-        
+        self.treeView_batch.doubleClicked.connect(self.update_sample_info)
         '''
         WIP add horizontal scrollbar
         self.treeView_batch.header().horizontalScrollBar()
         '''
         
         self.treeView_batch.setModel(self.model_batch)
+
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_delete_sample.clicked.connect(self.delete_sample)
@@ -58,7 +60,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
         self.listView_samples.setDragEnabled(True)
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        # self.listView_samples.doubleClicked.connect(self.update_sample_info)
+        self.listView_samples.doubleClicked.connect(self.update_sample_info)
 
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
@@ -231,13 +233,19 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_name.setText(name)
         self.lineEdit_sample_comment.setText(comment)
 
-    # def update_sample_info(self):
-    #     view = self.listView_samples
-    #     selection = view.selectedIndexes()
-    #     if selection != []:
-    #         index = view.currentIndex()
-    #         item = view.model().item(index.row())
-    #         name = item.name
+    def update_sample_info(self):
+        view = self.listView_samples
+        selection = view.selectedIndexes()
+        if selection != []:
+            index = view.currentIndex()
+            item = view.model().item(index.row())
+            if item.item_type =='sample':
+                print(f'Name {item.name}')
+                dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
+                                                        item.x, item.y, 0,  parent=self)
+                if dlg.exec_():
+                    item.name, item.comment, item.x, item.y, _ = dlg.getValues()
+                    item.setText(f'{item.name} at X {item.x} Y {item.y}')
 
 
 

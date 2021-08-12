@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>271</width>
-    <height>199</height>
+    <width>281</width>
+    <height>297</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>160</y>
+     <x>20</x>
+     <y>260</y>
      <width>251</width>
      <height>32</height>
     </rect>
@@ -38,29 +38,25 @@
      <x>10</x>
      <y>10</y>
      <width>251</width>
-     <height>141</height>
+     <height>211</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_comment"/>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Theta</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_y"/>
     </item>
     <item row="0" column="1">
      <widget class="QLineEdit" name="lineEdit_name"/>
     </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Y</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>X</string>
-      </property>
-     </widget>
+    <item row="2" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_x"/>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_5">
@@ -76,21 +72,25 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_8">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_6">
       <property name="text">
-       <string>Theta</string>
+       <string>X</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_x"/>
-    </item>
-    <item row="3" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_y"/>
-    </item>
     <item row="4" column="1">
      <widget class="QDoubleSpinBox" name="doubleSpinBox_theta"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEdit_comment"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Y</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
