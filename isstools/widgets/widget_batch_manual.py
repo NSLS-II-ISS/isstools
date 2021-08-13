@@ -13,7 +13,8 @@ from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
 from isstools.widgets import widget_sample_positioner
-from isstools.dialogs import UpdateSampleInfo
+from isstools.dialogs import UpdateSampleInfo, UpdateScanInfo
+
 
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
@@ -44,7 +45,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.model_batch = QtGui.QStandardItemModel(self)
         self.treeView_batch.header().hide()
 
-        self.treeView_batch.doubleClicked.connect(self.update_sample_info)
+        self.treeView_batch.doubleClicked.connect(self.update_item_info)
         '''
         WIP add horizontal scrollbar
         self.treeView_batch.header().horizontalScrollBar()
@@ -60,12 +61,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
         self.listView_samples.setDragEnabled(True)
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.listView_samples.doubleClicked.connect(self.update_sample_info)
+        self.listView_samples.doubleClicked.connect(self.update_item_info)
 
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
         self.push_delete_scan.clicked.connect(self.delete_scan)
         self.listView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.listView_scans.doubleClicked.connect(self.update_item_info)
 
         self.push_batch_delete.clicked.connect(self.delete_batch_element)
         self.push_batch_info.clicked.connect(self.batch_info)
@@ -233,12 +235,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_name.setText(name)
         self.lineEdit_sample_comment.setText(comment)
 
-    def update_sample_info(self):
-        view = self.listView_samples
-        selection = view.selectedIndexes()
+    def update_item_info(self):
+        sender_object = QObject().sender()
+        print(sender_object.objectName())
+        selection = sender_object.selectedIndexes()
         if selection != []:
-            index = view.currentIndex()
-            item = view.model().item(index.row())
+            index = sender_object.currentIndex()
+            item = sender_object.model().item(index.row())
             if item.item_type =='sample':
                 print(f'Name {item.name}')
                 dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
@@ -246,6 +249,20 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     item.name, item.comment, item.x, item.y, _ = dlg.getValues()
                     item.setText(f'{item.name} at X {item.x} Y {item.y}')
+            elif item.item_type == 'scan':
+                print(f'Name {item.name}')
+                scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
+                trajectories = [self.comboBox_lut.itemText(i) for i in range(self.comboBox_lut.count())]
+
+                dlg = UpdateScanInfo.UpdateScanInfo(str(item.name), str(item.scan_type),
+                                                item.trajectory, item.repeat, item.delay,
+                                                scan_types, trajectories,
+                                                parent=self)
+
+                if dlg.exec_():
+                    item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
+                    item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
+
 
 
 
