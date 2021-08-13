@@ -9,7 +9,7 @@ from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
 from bluesky.callbacks import LivePlot
 from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
-from isstools.dialogs.BasicDialogs import question_message_box
+from isstools.dialogs.BasicDialogs import question_message_box, message_box
 from isstools.elements.figure_update import update_figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -22,6 +22,7 @@ from xas.math import gauss
 from isstools.elements.liveplots import NormPlot
 import json
 from xas.image_analysis import determine_beam_position_from_fb_image
+from isstools.elements.figure_update import update_figure, setup_figure
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -42,7 +43,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.addCanvas()
 
         self.RE = RE
         self.hhm = hhm
@@ -69,6 +69,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_get_offsets.clicked.connect(self.get_offsets)
         self.push_get_readouts.clicked.connect(self.get_readouts)
         self.push_adjust_gains.clicked.connect(self.adjust_gains)
+        self.push_bender_scan.clicked.connect(self.bender_scan)
 
         if hasattr(hhm, 'fb_line'):
             self.fb_master = 0
@@ -85,15 +86,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
             self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
-        # # Populate analog detectors setup section with adcs:
-        # self.adc_checkboxes = []
-        # for index, adc_name in enumerate([adc.dev_name.get() for adc in
-        #                                   self.adc_list if adc.dev_name.get() != adc.name]):
-        #     checkbox = QtWidgets.QCheckBox(adc_name)
-        #     checkbox.setChecked(True)
-        #     self.adc_checkboxes.append(checkbox)
-        #     self.gridLayout_analog_detectors.addWidget(checkbox, int(index / 2), index % 2)
-
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
 
@@ -102,9 +94,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_gen_scan_uid = ''
         self.detector_dictionary = detector_dictionary
         self.det_list = list(detector_dictionary.keys())
-
-        ## self.det_sorted_list = self.det_list
-        # self.det_sorted_list.sort()
 
         self.comboBox_detectors.addItems(self.det_list)
         self.comboBox_detectors_den.addItem('1')
@@ -115,8 +104,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.detector_selected()
         self.detector_selected_den()
 
-        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
-
         self.pushEnableHHMFeedback.setChecked(self.hhm.fb_status.get())
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
         # if self.hhm.fb_status.get() == 1:
@@ -126,54 +113,23 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
 
-        # if len(self.adc_list):
-        #     times_arr = np.array(list(self.adc_list[0].averaging_points.enum_strs))
-        #     times_arr[times_arr == ''] = 0.0
-        #     times_arr = list(times_arr.astype(np.float) * self.adc_list[0].sample_rate.get() / 100000)
-        #     times_arr = [str(elem) for elem in times_arr]
-        #     self.comboBox_samp_time.addItems(times_arr)
-        #     #   self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_batch_mode.setAnalogSampTime)
-        #     self.comboBox_samp_time.currentTextChanged.connect(self.parent_gui.widget_run.setAnalogSampTime)
-        #     self.comboBox_samp_time.setCurrentIndex(self.adc_list[0].averaging_points.get())
-
-        # if len(self.enc_list):
-        #     #self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_batch_mode.setEncSampTime)
-        #     self.lineEdit_samp_time.textChanged.connect(self.parent_gui.widget_run.setEncSampTime)
-        #     self.lineEdit_samp_time.setText(str(self.enc_list[0].filter_dt.get() / 100000))
-
-        # if hasattr(self.xia, 'input_trigger'):
-        #     if self.xia.input_trigger is not None:
-        #         self.xia.input_trigger.unit_sel.put(1)  # ms, not us
-        #         #self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_batch_mode.setXiaSampTime)
-        #         self.lineEdit_xia_samp.textChanged.connect(self.parent_gui.widget_run.setXiaSampTime)
-        #         self.lineEdit_xia_samp.setText(str(self.xia.input_trigger.period_sp.get()))
-        #
-        # self.dets_with_amp = [self.detector_dictionary[det]['obj'] for det in self.detector_dictionary
-        #                      if self.detector_dictionary[det]['obj'].name[:3] == 'pba' and hasattr(self.detector_dictionary[det]['obj'], 'amp')]
-
         with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
             reference_foils = [item['element'] for item in json.load(fp)]
             reference_foils.append('--')
 
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
+
+        self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
+        self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
+        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+
         # this is a terrible hack!
         # TODO: remove this to make it work properly
         # self.pushEnableHHMFeedback.click()
         # self.pushEnableHHMFeedback.click()
 
-    def addCanvas(self):
-        self.figure_gen_scan = Figure()
-        self.figure_gen_scan.set_facecolor(color='#FcF9F6')
-        self.canvas_gen_scan = FigureCanvas(self.figure_gen_scan)
-        self.canvas_gen_scan.motor = ''
-        self.figure_gen_scan.ax = self.figure_gen_scan.add_subplot(111)
-        self.toolbar_gen_scan = NavigationToolbar(self.canvas_gen_scan, self, coordinates=True)
-        self.plot_gen_scan.addWidget(self.toolbar_gen_scan)
-        self.plot_gen_scan.addWidget(self.canvas_gen_scan)
-        self.canvas_gen_scan.draw_idle()
-        self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
-        self.figure_gen_scan.ax.grid(alpha=0.4)
+
 
     def run_gen_scan(self, **kwargs):
         if 'ignore_shutter' in kwargs:
@@ -333,35 +289,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
-    def process_detsig(self):
-        self.comboBox_detectorssig.clear()
-        for i in range(self.comboBox_detectors.count()):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
-                    self.comboBox_gen_detsig.addItems(detsig)
-            else:
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
-                    self.comboBox_gen_detsig.addItems(detsig)
-
-    def process_detsig_den(self):
-        self.comboBox_signals_den.clear()
-        for i in range(self.comboBox_gen_det_den.count() - 1):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):#hasattr(list(self.detector_dictionary.keys())[i], 'dev_name'):
-                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
-                    self.comboBox_gen_detsig_den.addItems(detsig)
-            else:
-                if self.comboBox_signals_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detsig = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['elements']
-                    self.comboBox_channels_den.addItems(detsig)
-        if self.comboBox_detectors_den.currentText() == '1':
-            self.comboBox_channels_den.addItem('1')
+    def bender_scan(self):
+        message_box('Insert reference sample', 'Please ensure that a reference sample in inserted')
+        print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
+        self.RE(self.aux_plan_funcs['bender_scan']())
+        print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
 
     def detector_selected(self):
         self.comboBox_channels.clear()

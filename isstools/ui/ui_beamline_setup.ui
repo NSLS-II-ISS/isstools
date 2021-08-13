@@ -76,24 +76,18 @@
      <string>Get Offsets</string>
     </property>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="QPushButton" name="push_bender_scan">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>30</y>
+      <x>20</x>
+      <y>230</y>
       <width>141</width>
-      <height>281</height>
+      <height>41</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <item>
-      <layout class="QGridLayout" name="gridLayout_analog_detectors">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetMinimumSize</enum>
-       </property>
-      </layout>
-     </item>
-    </layout>
+    <property name="text">
+     <string>CM Bender Scan</string>
+    </property>
    </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_7">
