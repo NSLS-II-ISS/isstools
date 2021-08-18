@@ -404,7 +404,7 @@
   <widget class="QLabel" name="label_RE_status_indicator">
    <property name="geometry">
     <rect>
-     <x>600</x>
+     <x>560</x>
      <y>0</y>
      <width>41</width>
      <height>41</height>
@@ -420,9 +420,9 @@
   <widget class="QLabel" name="label_RE">
    <property name="geometry">
     <rect>
-     <x>650</x>
+     <x>610</x>
      <y>10</y>
-     <width>111</width>
+     <width>151</width>
      <height>20</height>
     </rect>
    </property>
@@ -673,7 +673,7 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>45</y>
+     <y>40</y>
      <width>181</width>
      <height>20</height>
     </rect>
@@ -691,7 +691,25 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>70</y>
+     <y>80</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Offset error:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_attenuator">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>60</y>
      <width>181</width>
      <height>20</height>
     </rect>

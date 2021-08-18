@@ -5,7 +5,7 @@ from PyQt5 import uic
 from bluesky.plan_stubs import mv
 from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
-from isstools.widgets import widget_autopilot
+
 from isstools.dialogs.BasicDialogs import message_box
 from random import random
 from isstools.batch.autopilot_routines import TrajectoryStack

@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import time
-from pyzbar.pyzbar import decode as pzDecode
+
 import bluesky.plan_stubs as bps
 from xas.xray import generate_energy_grid
 

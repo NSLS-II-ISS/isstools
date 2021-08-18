@@ -32,6 +32,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  RE = None,
                  db = None,
                  foil_camera=None,
+                 attenuator_camera=None,
                  encoder_pb=None,
                  parent = None,
                  *args, **kwargs):
@@ -53,6 +54,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.apb = apb
         self.hhm= hhm
         self.foil_camera = foil_camera
+        self.attenuator_camera = attenuator_camera
         self.encoder_pb = encoder_pb
 
         # Initialize general settings
@@ -132,6 +134,13 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
              self.label_reference_foil.setText(f'No reference foil set')
         else:
             self.label_reference_foil.setText(f'Check reference foil')
+
+        barcode1 = str(self.attenuator_camera.bar1.get()[:-1], encoding='UTF-8')
+
+        if barcode1 == '0':
+            self.label_attenuator.setText(f'No attenuation')
+        else:
+            self.label_attenuator.setText(f'Attenuation {barcode1} um Al')
 
         #show encoder readout error
         error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()

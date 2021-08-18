@@ -52,6 +52,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         '''
         
         self.treeView_batch.setModel(self.model_batch)
+        self.treeView_batch.doubleClicked.connect(self.update_item_info)
 
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
