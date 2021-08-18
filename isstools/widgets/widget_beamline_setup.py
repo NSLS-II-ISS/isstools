@@ -20,7 +20,6 @@ from scipy.optimize import curve_fit
 from xas.pid import PID
 from xas.math import gauss
 from isstools.elements.liveplots import NormPlot
-import json
 from xas.image_analysis import determine_beam_position_from_fb_image
 from isstools.elements.figure_update import update_figure, setup_figure
 
@@ -84,7 +83,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_increase_center.clicked.connect(self.fb_center_increase)
             self.push_decrease_center.clicked.connect(self.fb_center_decrease)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
-            self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
+
+
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
@@ -113,12 +113,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
 
-        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
-            reference_foils = [item['element'] for item in json.load(fp)]
-            reference_foils.append('--')
 
-        for foil in reference_foils:
-            self.comboBox_reference_foils.addItem(foil)
 
         self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
@@ -358,9 +353,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         elif self.radioButton_fb_remote.isChecked():
             self.pushEnableHHMFeedback.setChecked(value)
 
-    def set_reference_foil(self):
-        foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.get())

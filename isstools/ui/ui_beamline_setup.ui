@@ -772,42 +772,6 @@ position</string>
     </property>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="groupBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>570</y>
-     <width>231</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Reference foil</string>
-   </property>
-   <widget class="QComboBox" name="comboBox_reference_foils">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>87</width>
-      <height>23</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_set_reference_foil">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>30</y>
-      <width>71</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Set</string>
-    </property>
-   </widget>
-  </widget>
  </widget>
  <resources/>
  <connections/>

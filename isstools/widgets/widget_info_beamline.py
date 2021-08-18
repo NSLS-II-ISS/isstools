@@ -7,6 +7,7 @@ import numpy as np
 import os
 import re
 import time as ttime
+import json
 
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
 from timeit import default_timer as timer
@@ -32,9 +33,12 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  RE = None,
                  db = None,
                  foil_camera=None,
+
                  attenuator_camera=None,
                  encoder_pb=None,
+                 aux_plan_funcs=None,
                  parent = None,
+
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -56,7 +60,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.foil_camera = foil_camera
         self.attenuator_camera = attenuator_camera
         self.encoder_pb = encoder_pb
-
+        self.aux_plan_funcs = aux_plan_funcs
         # Initialize general settings
         self.accelerator = accelerator
         self.accelerator.beam_current.subscribe(self.update_beam_current)
@@ -71,7 +75,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
 
-
+        self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
+        self.push_set_attenuator.clicked.connect(self.set_attenuator)
 
         daq_rate = self.apb.acq_rate.get()
         self.spinBox_daq_rate.setValue(daq_rate)
@@ -82,9 +87,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.spinBox_enc_rate.setValue(enc_rate)
         self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
 
+        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+            reference_foils = [item['element'] for item in json.load(fp)]
+            reference_foils.append('--')
+        for foil in reference_foils:
+            self.comboBox_reference_foils.addItem(foil)
 
-
-
+        with open('/nsls2/xf08id/settings/json/attenuator.json') as fp:
+            attenuators = [item['attenuator'] for item in json.load(fp)]
+        for att in attenuators:
+            self.comboBox_attenuator.addItem(att)
 
     def update_status(self):
 
@@ -139,6 +151,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         if barcode1 == '0':
             self.label_attenuator.setText(f'No attenuation')
+        elif barcode1 == '':
+            self.label_attenuator.setText(f'Check attenuation')
         else:
             self.label_attenuator.setText(f'Attenuation {barcode1} um Al')
 
@@ -231,6 +245,15 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
 
         #self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points, wait=True))
+
+    def set_reference_foil(self):
+        foil = self.comboBox_reference_foils.currentText()
+        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
+
+    def set_attenuator(self):
+        attenuator = self.comboBox_attenuator.currentText()
+        self.RE(self.aux_plan_funcs['set_attenuator'](attenuator))
+
 
 
 
