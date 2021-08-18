@@ -470,7 +470,7 @@ class piezo_fb_thread(QThread):
         D = 0  # 0.01
         self.pid = PID(P, I, D)
         # self.sampleTime = 0.00025
-        self.sampleTime = 0.001 # Denis testing on May 25, 2021
+        self.sampleTime = 0.01 # Denis testing on May 25, 2021
         self.pid.setSampleTime(self.sampleTime)
         self.pid.windup_guard = 3
         self.go = 0
