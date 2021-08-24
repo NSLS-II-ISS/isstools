@@ -302,6 +302,16 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="checkBox_user_motors">
+       <property name="text">
+        <string>User Motors only</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QPushButton" name="push_gen_scan">
