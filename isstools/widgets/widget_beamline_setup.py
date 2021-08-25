@@ -84,7 +84,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.push_increase_center.clicked.connect(self.fb_center_increase)
             self.push_decrease_center.clicked.connect(self.fb_center_decrease)
             self.push_update_piezo_center.clicked.connect(self.update_piezo_center)
-            self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
+
+        self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)

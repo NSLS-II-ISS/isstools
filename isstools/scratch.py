@@ -16,6 +16,17 @@ for bender_position in bender_positions:
 ###############################################
 
 
+def infinite_plan():
+    itr = 1
+    value = 0.5
+    while True:
+        print(itr)
+        yield from bps.mvr(hhrm.y, value)
+        value *= -1
+        itr += 1
+
+
+######################################
 # give the scans names
 sample_name_list = ['Co3MnO4 VTC try1', 'Co4O4 VTC try3']
 # sample_name_list = ['Co4O4Ground VTC try2']
