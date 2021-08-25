@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>769</width>
+    <width>1076</width>
     <height>120</height>
    </rect>
   </property>
@@ -674,7 +674,7 @@
     <rect>
      <x>590</x>
      <y>40</y>
-     <width>181</width>
+     <width>221</width>
      <height>20</height>
     </rect>
    </property>
@@ -710,7 +710,7 @@
     <rect>
      <x>590</x>
      <y>60</y>
-     <width>181</width>
+     <width>211</width>
      <height>20</height>
     </rect>
    </property>
@@ -720,7 +720,53 @@
     </font>
    </property>
    <property name="text">
-    <string>Offset error:</string>
+    <string>Attenuator</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_reference_foils">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>40</y>
+     <width>87</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_set_reference_foil">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>40</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_attenuator">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>60</y>
+     <width>87</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_set_attenuator">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>60</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set</string>
    </property>
   </widget>
  </widget>

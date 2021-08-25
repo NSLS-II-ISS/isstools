@@ -59,10 +59,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.tune_elements = tune_elements
 
-        #self.mot_list = self.motor_dictionary.keys()
-        self.mot_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary]
-        self.mot_sorted_list = list(self.mot_list)
-        self.mot_sorted_list.sort()
+        #self.motor_list = self.motor_dictionary.keys()
+        self.motor_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary]
+        self.motor_sorted_list = list(self.motor_list)
+        self.motor_sorted_list.sort()
+
+        self.user_motor_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary
+                         if ('user' in  self.motor_dictionary[motor].keys()) and self.motor_dictionary[motor]['user']]
+
+        self.user_motor_sorted_list = list(self.user_motor_list)
+        self.user_motor_sorted_list.sort()
 
 
         self.push_prepare_beamline.clicked.connect(self.prepare_beamline)
@@ -99,7 +105,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.comboBox_detectors.addItems(self.det_list)
         self.comboBox_detectors_den.addItem('1')
         self.comboBox_detectors_den.addItems(self.det_list)
-        self.comboBox_motors.addItems(self.mot_sorted_list)
+
+
+
+
         self.comboBox_detectors.currentIndexChanged.connect(self.detector_selected)
         self.comboBox_detectors_den.currentIndexChanged.connect(self.detector_selected_den)
         self.detector_selected()
@@ -114,16 +123,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
 
-        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
-            reference_foils = [item['element'] for item in json.load(fp)]
-            reference_foils.append('--')
 
-        for foil in reference_foils:
-            self.comboBox_reference_foils.addItem(foil)
 
         self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
         self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+
+
+
+        self.checkBox_user_motors.toggled.connect(self.add_motors)
+        self.add_motors()
 
         # this is a terrible hack!
         # TODO: remove this to make it work properly
@@ -359,9 +368,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         elif self.radioButton_fb_remote.isChecked():
             self.pushEnableHHMFeedback.setChecked(value)
 
-    def set_reference_foil(self):
-        foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def update_piezo_params(self):
         self.piezo_line = int(self.hhm.fb_line.get())
@@ -454,11 +460,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 self.settings.setValue('piezo_center', self.piezo_center)
                 self.hhm.fb_center.put(self.piezo_center)
 
-    # def gauss(self, x, *p):
-    #     A, mu, sigma = p
-    #     return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
-
-
     def get_offsets(self):
         self.RE(self.service_plan_funcs['get_offsets']())
 
@@ -467,7 +468,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         adcs = [adc for adc in self.adc_list if adc.dev_name.get() in adc_names]
         self.RE(self.aux_plan_funcs['get_adc_readouts'](20, *adcs, stdout = self.parent_gui.emitstream_out))
 
-
+    def add_motors(self):
+        self.comboBox_motors.clear()
+        if self.checkBox_user_motors.isChecked():
+            self.comboBox_motors.addItems(self.user_motor_sorted_list)
+        else:
+            self.comboBox_motors.addItems(self.motor_sorted_list)
 
 class piezo_fb_thread(QThread):
     def __init__(self, gui):

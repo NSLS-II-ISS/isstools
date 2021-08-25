@@ -223,8 +223,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             foil_camera=det_dict['Camera SP5']['device'],
             attenuator_camera=det_dict['Camera SP6']['device'],
             encoder_pb = self.encoder_pb,
-            parent=self
-        )
+            aux_plan_funcs=aux_plan_funcs,
+            parent=self)
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
 
 
