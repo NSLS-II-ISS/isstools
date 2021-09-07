@@ -16,6 +16,26 @@ for bender_position in bender_positions:
 ###############################################
 
 
+def wakeup():
+    cur_energy = hhm.energy.user_readback.get()
+    for i in range(3):
+        RE(bps.mv(hhm.energy, 15000))
+        RE(bps.sleep(3))
+        RE(bps.mv(hhm.energy, 5000))
+        RE(bps.sleep(3))
+    RE(bps.mv(hhm.energy, cur_energy))
+
+
+
+
+
+
+
+
+
+###############################################
+
+
 def infinite_plan():
     itr = 1
     value = 0.5
