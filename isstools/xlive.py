@@ -56,6 +56,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  db=None,
                  accelerator=None,
                  hhm=None,
+                 motor_emission=None,
                  sdd = None,
                  encoder_pb = None,
                  shutters_dict={},
@@ -215,6 +216,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(
             accelerator=accelerator,
             hhm=hhm,
+            motor_emission=motor_emission,
             shutters=shutters_dict,
             ic_amplifiers=ic_amplifiers,
             apb=apb,

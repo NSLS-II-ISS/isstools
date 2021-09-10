@@ -27,6 +27,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
     def __init__(self,
                  accelerator=None,
                  hhm = None,
+                 motor_emission=None,
                  shutters=None,
                  ic_amplifiers = None,
                  apb = None,
@@ -50,6 +51,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.timer_update_time.start()
 
         self.hhm = hhm
+        self.motor_emission = motor_emission
         self.RE = RE
         self.db = db
         self.shutters = shutters
@@ -72,6 +74,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
         self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
         self.push_set_energy.clicked.connect(self.set_energy)
+        self.push_set_emission_energy.clicked.connect(self.set_emission_energy)
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
 
@@ -102,6 +105,14 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         energy = self.hhm.energy.read()['hhm_energy']['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
+
+        if self.motor_emission._initialized:
+            emission_energy = self.motor_emission.energy.position
+            self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
+        else:
+            self.label_emission_energy.setText('Emission Energy N/A')
+
+
         if ((self.hhm.fb_status.get()==1) and
                 (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
             self.label_feedback_status.setText('Feedback on')
@@ -221,15 +232,32 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             except Exception as exc:
                 message_box('Incorrect energy','Energy should be within 4700-32000 eV range')
 
+    def set_emission_energy(self):
+        energy = np.round(self.motor_emission.energy.position, 2)
+        limits = self.motor_emission.energy.limits
+        dlg = SetEnergy.SetEnergy(energy, parent=self)
+        if dlg.exec_():
+            try:
+                new_energy=float(dlg.getValues())
+                print(new_energy)
+                if (new_energy > limits[0]) and (new_energy < limits[1]):
+                    self.RE(bps.mv(self.motor_emission, new_energy))
+                else:
+                    raise ValueError
+            except Exception as exc:
+                message_box('Incorrect energy', f'Energy should be within {limits[0]}-{limits[1]} eV range')
+
     def tweak_pitch_pos(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
         pitch = self.hhm.pitch.read()['hhm_pitch']['value']
-        self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
+        # self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
+        self.hhm.pitch.move(pitch + 0.025)
 
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
         pitch = self.hhm.pitch.read()['hhm_pitch']['value']
         self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
+        self.hhm.pitch.move(pitch - 0.025)
 
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()

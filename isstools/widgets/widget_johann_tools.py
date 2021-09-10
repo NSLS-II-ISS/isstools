@@ -301,6 +301,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
     def _initialize_emission_motor(self, registration_energy, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
         self.motor_emission.define_motor_coordinates(registration_energy, kind, hkl,
                                   cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
+        self.parent.parent.widget_info_beamline.push_set_emission_energy.setEnabled(1)
 
     def initialize_emission_motor(self):
         registration_energy = float(self.edit_reg_E.text())
