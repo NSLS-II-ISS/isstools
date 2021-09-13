@@ -56,6 +56,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  db=None,
                  accelerator=None,
                  hhm=None,
+                 hhm_feedback=None,
                  motor_emission=None,
                  sdd = None,
                  encoder_pb = None,
@@ -188,6 +189,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(
             RE,
             hhm,
+            hhm_feedback,
             db,
             det_dict,
             ic_amplifiers,

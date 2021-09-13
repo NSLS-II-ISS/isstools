@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>271</width>
-    <height>199</height>
+    <width>303</width>
+    <height>384</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>160</y>
+     <y>290</y>
      <width>251</width>
      <height>32</height>
     </rect>
@@ -37,16 +37,19 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>251</width>
-     <height>141</height>
+     <width>241</width>
+     <height>248</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="lineEdit_3"/>
+    </item>
     <item row="1" column="1">
      <widget class="QLineEdit" name="lineEdit_2"/>
     </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="lineEdit"/>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="lineEdit_4"/>
     </item>
     <item row="3" column="0">
      <widget class="QLabel" name="label_7">
@@ -55,6 +58,9 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEdit_1"/>
+    </item>
     <item row="2" column="0">
      <widget class="QLabel" name="label_6">
       <property name="text">
@@ -62,10 +68,10 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_5">
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Line</string>
+       <string>P coeff.</string>
       </property>
      </widget>
     </item>
@@ -76,21 +82,25 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="lineEdit_4"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineEdit_3"/>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_8">
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_5">
       <property name="text">
-       <string>P coeff.</string>
+       <string>Line</string>
       </property>
      </widget>
     </item>
     <item row="4" column="1">
      <widget class="QLineEdit" name="lineEdit_5"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Host</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="lineEdit_6"/>
     </item>
    </layout>
   </widget>

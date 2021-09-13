@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>585</width>
-    <height>733</height>
+    <width>611</width>
+    <height>746</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>400</x>
-     <y>90</y>
+     <y>100</y>
      <width>181</width>
      <height>20</height>
     </rect>
@@ -80,8 +80,8 @@
     <rect>
      <x>5</x>
      <y>20</y>
-     <width>571</width>
-     <height>61</height>
+     <width>616</width>
+     <height>80</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_8">
@@ -158,7 +158,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>90</y>
+     <y>100</y>
      <width>181</width>
      <height>20</height>
     </rect>
@@ -171,7 +171,7 @@
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>90</y>
+     <y>100</y>
      <width>221</width>
      <height>21</height>
     </rect>
@@ -194,9 +194,9 @@
    <property name="geometry">
     <rect>
      <x>190</x>
-     <y>110</y>
-     <width>391</width>
-     <height>111</height>
+     <y>130</y>
+     <width>496</width>
+     <height>164</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_10">
@@ -358,7 +358,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>480</y>
+     <y>521</y>
      <width>581</width>
      <height>101</height>
     </rect>
@@ -467,7 +467,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>270</y>
+     <y>300</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -480,7 +480,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>590</y>
+     <y>630</y>
      <width>201</width>
      <height>20</height>
     </rect>
@@ -493,7 +493,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>590</y>
+     <y>630</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -506,7 +506,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>270</y>
+     <y>300</y>
      <width>221</width>
      <height>21</height>
     </rect>
@@ -529,8 +529,8 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>290</y>
-     <width>581</width>
+     <y>330</y>
+     <width>613</width>
      <height>161</height>
     </rect>
    </property>
@@ -844,7 +844,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>460</y>
+     <y>500</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -857,7 +857,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>460</y>
+     <y>500</y>
      <width>241</width>
      <height>21</height>
     </rect>
@@ -880,7 +880,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>590</y>
+     <y>630</y>
      <width>221</width>
      <height>21</height>
     </rect>
@@ -903,7 +903,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>420</x>
-     <y>460</y>
+     <y>500</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -916,7 +916,7 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>270</y>
+     <y>300</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -929,9 +929,9 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>610</y>
+     <y>650</y>
      <width>581</width>
-     <height>111</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -1047,7 +1047,7 @@ Emission energ</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>110</y>
+     <y>130</y>
      <width>171</width>
      <height>161</height>
     </rect>

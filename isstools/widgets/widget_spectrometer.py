@@ -8,7 +8,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
 
-from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
+from isstools.dialogs import MoveMotorDialog
 from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps

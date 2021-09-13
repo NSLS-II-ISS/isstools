@@ -256,7 +256,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
         pitch = self.hhm.pitch.read()['hhm_pitch']['value']
-        self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
+        # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
         self.hhm.pitch.move(pitch - 0.025)
 
     def update_daq_rate(self):

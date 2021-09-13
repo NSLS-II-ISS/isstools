@@ -7,7 +7,7 @@ from xas.spectrometer import Crystal
 import pandas as pd
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_johann_spectrometer.ui')
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
-from isstools.dialogs import (UpdatePiezoDialog, MoveMotorDialog)
+# from isstools.dialogs import (MoveMotorDialog)
 from xas.spectrometer import analyze_elastic_scan
 import os
 from isstools.dialogs.BasicDialogs import message_box

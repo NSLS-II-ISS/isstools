@@ -40,8 +40,25 @@ for i in range(energy.size):
 xes_2perc_norm = xes_2perc/np.max(xes_2perc)
 
 
+def subscription(value, old_value, **kwargs):
+    print(old_value, value)
+
+hhm.fb_heartbeat.subscribe(subscription)
 
 
+############
+
+tt = hhm_feedback._timestamps.copy()
+tt -= tt[0]
+mask = tt > 39
+
+plt.figure()
+plt.subplot(211)
+plt.plot(tt[mask], hhm_feedback._centers[mask])
+
+plt.subplot(212)
+plt.plot(tt[mask], hhm_feedback._pitch_vals[mask])
+# plt.plot(hhm_feedback._pitch_vals[mask], hhm_feedback._centers[mask])
 
 ###############################################
 
