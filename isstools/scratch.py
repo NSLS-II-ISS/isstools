@@ -28,6 +28,16 @@ def wakeup():
 
 
 
+xes_2perc = np.zeros(energy.size)
+_xes = np.array([x[-i].mu for i in range(1+25, 26+25)]).T
+_bkg = np.array([x[-i].mu for i in range(1, 26)]).T
+for i in range(energy.size):
+    this_xes = _xes[i, :]
+    this_bkg = _bkg[i, :]
+    mask = this_xes < 5.2
+    xes_2perc[i] = np.mean((this_xes - this_bkg)[mask])
+
+xes_2perc_norm = xes_2perc/np.max(xes_2perc)
 
 
 

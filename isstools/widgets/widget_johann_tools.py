@@ -188,6 +188,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.settings.setValue('crystal_stage_nom_y', cr_y_stage)
 
     def _update_crystal_info(self):
+        self._R = float(self.widget_emission_energy.edit_crystal_R.text())
         self._kind = self.widget_emission_energy.comboBox_crystal_kind.currentText()
         _reflection = self.widget_emission_energy.lineEdit_reflection.text()
         self._hkl = [int(i) for i in _reflection[1:-1].split(',')]
@@ -298,13 +299,14 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         value = self.lineEdit_current_spectrometer_file.text()
         self.settings.setValue('johann_registration_file_str', value)
 
-    def _initialize_emission_motor(self, registration_energy, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
-        self.motor_emission.define_motor_coordinates(registration_energy, kind, hkl,
+    def _initialize_emission_motor(self, registration_energy, R, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
+        self.motor_emission.define_motor_coordinates(registration_energy, R, kind, hkl,
                                   cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
         self.parent.parent.widget_info_beamline.push_set_emission_energy.setEnabled(1)
 
     def initialize_emission_motor(self):
         registration_energy = float(self.edit_reg_E.text())
+        R = self._R
         kind = self._kind
         hkl = self._hkl
 
@@ -312,7 +314,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         energy_limits_hi = float(self.edit_reg_E_hi.text())
         energy_limits = (energy_limits_lo, energy_limits_hi)
 
-        self._initialize_emission_motor(registration_energy, kind, hkl, energy_limits=energy_limits)
+        self._initialize_emission_motor(registration_energy, R, kind, hkl, energy_limits=energy_limits)
         print('Successfully initialized the emission motor')
 
     def save_emission_motor(self):
@@ -327,6 +329,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         spectrometer_dict = {}
 
         spectrometer_dict['registration_energy'] = self.motor_emission.energy0
+        spectrometer_dict['R'] = self.motor_emission.crystal.R
         spectrometer_dict['kind'] = self.motor_emission.crystal.kind
         spectrometer_dict['hkl'] = self.motor_emission.crystal.hkl
         spectrometer_dict['cr_x0'] = self.motor_emission.cr_x0
@@ -357,6 +360,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
                 spectrometer_dict = json.loads(f.read())
                 energy_limits = (spectrometer_dict['energy_limits_lo'], spectrometer_dict['energy_limits_hi'])
                 self._initialize_emission_motor(spectrometer_dict['registration_energy'],
+                                                spectrometer_dict['R'],
                                                 spectrometer_dict['kind'],
                                                 spectrometer_dict['hkl'],
                                                 cr_x0=spectrometer_dict['cr_x0'],
