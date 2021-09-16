@@ -32,6 +32,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      RE,
                      hhm,
                      hhm_feedback,
+                     apb,
                      db,
                      detector_dictionary,
                      ic_amplifiers,
@@ -48,6 +49,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
+        self.apb = apb
         self.db = db
         self.detector_dictionary = detector_dictionary
         self.ic_amplifiers = ic_amplifiers
@@ -105,10 +107,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
         self.push_update_feedback_center.clicked.connect(self.update_piezo_center)
 
-        self.timer_update_fb_gui = QtCore.QTimer(self)
-        self.timer_update_fb_gui.setInterval(500)
-        self.timer_update_fb_gui.timeout.connect(self.update_feedback_gui_components)
-        self.timer_update_fb_gui.start()
+        # self.timer_update_fb_gui = QtCore.QTimer(self)
+        # self.timer_update_fb_gui.setInterval(500)
+        # self.timer_update_fb_gui.timeout.connect(self.update_feedback_gui_components)
+        # self.timer_update_fb_gui.start()
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
@@ -119,6 +121,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.checkBox_user_motors.toggled.connect(self.add_motors)
         self.add_motors()
+
+        daq_rate = self.apb.acq_rate.get()
+        self.spinBox_daq_rate.setValue(daq_rate)
+        self.spinBox_daq_rate.valueChanged.connect(self.update_daq_rate)
+
+        enc_rate_in_points = hhm.enc.filter_dt.get()
+        enc_rate = 1/(89600*10*1e-9)/1e3
+        self.spinBox_enc_rate.setValue(enc_rate)
+        self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
+
 
     def run_gen_scan(self, **kwargs):
         if 'ignore_shutter' in kwargs:
@@ -342,14 +354,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def update_piezo_center(self):
         self.hhm_feedback.update_center()
 
-    def update_feedback_gui_components(self):
-        self.label_host.setText(f'Host: {self.hhm_feedback.host}')
-        heartbeat = self.hhm.fb_heartbeat.get()
-        if heartbeat:
-            self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
-        else:
-            self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
 
+    def update_daq_rate(self):
+        daq_rate = self.spinBox_daq_rate.value()
+        # 374.94 is the nominal RF frequency
+        divider = int(374.94/daq_rate)
+        self.RE(bps.abs_set(self.apb.divide, divider, wait=True))
+
+    def update_enc_rate(self):
+        enc_rate = self.spinBox_enc_rate.value()
+        rate_in_points = (1/(enc_rate*1e3))*1e9/10
+
+        rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
+        self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
 
 
 # class piezo_fb_thread(QThread):

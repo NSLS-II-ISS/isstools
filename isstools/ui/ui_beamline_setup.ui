@@ -816,6 +816,186 @@ position</string>
     </property>
    </widget>
   </widget>
+  <widget class="QLabel" name="label_gains_3">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>560</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>kHz</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_daq_rate">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>560</y>
+     <width>71</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>3</number>
+   </property>
+   <property name="minimum">
+    <double>0.010000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.100000000000000</double>
+   </property>
+   <property name="value">
+    <double>0.100000000000000</double>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_7">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>630</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>kHz</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_4">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>590</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>kHz</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_6">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>630</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Trigger rate</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_5">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>590</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Mono DAQ rate</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_2">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>560</y>
+     <width>131</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Analog DAQ rate</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_enc_rate">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>590</y>
+     <width>71</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>3</number>
+   </property>
+   <property name="minimum">
+    <double>0.001000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.100000000000000</double>
+   </property>
+   <property name="value">
+    <double>0.100000000000000</double>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_trig_rate">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>630</y>
+     <width>71</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>3</number>
+   </property>
+   <property name="minimum">
+    <double>0.001000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.100000000000000</double>
+   </property>
+   <property name="value">
+    <double>0.100000000000000</double>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

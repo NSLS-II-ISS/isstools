@@ -38,7 +38,7 @@
       <x>240</x>
       <y>0</y>
       <width>311</width>
-      <height>131</height>
+      <height>170</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -375,7 +375,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>150</y>
+     <y>200</y>
      <width>681</width>
      <height>801</height>
     </rect>
@@ -388,8 +388,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>661</width>
-      <height>781</height>
+      <width>611</width>
+      <height>731</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -644,8 +644,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>651</width>
-        <height>731</height>
+        <width>601</width>
+        <height>681</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_johann_tools"/>

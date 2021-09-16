@@ -27,10 +27,10 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
     def __init__(self,
                  accelerator=None,
                  hhm = None,
+                 hhm_feedback = None,
                  motor_emission=None,
                  shutters=None,
                  ic_amplifiers = None,
-                 apb = None,
                  RE = None,
                  db = None,
                  foil_camera=None,
@@ -51,13 +51,13 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.timer_update_time.start()
 
         self.hhm = hhm
+        self.hhm_feedback = hhm_feedback
         self.motor_emission = motor_emission
         self.RE = RE
         self.db = db
         self.shutters = shutters
         self.ic_amplifiers = ic_amplifiers
         self.parent = parent
-        self.apb = apb
         self.hhm= hhm
         self.foil_camera = foil_camera
         self.attenuator_camera = attenuator_camera
@@ -81,14 +81,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
         self.push_set_attenuator.clicked.connect(self.set_attenuator)
 
-        daq_rate = self.apb.acq_rate.get()
-        self.spinBox_daq_rate.setValue(daq_rate)
-        self.spinBox_daq_rate.valueChanged.connect(self.update_daq_rate)
 
-        enc_rate_in_points = hhm.enc.filter_dt.get()
-        enc_rate = 1/(89600*10*1e-9)/1e3
-        self.spinBox_enc_rate.setValue(enc_rate)
-        self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
 
         with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
             reference_foils = [item['element'] for item in json.load(fp)]
@@ -113,8 +106,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             self.label_emission_energy.setText('Emission Energy N/A')
 
 
-        if ((self.hhm.fb_status.get()==1) and
-                (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+        # if ((self.hhm.fb_status.get()==1) and
+        #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+        if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
             self.label_feedback_status.setText('Feedback on')
             self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
             self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
@@ -170,6 +164,10 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         #show encoder readout error
         error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
         self.label_offset_error.setText(f'Encoder error: {int(error)}')
+
+
+        #update feedback heartbeat
+        self.update_feedback_gui_components()
 
 
     def update_beam_current(self, **kwargs):
@@ -259,18 +257,18 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
         self.hhm.pitch.move(pitch - 0.025)
 
-    def update_daq_rate(self):
-        daq_rate = self.spinBox_daq_rate.value()
-        # 374.94 is the nominal RF frequency
-        divider = int(374.94/daq_rate)
-        self.RE(bps.abs_set(self.apb.divide, divider, wait=True))
-
-    def update_enc_rate(self):
-        enc_rate = self.spinBox_enc_rate.value()
-        rate_in_points = (1/(enc_rate*1e3))*1e9/10
-
-        rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
-        self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
+    # def update_daq_rate(self):
+    #     daq_rate = self.spinBox_daq_rate.value()
+    #     # 374.94 is the nominal RF frequency
+    #     divider = int(374.94/daq_rate)
+    #     self.RE(bps.abs_set(self.apb.divide, divider, wait=True))
+    #
+    # def update_enc_rate(self):
+    #     enc_rate = self.spinBox_enc_rate.value()
+    #     rate_in_points = (1/(enc_rate*1e3))*1e9/10
+    #
+    #     rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
+    #     self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
 
         #self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points, wait=True))
 
@@ -282,6 +280,14 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         attenuator = self.comboBox_attenuator.currentText()
         self.RE(self.aux_plan_funcs['set_attenuator'](attenuator))
 
+
+    def update_feedback_gui_components(self):
+        self.label_host.setText(f'Host: {self.hhm_feedback.host}')
+        heartbeat = self.hhm.fb_heartbeat.get()
+        if heartbeat:
+            self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
+        else:
+            self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
 
 
 
