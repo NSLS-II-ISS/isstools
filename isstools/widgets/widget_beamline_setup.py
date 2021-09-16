@@ -10,41 +10,37 @@ from PyQt5.QtCore import QThread, QSettings
 from bluesky.callbacks import LivePlot
 from isstools.dialogs import (UpdateHHMFeedbackSettings, MoveMotorDialog)
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
-from isstools.elements.figure_update import update_figure
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
-from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
-from scipy.optimize import curve_fit
-from xas.pid import PID
-from xas.math import gauss
 from isstools.elements.liveplots import NormPlot
 import json
-from xas.image_analysis import determine_beam_position_from_fb_image
 from isstools.elements.figure_update import update_figure, setup_figure
+from xas.energy_calibration import validate_calibration, process_calibration
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def __init__(self,
-                     RE,
-                     hhm,
-                     hhm_feedback,
-                     apb,
-                     apb_trigger_xs,
-                     apb_trigger_pil100k,
-                     db,
-                     detector_dictionary,
-                     ic_amplifiers,
-                     service_plan_funcs,
-                     aux_plan_funcs,
-                     motor_dictionary,
-                     tune_elements,
-                     shutter_dictionary,
-                     parent_gui,
-                     *args, **kwargs):
+                    RE,
+                    hhm,
+                    hhm_feedback,
+                    apb,
+                    apb_trigger_xs,
+                    apb_trigger_pil100k,
+                    db,
+                    db_proc,
+                    detector_dictionary,
+                    ic_amplifiers,
+                    plan_funcs,
+                    service_plan_funcs,
+                    aux_plan_funcs,
+                    motor_dictionary,
+                    tune_elements,
+                    shutter_dictionary,
+                    parent_gui,
+                    *args,
+
+    ** kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
@@ -55,8 +51,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.apb_trigger_xs = apb_trigger_xs
         self.apb_trigger_pil100k = apb_trigger_pil100k
         self.db = db
+        self.db_proc = db_proc
         self.detector_dictionary = detector_dictionary
         self.ic_amplifiers = ic_amplifiers
+        self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -397,10 +395,26 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
     def energy_calibration(self):
-        foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
-        edge = self.edge_dict[foil]
-        print(edge)
+        element = self.comboBox_reference_foils.currentText()
+        edge = self.edge_dict[element]
+        st, message = validate_calibration(element,edge, self.db_proc,self.hhm)
+        if st:
+            self.RE(self.aux_plan_funcs['set_reference_foil'](element))
+            self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
+            e_shift,en_ref,mu_ref,mu=process_calibration(self.db,self.db_proc, self.hhm)
+            print(f'{ttime.ctime()} [Energy calibration] success: energy shift is {e_shift} eV')
+            self.figure_gen_scan.ax.set_xlabel('Energy')
+            self.figure_gen_scan.ax.set_ylabel('mu')
+            self.figure_gen_scan.ax.plot(en_ref,mu_ref, label = 'Reference')
+            self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
+            self.figure_gen_scan.tight_layout()
+            self.figure_gen_scan.legend(loc='upper left')
+            self.figure_gen_scan.ax.set_xlim(en_ref[0],en_ref[-1])
+            self.canvas_gen_scan.draw_idle()
+            self.canvas_gen_scan.motor = None
+        else:
+            message_box('Error', message)
+
 
 
 

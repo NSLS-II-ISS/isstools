@@ -54,6 +54,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  aux_plan_funcs={},
                  RE=None,
                  db=None,
+                 db_proc=None,
                  accelerator=None,
                  hhm=None,
                  hhm_feedback=None,
@@ -80,6 +81,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.db = db
+        self.db_proc = db_proc
         self.apb = apb
         self.encoder_pb = encoder_pb
         self.token = None
@@ -196,8 +198,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
             apb_trigger_xs,
             apb_trigger_pil100k,
             db,
+            db_proc,
             det_dict,
             ic_amplifiers,
+            plan_funcs,
             service_plan_funcs,
             aux_plan_funcs,
             motors_dict,

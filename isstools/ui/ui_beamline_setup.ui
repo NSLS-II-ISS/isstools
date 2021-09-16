@@ -35,7 +35,7 @@
    <widget class="QWidget" name="gridLayoutWidget_3">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>60</y>
       <width>781</width>
       <height>121</height>
@@ -52,7 +52,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Detector-Denominator</string>
+        <string> Detector-Denominator</string>
        </property>
       </widget>
      </item>
@@ -100,7 +100,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Detector-Numerator</string>
+        <string> Detector-Numerator</string>
        </property>
       </widget>
      </item>
@@ -162,7 +162,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Motor</string>
+        <string> Motor</string>
        </property>
       </widget>
      </item>
