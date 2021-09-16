@@ -69,6 +69,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  ic_amplifiers={},
                  window_title=" ",
                  apb = None,
+                 apb_trigger_xs=None,
+                 apb_trigger_pil100k=None,
                  sample_registry=None,
                  *args, **kwargs):
 
@@ -191,6 +193,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             hhm,
             hhm_feedback,
             apb,
+            apb_trigger_xs,
+            apb_trigger_pil100k,
             db,
             det_dict,
             ic_amplifiers,

@@ -663,7 +663,7 @@
     </font>
    </property>
    <property name="text">
-    <string>feedback heartbeat</string>
+    <string>Feedback heartbeat</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

@@ -249,13 +249,15 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
         pitch = self.hhm.pitch.read()['hhm_pitch']['value']
         # self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
-        self.hhm.pitch.move(pitch + 0.025)
+        if not self.hhm.pitch.moving:
+            self.hhm.pitch.move(pitch + 0.025)
 
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
         pitch = self.hhm.pitch.read()['hhm_pitch']['value']
         # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
-        self.hhm.pitch.move(pitch - 0.025)
+        if not self.hhm.pitch.moving:
+            self.hhm.pitch.move(pitch - 0.025)
 
     # def update_daq_rate(self):
     #     daq_rate = self.spinBox_daq_rate.value()

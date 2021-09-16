@@ -13,83 +13,6 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QGroupBox" name="groupBox_9">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>240</y>
-     <width>321</width>
-     <height>321</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>9</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="title">
-    <string notr="true">Analog detector setup</string>
-   </property>
-   <widget class="QPushButton" name="push_get_readouts">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>80</y>
-      <width>141</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Read Detectors</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_adjust_gains">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>130</y>
-      <width>141</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Adjust Gains</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_get_offsets">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>180</y>
-      <width>141</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Get Offsets</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_bender_scan">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>230</y>
-      <width>141</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CM Bender Scan</string>
-    </property>
-   </widget>
-  </widget>
   <widget class="QGroupBox" name="groupBox_7">
    <property name="geometry">
     <rect>
@@ -662,69 +585,6 @@ position</string>
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="label_host">
-    <property name="geometry">
-     <rect>
-      <x>1050</x>
-      <y>110</y>
-      <width>81</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Host: </string>
-    </property>
-    <property name="wordWrap">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_151">
-    <property name="geometry">
-     <rect>
-      <x>1140</x>
-      <y>110</y>
-      <width>61</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Feedback heartbeat:</string>
-    </property>
-    <property name="wordWrap">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_heartbeat">
-    <property name="geometry">
-     <rect>
-      <x>1210</x>
-      <y>115</y>
-      <width>16</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="wordWrap">
-     <bool>true</bool>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_102">
     <property name="geometry">
      <rect>
@@ -753,7 +613,7 @@ position</string>
     <property name="geometry">
      <rect>
       <x>1060</x>
-      <y>150</y>
+      <y>110</y>
       <width>221</width>
       <height>21</height>
      </rect>
@@ -860,7 +720,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>630</y>
+     <y>650</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -871,7 +731,7 @@ position</string>
     </font>
    </property>
    <property name="text">
-    <string>kHz</string>
+    <string>Hz</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_gains_4">
@@ -895,9 +755,9 @@ position</string>
   <widget class="QLabel" name="label_gains_6">
    <property name="geometry">
     <rect>
-     <x>90</x>
-     <y>630</y>
-     <width>121</width>
+     <x>20</x>
+     <y>650</y>
+     <width>141</width>
      <height>20</height>
     </rect>
    </property>
@@ -909,13 +769,13 @@ position</string>
     </font>
    </property>
    <property name="text">
-    <string>Trigger rate</string>
+    <string>Pilatus Trigger rate</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_gains_5">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>20</x>
      <y>590</y>
      <width>121</width>
      <height>20</height>
@@ -935,7 +795,7 @@ position</string>
   <widget class="QLabel" name="label_gains_2">
    <property name="geometry">
     <rect>
-     <x>50</x>
+     <x>20</x>
      <y>560</y>
      <width>131</width>
      <height>20</height>
@@ -974,26 +834,149 @@ position</string>
     <double>0.100000000000000</double>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="spinBox_trig_rate">
+  <widget class="QDoubleSpinBox" name="spinBox_trigger_pil100k_freq">
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>630</y>
+     <y>650</y>
      <width>71</width>
      <height>22</height>
     </rect>
    </property>
    <property name="decimals">
-    <number>3</number>
+    <number>1</number>
    </property>
    <property name="minimum">
-    <double>0.001000000000000</double>
+    <double>0.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>300.000000000000000</double>
    </property>
    <property name="singleStep">
-    <double>0.100000000000000</double>
+    <double>1.000000000000000</double>
    </property>
    <property name="value">
-    <double>0.100000000000000</double>
+    <double>25.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_8">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>620</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Xspress3 Trigger rate</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_gains_9">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>620</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Hz</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinBox_trigger_xs_freq">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>620</y>
+     <width>71</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>1</number>
+   </property>
+   <property name="minimum">
+    <double>0.000000000000000</double>
+   </property>
+   <property name="maximum">
+    <double>1000.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>1.000000000000000</double>
+   </property>
+   <property name="value">
+    <double>50.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_bender_scan">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>460</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>CM Bender Scan</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_get_readouts">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>310</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Read Detectors</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_adjust_gains">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>360</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Adjust Gains</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_get_offsets">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>410</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Get Offsets</string>
    </property>
   </widget>
  </widget>

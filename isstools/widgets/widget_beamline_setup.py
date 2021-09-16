@@ -33,6 +33,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                      hhm,
                      hhm_feedback,
                      apb,
+                     apb_trigger_xs,
+                     apb_trigger_pil100k,
                      db,
                      detector_dictionary,
                      ic_amplifiers,
@@ -50,6 +52,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
         self.apb = apb
+        self.apb_trigger_xs = apb_trigger_xs
+        self.apb_trigger_pil100k = apb_trigger_pil100k
         self.db = db
         self.detector_dictionary = detector_dictionary
         self.ic_amplifiers = ic_amplifiers
@@ -130,6 +134,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         enc_rate = 1/(89600*10*1e-9)/1e3
         self.spinBox_enc_rate.setValue(enc_rate)
         self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
+
+        trigger_pil100k_freq = self.apb_trigger_pil100k.freq.get()
+        self.spinBox_trigger_pil100k_freq.setValue(trigger_pil100k_freq)
+        self.spinBox_trigger_pil100k_freq.valueChanged.connect(self.update_trigger_pil100k_freq)
+
+        trigger_xs_freq = self.apb_trigger_xs.freq.get()
+        self.spinBox_trigger_xs_freq.setValue(trigger_xs_freq)
+        self.spinBox_trigger_xs_freq.valueChanged.connect(self.update_trigger_xs_freq)
 
 
     def run_gen_scan(self, **kwargs):
@@ -367,6 +379,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
         self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
+
+    def update_trigger_pil100k_freq(self):
+        trigger_pil100k_freq = self.spinBox_trigger_pil100k_freq.value()
+        self.apb_trigger_pil100k.freq.put(trigger_pil100k_freq)
+
+    def update_trigger_xs_freq(self):
+        trigger_xs_freq = self.spinBox_trigger_xs_freq.value()
+        self.apb_trigger_xs.freq.put(trigger_xs_freq)
+
+
+
+
 
 
 # class piezo_fb_thread(QThread):
