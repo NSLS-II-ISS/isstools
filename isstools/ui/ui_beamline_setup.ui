@@ -680,7 +680,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>560</y>
+     <y>700</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -698,7 +698,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>560</y>
+     <y>700</y>
      <width>71</width>
      <height>22</height>
     </rect>
@@ -720,7 +720,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>650</y>
+     <y>790</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -738,7 +738,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>590</y>
+     <y>730</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -756,7 +756,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>650</y>
+     <y>790</y>
      <width>141</width>
      <height>20</height>
     </rect>
@@ -776,7 +776,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>590</y>
+     <y>730</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -796,7 +796,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>560</y>
+     <y>700</y>
      <width>131</width>
      <height>20</height>
     </rect>
@@ -816,7 +816,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>590</y>
+     <y>730</y>
      <width>71</width>
      <height>22</height>
     </rect>
@@ -838,7 +838,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>650</y>
+     <y>790</y>
      <width>71</width>
      <height>22</height>
     </rect>
@@ -863,7 +863,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>620</y>
+     <y>760</y>
      <width>141</width>
      <height>20</height>
     </rect>
@@ -883,7 +883,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>620</y>
+     <y>760</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -901,7 +901,7 @@ position</string>
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>620</y>
+     <y>760</y>
      <width>71</width>
      <height>22</height>
     </rect>
@@ -935,24 +935,6 @@ position</string>
     <string>CM Bender Scan</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_get_readouts">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>310</y>
-     <width>141</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Read Detectors</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="push_adjust_gains">
    <property name="geometry">
     <rect>
@@ -977,6 +959,29 @@ position</string>
    </property>
    <property name="text">
     <string>Get Offsets</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_reference_foils">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>520</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_calibration_scan">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>510</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Energy Calibration</string>
    </property>
   </widget>
  </widget>

@@ -81,7 +81,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.push_prepare_beamline.clicked.connect(self.prepare_beamline)
         self.push_get_offsets.clicked.connect(self.get_offsets)
-        self.push_get_readouts.clicked.connect(self.get_readouts)
+
         self.push_adjust_gains.clicked.connect(self.adjust_gains)
         self.push_bender_scan.clicked.connect(self.bender_scan)
 
@@ -110,6 +110,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_increase_fb_center.clicked.connect(self.feedback_center_increase)
         self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
         self.push_update_feedback_center.clicked.connect(self.update_piezo_center)
+        self.push_calibration_scan.clicked.connect(self.energy_calibration)
 
         # self.timer_update_fb_gui = QtCore.QTimer(self)
         # self.timer_update_fb_gui.setInterval(500)
@@ -142,6 +143,17 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         trigger_xs_freq = self.apb_trigger_xs.freq.get()
         self.spinBox_trigger_xs_freq.setValue(trigger_xs_freq)
         self.spinBox_trigger_xs_freq.valueChanged.connect(self.update_trigger_xs_freq)
+
+        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+            foil_info = json.load(fp)
+            reference_foils = [item['element'] for item in foil_info]
+            edges = [item['edge'] for item in foil_info]
+            self.edge_dict={}
+            for foil, edge in zip(reference_foils, edges):
+                self.edge_dict[foil]= edge
+            reference_foils.append('--')
+        for foil in reference_foils:
+            self.comboBox_reference_foils.addItem(foil)
 
 
     def run_gen_scan(self, **kwargs):
@@ -231,6 +243,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
         #self.push_gen_scan.setEnabled(False)
+        #print(channel, channel_den, result_name, curr_mot.name)
         uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
                                                                curr_mot,
                                                                rel_start,
@@ -332,11 +345,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def get_offsets(self):
         self.RE(self.service_plan_funcs['get_offsets']())
 
-    def get_readouts(self):
-        adc_names = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        adcs = [adc for adc in self.adc_list if adc.dev_name.get() in adc_names]
-        self.RE(self.aux_plan_funcs['get_adc_readouts'](20, *adcs, stdout = self.parent_gui.emitstream_out))
-
     def add_motors(self):
         self.comboBox_motors.clear()
         if self.checkBox_user_motors.isChecked():
@@ -387,6 +395,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def update_trigger_xs_freq(self):
         trigger_xs_freq = self.spinBox_trigger_xs_freq.value()
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
+
+    def energy_calibration(self):
+        foil = self.comboBox_reference_foils.currentText()
+        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
+        edge = self.edge_dict[foil]
+        print(edge)
 
 
 
