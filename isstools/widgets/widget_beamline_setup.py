@@ -110,11 +110,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.timer_update_fb_gui.timeout.connect(self.update_feedback_gui_components)
         self.timer_update_fb_gui.start()
 
-
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
-
-
 
         self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
         self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
@@ -122,8 +119,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.checkBox_user_motors.toggled.connect(self.add_motors)
         self.add_motors()
-
-
 
     def run_gen_scan(self, **kwargs):
         if 'ignore_shutter' in kwargs:
@@ -232,8 +227,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.last_gen_scan_uid = self.db[-1]['start']['uid']
         self.push_gen_scan_save.setEnabled(True)
 
-
-
     def getX_gen_scan(self, event):
 
         if event.button == 3:
@@ -310,8 +303,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
         self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
-                                                                 stdout = self.parent_gui.emitstream_out))
-
+                                                                stdout = self.parent_gui.emitstream_out))
 
     def get_offsets(self):
         self.RE(self.service_plan_funcs['get_offsets']())
@@ -351,7 +343,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.hhm_feedback.update_center()
 
     def update_feedback_gui_components(self):
-
         self.label_host.setText(f'Host: {self.hhm_feedback.host}')
         heartbeat = self.hhm.fb_heartbeat.get()
         if heartbeat:

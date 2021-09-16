@@ -95,6 +95,39 @@ plt.plot(tt[mask], hhm_feedback._pitch_vals[mask])
 
 
 
+df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation.json')
+df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation_high_energies.json')
+df_all = df.append(df2)
+energy = df_all.energy.values
+hhmy = df_all.hhmy.values
+from xas.xray import energy2angle
+
+def get_matrix_from_energy(energy_in, offset=0):
+    theta_deg = energy2angle(energy_in)
+    V = 1 / np.cos(np.deg2rad(theta_deg - offset))
+    A = np.vstack((V, energy_in, np.ones(V.size))).T
+    return A
+
+def fit_hhmy(offset=0):
+
+    A = get_matrix_from_energy(energy, offset=offset)
+    energy_grid = np.linspace(4000, 33000, 1001)
+    A_grid = get_matrix_from_energy(energy_grid, offset=offset)
+    c, _, _, _ = np.linalg.lstsq(A, hhmy, rcond=-1)
+    hhmy_fit = A @ c
+    hhmy_fit_grid = A_grid @ c
+
+    p = np.polyfit(energy, hhmy, 2)
+    hhmy_fit_grid_poly = np.polyval(p, energy_grid)
+
+    plt.figure(1)
+    plt.clf()
+    plt.plot(energy, hhmy, 'k.')
+    plt.plot(energy_grid, hhmy_fit_grid, 'r-')
+    # plt.plot(energy_grid, hhmy_fit_grid_poly, 'b-')
+
+fit_hhmy(offset=0)
+
 
 def infinite_plan():
     itr = 1

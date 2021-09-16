@@ -672,9 +672,9 @@
   <widget class="QLabel" name="label_reference_foil">
    <property name="geometry">
     <rect>
-     <x>690</x>
-     <y>40</y>
-     <width>221</width>
+     <x>730</x>
+     <y>80</y>
+     <width>181</width>
      <height>20</height>
     </rect>
    </property>
@@ -708,9 +708,9 @@
   <widget class="QLabel" name="label_attenuator">
    <property name="geometry">
     <rect>
-     <x>690</x>
-     <y>60</y>
-     <width>211</width>
+     <x>730</x>
+     <y>100</y>
+     <width>171</width>
      <height>20</height>
     </rect>
    </property>
@@ -727,7 +727,7 @@
    <property name="geometry">
     <rect>
      <x>910</x>
-     <y>40</y>
+     <y>80</y>
      <width>87</width>
      <height>20</height>
     </rect>
@@ -737,7 +737,7 @@
    <property name="geometry">
     <rect>
      <x>1000</x>
-     <y>40</y>
+     <y>80</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -750,7 +750,7 @@
    <property name="geometry">
     <rect>
      <x>910</x>
-     <y>60</y>
+     <y>100</y>
      <width>87</width>
      <height>20</height>
     </rect>
@@ -760,7 +760,7 @@
    <property name="geometry">
     <rect>
      <x>1000</x>
-     <y>60</y>
+     <y>100</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -790,12 +790,9 @@
    </property>
   </widget>
   <widget class="QPushButton" name="push_set_emission_energy">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="geometry">
     <rect>
-     <x>780</x>
+     <x>770</x>
      <y>0</y>
      <width>61</width>
      <height>25</height>

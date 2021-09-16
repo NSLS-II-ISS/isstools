@@ -673,7 +673,7 @@ position</string>
     </property>
     <property name="font">
      <font>
-      <pointsize>8</pointsize>
+      <pointsize>9</pointsize>
      </font>
     </property>
     <property name="text">
@@ -689,12 +689,12 @@ position</string>
       <x>1140</x>
       <y>110</y>
       <width>61</width>
-      <height>21</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>8</pointsize>
+      <pointsize>9</pointsize>
      </font>
     </property>
     <property name="text">
@@ -709,8 +709,8 @@ position</string>
      <rect>
       <x>1210</x>
       <y>115</y>
-      <width>8</width>
-      <height>8</height>
+      <width>16</width>
+      <height>16</height>
      </rect>
     </property>
     <property name="font">
