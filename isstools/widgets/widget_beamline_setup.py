@@ -47,6 +47,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
+        self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
         self.apb = apb
         self.apb_trigger_xs = apb_trigger_xs
         self.apb_trigger_pil100k = apb_trigger_pil100k
@@ -397,28 +398,38 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def energy_calibration(self):
         element = self.comboBox_reference_foils.currentText()
         edge = self.edge_dict[element]
-        st, message = validate_calibration(element,edge, self.db_proc,self.hhm)
+        st, message = validate_calibration(element, edge, self.db_proc,self.hhm)
         if st:
             self.RE(self.aux_plan_funcs['set_reference_foil'](element))
             self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
-            e_shift,en_ref,mu_ref,mu=process_calibration(self.db,self.db_proc, self.hhm)
-            print(f'{ttime.ctime()} [Energy calibration] success: energy shift is {e_shift} eV')
-            self.figure_gen_scan.ax.set_xlabel('Energy')
-            self.figure_gen_scan.ax.set_ylabel('mu')
-            self.figure_gen_scan.ax.plot(en_ref,mu_ref, label = 'Reference')
-            self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
-            self.figure_gen_scan.tight_layout()
-            self.figure_gen_scan.legend(loc='upper left')
-            self.figure_gen_scan.ax.set_xlim(en_ref[0],en_ref[-1])
-            self.canvas_gen_scan.draw_idle()
-            self.canvas_gen_scan.motor = None
+            e_shift, en_ref, mu_ref, mu = process_calibration(element, edge, self.db,self.db_proc, self.hhm, self.trajectory_manager)
+            self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
+            print(f'{ttime.ctime()} [Energy calibration] Energy shift is {e_shift} eV')
+
+            print(f'{ttime.ctime()} [Energy calibration] Validating the calibration')
+            self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
+            e_shift, en_ref, mu_ref, mu = process_calibration(self.db, self.db_proc, self.hhm)
+            if e_shift < 0.1:
+                print(f'{ttime.ctime()} [Energy calibration] Completed')
+
+            else:
+                print(f'{ttime.ctime()} [Energy calibration] Energy calibration error is {e_shift} > 0.1 eV. Check Manually.')
+            self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
+
         else:
             message_box('Error', message)
 
 
-
-
-
+    def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+        self.figure_gen_scan.ax.plot(en_ref, mu_ref, label='Reference')
+        self.figure_gen_scanax.plot(en_ref, mu, label='New spectrum')
+        self.figure_gen_scan.ax.set_xlabel('Energy')
+        self.figure_gen_scan.ax.set_ylabel('mu')
+        self.figure_gen_scan.ax.set_xlim(en_ref[0], en_ref[-1])
+        self.figure_gen_scan.legend(loc='upper left')
+        self.figure_gen_scan.tight_layout()
+        self.canvas_gen_scan.draw_idle()
+        self.canvas_gen_scan.motor = None
 
 
 # class piezo_fb_thread(QThread):
