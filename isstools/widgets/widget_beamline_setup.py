@@ -47,7 +47,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
-        self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
+        # self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
         self.apb = apb
         self.apb_trigger_xs = apb_trigger_xs
         self.apb_trigger_pil100k = apb_trigger_pil100k
@@ -396,28 +396,29 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
     def energy_calibration(self):
-        element = self.comboBox_reference_foils.currentText()
-        edge = self.edge_dict[element]
-        st, message = validate_calibration(element, edge, self.db_proc,self.hhm)
-        if st:
-            self.RE(self.aux_plan_funcs['set_reference_foil'](element))
-            self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
-            e_shift, en_ref, mu_ref, mu = process_calibration(element, edge, self.db,self.db_proc, self.hhm, self.trajectory_manager)
-            self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
-            print(f'{ttime.ctime()} [Energy calibration] Energy shift is {e_shift} eV')
-
-            print(f'{ttime.ctime()} [Energy calibration] Validating the calibration')
-            self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
-            e_shift, en_ref, mu_ref, mu = process_calibration(self.db, self.db_proc, self.hhm)
-            if e_shift < 0.1:
-                print(f'{ttime.ctime()} [Energy calibration] Completed')
-
-            else:
-                print(f'{ttime.ctime()} [Energy calibration] Energy calibration error is {e_shift} > 0.1 eV. Check Manually.')
-            self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
-
-        else:
-            message_box('Error', message)
+        pass
+        # element = self.comboBox_reference_foils.currentText()
+        # edge = self.edge_dict[element]
+        # st, message = validate_calibration(element, edge, self.db_proc,self.hhm)
+        # if st:
+        #     self.RE(self.aux_plan_funcs['set_reference_foil'](element))
+        #     self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
+        #     e_shift, en_ref, mu_ref, mu = process_calibration(element, edge, self.db,self.db_proc, self.hhm, self.trajectory_manager)
+        #     self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
+        #     print(f'{ttime.ctime()} [Energy calibration] Energy shift is {e_shift} eV')
+        #
+        #     print(f'{ttime.ctime()} [Energy calibration] Validating the calibration')
+        #     self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
+        #     e_shift, en_ref, mu_ref, mu = process_calibration(self.db, self.db_proc, self.hhm)
+        #     if e_shift < 0.1:
+        #         print(f'{ttime.ctime()} [Energy calibration] Completed')
+        #
+        #     else:
+        #         print(f'{ttime.ctime()} [Energy calibration] Energy calibration error is {e_shift} > 0.1 eV. Check Manually.')
+        #     self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
+        #
+        # else:
+        #     message_box('Error', message)
 
 
     def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
