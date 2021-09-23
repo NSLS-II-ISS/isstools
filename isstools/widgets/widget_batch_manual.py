@@ -202,8 +202,18 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         y_array = np.arange(n_y, dtype=float)
         y_array -= np.median(y_array)
         x_mesh, y_mesh = np.meshgrid(x_array*step_size, y_array*step_size)
-        xs = self.spinBox_sample_x.value() + x_mesh.ravel()
-        ys = self.spinBox_sample_y.value() + y_mesh.ravel()
+        x_mesh = x_mesh.ravel()
+        y_mesh = y_mesh.ravel()
+
+
+        radius = self.spinBox_sample_radius.value()
+        if radius > 0:
+            r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
+            x_mesh = x_mesh[r_mesh <= radius]
+            y_mesh = y_mesh[r_mesh <= radius]
+
+        xs = self.spinBox_sample_x.value() + x_mesh
+        ys = self.spinBox_sample_y.value() + y_mesh
 
         base_name = self.lineEdit_sample_name.text()
         counter = 1

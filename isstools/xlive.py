@@ -17,7 +17,7 @@ from .widgets import (widget_info_general,
                       widget_info_shutters,
                       widget_info_beamline,
                       widget_camera,
-                      # widget_autopilot,
+                      widget_autopilot,
                       widget_spectrometer)
 
 from isstools.elements.batch_motion import SamplePositioner
@@ -247,19 +247,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
-        # print('widget autopilot loading', ttime.ctime())
-        # self.widget_autopilot = widget_autopilot.UIAutopilot(
-        #     motors_dict,
-        #     camera_dict,
-        #     hhm,
-        #     RE,
-        #     # db,
-        #     sample_stage,
-        #     self,
-        #     service_plan_funcs,
-        #     plan_funcs
-        # )
-        # self.layout_autopilot.addWidget(self.widget_autopilot)
+        print('widget autopilot loading', ttime.ctime())
+        self.widget_autopilot = widget_autopilot.UIAutopilot(
+            motors_dict,
+            camera_dict,
+            hhm,
+            RE,
+            # db,
+            sample_stage,
+            self,
+            service_plan_funcs,
+            plan_funcs
+        )
+        self.layout_autopilot.addWidget(self.widget_autopilot)
 
 
         print('widget spectrometer loading', ttime.ctime())
