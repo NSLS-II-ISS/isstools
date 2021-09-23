@@ -57,6 +57,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.model_samples = QtGui.QStandardItemModel(self)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_delete_sample.clicked.connect(self.delete_sample)
+        self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
         self.push_get_sample_position.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
@@ -158,6 +159,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         index = view.currentIndex()
         if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
             view.model().removeRows(index.row(), 1)
+
+    def delete_all_samples(self):
+        view = self.listView_samples
+        n_rows = view.model().rowCount()
+        for i in range(n_rows):
+            view.model().removeRows(0, 1)
 
     def save_samples(self):
         samples = []
