@@ -628,9 +628,9 @@ Autopilot</string>
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>400</y>
+      <y>410</y>
       <width>326</width>
-      <height>211</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="title">
