@@ -55,12 +55,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.treeView_batch.doubleClicked.connect(self.update_item_info)
 
         self.model_samples = QtGui.QStandardItemModel(self)
+
         self.push_create_sample.clicked.connect(self.create_new_sample)
+        # self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
+
         self.push_delete_sample.clicked.connect(self.delete_sample)
         self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
+
+        self.push_save_samples.clicked.connect(self.save_samples)
+        self.push_load_samples.clicked.connect(self.load_samples)
+
+        self.push_check_all.clicked.connect(self.check_all_samples)
+        self.push_uncheck_all.clicked.connect(self.uncheck_all_samples)
+
         self.push_get_sample_position.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
+
         self.listView_samples.setDragEnabled(True)
         self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
         self.listView_samples.doubleClicked.connect(self.update_item_info)
@@ -87,12 +98,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_parameter_descriptions = []
         self.populate_service_parameters(0)
         self.update_batch_traj()
-        self.push_save_samples.clicked.connect(self.save_samples)
-        self.push_load_samples.clicked.connect(self.load_samples)
-        self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
 
-        self.push_check_all.clicked.connect(self.check_all_samples)
-        self.push_uncheck_all.clicked.connect(self.uncheck_all_samples)
+
+
+
         self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
 
         self.sample_positioner = sample_positioner
@@ -143,7 +152,17 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     ''' 
     Dealing with samples
     '''
-    def create_new_sample(self):
+
+    def _check_the_xystage_vs_xylabel(self, tolerance=0.015):
+        x_act = self.sample_stage.x.position
+        y_act = self.sample_stage.y.position
+        x_nom = self.spinBox_sample_x.value()
+        y_nom = self.spinBox_sample_y.value()
+        if not (np.isclose(x_act, x_nom, tolerance) & np.isclose(y_act, y_nom, tolerance)):
+            self.spinBox_sample_x.setValue(x_act)
+            self.spinBox_sample_y.setValue(y_act)
+
+    def _create_one_sample(self):
         sample_name = self.lineEdit_sample_name.text()
         if sample_name:
             sample_x = self.spinBox_sample_x.value()
@@ -152,7 +171,49 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=self.model_samples)
             self.listView_samples.setModel(self.model_samples)
         else:
-            message_box('Warning','Sample name is empty')
+            message_box('Warning', 'Sample name is empty')
+
+    def create_new_sample(self):
+        self._check_the_xystage_vs_xylabel()
+        step_size = self.spinBox_grid_spacing.value()
+        n_x = self.spinBox_grid_x_points.value()
+        n_y = self.spinBox_grid_y_points.value()
+        x_array = np.arange(n_x, dtype=float)
+        x_array -= np.median(x_array)
+        y_array = np.arange(n_y, dtype=float)
+        y_array -= np.median(y_array)
+        x_mesh, y_mesh = np.meshgrid(x_array*step_size, y_array*step_size)
+        x_mesh = x_mesh.ravel()
+        y_mesh = y_mesh.ravel()
+
+        radius = self.spinBox_sample_radius.value()
+        if radius > 0:
+            r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
+            x_mesh = x_mesh[r_mesh <= radius]
+            y_mesh = y_mesh[r_mesh <= radius]
+
+        xs = self.spinBox_sample_x.value() + x_mesh
+        ys = self.spinBox_sample_y.value() + y_mesh
+
+        npt = xs.size
+        x_orig = self.spinBox_sample_x.value()
+        y_orig = self.spinBox_sample_y.value()
+
+        base_name = self.lineEdit_sample_name.text()
+        counter = 1
+        for _x, _y in zip(xs, ys):
+            _name = f'{base_name}'
+            if npt > 1:
+                _name += f' pos {counter:02d}'
+            self.lineEdit_sample_name.setText(_name)
+            self.spinBox_sample_x.setValue(_x)
+            self.spinBox_sample_y.setValue(_y)
+            self._create_one_sample()
+            counter += 1
+        self.lineEdit_sample_name.setText(base_name)
+        self.spinBox_sample_x.setValue(x_orig)
+        self.spinBox_sample_y.setValue(y_orig)
+
 
     def delete_sample(self):
         view = self.listView_samples
@@ -200,39 +261,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=self.model_samples)
             self.listView_samples.setModel(self.model_samples)
 
-    def create_sample_grid(self):
-        step_size = self.spinBox_grid_spacing.value()
-        n_x = self.spinBox_grid_x_points.value()
-        n_y = self.spinBox_grid_y_points.value()
-        x_array = np.arange(n_x, dtype=float)
-        x_array -= np.median(x_array)
-        y_array = np.arange(n_y, dtype=float)
-        y_array -= np.median(y_array)
-        x_mesh, y_mesh = np.meshgrid(x_array*step_size, y_array*step_size)
-        x_mesh = x_mesh.ravel()
-        y_mesh = y_mesh.ravel()
-
-
-        radius = self.spinBox_sample_radius.value()
-        if radius > 0:
-            r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
-            x_mesh = x_mesh[r_mesh <= radius]
-            y_mesh = y_mesh[r_mesh <= radius]
-
-        xs = self.spinBox_sample_x.value() + x_mesh
-        ys = self.spinBox_sample_y.value() + y_mesh
-
-        base_name = self.lineEdit_sample_name.text()
-        counter = 1
-        for _x, _y in zip(xs, ys):
-            _name = f'{base_name} pos {counter}'
-            self.lineEdit_sample_name.setText(_name)
-            self.spinBox_sample_x.setValue(_x)
-            self.spinBox_sample_y.setValue(_y)
-            self.create_new_sample()
-            counter += 1
-        self.lineEdit_sample_name.setText(base_name)
-
     def check_all_samples(self):
         for i in range(self.model_samples.rowCount()):
             item = self.model_samples.item(i)
@@ -244,14 +272,33 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             item.setCheckState(0)
 
     def get_info_from_autopilot(self):
-        sample_df =  self.parent_gui.widget_autopilot.sample_df
-        sample_number = int(self.lineEdit_autopilot.text()) - 1 # pandas is confusing
-        # name = sample_df.iloc[sample_number]['Sample label']
-        name = sample_df.iloc[sample_number]['Name']
-        comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
-        name = name.replace('/','_')
+
+        df = self.parent_gui.widget_autopilot.sample_df
+        str_to_parse = self.lineEdit_sample_name.text()
+        if '_' in str_to_parse:
+            try:
+                n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
+                select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
+                select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
+                line_number = np.where(select_holders & select_sample_n)[0][0]
+            except:
+                pass
+        else:
+            line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
+        name = df.iloc[line_number]['Name']
+        comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
+        name = name.replace('/', '_')
         self.lineEdit_sample_name.setText(name)
         self.lineEdit_sample_comment.setText(comment)
+
+        # sample_df =  self.parent_gui.widget_autopilot.sample_df
+        # sample_number = int(self.lineEdit_autopilot.text()) - 1 # pandas is confusing
+        # # name = sample_df.iloc[sample_number]['Sample label']
+        # name = sample_df.iloc[sample_number]['Name']
+        # comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
+        # name = name.replace('/','_')
+        # self.lineEdit_sample_name.setText(name)
+        # self.lineEdit_sample_comment.setText(comment)
 
     def update_item_info(self):
         sender_object = QObject().sender()
