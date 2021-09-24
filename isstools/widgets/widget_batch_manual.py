@@ -107,11 +107,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.sample_positioner = sample_positioner
         self.parent_gui = parent_gui.parent_gui
         self.settings = parent_gui.parent_gui.settings
-        self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
-                                                                                    settings=self.settings,
-                                                                                    RE=RE,
-                                                                                    sample_positioner=sample_positioner)
-        self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
+        # self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
+        #                                                                             settings=self.settings,
+        #                                                                             RE=RE,
+        #                                                                             sample_positioner=sample_positioner)
+        # self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
 
 
     '''
