@@ -81,6 +81,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
         self.push_set_attenuator.clicked.connect(self.set_attenuator)
 
+        self.push_pilatus_image.clicked.connect(self.take_pilatus_image)
 
 
         with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
@@ -293,5 +294,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
 
 
-
+    def take_pilatus_image(self):
+        plan = self.aux_plan_funcs['n_pil100k_exposures_plan'](1)
+        self.RE(plan)
 

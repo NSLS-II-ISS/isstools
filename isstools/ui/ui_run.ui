@@ -269,7 +269,7 @@
       <x>240</x>
       <y>20</y>
       <width>141</width>
-      <height>148</height>
+      <height>101</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_15">
@@ -392,7 +392,7 @@
      <rect>
       <x>240</x>
       <y>140</y>
-      <width>169</width>
+      <width>141</width>
       <height>190</height>
      </rect>
     </property>
