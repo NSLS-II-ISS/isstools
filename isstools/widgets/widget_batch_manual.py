@@ -443,13 +443,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     self.treeView_batch.setModel(self.model_batch)
                 else:
                     message_box('Warning', 'Select experiment before adding measurements')
+        else:
+            message_box('Warning', 'Select experiment before adding measurements')
+
 
 
     # def _create_measurement(self, parent):
-
-
-
-
 
 
     '''
@@ -476,15 +475,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
                 selected_index = self.treeView_batch.selectedIndexes()[0]
-                parent = self.model_batch.itemFromIndex(selected_index)
-                if parent.item_type == 'experiment':
-                    parent.appendRow(new_item_service)
-                elif parent.item_type == 'sample':
-                    parent.insertRow(0, new_item_service)
+                index = selected_index.row()
+                item = self.model_batch.itemFromIndex(selected_index)
+                # New code starts here
+                if item.item_type == 'sample':
+                    parent_item = item.parent()
+                    if parent_item.item_type == 'scan':
+                        parent_item.insertRow(index,new_item_service)
+                        new_item_service.setCheckable(False)
+                        new_item_service.setEditable(False)
+                        self.treeView_batch.expand(self.model_batch.indexFromItem(parent_item))
 
-                new_item_service.setCheckable(False)
-                new_item_service.setEditable(False)
-                self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+                # if item.item_type == 'experiment':
+                #     item.appendRow(new_item_service)
+                # elif parent.item_type == 'sample':
+                #     item.insertRow(0, new_item_service)
+
+
 
     def batch_info(self):
         if self.treeView_batch.model().rowCount():
