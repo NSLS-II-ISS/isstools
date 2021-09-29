@@ -19,7 +19,7 @@ for bender_position in bender_positions:
 def wakeup():
     cur_energy = hhm.energy.user_readback.get()
     for i in range(3):
-        RE(bps.mv(hhm.energy, 15000))
+        RE(bps.mv(hhm.energy, 10000))
         RE(bps.sleep(3))
         RE(bps.mv(hhm.energy, 5000))
         RE(bps.sleep(3))
