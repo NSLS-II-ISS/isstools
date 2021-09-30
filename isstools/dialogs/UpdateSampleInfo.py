@@ -9,7 +9,6 @@ class UpdateSampleInfo(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.setWindowTitle('Update Sample Info')
-
         self.lineEdit_name.setText(name)
         self.lineEdit_comment.setText(comment)
         self.doubleSpinBox_x.setValue(x)

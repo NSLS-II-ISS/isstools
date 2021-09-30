@@ -1,8 +1,8 @@
-import numpy as np
 import pkg_resources
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.Qt import QObject
+from PyQt5.Qt import Qt
 
+from PyQt5.QtWidgets import QMenu
 from isstools.elements import elements
 from isstools.elements.parameter_handler import parse_plan_parameters
 from xas.trajectory import trajectory_manager
@@ -12,9 +12,9 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
-from isstools.widgets import widget_sample_positioner
 from isstools.dialogs import UpdateSampleInfo, UpdateScanInfo
-
+from isstools.dialogs.BasicDialogs import question_message_box
+import bluesky.plan_stubs as bps
 
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
@@ -35,26 +35,29 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.plan_funcs_names = plan_funcs.keys()
         self.service_plan_funcs_names = service_plan_funcs.keys()
         self.sample_stage = sample_stage
+        self.RE = RE
         self.batch_mode_uids = []
         self.traj_manager = trajectory_manager(hhm)
-        self.treeView_batch = elements.TreeView(self, 'all')
-        self.gridLayout_batch_definition.addWidget(self.treeView_batch, 0, 0)
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
         self.model_batch = QtGui.QStandardItemModel(self)
-        self.treeView_batch.header().hide()
+        self.model_samples = QtGui.QStandardItemModel(self)
 
-        self.treeView_batch.doubleClicked.connect(self.update_item_info)
+        self.treeView_batch = elements.TreeView(self, 'all')
+        self.treeView_batch.header().hide()
+        self.treeView_batch.setModel(self.model_batch)
+        self.treeView_batch.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeView_batch.customContextMenuRequested.connect(self.scan_batch_menu)
+        self.treeView_batch.type = 'treeView'
+        self.treeView_batch.setSelectionMode(4)  #ContiguousSelection
+        self.gridLayout_batch_definition.addWidget(self.treeView_batch, 0, 0)
+
         '''
         WIP add horizontal scrollbar
         self.treeView_batch.header().horizontalScrollBar()
         '''
-        
-        self.treeView_batch.setModel(self.model_batch)
-        self.treeView_batch.doubleClicked.connect(self.update_item_info)
 
-        self.model_samples = QtGui.QStandardItemModel(self)
 
         self.push_create_sample.clicked.connect(self.create_new_sample)
         # self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
@@ -72,21 +75,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
 
-        self.listView_samples.setDragEnabled(True)
-        self.listView_samples.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.listView_samples.doubleClicked.connect(self.update_item_info)
+        self.listView_samples.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listView_samples.customContextMenuRequested.connect(self.sample_context_menu)
+        self.listView_samples.type  = 'listView'
+        self.listView_scans.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listView_scans.customContextMenuRequested.connect(self.scan_context_menu)
+        self.listView_scans.type  = 'listView'
 
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
         self.push_delete_scan.clicked.connect(self.delete_scan)
-        self.listView_scans.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.listView_scans.doubleClicked.connect(self.update_item_info)
-
         self.push_batch_delete.clicked.connect(self.delete_batch_element)
         self.push_batch_info.clicked.connect(self.batch_info)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
         self.push_create_map.clicked.connect(self.create_map)
+        self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
+        self.enable_user_position_input()
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_service_plan.addItems(self.service_plan_funcs_names)
@@ -99,32 +104,19 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.populate_service_parameters(0)
         self.update_batch_traj()
 
-
-
-
         self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
 
         self.sample_positioner = sample_positioner
         self.parent_gui = parent_gui.parent_gui
         self.settings = parent_gui.parent_gui.settings
-        # self.widget_sample_positioner = widget_sample_positioner.UISamplePositioner(parent=self,
-        #                                                                             settings=self.settings,
-        #                                                                             RE=RE,
-        #                                                                             sample_positioner=sample_positioner)
-        # self.layout_sample_positioner.addWidget(self.widget_sample_positioner)
-
 
     '''
     Dealing with batch experiemnts
     '''
-
     def create_batch_experiment(self):
         experiment_name = self.lineEdit_batch_experiment_name.text()
         experiment_rep = self.spinBox_exp_rep.value()
         _create_batch_experiment(experiment_name, experiment_rep, model=self.model_batch)
-
-
-
     '''
     General methods used more than once
     '''
@@ -174,7 +166,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             message_box('Warning', 'Sample name is empty')
 
     def create_new_sample(self):
-        self._check_the_xystage_vs_xylabel()
+        if self.checkBox_auto_position.isChecked():
+            self._check_the_xystage_vs_xylabel()
         step_size = self.spinBox_grid_spacing.value()
         n_x = self.spinBox_grid_x_points.value()
         n_y = self.spinBox_grid_y_points.value()
@@ -213,7 +206,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_name.setText(base_name)
         self.spinBox_sample_x.setValue(x_orig)
         self.spinBox_sample_y.setValue(y_orig)
-
 
     def delete_sample(self):
         view = self.listView_samples
@@ -272,50 +264,44 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             item.setCheckState(0)
 
     def get_info_from_autopilot(self):
+        try:
+            df = self.parent_gui.widget_autopilot.sample_df
+            str_to_parse = self.lineEdit_sample_name.text()
+            if '_' in str_to_parse:
+                try:
+                    n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
+                    select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
+                    select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
+                    line_number = np.where(select_holders & select_sample_n)[0][0]
+                except:
+                    pass
+            else:
+                line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
+            name = df.iloc[line_number]['Name']
+            comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
+            name = name.replace('/', '_')
+            self.lineEdit_sample_name.setText(name)
+            self.lineEdit_sample_comment.setText(comment)
+        except:
+            message_box('Error', 'Autopilot is not  defined')
 
-        df = self.parent_gui.widget_autopilot.sample_df
-        str_to_parse = self.lineEdit_sample_name.text()
-        if '_' in str_to_parse:
-            try:
-                n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
-                select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
-                select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
-                line_number = np.where(select_holders & select_sample_n)[0][0]
-            except:
-                pass
-        else:
-            line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
-        name = df.iloc[line_number]['Name']
-        comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
-        name = name.replace('/', '_')
-        self.lineEdit_sample_name.setText(name)
-        self.lineEdit_sample_comment.setText(comment)
 
-        # sample_df =  self.parent_gui.widget_autopilot.sample_df
-        # sample_number = int(self.lineEdit_autopilot.text()) - 1 # pandas is confusing
-        # # name = sample_df.iloc[sample_number]['Sample label']
-        # name = sample_df.iloc[sample_number]['Name']
-        # comment = sample_df.iloc[sample_number]['Composition'] + ' ' + sample_df.iloc[sample_number]['Comment']
-        # name = name.replace('/','_')
-        # self.lineEdit_sample_name.setText(name)
-        # self.lineEdit_sample_comment.setText(comment)
-
-    def update_item_info(self):
+    def modify_item(self):
         sender_object = QObject().sender()
-        print(sender_object.objectName())
         selection = sender_object.selectedIndexes()
         if selection != []:
             index = sender_object.currentIndex()
-            item = sender_object.model().item(index.row())
+            if sender_object.type == 'treeView':
+                item = sender_object.model().itemFromIndex(sender_object.selectedIndexes()[0])
+            else:
+                item = sender_object.model().item(index.row())
             if item.item_type =='sample':
-                print(f'Name {item.name}')
                 dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
                                                         item.x, item.y, 0,  parent=self)
                 if dlg.exec_():
                     item.name, item.comment, item.x, item.y, _ = dlg.getValues()
                     item.setText(f'{item.name} at X {item.x} Y {item.y}')
             elif item.item_type == 'scan':
-                print(f'Name {item.name}')
                 scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
                 trajectories = [self.comboBox_lut.itemText(i) for i in range(self.comboBox_lut.count())]
 
@@ -327,30 +313,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
                     item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
-
-
-
-
-
-
-    # def rename_dataset(self):
-    #     selection = self.list_project.selectedIndexes()
-    #     if selection != []:
-    #
-    #
-    #
-    #         name = self.parent.project._datasets[selection[0].row()].name
-    #         new_name, ok = QtWidgets.QInputDialog.getText(self, 'Rename dataset', 'Enter new name:',
-    #                                                       QtWidgets.QLineEdit.Normal, name)
-    #         if ok:
-    #             self.parent.project._datasets[selection[0].row()].name = new_name
-    #             self.parent.project.project_changed()
-
-
     '''
     Dealing with scans
     '''
-
     def delete_scan(self):
 
         view = self.listView_scans
@@ -381,11 +346,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 self.treeView_batch.model().removeRows(item.row(), 1)
             else:
                 item.parent().removeRow(item.row())
-
     '''
     Dealing with measurements
     '''
-
     def create_measurement(self):
         if self.treeView_batch.model().rowCount():
             if self.treeView_batch.selectedIndexes():
@@ -443,6 +406,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     self.treeView_batch.setModel(self.model_batch)
                 else:
                     message_box('Warning', 'Select experiment before adding measurements')
+            else:
+                message_box('Warning', 'Select experiment before adding measurements')
         else:
             message_box('Warning', 'Select experiment before adding measurements')
 
@@ -592,12 +557,59 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         else:
             message_box('Warning','Select experiment before adding map')
 
+    def move_to_sample(self):
+            sender_object = QObject().sender()
+            selection = sender_object.selectedIndexes()
+            if selection != []:
+                index = sender_object.currentIndex()
+                item = sender_object.model().item(index.row())
+                ret = question_message_box(self, 'Moving to sample', 'Are you sure?')
+                if ret:
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.x, item.x))
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.y, item.y))
+
+    def sample_context_menu(self,QPos):
+        menu = QMenu()
+        modify = menu.addAction("&Modify")
+        move_to_sample = menu.addAction("Mo&ve to sample")
+        parentPosition = self.listView_samples.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition+QPos)
+        action = menu.exec_()
+        if action == modify:
+            self.modify_item()
+        elif action == move_to_sample:
+            self.move_to_sample()
+
+    def scan_context_menu(self,QPos):
+        menu = QMenu()
+        modify = menu.addAction("&Modify")
+        parentPosition = self.listView_scans.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition+QPos)
+        action = menu.exec_()
+        if action == modify:
+            self.modify_item()
+
+    def scan_batch_menu(self,QPos):
+        menu = QMenu()
+        modify = menu.addAction("&Modify")
+        copy = menu.addAction("&Copy")
+        paste = menu.addAction("&Paste")
+
+        parentPosition = self.treeView_batch.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition+QPos)
+        action = menu.exec_()
+        if action == modify:
+            self.modify_item()
+        elif action == copy:
+            pass
+        elif action == paste:
+            pass
 
 
-
-
-
-
+    def enable_user_position_input(self):
+        self.spinBox_sample_x.setEnabled(not self.checkBox_auto_position.isChecked())
+        self.spinBox_sample_y.setEnabled(not self.checkBox_auto_position.isChecked())
+        self.push_get_sample_position.setEnabled(not self.checkBox_auto_position.isChecked())
 
 
 

@@ -94,6 +94,7 @@ def _clone_sample_item(item_sample):
     new_item_sample.x = item_sample.x
     new_item_sample.y = item_sample.y
     new_item_sample.name = item_sample.name
+    new_item_sample.comment = item_sample.comment
     new_item_sample.setIcon(icon_sample)
     return new_item_sample
 
