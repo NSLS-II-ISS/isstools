@@ -83,6 +83,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.db = db
         self.db_proc = db_proc
         self.apb = apb
+        self.hhm = hhm
         self.encoder_pb = encoder_pb
         self.token = None
         self.window_title = window_title
@@ -289,7 +290,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
-                                    cloud_dispatcher = self.cloud_dispatcher, thread = self.processing_thread)
+                                    cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread)
 
 
         self.fly_token = self.RE.subscribe(pc, 'stop')
@@ -320,8 +321,13 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
     def re_abort(self):
         if self.RE.state != 'idle':
+            # self.push_re_abort.setEnabled(0)
             self.RE.abort()
+            self.RE.state == 'abort'
             self.RE.is_aborted = True
+
+        self.hhm.abort_trajectory()
+            # self.push_re_abort.setEnabled(1)
 
     def update_re_state(self):
         palette = self.label_RE_state.palette()
@@ -335,6 +341,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
         self.label_RE_state.setPalette(palette)
         self.label_RE_state.setText(self.RE.state)
+
+
 
 class processing_thread(QThread):
     def __init__(self, gui):
