@@ -6,15 +6,13 @@ import json
 from PyQt5 import uic, QtCore, QtWidgets, QtGui
 from PyQt5.Qt import QObject
 from bluesky.plan_stubs import mv
-from isstools.batch.table_batch import XASBatchExperiment
-from xas.trajectory import trajectory_manager
+# from isstools.batch.table_batch import XASBatchExperiment
+# from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
 from isscloudtools import gdrive, initialize
 import numpy as np
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
-
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
-from xas.trajectory import trajectory, trajectory_manager
+# from xas.trajectory import trajectory, trajectory_manager
 from xas.image_analysis import analyze_spiral_scan
 
 import time as ttime
@@ -28,12 +26,15 @@ from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _create_service_item, _clone_scan_item, _clone_sample_item)
 from isstools.elements.elements import element_dict, _check_entry, remove_special_characters
 
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_autopilot.ui')
+
 
 class UIAutopilot(*uic.loadUiType(ui_path)):
     def __init__(self,
                  motors_dict,
                  camera_dict,
                  hhm,
+                 trajectory_manager,
                  RE,
                  # db,
                  sample_stage,
@@ -58,7 +59,8 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
         self.camera_dict = camera_dict
         self.motors_dict = motors_dict
         self.hhm = hhm
-        self.traj_stack = TrajectoryStack(self.hhm)
+        self.trajectory_manager = trajectory_manager
+        self.traj_stack = TrajectoryStack(self.hhm, self.trajectory_manager)
 
         self.RE = RE
 
@@ -576,336 +578,336 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
 
 
 
-
-    def run_autopilot(self):
-
-        # workflow:
-        # go through the entire stack of samples and scan qr-codes:
-        #               -mark the samples that were found in the table - done
-        #               -mark the position of each sample - done
-        # go through elements from low to high energy:
-        #               -prepare and tune the beamline for each energy - done
-        #               -(tbd) vibrations handling - done
-        #               -set trajectory
-        #               -sample optimization, aka gain setting, spiral scan etc
-
-        # self.get_sample_positioner() # handle on sample positioner
-        # self.locate_samples() # go through all samples on the holder and confirm that all of them are found
-
-        # generate order
-
-        exec_order = np.argsort([float(i['Energy']) for i in self.batch_experiment])
-        cm1_x_pos = self.read_mirror_position()
-        if cm1_x_pos>20:
-            exec_order = exec_order[::-1]
-        print(exec_order)
-        n_measurements = len(self.batch_experiment)
-
-        current_energy = None
-        print(current_energy, flush=True)
-        # for i in range(n_measurements):
-        for i in [8]:
-            idx = exec_order[i]
-            step = self.batch_experiment[idx]
-            if step['found']:
-                # print((step['Sample label'],
-                #        step['Comment'],
-                #        step['# of scans'],
-                #        0, # delay
-                #        step['Element'],
-                #        step['Edge'],
-                #        step['Energy'],
-                #        -200, # preedge
-                #        step['k-range'],
-                #        10, # t1
-                #        20 * float(step['k-range'])/16))
-
-
-                print(current_energy)
-                print(step['Energy'])
-                # if ((not current_energy) or
-                #         (abs(current_energy - step['Energy']) > 0.1 * current_energy)):
-                #     current_energy = step['Energy']
-                    # self.sample_positioner.goto_park()
-                    # self.parent_gui.widget_beamline_setup.prepare_beamline(energy_setting=int(current_energy))
-
-                    # if current_energy < 14000:
-                    #     mirror_position = 0
-                    # else:
-                    #     mirror_position = 40
-                    # print('Checking/Moving CM1 mirror X ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
-                    # self.RE(bps.mv(self.motors_dict['cm1_x']['object'], mirror_position))
-                    # print('complete', file=self.parent_gui.emitstream_out, flush=True)
-                    # self.parent_gui.widget_beamline_setup.tune_beamline()
-                    # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=current_energy,
-                    #                                                          stdout=self.parent_gui.emitstream_out))
-                    # self.RE(self.service_plan_funcs['tune_beamline_plan'](stdout=self.parent_gui.emitstream_out))
-                    # print('Enabling feedback ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
-                    # self.parent_gui.widget_beamline_setup.update_piezo_center()
-                    # if  not self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.isChecked:
-                    #     self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.toggle()
-                    #
-                    # print('complete', file=self.parent_gui.emitstream_out, flush=True)
-
-                # experiment = Experiment(step['Sample label'],
-                #                         step['Comment'],
-                #                         step['# of scans'],
-                #                         0, # delay
-                #                         step['Element'],
-                #                         step['Edge'],
-                #                         step['Energy'],
-                #                         -200, # preedge
-                #                         step['k-range'],
-                #                         10, # t1
-                #                         20 * float(step['k-range'])/16) # t2
-                # self.traj_stack.set_traj(experiment.traj_signature)
-
-                self.sample_positioner.goto_sample(*step['position'])
-                print('seting gains/offsets ', file=self.parent_gui.emitstream_out, flush=True)
-                self.RE(self.service_plan_funcs['adjust_ic_gains']())
-                self.RE(self.service_plan_funcs['get_offsets'](time=2))
-                print('seting gains/offsets complete', file=self.parent_gui.emitstream_out, flush=True)
-                #
-                # plan_func = self.plan_funcs['Fly scan (new PB)']
-                #
-                # RE_args = [plan_func(**experiment.run_parameters,
-                #                      ignore_shutter=False,
-                #                      stdout=self.parent_gui.emitstream_out)]
-
-                # if plan_key.lower().endswith('pilatus'):
-                #     LivePlots.append(LivePlotPilatus)
-                #
-                # if plan_key.lower().startswith('step scan'):
-                #     RE_args.append(LivePlots)
-                self.optimize_sample_position()
-
-                self.RE(*RE_args)
-
-                # gains and offsets
-                # spiral scan
-                # measurement
-
-    def optimize_sample_position(self, conc):
-        uid = self.RE(self.service_plan_funcs['spiral_scan']())
-        if type(uid) == tuple:
-            uid = uid[0]
-        x_opt, y_opt = analyze_spiral_scan(uid, conc)
-        self.sample_positioner.goto_xy(x_opt, y_opt)
-
-    def _print(self, msg,  **kwargs):
-        print(msg, file=self.parent_gui.emitstream_out, flush=True, **kwargs)
-
-
-
-        # for step in self.batch_experiment:
-        #
-        #     start = ttime.time()
-        #     # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
-        #     #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
-        #
-        #
-        #     experiment = Experiment(step['Sample label'],
-        #                             step['Comment'],
-        #                             step['# of scans'],
-        #                             0, # delay
-        #                             step['Element'],
-        #                             step['Edge'],
-        #                             step['Energy'],
-        #                             -200, # preedge
-        #                             step['k-range'],
-        #                             10, # t1
-        #                             20 * float(step['k-range'])/16) # t2
-        #
-        #     self.traj_stack.set_traj(experiment.traj_signature)
-        #
-        #     print(f'success took: {ttime.time() - start}')
-
-
-
-
-
-    def define_trajectories(self):
-        for experiment in self.batch_experiment:
-            # d = self.experiment
-            traj = trajectory(self.hhm)
-            kwargs = dict(
-                edge_energy=experiment['Energy'],
-                offsets=([experiment['pre-edge start'], d['pre-edge stop'],
-                          d['post-edge stop'], xray.k2e(d['k-range'], d['Energy']) - d['Energy']]),
-                trajectory_type='Double Sine',
-                dsine_preedge_duration=d['time 1'],
-                dsine_postedge_duration=d['time 2'],
-            )
-            print(kwargs)
-            traj.define(**kwargs)
-
-            # Add some more parameters manually:
-            traj.elem = d['Element']
-            traj.edge = d['Edge']
-            traj.e0 = d['Energy']
-
-            traj.interpolate()
-            traj.revert()
-            self.trajectories.append(traj)
-
-    def save_trajectories(self):
-        for ut in self.unique_trajectories:
-            filename = os.path.join(self.trajectory_folder, 'trajectory_{}.txt'.format(str(uuid.uuid4())[:8]))
-            self.trajectory_filenames.append(filename)
-            print(f'Saving {filename}...')
-            np.savetxt(filename, ut.energy_grid, fmt='%.6f',
-                       header=f'element: {ut.elem}, edge: {ut.edge}, E0: {ut.e0}')
-            call(['chmod', '666', filename])
-
-    def load_trajectories(self):
-        offset = self.hhm.angle_offset.value
-        print(offset)
-        for i, traj_file in enumerate(self.trajectory_filenames):
-            self.trajectory_manager.load(os.path.basename(traj_file),i+1,is_energy=True, offset=offset )
-
-
-    # def retrieve_info_from_proposals(self):
-
-
-
-    def run_spreadsheet_batch(self):
-        for coord in self.coordinates:
-            if getattr(self, 'checkBox_run_cell_{}'.format(coord)).isChecked():
-                experiment = getattr(self,'batch_experiment_{}'.format(coord))
-                reference_x= getattr(self,'reference_x_{}'.format(coord))
-                reference_y = getattr(self, 'reference_y_{}'.format(coord))
-
-                experiment.batch_create_trajectories()
-                experiment.create_unique_trajectories()
-                experiment.assign_trajectory_number()
-                experiment.save_trajectories()
-                experiment.load_trajectories()
-                #print(self.plan_funcs[3])
-                #
-                self.RE(experiment.plan_trajectory_priority(reference_x,reference_y,
-                                                            sample_stage_x=self.test_motor.x,
-                                                            sample_stage_y=self.test_motor.y,
-                                                            plan=self.plan_funcs[0]))
-
-    def update_reference(self):
-        sender = QObject()
-        sender_object = sender.sender().objectName()
-        coord=sender_object[-2:]
-        x_value = self.sample_stage.x.position
-        y_value = self.sample_stage.y.position
-
-        setattr(self, 'reference_x_{}'.format(coord),x_value)
-        setattr(self, 'reference_y_{}'.format(coord),y_value)
-        getattr(self, 'lineEdit_reference_x_{}'.format(coord)).setText('{:.3f}'.format(x_value))
-        getattr(self, 'lineEdit_reference_y_{}'.format(coord)).setText('{:.3f}'.format(y_value))
-
-    def load_sample_definition(self):
-        sender = QObject()
-        sender_object = sender.sender().objectName()
-        coord=sender_object[-2:]
-        excel_file = QtWidgets.QFileDialog.getOpenFileNames(directory = '/nsls2/xf08id/Sandbox',
-                   filter = '*.xlsx', parent = self)[0]
-        if len(excel_file):
-
-            self.label_database_status.setText('Loading {} to Sample Frame {}'.
-                                               format(os.path.basename(excel_file[0]), coord))
-            setattr(self, 'batch_experiment_{}'.format(coord), XASBatchExperiment(excel_file=excel_file[0], hhm=self.hhm))
-            print(self.batch_experiment_11)
-
-    def show_sample_definition(self):
-        sender = QObject()
-        sender_object = sender.sender().objectName()
-        coord=sender_object[-2:]
-        if hasattr(self,'batch_experiment_{}'.format(coord)):
-            exp=getattr(self,'batch_experiment_{}'.format(coord))
-            self.tableWidget_sample_def.setRowCount(len(exp.experiment_table))
-            self.label_database_status.setText(exp.name)
-            for i in range(len(exp.experiment_table)):
-                d =exp.experiment_table.iloc[i]
-                fields=['Proposal','SAF','Sample name','Composition','Element','Edge','Energy']
-                for j,field in enumerate(fields):
-                    self.tableWidget_sample_def.setItem(i, j, QtWidgets.QTableWidgetItem(str(d[field])))
-                self.tableWidget_sample_def.setRowHeight(i,24)
-        else:
-            self.label_database_status.setText('Please load Experimental Definition first')
-
-
-    def abort_batch(self):
-        if self.batch_running == True:
-            self.batch_abort = True
-            self.re_abort()
-
-    def check_pause_abort_batch(self):
-        if self.batch_abort:
-            print('**** Aborting Batch! ****')
-            raise Exception('Abort button pressed by user')
-        elif self.batch_pause:
-            self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
-            while self.batch_pause:
-                QtCore.QCoreApplication.processEvents()
-
-    def start_batch(self):
-        print('[Launching Threads]')
-        batch = self.widget_batch_manual.treeView_batch.model()
-        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
-
-    def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict):
-        sys.stdout =  self.parent_gui.emitstream_out
-        tm = trajectory_manager(hhm)
-        for ii in range(batch.rowCount()):
-            experiment = batch.item(ii)
-            repeat=experiment.repeat
-            for indx in range(repeat):
-                exper_index = ''
-                if repeat>1:
-                    exper_index = f'{(indx+1):04d}'
-                for jj in range(experiment.rowCount()):
-                    print(experiment.rowCount())
-                    step = experiment.child(jj)
-                    if  step.item_type == 'sample':
-                        sample = step
-                        print('  ' + sample.name)
-                        print('  ' + str(sample.x))
-                        print('  ' + str(sample.y))
-                        yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
-                        #print(f'moving to {sample.x}, {sample y}')
-                        for kk in range(sample.rowCount()):
-                            scan = sample.child(kk)
-                            traj_index= scan.trajectory
-                            print('      ' + scan.scan_type)
-                            plan = plans_dict[scan.scan_type]
-                            sample_name =  '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            print(sample_name)
-                            kwargs = {'name': sample_name,
-                                      'comment': '',
-                                      'delay': 0,
-                                      'n_cycles': scan.repeat,
-                                      'stdout': self.parent_gui.emitstream_out}
-                            tm.init(traj_index+1)
-                            yield from plan(**kwargs)
-                    elif step.item_type == 'scan':
-                        scan = step
-                        traj_index = scan.trajectory
-                        print('  ' + scan.scan_type)
-                        tm.init(traj_index + 1)
-                        for kk in range(step.rowCount()):
-                            sample = scan.child(kk)
-                            yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
-                            plan = plans_dict[scan.scan_type]
-                            print('     ' + sample.name)
-                            print('     ' + str(sample.x))
-                            print('     ' + str(sample.y))
-                            sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                            print(sample_name)
-                            kwargs = {'name': sample_name,
-                                      'comment': '',
-                                      'delay': 0,
-                                      'n_cycles': repeat,
-                                      'stdout': self.parent_gui.emitstream_out}
-
-                            yield from plan(**kwargs)
-                    elif step.item_type == 'service':
-                        yield from step.service_plan(**step.service_params)
+    #
+    # def run_autopilot(self):
+    #
+    #     # workflow:
+    #     # go through the entire stack of samples and scan qr-codes:
+    #     #               -mark the samples that were found in the table - done
+    #     #               -mark the position of each sample - done
+    #     # go through elements from low to high energy:
+    #     #               -prepare and tune the beamline for each energy - done
+    #     #               -(tbd) vibrations handling - done
+    #     #               -set trajectory
+    #     #               -sample optimization, aka gain setting, spiral scan etc
+    #
+    #     # self.get_sample_positioner() # handle on sample positioner
+    #     # self.locate_samples() # go through all samples on the holder and confirm that all of them are found
+    #
+    #     # generate order
+    #
+    #     exec_order = np.argsort([float(i['Energy']) for i in self.batch_experiment])
+    #     cm1_x_pos = self.read_mirror_position()
+    #     if cm1_x_pos>20:
+    #         exec_order = exec_order[::-1]
+    #     print(exec_order)
+    #     n_measurements = len(self.batch_experiment)
+    #
+    #     current_energy = None
+    #     print(current_energy, flush=True)
+    #     # for i in range(n_measurements):
+    #     for i in [8]:
+    #         idx = exec_order[i]
+    #         step = self.batch_experiment[idx]
+    #         if step['found']:
+    #             # print((step['Sample label'],
+    #             #        step['Comment'],
+    #             #        step['# of scans'],
+    #             #        0, # delay
+    #             #        step['Element'],
+    #             #        step['Edge'],
+    #             #        step['Energy'],
+    #             #        -200, # preedge
+    #             #        step['k-range'],
+    #             #        10, # t1
+    #             #        20 * float(step['k-range'])/16))
+    #
+    #
+    #             print(current_energy)
+    #             print(step['Energy'])
+    #             # if ((not current_energy) or
+    #             #         (abs(current_energy - step['Energy']) > 0.1 * current_energy)):
+    #             #     current_energy = step['Energy']
+    #                 # self.sample_positioner.goto_park()
+    #                 # self.parent_gui.widget_beamline_setup.prepare_beamline(energy_setting=int(current_energy))
+    #
+    #                 # if current_energy < 14000:
+    #                 #     mirror_position = 0
+    #                 # else:
+    #                 #     mirror_position = 40
+    #                 # print('Checking/Moving CM1 mirror X ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
+    #                 # self.RE(bps.mv(self.motors_dict['cm1_x']['object'], mirror_position))
+    #                 # print('complete', file=self.parent_gui.emitstream_out, flush=True)
+    #                 # self.parent_gui.widget_beamline_setup.tune_beamline()
+    #                 # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=current_energy,
+    #                 #                                                          stdout=self.parent_gui.emitstream_out))
+    #                 # self.RE(self.service_plan_funcs['tune_beamline_plan'](stdout=self.parent_gui.emitstream_out))
+    #                 # print('Enabling feedback ... ', file=self.parent_gui.emitstream_out, flush=True, end='')
+    #                 # self.parent_gui.widget_beamline_setup.update_piezo_center()
+    #                 # if  not self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.isChecked:
+    #                 #     self.parent_gui.widget_beamline_setup.pushEnableHHMFeedback.toggle()
+    #                 #
+    #                 # print('complete', file=self.parent_gui.emitstream_out, flush=True)
+    #
+    #             # experiment = Experiment(step['Sample label'],
+    #             #                         step['Comment'],
+    #             #                         step['# of scans'],
+    #             #                         0, # delay
+    #             #                         step['Element'],
+    #             #                         step['Edge'],
+    #             #                         step['Energy'],
+    #             #                         -200, # preedge
+    #             #                         step['k-range'],
+    #             #                         10, # t1
+    #             #                         20 * float(step['k-range'])/16) # t2
+    #             # self.traj_stack.set_traj(experiment.traj_signature)
+    #
+    #             self.sample_positioner.goto_sample(*step['position'])
+    #             print('seting gains/offsets ', file=self.parent_gui.emitstream_out, flush=True)
+    #             self.RE(self.service_plan_funcs['adjust_ic_gains']())
+    #             self.RE(self.service_plan_funcs['get_offsets'](time=2))
+    #             print('seting gains/offsets complete', file=self.parent_gui.emitstream_out, flush=True)
+    #             #
+    #             # plan_func = self.plan_funcs['Fly scan (new PB)']
+    #             #
+    #             # RE_args = [plan_func(**experiment.run_parameters,
+    #             #                      ignore_shutter=False,
+    #             #                      stdout=self.parent_gui.emitstream_out)]
+    #
+    #             # if plan_key.lower().endswith('pilatus'):
+    #             #     LivePlots.append(LivePlotPilatus)
+    #             #
+    #             # if plan_key.lower().startswith('step scan'):
+    #             #     RE_args.append(LivePlots)
+    #             self.optimize_sample_position()
+    #
+    #             self.RE(*RE_args)
+    #
+    #             # gains and offsets
+    #             # spiral scan
+    #             # measurement
+    #
+    # def optimize_sample_position(self, conc):
+    #     uid = self.RE(self.service_plan_funcs['spiral_scan']())
+    #     if type(uid) == tuple:
+    #         uid = uid[0]
+    #     x_opt, y_opt = analyze_spiral_scan(uid, conc)
+    #     self.sample_positioner.goto_xy(x_opt, y_opt)
+    #
+    # def _print(self, msg,  **kwargs):
+    #     print(msg, file=self.parent_gui.emitstream_out, flush=True, **kwargs)
+    #
+    #
+    #
+    #     # for step in self.batch_experiment:
+    #     #
+    #     #     start = ttime.time()
+    #     #     # ['Proposal', 'SAF', 'Sample holder ID', 'Sample #', 'Sample label', 'Comment', 'Composition',
+    #     #     #  'Element', 'Concentration', 'Edge', 'Energy', 'k-range', '# of scans']
+    #     #
+    #     #
+    #     #     experiment = Experiment(step['Sample label'],
+    #     #                             step['Comment'],
+    #     #                             step['# of scans'],
+    #     #                             0, # delay
+    #     #                             step['Element'],
+    #     #                             step['Edge'],
+    #     #                             step['Energy'],
+    #     #                             -200, # preedge
+    #     #                             step['k-range'],
+    #     #                             10, # t1
+    #     #                             20 * float(step['k-range'])/16) # t2
+    #     #
+    #     #     self.traj_stack.set_traj(experiment.traj_signature)
+    #     #
+    #     #     print(f'success took: {ttime.time() - start}')
+    #
+    #
+    #
+    #
+    #
+    # def define_trajectories(self):
+    #     for experiment in self.batch_experiment:
+    #         # d = self.experiment
+    #         traj = trajectory(self.hhm)
+    #         kwargs = dict(
+    #             edge_energy=experiment['Energy'],
+    #             offsets=([experiment['pre-edge start'], d['pre-edge stop'],
+    #                       d['post-edge stop'], xray.k2e(d['k-range'], d['Energy']) - d['Energy']]),
+    #             trajectory_type='Double Sine',
+    #             dsine_preedge_duration=d['time 1'],
+    #             dsine_postedge_duration=d['time 2'],
+    #         )
+    #         print(kwargs)
+    #         traj.define(**kwargs)
+    #
+    #         # Add some more parameters manually:
+    #         traj.elem = d['Element']
+    #         traj.edge = d['Edge']
+    #         traj.e0 = d['Energy']
+    #
+    #         traj.interpolate()
+    #         traj.revert()
+    #         self.trajectories.append(traj)
+    #
+    # def save_trajectories(self):
+    #     for ut in self.unique_trajectories:
+    #         filename = os.path.join(self.trajectory_folder, 'trajectory_{}.txt'.format(str(uuid.uuid4())[:8]))
+    #         self.trajectory_filenames.append(filename)
+    #         print(f'Saving {filename}...')
+    #         np.savetxt(filename, ut.energy_grid, fmt='%.6f',
+    #                    header=f'element: {ut.elem}, edge: {ut.edge}, E0: {ut.e0}')
+    #         call(['chmod', '666', filename])
+    #
+    # def load_trajectories(self):
+    #     offset = self.hhm.angle_offset.value
+    #     print(offset)
+    #     for i, traj_file in enumerate(self.trajectory_filenames):
+    #         self.trajectory_manager.load(os.path.basename(traj_file),i+1,is_energy=True, offset=offset )
+    #
+    #
+    # # def retrieve_info_from_proposals(self):
+    #
+    #
+    #
+    # def run_spreadsheet_batch(self):
+    #     for coord in self.coordinates:
+    #         if getattr(self, 'checkBox_run_cell_{}'.format(coord)).isChecked():
+    #             experiment = getattr(self,'batch_experiment_{}'.format(coord))
+    #             reference_x= getattr(self,'reference_x_{}'.format(coord))
+    #             reference_y = getattr(self, 'reference_y_{}'.format(coord))
+    #
+    #             experiment.batch_create_trajectories()
+    #             experiment.create_unique_trajectories()
+    #             experiment.assign_trajectory_number()
+    #             experiment.save_trajectories()
+    #             experiment.load_trajectories()
+    #             #print(self.plan_funcs[3])
+    #             #
+    #             self.RE(experiment.plan_trajectory_priority(reference_x,reference_y,
+    #                                                         sample_stage_x=self.test_motor.x,
+    #                                                         sample_stage_y=self.test_motor.y,
+    #                                                         plan=self.plan_funcs[0]))
+    #
+    # def update_reference(self):
+    #     sender = QObject()
+    #     sender_object = sender.sender().objectName()
+    #     coord=sender_object[-2:]
+    #     x_value = self.sample_stage.x.position
+    #     y_value = self.sample_stage.y.position
+    #
+    #     setattr(self, 'reference_x_{}'.format(coord),x_value)
+    #     setattr(self, 'reference_y_{}'.format(coord),y_value)
+    #     getattr(self, 'lineEdit_reference_x_{}'.format(coord)).setText('{:.3f}'.format(x_value))
+    #     getattr(self, 'lineEdit_reference_y_{}'.format(coord)).setText('{:.3f}'.format(y_value))
+    #
+    # def load_sample_definition(self):
+    #     sender = QObject()
+    #     sender_object = sender.sender().objectName()
+    #     coord=sender_object[-2:]
+    #     excel_file = QtWidgets.QFileDialog.getOpenFileNames(directory = '/nsls2/xf08id/Sandbox',
+    #                filter = '*.xlsx', parent = self)[0]
+    #     if len(excel_file):
+    #
+    #         self.label_database_status.setText('Loading {} to Sample Frame {}'.
+    #                                            format(os.path.basename(excel_file[0]), coord))
+    #         setattr(self, 'batch_experiment_{}'.format(coord), XASBatchExperiment(excel_file=excel_file[0], hhm=self.hhm))
+    #         print(self.batch_experiment_11)
+    #
+    # def show_sample_definition(self):
+    #     sender = QObject()
+    #     sender_object = sender.sender().objectName()
+    #     coord=sender_object[-2:]
+    #     if hasattr(self,'batch_experiment_{}'.format(coord)):
+    #         exp=getattr(self,'batch_experiment_{}'.format(coord))
+    #         self.tableWidget_sample_def.setRowCount(len(exp.experiment_table))
+    #         self.label_database_status.setText(exp.name)
+    #         for i in range(len(exp.experiment_table)):
+    #             d =exp.experiment_table.iloc[i]
+    #             fields=['Proposal','SAF','Sample name','Composition','Element','Edge','Energy']
+    #             for j,field in enumerate(fields):
+    #                 self.tableWidget_sample_def.setItem(i, j, QtWidgets.QTableWidgetItem(str(d[field])))
+    #             self.tableWidget_sample_def.setRowHeight(i,24)
+    #     else:
+    #         self.label_database_status.setText('Please load Experimental Definition first')
+    #
+    #
+    # def abort_batch(self):
+    #     if self.batch_running == True:
+    #         self.batch_abort = True
+    #         self.re_abort()
+    #
+    # def check_pause_abort_batch(self):
+    #     if self.batch_abort:
+    #         print('**** Aborting Batch! ****')
+    #         raise Exception('Abort button pressed by user')
+    #     elif self.batch_pause:
+    #         self.label_batch_step.setText('[Paused] {}'.format(self.label_batch_step.text()))
+    #         while self.batch_pause:
+    #             QtCore.QCoreApplication.processEvents()
+    #
+    # def start_batch(self):
+    #     print('[Launching Threads]')
+    #     batch = self.widget_batch_manual.treeView_batch.model()
+    #     self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs))
+    #
+    # def batch_parse_and_run(self, hhm,sample_stage,batch,plans_dict):
+    #     sys.stdout =  self.parent_gui.emitstream_out
+    #     tm = trajectory_manager(hhm)
+    #     for ii in range(batch.rowCount()):
+    #         experiment = batch.item(ii)
+    #         repeat=experiment.repeat
+    #         for indx in range(repeat):
+    #             exper_index = ''
+    #             if repeat>1:
+    #                 exper_index = f'{(indx+1):04d}'
+    #             for jj in range(experiment.rowCount()):
+    #                 print(experiment.rowCount())
+    #                 step = experiment.child(jj)
+    #                 if  step.item_type == 'sample':
+    #                     sample = step
+    #                     print('  ' + sample.name)
+    #                     print('  ' + str(sample.x))
+    #                     print('  ' + str(sample.y))
+    #                     yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+    #                     #print(f'moving to {sample.x}, {sample y}')
+    #                     for kk in range(sample.rowCount()):
+    #                         scan = sample.child(kk)
+    #                         traj_index= scan.trajectory
+    #                         print('      ' + scan.scan_type)
+    #                         plan = plans_dict[scan.scan_type]
+    #                         sample_name =  '{} {} {}'.format(sample.name, scan.name, exper_index)
+    #                         print(sample_name)
+    #                         kwargs = {'name': sample_name,
+    #                                   'comment': '',
+    #                                   'delay': 0,
+    #                                   'n_cycles': scan.repeat,
+    #                                   'stdout': self.parent_gui.emitstream_out}
+    #                         tm.init(traj_index+1)
+    #                         yield from plan(**kwargs)
+    #                 elif step.item_type == 'scan':
+    #                     scan = step
+    #                     traj_index = scan.trajectory
+    #                     print('  ' + scan.scan_type)
+    #                     tm.init(traj_index + 1)
+    #                     for kk in range(step.rowCount()):
+    #                         sample = scan.child(kk)
+    #                         yield from mv(sample_stage.x, sample.x, sample_stage.y, sample.y)
+    #                         plan = plans_dict[scan.scan_type]
+    #                         print('     ' + sample.name)
+    #                         print('     ' + str(sample.x))
+    #                         print('     ' + str(sample.y))
+    #                         sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+    #                         print(sample_name)
+    #                         kwargs = {'name': sample_name,
+    #                                   'comment': '',
+    #                                   'delay': 0,
+    #                                   'n_cycles': repeat,
+    #                                   'stdout': self.parent_gui.emitstream_out}
+    #
+    #                         yield from plan(**kwargs)
+    #                 elif step.item_type == 'service':
+    #                     yield from step.service_plan(**step.service_params)
 
 
 

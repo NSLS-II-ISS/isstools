@@ -3,7 +3,7 @@ import sys
 import pkg_resources
 from PyQt5 import uic
 from bluesky.plan_stubs import mv
-from xas.trajectory import trajectory_manager
+# from xas.trajectory import trajectory_manager
 from isstools.widgets import widget_batch_manual
 
 from isstools.dialogs.BasicDialogs import message_box
@@ -15,15 +15,16 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch.ui')
 
 class UIBatch(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 plan_funcs,
-                 service_plan_funcs,
-                 hhm,
-                 RE,
-                 sample_stage,
-                 parent_gui,
-                 motors_dict,
-                 camera_dict,
-                 sample_positioner,
+                 plan_funcs=None,
+                 service_plan_funcs=None,
+                 hhm=None,
+                 trajectory_manager=None,
+                 RE=None,
+                 sample_stage=None,
+                 parent_gui=None,
+                 motors_dict=None,
+                 camera_dict=None,
+                 sample_positioner=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -32,14 +33,16 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
         self.hhm = hhm
+        self.trajectory_manager = trajectory_manager
         self.sample_stage = sample_stage
         self.parent_gui = parent_gui
 
         self.widget_batch_manual = widget_batch_manual.UIBatchManual(plan_funcs,
                                                                      service_plan_funcs,
                                                                      hhm,
+                                                                     trajectory_manager,
                                                                      sample_stage=sample_stage,
-                                                                     parent_gui=self,
+                                                                     parent_gui=parent_gui,
                                                                      sample_positioner=sample_positioner,
                                                                      RE=RE,
                                                                      )
@@ -70,7 +73,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         #sample_stage = None
         sys.stdout = self.parent_gui.emitstream_out
         # tm = trajectory_manager(hhm)
-        traj_stack = TrajectoryStack(hhm)
+        traj_stack = TrajectoryStack(self.hhm, self.trajectory_manager)
         for ii in range(batch.rowCount()): # go through all experiments
             experiment = batch.item(ii)
             repeat = experiment.repeat

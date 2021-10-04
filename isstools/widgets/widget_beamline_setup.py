@@ -14,7 +14,7 @@ from matplotlib.widgets import Cursor
 from isstools.elements.liveplots import NormPlot
 import json
 from isstools.elements.figure_update import update_figure, setup_figure
-from xas.energy_calibration import validate_calibration, process_calibration
+# from xas.energy_calibration import validate_calibration, process_calibration
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -77,13 +77,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.user_motor_sorted_list = list(self.user_motor_list)
         self.user_motor_sorted_list.sort()
 
-
         self.push_prepare_beamline.clicked.connect(self.prepare_beamline)
         self.push_get_offsets.clicked.connect(self.get_offsets)
 
         self.push_adjust_gains.clicked.connect(self.adjust_gains)
         self.push_bender_scan.clicked.connect(self.bender_scan)
-
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
         self.push_tune_beamline.clicked.connect(self.tune_beamline)
@@ -110,11 +108,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
         self.push_update_feedback_center.clicked.connect(self.update_piezo_center)
         self.push_calibration_scan.clicked.connect(self.energy_calibration)
-
-        # self.timer_update_fb_gui = QtCore.QTimer(self)
-        # self.timer_update_fb_gui.setInterval(500)
-        # self.timer_update_fb_gui.timeout.connect(self.update_feedback_gui_components)
-        # self.timer_update_fb_gui.start()
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
@@ -241,19 +234,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
 
-        #self.push_gen_scan.setEnabled(False)
-        #print(channel, channel_den, result_name, curr_mot.name)
         uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
                                                                curr_mot,
                                                                rel_start,
                                                                rel_stop,
                                                                num_steps, ),
                            NormPlot(channel, channel_den, result_name, curr_mot.name, ax=self.figure_gen_scan.ax))
-
-        # except Exception as exc:
-        #     print('[General Scan] Aborted! Exception: {}'.format(exc))
-        #     print('[General Scan] Limit switch reached . Set narrower range and try again.')
-        #     uid_list = []
 
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
@@ -332,15 +318,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
 
     def adjust_gains(self):
-        detectors = [box.text() for box in self.adc_checkboxes if box.isChecked()]
-        self.RE(self.service_plan_funcs['adjust_ic_gains'](detector_names=detectors, stdout = self.parent_gui.emitstream_out))
+        self.RE(self.service_plan_funcs['adjust_ic_gains'](stdout = self.parent_gui.emitstream_out))
 
     def prepare_beamline(self, energy_setting=None):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
         self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
                                                                 stdout = self.parent_gui.emitstream_out))
-
     def get_offsets(self):
         self.RE(self.service_plan_funcs['get_offsets']())
 
@@ -373,7 +357,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def update_piezo_center(self):
         self.hhm_feedback.update_center()
 
-
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()
         # 374.94 is the nominal RF frequency
@@ -396,34 +379,15 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
     def energy_calibration(self):
-        pass
-        # element = self.comboBox_reference_foils.currentText()
-        # edge = self.edge_dict[element]
-        # st, message = validate_calibration(element, edge, self.db_proc,self.hhm)
-        # if st:
-        #     self.RE(self.aux_plan_funcs['set_reference_foil'](element))
-        #     self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
-        #     e_shift, en_ref, mu_ref, mu = process_calibration(element, edge, self.db,self.db_proc, self.hhm, self.trajectory_manager)
-        #     self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
-        #     print(f'{ttime.ctime()} [Energy calibration] Energy shift is {e_shift} eV')
-        #
-        #     print(f'{ttime.ctime()} [Energy calibration] Validating the calibration')
-        #     self.RE(self.plan_funcs['Fly scan'](f'{element} {edge} foil scan', ''))
-        #     e_shift, en_ref, mu_ref, mu = process_calibration(self.db, self.db_proc, self.hhm)
-        #     if e_shift < 0.1:
-        #         print(f'{ttime.ctime()} [Energy calibration] Completed')
-        #
-        #     else:
-        #         print(f'{ttime.ctime()} [Energy calibration] Energy calibration error is {e_shift} > 0.1 eV. Check Manually.')
-        #     self._update_figure_with_calibration_data(en_ref, mu_ref, mu)
-        #
-        # else:
-        #     message_box('Error', message)
-
+        element = self.comboBox_reference_foils.currentText()
+        edge = self.edge_dict[element]
+        plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge, plot_fun=self._update_figure_with_calibration_data)
+        self.RE(plan)
 
     def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
         self.figure_gen_scan.ax.plot(en_ref, mu_ref, label='Reference')
-        self.figure_gen_scanax.plot(en_ref, mu, label='New spectrum')
+        self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
         self.figure_gen_scan.ax.set_xlabel('Energy')
         self.figure_gen_scan.ax.set_ylabel('mu')
         self.figure_gen_scan.ax.set_xlim(en_ref[0], en_ref[-1])
@@ -431,97 +395,3 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
         self.canvas_gen_scan.motor = None
-
-
-# class piezo_fb_thread(QThread):
-#     def __init__(self, gui):
-#         QThread.__init__(self)
-#         self.gui = gui
-#
-#         P = 0.004 * self.gui.piezo_kp
-#         I = 0  # 0.02
-#         D = 0  # 0.01
-#         self.pid = PID(P, I, D)
-#         # self.sampleTime = 0.00025
-#         self.sampleTime = 0.01 # Denis testing on May 25, 2021
-#         self.pid.setSampleTime(self.sampleTime)
-#         self.pid.windup_guard = 3
-#         self.go = 0
-#         self.should_print_diagnostics = True
-#         self.truncate_data = False
-#
-#     def determine_beam_position_from_image(self, line = 420, center_point = 655, n_lines = 1):
-#         try:
-#
-#             image = self.gui.bpm_es.image.array_data.read()['bpm_es_image_array_data']['value'].reshape((960,1280))
-#
-#         except Exception as e:
-#             print(f"Exception: {e}\nPlease, check the max retries value in the piezo feedback IOC or maybe the network load (too many cameras).")
-#             return
-#
-#         return determine_beam_position_from_fb_image(image, line=line, center_point=center_point, n_lines=n_lines, truncate_data=self.truncate_data,
-#                                                      should_print_diagnostics=self.should_print_diagnostics)
-#
-#
-#     def gaussian_piezo_feedback(self, line = 420, center_point = 655, n_lines = 1, n_measures = 10):
-#
-#         current_position = self.determine_beam_position_from_image(line = line, center_point = center_point, n_lines = n_lines)
-#         # print(f'current position: {current_position}')
-#         if current_position:
-#             self.pid.SetPoint = 960 - center_point
-#             self.pid.update(current_position)
-#             deviation = self.pid.output
-#             # deviation = -(coeff[1] - center_point)
-#             piezo_diff = deviation  # * 0.0855
-#
-#             curr_value = self.gui.hhm.pitch.read()['hhm_pitch']['value']
-#             # print(f"{ttime.ctime()} curr_value: {curr_value}, piezo_diff: {piezo_diff}, delta: {curr_value - piezo_diff}")
-#             try:
-#                 self.gui.hhm.pitch.move(curr_value - piezo_diff)
-#                 self.should_print_diagnostics = True
-#             except:
-#                 if self.should_print_diagnostics:
-#                     print('failed to correct pitch due to controller bug (DSSI works on it)')  # TODO: Denis 5/25/2021
-#                     self.should_print_diagnostics = False
-#         else:
-#             self.should_print_diagnostics = False
-#
-#     def adjust_center_point(self, line=420, center_point=655, n_lines=1, n_measures=10):
-#         # getting center:
-#         centers = []
-#         #print(f'center_point INITIALLY is {center_point}')
-#         for i in range(n_measures):
-#             current_position = self.determine_beam_position_from_image(line=line, center_point=center_point,
-#                                                                        n_lines=n_lines)
-#             if current_position:
-#                 centers.append(960 - current_position)
-#         # print('Centers: {}'.format(centers))
-#         # print('Old Center Point: {}'.format(center_point))
-#         if len(centers) > 0:
-#             center_point = np.mean(centers)
-#             print(f'center_point DETERMINED is {center_point}')
-#             self.gui.settings.setValue('piezo_center', center_point)
-#             self.gui.piezo_center = center_point
-#             self.gui.hhm.fb_center.put(self.gui.piezo_center)
-#             # print('New Center Point: {}'.format(center_point))
-#
-#     def run(self):
-#         self.go = 1
-#         # self.adjust_center_point(line = self.gui.piezo_line, center_point = self.gui.piezo_center, n_lines = self.gui.piezo_nlines, n_measures = self.gui.piezo_nmeasures)
-#
-#         while (self.go):
-#             # print("Here all the time? 1")
-#             if len([self.gui.shutter_dictionary[shutter] for shutter in self.gui.shutter_dictionary if
-#                     self.gui.shutter_dictionary[shutter].shutter_type != 'SP' and
-#                                     self.gui.shutter_dictionary[shutter].state.read()['{}_state'.format(shutter)][
-#                                         'value'] != 0]) == 0:
-#                 self.gaussian_piezo_feedback(line=self.gui.piezo_line, center_point=self.gui.piezo_center,
-#                                              n_lines=self.gui.piezo_nlines, n_measures=self.gui.piezo_nmeasures)
-#                 # print("Here all the time? 4")
-#                 ttime.sleep(self.sampleTime)
-#                 # print("Here all the time? 5")
-#             else:
-#                 # print("Here all the time? Not here!")
-#                 ttime.sleep(self.sampleTime)
-
-

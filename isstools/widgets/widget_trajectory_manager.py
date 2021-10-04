@@ -10,7 +10,7 @@ from PyQt5 import uic, QtWidgets, QtCore
 from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
 from isstools.elements.figure_update import update_figure
-from xas.trajectory import trajectory, trajectory_manager
+from xas.trajectory import TrajectoryCreator
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -25,6 +25,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  hhm=None,
+                 trajectory_manager=None,
                  aux_plan_funcs = {},
                  *args, **kwargs):
 
@@ -46,21 +47,18 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
-        self.traj_manager = trajectory_manager(hhm)
+
+        self.trajectory_manager = trajectory_manager
+        self.trajectory_creator = TrajectoryCreator(servocycle=hhm.servocycle, pulses_per_deg=hhm.pulses_per_deg)
+
         self.comboBox_slot_to_load_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
         self.comboBox_slot_to_init_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
-        self.comboBox_slot_to_init_trajectory.setCurrentIndex(self.traj_manager.current_lut() - 1)
-        try:
-            pass
-        #    self.trajectories = self.traj_manager.read_info(silent=True)
-        #    self.trajectories = collections.OrderedDict(sorted(self.trajectories.items()))
-        except OSError as err:
-            print('Error loading:', err)
+        self.comboBox_slot_to_init_trajectory.setCurrentIndex(self.trajectory_manager.current_lut - 1)
 
-        self.traj_creator = trajectory(self.hhm, servocycle=16000)
-        self.traj_creator_ref = trajectory(self.hhm, servocycle=16000) # this is a mock one for reference
 
-        self.trajectory_path = self.hhm.traj_filepath
+        # self.traj_creator_ref = trajectory(self.hhm, servocycle=16000) # this is a mock one for reference
+
+        # self.trajectory_path = self.hhm.traj_filepath
         self.push_build_trajectory.clicked.connect(self.build_trajectory)
         self.push_save_trajectory.clicked.connect(self.save_trajectory)
         self.push_update_offset.clicked.connect(self.update_offset)
@@ -144,57 +142,57 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         # vel_edge = float(self.edit_vel_edge.text())
         #Define element and edge
         # TODO: move it to trajectory class definition
-        self.traj_creator.elem = f'{self.element}'
-        self.traj_creator.edge = f'{self.edge}'
-        self.traj_creator.e0 = f'{self.e0}'
+        self.trajectory_creator.elem = f'{self.element}'
+        self.trajectory_creator.edge = f'{self.edge}'
+        self.trajectory_creator.e0 = f'{self.e0}'
 
 
 
         # Create and interpolate trajectory
-        self.traj_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
-                                 velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
-                                 stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
+        self.trajectory_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
+                                       velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
+                                       stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
                                              postedge_stitch_lo, postedge_stitch_hi]), \
-                                 padding_lo=padding_preedge, padding_hi=padding_postedge,
-                                 sine_duration=sine_duration,
-                                 dsine_preedge_duration=dsine_preedge_duration,
-                                 dsine_edge_duration = dsine_edge_duration,
-                                 dsine_postedge_duration=dsine_postedge_duration,
-                                 dsine_preedge_frac=dsine_preedge_flex_frac,
-                                 dsine_postedge_frac=dsine_postedge_flex_frac,
-                                 trajectory_type=traj_type,
-                                 pad_time=pad_time)
+                                       padding_lo=padding_preedge, padding_hi=padding_postedge,
+                                       sine_duration=sine_duration,
+                                       dsine_preedge_duration=dsine_preedge_duration,
+                                       dsine_edge_duration = dsine_edge_duration,
+                                       dsine_postedge_duration=dsine_postedge_duration,
+                                       dsine_preedge_frac=dsine_preedge_flex_frac,
+                                       dsine_postedge_frac=dsine_postedge_flex_frac,
+                                       trajectory_type=traj_type,
+                                       pad_time=pad_time)
 
-        self.traj_creator_ref.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
-                                 velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
-                                 stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
-                                             postedge_stitch_lo, postedge_stitch_hi]), \
-                                 padding_lo=padding_preedge, padding_hi=padding_postedge,
-                                 sine_duration=sine_duration,
-                                 dsine_preedge_duration=10,
-                                 dsine_edge_duration=dsine_edge_duration,
-                                 dsine_postedge_duration=20,
-                                 dsine_preedge_frac=dsine_preedge_flex_frac,
-                                 dsine_postedge_frac=dsine_postedge_flex_frac,
-                                 trajectory_type='Double Sine')
+        # self.traj_creator_ref.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
+        #                          velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
+        #                          stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
+        #                                      postedge_stitch_lo, postedge_stitch_hi]), \
+        #                          padding_lo=padding_preedge, padding_hi=padding_postedge,
+        #                          sine_duration=sine_duration,
+        #                          dsine_preedge_duration=10,
+        #                          dsine_edge_duration=dsine_edge_duration,
+        #                          dsine_postedge_duration=20,
+        #                          dsine_preedge_frac=dsine_preedge_flex_frac,
+        #                          dsine_postedge_frac=dsine_postedge_flex_frac,
+        #                          trajectory_type='Double Sine')
 
         # self.traj_creator.compute_time_per_bin(E0, preedge_hi, edge_hi)
-        self.traj_creator.interpolate()
-        self.traj_creator_ref.interpolate()
+        self.trajectory_creator.interpolate()
+        # self.traj_creator_ref.interpolate()
 
 
 
         # Revert trajectory if checkbox checked
         if self.checkBox_traj_revert.isChecked() and self.checkBox_traj_revert.isEnabled():
-            self.traj_creator.revert()
+            self.trajectory_creator.revert()
 
 
 
-        self.traj_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
-                               single_direction=self.checkBox_traj_single_dir.isChecked())
+        self.trajectory_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
+                                     single_direction=self.checkBox_traj_single_dir.isChecked())
 
         # Convert to encoder counts
-        self.traj_creator.e2encoder(float(self.label_angle_offset.text()))
+        self.trajectory_creator.e2encoder(float(self.label_angle_offset.text()))
 
         self._update_figures()
 
@@ -206,11 +204,11 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
         update_figure([self.figure_single_trajectory.ax, self.figure_single_trajectory.ax2],
                        self.toolbar_single_trajectory,self.canvas_single_trajectory)
         # self.figure_single_trajectory.ax.plot(self.traj_creator.time, self.traj_creator.energy, 'ro')
-        self.figure_single_trajectory.ax.plot(self.traj_creator.time_grid, self.traj_creator.energy_grid, 'b')
+        self.figure_single_trajectory.ax.plot(self.trajectory_creator.time_grid, self.trajectory_creator.energy_grid, 'b')
         self.figure_single_trajectory.ax.set_xlabel('Time (s)')
         self.figure_single_trajectory.ax.set_ylabel('Energy (eV)')
         # self.figure_single_trajectory.ax2.plot(self.traj_creator.time_grid[:-1], self.traj_creator.energy_grid_der,  'r')
-        self.figure_single_trajectory.ax2.plot(self.traj_creator.time_grid[:-1], np.diff(self.traj_creator.energy_grid)/np.diff(self.traj_creator.time_grid), 'r')
+        self.figure_single_trajectory.ax2.plot(self.trajectory_creator.time_grid[:-1], np.diff(self.trajectory_creator.energy_grid) / np.diff(self.trajectory_creator.time_grid), 'r')
         self.figure_single_trajectory.ax2.set_ylabel('Velocity (eV/s)')
         self.canvas_single_trajectory.draw_idle()
 
@@ -218,8 +216,8 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                       self.toolbar_full_trajectory, self.canvas_full_trajectory)
 
         # Draw
-        self.figure_full_trajectory.ax.plot( self.traj_creator.e_bin, self.traj_creator.time_per_bin, 'b', label='trajectory')
-        self.figure_full_trajectory.ax.plot(self.traj_creator_ref.e_bin, self.traj_creator_ref.time_per_bin, ':', color=[0.5, 0.5, 0.5], alpha=0.75, label='reference')
+        self.figure_full_trajectory.ax.plot(self.trajectory_creator.e_bin, self.trajectory_creator.time_per_bin, 'b', label='trajectory')
+        # self.figure_full_trajectory.ax.plot(self.traj_creator_ref.e_bin, self.traj_creator_ref.time_per_bin, ':', color=[0.5, 0.5, 0.5], alpha=0.75, label='reference')
         self.figure_full_trajectory.ax.legend()
         self.figure_full_trajectory.ax.set_xlabel\
             ('Energy, eV')
@@ -250,7 +248,7 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
     def save_trajectory(self):
         # TODO: move the saving method to the trajectory class
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_path, '*.txt',
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', self.trajectory_manager.trajectory_path, '*.txt',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         if filename[-4:] == '.txt':
             filename = filename[:-4]
@@ -267,51 +265,33 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
                     print('Aborted!')
                     return
             np.savetxt(filename,
-                       self.traj_creator.energy_grid, fmt='%.6f',
-                       header = f'element: {self.traj_creator.elem}, edge: {self.traj_creator.edge}, E0: {self.traj_creator.e0}')#, scan_direction: {self.traj_creator.direction}')
+                       self.trajectory_creator.energy_grid, fmt='%.6f',
+                       header = f'element: {self.trajectory_creator.elem}, edge: {self.trajectory_creator.edge}, E0: {self.trajectory_creator.e0}')#, scan_direction: {self.traj_creator.direction}')
             call(['chmod', '666', filename])
-            self.trajectory_path = filename[:filename.rfind('/')] + '/'
+            # self.trajectory_path = filename[:filename.rfind('/')] + '/'
             self.label_current_trajectory.setText(filename.rsplit('/', 1)[1])
             self.push_plot_traj.setEnabled(True)
             print('Trajectory saved! [{}]'.format(filename))
 
     def plot_traj_file(self):
-        self.traj_creator.load_trajectory_file(self.trajectory_path + self.label_current_trajectory.text(),
-                                               float(self.label_angle_offset.text()), is_energy=True)
-        self.traj_creator_ref.define(edge_energy=self.traj_creator.e0,
-                                     trajectory_type='Double Sine')
-        self.traj_creator_ref.interpolate()
-        # self.figure_single_trajectory.ax.clear()
-        # self.figure_single_trajectory.ax2.clear()
-        # self.toolbar_single_trajectory.update()
-        # self.figure_full_trajectory.ax.clear()
-        # self.toolbar_full_trajectory.update()
-        # self.canvas_single_trajectory.draw_idle()
-        # self.canvas_full_trajectory.draw_idle()
-        #
-        # self.figure_full_trajectory.ax.plot(np.arange(0, len(self.traj_creator.energy_grid_loaded) / 16000, 1 / 16000),
-        #                                     self.traj_creator.energy_grid_loaded, 'b')
-        # self.figure_full_trajectory.ax.set_xlabel('Time /s')
-        # self.figure_full_trajectory.ax.set_ylabel('Energy /eV')
-        # self.figure_full_trajectory.ax.set_title(self.label_current_trajectory.text())
-        # self.canvas_full_trajectory.draw_idle()
+        self.trajectory_creator.load_trajectory_file(self.trajectory_manager.trajectory_path + self.label_current_trajectory.text(),
+                                                     float(self.label_angle_offset.text()), is_energy=True)
         self._update_figures()
         print('Trajectory Load: Done')
-
         self.push_save_trajectory.setDisabled(True)
 
     def load_trajectory(self):
-        self.traj_manager.load(orig_file_name=self.label_current_trajectory.text(),
-                               new_file_path=self.comboBox_slot_to_load_trajectory.currentText(),
-                               is_energy=True, offset=float(self.label_angle_offset.text()))
+        self.trajectory_manager.load(orig_file_name=self.label_current_trajectory.text(),
+                                     new_file_path=self.comboBox_slot_to_load_trajectory.currentText(),
+                                     is_energy=True, offset=float(self.label_angle_offset.text()))
 
         self.trajectoriesChanged.emit()
 
     def init_trajectory(self):
-        self.traj_manager.init(int(self.comboBox_slot_to_init_trajectory.currentText()))
+        self.trajectory_manager.init(int(self.comboBox_slot_to_init_trajectory.currentText()))
 
     def read_trajectory_info(self):
-        self.traj_manager.read_info()
+        self.trajectory_manager.read_info()
 
     def update_offset(self):
         dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text(), parent=self)
@@ -328,9 +308,9 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
             return 0
 
     def get_traj_names(self):
-        filepath = QtWidgets.QFileDialog.getOpenFileName(directory=self.trajectory_path, filter='*.txt', parent=self)[0]
+        filepath = QtWidgets.QFileDialog.getOpenFileName(directory=self.trajectory_manager.trajectory_path, filter='*.txt', parent=self)[0]
         self.label_current_trajectory.setText(filepath.rsplit('/', 1)[1])
-        self.trajectory_path = filepath[:filepath.rfind('/')] + '/'
+        # self.trajectory_path = filepath[:filepath.rfind('/')] + '/'
         self.push_plot_traj.setEnabled(True)
 
     def update_E0(self, text):

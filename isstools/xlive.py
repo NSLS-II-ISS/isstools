@@ -58,12 +58,13 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  accelerator=None,
                  hhm=None,
                  hhm_feedback=None,
+                 trajectory_manager=None,
                  motor_emission=None,
                  sdd = None,
                  encoder_pb = None,
-                 shutters_dict={},
-                 det_dict={},
-                 motors_dict={},
+                 shutter_dict={},
+                 detector_dict={},
+                 motor_dict={},
                  camera_dict={},
                  sample_stage=None,
                  tune_elements=None,
@@ -135,7 +136,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('cloud complete', ttime.ctime())
         print('widget trajectory loading', ttime.ctime())
         self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(
-            hhm,
+            hhm=hhm,
+            trajectory_manager=trajectory_manager,
             aux_plan_funcs=aux_plan_funcs
 
         )
@@ -150,18 +152,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_processing.addWidget(self.widget_processing)
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(
-            plan_funcs,
-            aux_plan_funcs,
-            RE,
-            db,
-            hhm,
-            det_dict,
-            shutters_dict,
-            motors_dict,
-            apb,
-            self,
+            plan_funcs=plan_funcs,
+            aux_plan_funcs=aux_plan_funcs,
+            RE=RE,
+            db=db,
+            hhm=hhm,
+            detector_dict=detector_dict,
+            shutter_dict=shutter_dict,
+            motor_dict=motor_dict,
+            apb=apb,
+            parent=self,
         )
         self.layout_run.addWidget(self.widget_run)
+
         print('widget camera loading', ttime.ctime())
         self.widget_camera = widget_camera.UICamera(
             camera_dict,
@@ -175,15 +178,16 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget batch loading', ttime.ctime())
         self.widget_batch_mode = widget_batch.UIBatch(
-            plan_funcs,
-            service_plan_funcs,
-            hhm,
-            RE,
-            sample_stage,
-            self,
-            motors_dict,
-            camera_dict,
-            self.sample_positioner
+            plan_funcs=plan_funcs,
+            service_plan_funcs=service_plan_funcs,
+            hhm=hhm,
+            trajectory_manager=trajectory_manager,
+            RE=RE,
+            sample_stage=sample_stage,
+            parent_gui=self,
+            motors_dict=motor_dict,
+            camera_dict=camera_dict,
+            sample_positioner=self.sample_positioner
         )
         self.layout_batch.addWidget(self.widget_batch_mode)
 
@@ -200,20 +204,20 @@ class XliveGui(*uic.loadUiType(ui_path)):
             apb_trigger_pil100k,
             db,
             db_proc,
-            det_dict,
+            detector_dict,
             ic_amplifiers,
             plan_funcs,
             service_plan_funcs,
             aux_plan_funcs,
-            motors_dict,
+            motor_dict,
             tune_elements,
-            shutters_dict,
+            shutter_dict,
             self,
         )
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
 
         #Info shutters
-        self.layout_info_shutters.addWidget(widget_info_shutters.UIInfoShutters(shutters_dict))
+        self.layout_info_shutters.addWidget(widget_info_shutters.UIInfoShutters(shutter_dict))
 
         #Info general
         print('widget info general loading', ttime.ctime())
@@ -230,12 +234,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
             hhm=hhm,
             hhm_feedback=hhm_feedback,
             motor_emission=motor_emission,
-            shutters=shutters_dict,
+            shutters=shutter_dict,
             ic_amplifiers=ic_amplifiers,
             RE=RE,
             db=None,
-            foil_camera=det_dict['Camera SP5']['device'],
-            attenuator_camera=det_dict['Camera SP6']['device'],
+            foil_camera=detector_dict['Camera SP5']['device'],
+            attenuator_camera=detector_dict['Camera SP6']['device'],
             encoder_pb = self.encoder_pb,
             aux_plan_funcs=aux_plan_funcs,
             parent=self)
@@ -250,9 +254,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget autopilot loading', ttime.ctime())
         self.widget_autopilot = widget_autopilot.UIAutopilot(
-            motors_dict,
+            motor_dict,
             camera_dict,
             hhm,
+            trajectory_manager,
             RE,
             # db,
             sample_stage,
@@ -267,9 +272,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_spectrometer = widget_spectrometer.UISpectrometer(
             RE,
             db,
-            det_dict,
-            motors_dict,
-            shutters_dict,
+            detector_dict,
+            motor_dict,
+            shutter_dict,
             aux_plan_funcs,
             service_plan_funcs,
             parent=self

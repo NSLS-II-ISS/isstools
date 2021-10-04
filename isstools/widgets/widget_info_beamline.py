@@ -141,8 +141,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
 
         #reference foil
-        barcode1 = str(self.foil_camera.bar1.get()[:-1],encoding ='UTF-8')
-        barcode2 = str(self.foil_camera.bar2.get()[:-1],encoding ='UTF-8')
+        barcode1 = self.foil_camera.barcode1
+        barcode2 = self.foil_camera.barcode2
 
         if (barcode1 == 'empty' and  barcode2 != 'empty'):
             self.label_reference_foil.setText(f'Reference: {barcode2}')

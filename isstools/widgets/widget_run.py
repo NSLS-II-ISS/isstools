@@ -24,18 +24,16 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 plan_funcs,
-                 aux_plan_funcs,
-                 RE,
-                 db,
-                 hhm,
-                 detectors_list,
-                 shutter_dictionary,
-                 motor_dictionary,
-
-                 apb,
-                 parent_gui,
-
+                 plan_funcs=None,
+                 aux_plan_funcs=None,
+                 RE=None,
+                 db=None,
+                 hhm=None,
+                 detector_dict=None,
+                 shutter_dict=None,
+                 motor_dict=None,
+                 apb=None,
+                 parent=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -48,12 +46,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.db = db
         self.hhm=hhm,
-        self.detectors_list = detectors_list
-        self.shutter_dictionary = shutter_dictionary
-        self.motor_dictionary = motor_dictionary
+        self.detector_dict = detector_dict
+        self.shutter_dictionary = shutter_dict
+        self.motor_dictionary = motor_dict
 
         self.apb = apb
-        self.parent_gui = parent_gui
+        self.parent = parent
         self.comboBox_scan_type.addItems(self.plan_funcs_names)
         self.comboBox_scan_type.currentIndexChanged.connect(self.populate_parameter_grid)
         self.push_run_scan.clicked.connect(self.run_scan)
@@ -77,7 +75,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
 
         ## Persistance of parameters:
-        self.settings = parent_gui.settings
+        self.settings = parent.settings
         self.widget_energy_selector.comboBox_element.setCurrentIndex(self.settings.value('step_element_index', defaultValue=0, type=int)) #
         self.widget_energy_selector.comboBox_edge.setCurrentIndex(self.settings.value('step_edge_index', defaultValue=0, type=int))  #
         self.edit_preedge_spacing.setText(self.settings.value('step_preedge_spacing', defaultValue='10', type=str)) #
@@ -191,7 +189,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             # Run the scan using the dict created before
             self.run_mode_uids = []
-            self.parent_gui.run_mode = 'run'
+            self.parent.run_mode = 'run'
             plan_key = self.comboBox_scan_type.currentText()
 
             if plan_key.lower().startswith('step scan'):
@@ -221,7 +219,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                                  log=False,ax=self.figure.ax1, color='g', legend_keys=['Fluorescence']),
                          ]
             try:
-                self.pil100k =  self.detectors_list['Pilatus 100k']['device'].stats1.total
+                self.pil100k =  self.detector_dict['Pilatus 100k']['device'].stats1.total
 
                 if 'emission' in plan_key.lower():
                     label = 'XES'
@@ -235,8 +233,8 @@ class UIRun(*uic.loadUiType(ui_path)):
 
 
             try:
-                _xs = self.detectors_list['Xspress3']['device'].channel1.rois.roi01.value
-                _xs_at = self.detectors_list['Xspress3']['device'].settings.acquire_time
+                _xs = self.detector_dict['Xspress3']['device'].channel1.rois.roi01.value
+                _xs_at = self.detector_dict['Xspress3']['device'].settings.acquire_time
                 LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
                                                       log=False,  ax=self.figure.ax1, color='m', legend_keys=['SDD ch1-roi1'])
             except:
@@ -244,14 +242,14 @@ class UIRun(*uic.loadUiType(ui_path)):
 
 
             RE_args = [plan_func(**run_parameters,
-                                  ignore_shutter=ignore_shutter,
-                                  energy_grid=energy_grid,
-                                  time_grid=time_grid,
-                                  element=self.element,
-                                  e0=self.e0,
-                                  edge=self.edge,
-                                  ax=self.figure.ax1,
-                                  stdout=self.parent_gui.emitstream_out)]
+                                 ignore_shutter=ignore_shutter,
+                                 energy_grid=energy_grid,
+                                 time_grid=time_grid,
+                                 element=self.element,
+                                 e0=self.e0,
+                                 edge=self.edge,
+                                 ax=self.figure.ax1,
+                                 stdout=self.parent.emitstream_out)]
 
             if plan_key.lower().endswith('pilatus'):
                 if LivePlotPilatus:
@@ -347,7 +345,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         # self._save_step_scan_settings()
 
     def get_info_from_autopilot(self):
-        sample_df =  self.parent_gui.widget_batch_mode.widget_autopilot.sample_df
+        sample_df =  self.parent.widget_batch_mode.widget_autopilot.sample_df
         sample_number = self.comboBox_autopilot_sample_number.currentIndex()
         # name = sample_df.iloc[sample_number]['Sample label']
         name = sample_df.iloc[sample_number]['Name']

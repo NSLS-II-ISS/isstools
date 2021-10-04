@@ -5,10 +5,8 @@ from PyQt5.Qt import Qt
 from PyQt5.QtWidgets import QMenu
 from isstools.elements import elements
 from isstools.elements.parameter_handler import parse_plan_parameters
-from xas.trajectory import trajectory_manager
+# from xas.trajectory import trajectory_manager
 from isstools.dialogs.BasicDialogs import message_box
-
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
@@ -16,12 +14,15 @@ from isstools.dialogs import UpdateSampleInfo, UpdateScanInfo
 from isstools.dialogs.BasicDialogs import question_message_box
 import bluesky.plan_stubs as bps
 
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
+
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
     def __init__(self,
                  plan_funcs,
                  service_plan_funcs,
                  hhm,
+                 trajectory_manager,
                  sample_stage = None,
                  parent_gui = None,
                  sample_positioner = None,
@@ -37,7 +38,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.sample_stage = sample_stage
         self.RE = RE
         self.batch_mode_uids = []
-        self.traj_manager = trajectory_manager(hhm)
+        self.hhm = hhm
+        self.trajectory_manager = trajectory_manager
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
@@ -107,8 +109,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
 
         self.sample_positioner = sample_positioner
-        self.parent_gui = parent_gui.parent_gui
-        self.settings = parent_gui.parent_gui.settings
+        self.parent_gui = parent_gui
+        self.settings = parent_gui.settings
 
     '''
     Dealing with batch experiemnts
@@ -443,18 +445,50 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 index = selected_index.row()
                 item = self.model_batch.itemFromIndex(selected_index)
                 # New code starts here
-                if item.item_type == 'sample':
-                    parent_item = item.parent()
-                    if parent_item.item_type == 'scan':
+                parent_item = item.parent()
+                if item.item_type == 'service':
+                    parent_item.insertRow(index+1,new_item_service)
+                elif item.item_type != 'experiment':
+                    if parent_item.item_type != 'experiment':
                         parent_item.insertRow(index,new_item_service)
                         new_item_service.setCheckable(False)
                         new_item_service.setEditable(False)
                         self.treeView_batch.expand(self.model_batch.indexFromItem(parent_item))
+                    else:
+                        parent_item.insertRow(index, new_item_service)
+                        new_item_service.setCheckable(False)
+                        new_item_service.setEditable(False)
+                else:
+                    item.appendRow(new_item_service)
+                    self.treeView_batch.expand(self.model_batch.indexFromItem(item))
+                    new_item_service.setCheckable(False)
+                    new_item_service.setEditable(False)
+                # elif item.item_type == 'scan':
+                #     parent_item = item.parent()
+                #     if parent_item.item_type == 'experiment':
+                #         parent_item.insertRow(index,new_item_service)
+                #         new_item_service.setCheckable(False)
+                #         new_item_service.setEditable(False)
 
+
+                # if item.item_type == 'sample':
+                #     parent_item = item.parent()
+                #     if parent_item.item_type == 'scan':
+                #         parent_item.insertRow(index,new_item_service)
+                #         new_item_service.setCheckable(False)
+                #         new_item_service.setEditable(False)
+                #         self.treeView_batch.expand(self.model_batch.indexFromItem(parent_item))
                 # if item.item_type == 'experiment':
                 #     item.appendRow(new_item_service)
-                # elif parent.item_type == 'sample':
-                #     item.insertRow(0, new_item_service)
+                #     self.treeView_batch.expand(self.model_batch.indexFromItem(item))
+                #     new_item_service.setCheckable(False)
+                #     new_item_service.setEditable(False)
+                # elif item.item_type == 'scan':
+                #     parent_item = item.parent()
+                #     if parent_item.item_type == 'experiment':
+                #         parent_item.insertRow(index,new_item_service)
+                #         new_item_service.setCheckable(False)
+                #         new_item_service.setEditable(False)
 
 
 
@@ -482,7 +516,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.gridLayout_service_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
 
     def update_batch_traj(self):
-        self.trajectories = self.traj_manager.read_info(silent=True)
+        self.trajectories = self.trajectory_manager.read_info(silent=True)
         self.comboBox_lut.clear()
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
