@@ -11,16 +11,13 @@ from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
 from isstools.elements.figure_update import update_figure
 from xas.trajectory import TrajectoryCreator
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
-from matplotlib.figure import Figure
+from isstools.elements.figure_update import setup_figure
 from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_trajectory_manager.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_scan_manager.ui')
 
-class UITrajectoryManager(*uic.loadUiType(ui_path)):
+class UIScanManager(*uic.loadUiType(ui_path)):
     trajectoriesChanged = QtCore.pyqtSignal()
 
     def __init__(self,
@@ -31,71 +28,36 @@ class UITrajectoryManager(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.addCanvas()
+
 
         self.element = 'Titanium (22)'
         self.e0 = '4966'
         self.edge = 'K'
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
-        self.layout_energy_selector_trajectory.addWidget(self.widget_energy_selector)
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
         #communication between the Energy Selector widget and Trajectory Manager
-
+        #
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
-
+        #
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
+        #
+        # self.trajectory_manager = trajectory_manager
+        # self.trajectory_creator = TrajectoryCreator(servocycle=hhm.servocycle, pulses_per_deg=hhm.pulses_per_deg)
+        #
+        #
+        # self.push_build_trajectory.clicked.connect(self.build_trajectory)
+        # self.push_save_trajectory.clicked.connect(self.save_trajectory)
 
-        self.trajectory_manager = trajectory_manager
-        self.trajectory_creator = TrajectoryCreator(servocycle=hhm.servocycle, pulses_per_deg=hhm.pulses_per_deg)
-
-        self.comboBox_slot_to_load_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
-        self.comboBox_slot_to_init_trajectory.addItems(['1', '2', '3', '4', '5', '6', '7', '8'])
-        self.comboBox_slot_to_init_trajectory.setCurrentIndex(self.trajectory_manager.current_lut - 1)
 
 
-        # self.traj_creator_ref = trajectory(self.hhm, servocycle=16000) # this is a mock one for reference
 
-        # self.trajectory_path = self.hhm.traj_filepath
-        self.push_build_trajectory.clicked.connect(self.build_trajectory)
-        self.push_save_trajectory.clicked.connect(self.save_trajectory)
-        self.push_update_offset.clicked.connect(self.update_offset)
-        self.push_select_traj_file.clicked.connect(self.get_traj_names)
-        self.push_load_trajectory.clicked.connect(self.load_trajectory)
-        self.push_init_trajectory.clicked.connect(self.init_trajectory)
-        self.push_read_traj_info.clicked.connect(self.read_trajectory_info)
-        self.push_plot_traj.clicked.connect(self.plot_traj_file)
-        self.push_plot_traj.setDisabled(True)
-        self.push_save_trajectory.setDisabled(True)
-        self.checkBox_traj_single_dir.stateChanged.connect(self.update_repetitions_spinbox)
 
-        # self.edit_pad_time.setText('0.5')
-
-        # self.checkBox_traj_single_dir.stateChanged.connect(self.checkBox_traj_revert.setEnabled)
-
-    def addCanvas(self):
-        self.figure_single_trajectory = Figure()
-        self.figure_single_trajectory.set_facecolor(color='#FcF9F6')
-        self.canvas_single_trajectory = FigureCanvas(self.figure_single_trajectory)
-        self.figure_single_trajectory.ax = self.figure_single_trajectory.add_subplot(111)
-        self.figure_single_trajectory.ax2 = self.figure_single_trajectory.ax.twinx()
-        self.toolbar_single_trajectory = NavigationToolbar(self.canvas_single_trajectory, self, coordinates=True)
-
-        self.plot_single_trajectory.addWidget(self.toolbar_single_trajectory)
-        self.plot_single_trajectory.addWidget(self.canvas_single_trajectory)
-        self.canvas_single_trajectory.draw_idle()
-
-        self.figure_full_trajectory = Figure()
-        self.figure_full_trajectory.set_facecolor(color='#FcF9F6')
-        self.canvas_full_trajectory = FigureCanvas(self.figure_full_trajectory)
-        self.figure_full_trajectory.ax = self.figure_full_trajectory.add_subplot(111)
-        self.toolbar_full_trajectory = NavigationToolbar(self.canvas_full_trajectory, self,coordinates=True)
-
-        self.plot_full_trajectory.addWidget(self.toolbar_full_trajectory)
-        self.plot_full_trajectory.addWidget(self.canvas_full_trajectory)
-        self.canvas_full_trajectory.draw_idle()
+        self.figure_trajectory, self.canvas_trajectory,\
+                self.toolbar_trajectory = setup_figure(self, self.layout_trajectory)
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))

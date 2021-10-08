@@ -684,7 +684,7 @@ to run</string>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_fly_scan">
     <attribute name="title">
@@ -931,7 +931,7 @@ to run</string>
        <x>510</x>
        <y>30</y>
        <width>131</width>
-       <height>51</height>
+       <height>80</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_35">
@@ -1040,7 +1040,7 @@ to run</string>
        <x>200</x>
        <y>250</y>
        <width>241</width>
-       <height>41</height>
+       <height>80</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_17">
@@ -1093,6 +1093,449 @@ to run</string>
     <attribute name="title">
      <string>Step scan</string>
     </attribute>
+    <widget class="QGroupBox" name="groupBox_stepscan">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>0</y>
+       <width>386</width>
+       <height>351</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Step Scan setting</string>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_8">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>140</y>
+        <width>181</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>XANES start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLabel" name="label_25">
+         <property name="text">
+          <string> k</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_26">
+         <property name="text">
+          <string> eV </string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_exafs_end">
+         <property name="text">
+          <string>6</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_preedge_start">
+         <property name="text">
+          <string>-100</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_27">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Pre-edge start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_28">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>EXAFS end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_29">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>XANES end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="edit_xanes_start">
+         <property name="text">
+          <string>-30</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_30">
+         <property name="text">
+          <string> eV </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_32">
+         <property name="text">
+          <string> eV </string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="edit_xanes_end">
+         <property name="text">
+          <string>30</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_96">
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Range</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>20</y>
+        <width>231</width>
+        <height>111</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_energy_selector"/>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget_14">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>30</y>
+       <width>141</width>
+       <height>148</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_15">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_83">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Spacing</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_75">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>Pre-edge</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_72">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>XANES</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="edit_preedge_spacing">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>10</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_74">
+        <property name="text">
+         <string> eV </string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="edit_xanes_spacing">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>10</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_76">
+        <property name="text">
+         <string> eV </string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_84">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>EXAFS</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="edit_exafs_spacing">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLabel" name="label_85">
+        <property name="text">
+         <string> k</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget_17">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>30</y>
+       <width>141</width>
+       <height>190</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_18">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_97">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>EXAFS</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="edit_preedge_dwell">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_82">
+        <property name="text">
+         <string>  s  </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_80">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>Pre-edge</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_81">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>XANES</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="edit_exafs_dwell">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLabel" name="label_98">
+        <property name="text">
+         <string>  s  </string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="edit_xanes_dwell">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_99">
+        <property name="text">
+         <string>  s  </string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_100">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Dwell</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_101">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>k-power</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="comboBox_exafs_dwell_kpower">
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget_10">
@@ -1183,12 +1626,13 @@ to run</string>
     <rect>
      <x>720</x>
      <y>130</y>
-     <width>81</width>
+     <width>131</width>
      <height>71</height>
     </rect>
    </property>
    <property name="text">
-    <string>Add scan to manag</string>
+    <string>Add to 
+Scan Manager</string>
    </property>
   </widget>
  </widget>

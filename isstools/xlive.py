@@ -8,7 +8,7 @@ from PyQt5 import uic, QtGui, QtCore
 from PyQt5.QtCore import QThread, QSettings
 
 from .widgets import (widget_info_general,
-                      widget_trajectory_manager,
+                      widget_scan_manager,
                       widget_processing,
                       widget_batch,
                       widget_run,
@@ -134,14 +134,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.gmail_service = None
             self.dropbox_service = None
         print('cloud complete', ttime.ctime())
-        print('widget trajectory loading', ttime.ctime())
-        self.widget_trajectory_manager = widget_trajectory_manager.UITrajectoryManager(
+        print('widget scan manager loading', ttime.ctime())
+        self.widget_scan_manager = widget_scan_manager.UIScanManager(
             hhm=hhm,
             trajectory_manager=trajectory_manager,
             aux_plan_funcs=aux_plan_funcs
 
         )
-        self.layout_trajectory_manager.addWidget(self.widget_trajectory_manager)
+        self.layout_scan_manager.addWidget(self.widget_scan_manager)
 
         print('widget processing loading', ttime.ctime())
         self.widget_processing = widget_processing.UIProcessing(
@@ -281,8 +281,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
-        self.widget_trajectory_manager.trajectoriesChanged.connect(
-            self.widget_batch_mode.widget_batch_manual.update_batch_traj)
+        # self.widget_scan_manager.trajectoriesChanged.connect(
+        #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         print('widget loading done', ttime.ctime())
 
