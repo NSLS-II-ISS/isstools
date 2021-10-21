@@ -211,22 +211,22 @@ class UIRun(*uic.loadUiType(ui_path)):
 
             plan_func = self.plan_funcs[plan_key]
 
-            LivePlots = [XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
-                                   log=True, ax=self.figure.ax1, color='b', legend_keys=['Transmission']),
-                         XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Reference', self.hhm[0].energy.name,
-                                   log=True, ax=self.figure.ax1, color='r', legend_keys=['Reference']),
-                         XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence',self.hhm[0].energy.name,
-                                 log=False,ax=self.figure.ax1, color='g', legend_keys=['Fluorescence']),
-                         ]
+
+            _scanning_motor = 'hhm'
+
             try:
                 self.pil100k =  self.detector_dict['Pilatus 100k']['device'].stats1.total
 
                 if 'emission' in plan_key.lower():
                     label = 'XES'
+                    _scanning_motor = 'emission'
+                    LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, label, self.motor_dictionary['motor_emission']['object'].energy.name,
+                                              log=False, ax=self.figure.ax1, color='k', legend_keys=[label])
+
                 else:
                     label = 'HERFD'
-                LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, label, self.hhm[0].energy.name,
-                            log=False, ax=self.figure.ax1, color='k', legend_keys=[label])
+                    LivePlotPilatus = XASPlot(self.pil100k.name, self.apb.ch1_mean.name, label, self.hhm[0].energy.name,
+                                log=False, ax=self.figure.ax1, color='k', legend_keys=[label])
 
             except:
                 LivePlotPilatus = None
@@ -235,10 +235,24 @@ class UIRun(*uic.loadUiType(ui_path)):
             try:
                 _xs = self.detector_dict['Xspress3']['device'].channel1.rois.roi01.value
                 _xs_at = self.detector_dict['Xspress3']['device'].settings.acquire_time
+                # self.motor_dictionary['motor_emission']['name']
                 LivePlotXspress3 = XASPlot(_xs.name, self.apb.ch1_mean.name, 'SDD', self.hhm[0].energy.name,
                                                       log=False,  ax=self.figure.ax1, color='m', legend_keys=['SDD ch1-roi1'])
             except:
                 LivePlotXspress3 = None
+
+            if _scanning_motor == 'hhm':
+                LivePlots = [
+                    XASPlot(self.apb.ch1_mean.name, self.apb.ch2_mean.name, 'Transmission', self.hhm[0].energy.name,
+                            log=True, ax=self.figure.ax1, color='b', legend_keys=['Transmission']),
+                    XASPlot(self.apb.ch2_mean.name, self.apb.ch3_mean.name, 'Reference', self.hhm[0].energy.name,
+                            log=True, ax=self.figure.ax1, color='r', legend_keys=['Reference']),
+                    XASPlot(self.apb.ch4_mean.name, self.apb.ch1_mean.name, 'Fluorescence', self.hhm[0].energy.name,
+                            log=False, ax=self.figure.ax1, color='g', legend_keys=['Fluorescence']),
+                    ]
+            else:
+                LivePlots = []
+
 
 
             RE_args = [plan_func(**run_parameters,

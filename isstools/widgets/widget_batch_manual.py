@@ -147,12 +147,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with samples
     '''
 
-    def _check_the_xystage_vs_xylabel(self, tolerance=0.015):
+    def _check_the_xystage_vs_xylabel(self, tolerance=0.005):
         x_act = self.sample_stage.x.position
         y_act = self.sample_stage.y.position
         x_nom = self.spinBox_sample_x.value()
         y_nom = self.spinBox_sample_y.value()
-        if not (np.isclose(x_act, x_nom, tolerance) & np.isclose(y_act, y_nom, tolerance)):
+        if not (np.isclose(x_act, x_nom, atol=tolerance) & np.isclose(y_act, y_nom, atol=tolerance)):
             self.spinBox_sample_x.setValue(x_act)
             self.spinBox_sample_y.setValue(y_act)
 
