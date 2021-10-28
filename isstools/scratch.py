@@ -128,6 +128,229 @@ def fit_hhmy(offset=0):
 
 fit_hhmy(offset=0)
 
+mylist = []
+for element in elements_data:
+    sym = element['symbol']
+    edges = ['K', 'L1', 'L2', 'L3']
+    for edge in edges:
+        lines = xraydb.xray_lines(sym, edge)
+
+        d = {'symbol': sym, 'name': element['name']}
+
+        if 'Ka1' in lines.keys():
+            energy = 2/3 * lines['Ka1'].energy + 1/3 * lines['Ka2'].energy
+            energy = 2 / 3 * lines['Ka1'].energy + 1 / 3 * lines['Ka2'].energy
+            d['Ka'] = energy
+            d['Kb1'] = lines['Kb1'].energy
+        elif 'La1' in lines.keys():
+            energy = lines['La1'].energy
+            d['La1'] = energy
+        else:
+            energy = 0
+        # print(sym, edge, energy)
+
+        if (energy > 4500) and (energy < 32000):
+            print(sym, edge, energy)
+            mylist.append(d)
+
+with open('/home/xf08id/Repos/isstools/isstools/fluorescence_lines.json', 'w') as f:
+    f.write(json.dumps(mylist))
+
+
+
+
+        # for  key, line in lines.items():
+
+################
+
+uids = ('41026319-8d79-4736-b9cd-46c96fcebc7a',
+ '16a7cece-aeae-4697-8e04-7c23b4e72b5d',
+ '03af26a7-bc91-4982-a0e7-d1b2f4fe25e9',
+ '5c62ba14-88be-4dd1-8ebc-99f7135847e6',
+ 'dc543da3-194f-4294-8270-23ded48c8b62',
+ 'b9e9a783-c1d3-4497-b13f-0ab2a252b9ad',
+ '3894aa1d-52a9-4d64-a546-f45ba879d679',
+ 'b92041f8-1c91-452e-8151-31b001092944',
+ '4da971b2-3915-438c-9e28-ea58acd79c30',
+ '22499df4-ccc7-4c1f-a20a-d0498d6c0d34',
+ '8d21733a-fb20-49e3-a0ae-9388c7e8fdce',
+ 'f6938a2e-f7f2-4051-8a19-75d2184482ff',
+ 'd6a84011-0502-4242-85f4-0b7bc860bbbb',
+ '387d914a-a9d4-4015-8f5d-cb69bda7b36e',
+ '41560a18-efda-4bb9-a4bc-da6dd8eb7378',
+ '3781ac8a-b5a6-442f-b0cd-478fcd62b5c5')
+
+
+from xas.fitting import fit_gaussian_with_estimation, fit_gaussian
+
+energies = []
+peaks = []
+
+plt.figure()
+
+for uid in uids:
+    t = db[uid].table(fill=True)
+    data = []
+    energy = t.hhm_energy
+    energies.append(energy.values)
+
+
+    these_peaks = []
+    for i in range(4):
+        ch = f'ch_{i+1}'
+        data =t.xs_channel1[1][ch]
+        x = np.arange(data.size)
+        # roi_idx = []
+        roi_min = int(energy/10)-20
+        roi_max = int(energy/10)+20
+        roi_peak = roi_min + np.argmax(data[roi_min : roi_max])
+
+        x_roi = x[roi_peak-20 : roi_peak+20]
+        data_roi = data[roi_peak-20 : roi_peak+20]
+
+        # _x = fit_gaussian_with_estimation(x_roi, data_roi)
+        _x = fit_gaussian(x_roi, data_roi/data_roi.max(), roi_peak, 35)
+
+        these_peaks.append(_x[0], )
+
+        plt.plot(x_roi, _x[-1], 'k-')
+        plt.plot(x_roi, data_roi/data_roi.max())
+
+
+
+        plt.vlines(_x[0], 0, 1, colors='k')
+
+    peaks.append(these_peaks)
+
+
+peaks_array = np.array(peaks)
+E = np.array(energies).ravel()
+
+c_k, _, _, _ = np.linalg.lstsq(E[:, None], peaks_array, rcond=-1)
+c_kb, _, _, _ = np.linalg.lstsq(np.hstack((E[:, None], np.ones((E.size, 1)))), peaks_array, rcond=-1)
+
+E_fit = np.linspace(0, E.max(), 101)
+
+peaks_k = E[:, None] @ c_k
+peaks_kb = np.hstack((E[:, None], np.ones((E.size, 1)))) @ c_kb
+
+peaks_fit_k = E_fit[:, None] @ c_k
+peaks_fit_kb = np.hstack((E_fit[:, None], np.ones((E_fit.size, 1)))) @ c_kb
+
+plt.figure()
+
+plt.subplot(211)
+plt.plot(E, peaks_array*10, '.-')
+plt.plot(E_fit, peaks_fit*10, 'k-')
+plt.axis('square')
+
+
+plt.subplot(212)
+
+plt.plot(E, (peaks_array - peaks_k)*10, 'k.-')
+plt.plot(E, (peaks_array - peaks_kb)*10, 'r.-')
+
+
+xs_calibration = pd.DataFrame({'energy' : E, 'ch_1' : peaks_array[:, 0],
+                                               'ch_2': peaks_array[:, 1],
+                                               'ch_3': peaks_array[:, 2],
+                                               'ch_4': peaks_array[:, 3]})
+
+
+
+
+uids = ( '3e35770b-8052-4f70-aa70-07e1923b01de',
+         'bc3c6560-4af9-4793-84bc-cb7265abda17',
+         'a363ac15-2f8b-4abd-8f1e-937d41dd3452',
+         'a31b9d88-4b06-4992-8abd-40af3f0d9c78',
+         '995c01f9-6768-4fa6-82c9-0183b108b97f',
+         '1cb70050-a16e-4d70-b099-562cf51b9554')
+
+
+
+
+plt.figure()
+ch1_offset = 10.358600616455078 # apb_ave.ch1_offset.get()
+
+i0 = []
+peaks_i0 = []
+amps_i0 = []
+totals_i0 = []
+for uid in uids:
+    t = db[uid].table(fill=True)
+    data = []
+    i0.append(t.apb_ave_ch1[1] - ch1_offset)
+
+    these_peaks = []
+    these_amps = []
+    these_totals = []
+    for i in range(4):
+        ch = f'ch_{i+1}'
+        data =t.xs_channel1[1][ch]
+        x = np.arange(data.size)
+        # roi_idx = []
+        droi_lo = 20
+        droi_hi = 20
+        roi_min = int(24350/10)-droi_lo
+        roi_max = int(24350/10)+droi_hi
+        roi_peak = roi_min + np.argmax(data[roi_min : roi_max])
+
+        x_roi = x[roi_peak-droi_lo : roi_peak+droi_hi]
+        data_roi = data[roi_peak-droi_lo : roi_peak+droi_hi]
+        peak_intensity = np.sum(data_roi)
+        total_intensity = np.sum(data)
+        # _x = fit_gaussian_with_estimation(x_roi, data_roi)
+        _x = fit_gaussian(x_roi, data_roi/data_roi.max(), roi_peak, 35)
+
+        these_peaks.append(_x[0])
+        these_amps.append(peak_intensity)
+        these_totals.append(total_intensity)
+
+        plt.plot(x_roi, _x[-1], 'k-')
+        plt.plot(x_roi, data_roi/data_roi.max())
+
+
+
+        plt.vlines(_x[0], 0, 1, colors='k')
+
+    peaks_i0.append(these_peaks)
+    amps_i0.append(these_amps)
+    totals_i0.append(these_totals)
+
+peaks_i0_arr = np.array(peaks_i0)
+amps_i0_arr = np.array(amps_i0)
+totals_i0_arr = np.array(totals_i0)
+i0_arr = np.array(i0)
+
+plt.figure();
+
+plt.plot(i0_arr, peaks_i0_arr*10, '.-')
+plt.ylabel('Peak positoion')
+
+# plt.plot(i0_arr, amps_i0_arr, '.-')
+# plt.ylabel('Elastic intensity')
+
+# plt.plot(i0_arr, totals_i0_arr, '.-')
+# plt.ylabel('Total counts')
+
+# plt.xlabel('I0')
+
+plt.figure();
+plt.plot(totals_i0_arr, amps_i0_arr, '.-')
+plt.xlabel('Total counts')
+plt.ylabel('Elastic intensity')
+
+
+
+
+
+
+
+
+
+
+#################
+
 
 def infinite_plan():
     itr = 1

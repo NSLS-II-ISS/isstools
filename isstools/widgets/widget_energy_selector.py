@@ -1,5 +1,6 @@
 
 import json
+
 import pkg_resources
 from PyQt5 import uic
 
@@ -7,12 +8,14 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_energy_selector.ui'
 
 
 class UIEnergySelector(*uic.loadUiType(ui_path)):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, emission = None, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-
-        json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+        if emission:
+           json_data = open(pkg_resources.resource_filename('isstools', 'fluorescence_lines.json')).read()
+        else:
+            json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
         self.elements_data = json.loads(json_data)
         self.comboBox_element.currentIndexChanged.connect(self.update_combo_edge)
         self.comboBox_edge.currentIndexChanged.connect(self.update_e0_value)
@@ -28,5 +31,7 @@ class UIEnergySelector(*uic.loadUiType(ui_path)):
 
     def update_e0_value(self):
         if self.comboBox_edge.count() > 0:
-            self.edit_E0.setText(
-                str(self.elements_data[self.comboBox_element.currentIndex()][self.comboBox_edge.currentText()]))
+            energy = self.elements_data[self.comboBox_element.currentIndex()][self.comboBox_edge.currentText()]
+
+
+            self.edit_E0.setText(str(int(energy)))
