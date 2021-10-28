@@ -381,8 +381,13 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def energy_calibration(self):
         element = self.comboBox_reference_foils.currentText()
         edge = self.edge_dict[element]
-        plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge, plot_fun=self._update_figure_with_calibration_data)
+        plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
+                                                                plot_func=self._update_figure_with_calibration_data,
+                                                                error_message_func=self._show_error_message_box)
         self.RE(plan)
+
+    def _show_error_message_box(self, msg):
+        message_box('Error', msg)
 
     def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
