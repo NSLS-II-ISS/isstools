@@ -95,6 +95,7 @@ plt.plot(tt[mask], hhm_feedback._pitch_vals[mask])
 
 
 
+
 df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation.json')
 df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation_high_energies.json')
 df_all = df.append(df2)

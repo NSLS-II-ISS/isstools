@@ -109,10 +109,28 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         # if ((self.hhm.fb_status.get()==1) and
         #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+        # if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
+        #     if self.hhm_feedback.status_err:
+        #         fb_msg = f'Feedback error: {self.hhm_feedback.status_msg}'
+        #         fb_color = 'color: rgb(255, 128, 0)'
+        #         fb_bkg_color =
+        #     else:
+        #         fb_msg = 'Feedback on'
+        #         fb_color = 'color: rgb(19,139,67)'
+        #
+        #     self.label_feedback_status.setText(fb_msg)
+        #     self.label_feedback_status.setStyleSheet(fb_color)
+
+
         if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
-            self.label_feedback_status.setText('Feedback on')
-            self.label_feedback_status.setStyleSheet('color: rgb(19,139,67)')
-            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
+            if not self.hhm_feedback.status_err: # no error
+                self.label_feedback_status.setText('Feedback on')
+                self.label_feedback_status.setStyleSheet('color: rgb(19, 139, 67)')
+                self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95, 249, 95)')
+            else: # error
+                self.label_feedback_status.setText(f'Feedback error: {self.hhm_feedback.status_msg}')
+                self.label_feedback_status.setStyleSheet('color: rgb(180, 0, 0)')
+                self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(255, 128, 0)')
         else:
             self.label_feedback_status.setText('Feedback off')
             self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')

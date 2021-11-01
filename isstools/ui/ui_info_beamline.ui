@@ -111,7 +111,7 @@
   <widget class="QLabel" name="label_feedback_status_indicator">
    <property name="geometry">
     <rect>
-     <x>880</x>
+     <x>840</x>
      <y>0</y>
      <width>16</width>
      <height>16</height>
@@ -127,10 +127,10 @@
   <widget class="QLabel" name="label_feedback_status">
    <property name="geometry">
     <rect>
-     <x>900</x>
+     <x>860</x>
      <y>0</y>
-     <width>131</width>
-     <height>16</height>
+     <width>211</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -453,7 +453,7 @@
   <widget class="QPushButton" name="push_jog_pitch_neg">
    <property name="geometry">
     <rect>
-     <x>750</x>
+     <x>710</x>
      <y>10</y>
      <width>20</width>
      <height>20</height>
@@ -466,7 +466,7 @@
   <widget class="QPushButton" name="push_jog_pitch_pos">
    <property name="geometry">
     <rect>
-     <x>840</x>
+     <x>800</x>
      <y>10</y>
      <width>20</width>
      <height>20</height>
@@ -479,7 +479,7 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>774</x>
+     <x>734</x>
      <y>8</y>
      <width>63</width>
      <height>20</height>
@@ -633,7 +633,7 @@
   <widget class="QLabel" name="label_heartbeat">
    <property name="geometry">
     <rect>
-     <x>880</x>
+     <x>840</x>
      <y>20</y>
      <width>16</width>
      <height>16</height>
@@ -649,10 +649,10 @@
   <widget class="QLabel" name="label_feedback_status_2">
    <property name="geometry">
     <rect>
-     <x>900</x>
+     <x>860</x>
      <y>20</y>
-     <width>131</width>
-     <height>16</height>
+     <width>211</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -675,10 +675,10 @@
   <widget class="QLabel" name="label_host">
    <property name="geometry">
     <rect>
-     <x>900</x>
+     <x>860</x>
      <y>40</y>
-     <width>161</width>
-     <height>16</height>
+     <width>211</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -701,7 +701,7 @@
   <widget class="QPushButton" name="push_pilatus_image">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>620</x>
      <y>10</y>
      <width>61</width>
      <height>41</height>
