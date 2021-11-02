@@ -52,6 +52,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  plan_funcs={},
                  service_plan_funcs={},
                  aux_plan_funcs={},
+                 scan_manager = None,
                  RE=None,
                  db=None,
                  db_proc=None,
@@ -88,6 +89,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.encoder_pb = encoder_pb
         self.token = None
         self.window_title = window_title
+        self.scan_manager = scan_manager
 
         
         if RE is not None:
@@ -134,10 +136,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.gmail_service = None
             self.dropbox_service = None
         print('cloud complete', ttime.ctime())
+
         print('widget scan manager loading', ttime.ctime())
         self.widget_scan_manager = widget_scan_manager.UIScanManager(
             hhm=hhm,
-            trajectory_manager=trajectory_manager,
+            scan_manager=scan_manager,
+            detector_dict=detector_dict,
             aux_plan_funcs=aux_plan_funcs
 
         )
@@ -150,6 +154,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             parent_gui=self,
         )
         self.layout_processing.addWidget(self.widget_processing)
+
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(
             plan_funcs=plan_funcs,

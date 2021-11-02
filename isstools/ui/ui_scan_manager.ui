@@ -13,22 +13,6 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="Line" name="line_10">
-   <property name="geometry">
-    <rect>
-     <x>1310</x>
-     <y>100</y>
-     <width>21</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="lineWidth">
-    <number>2</number>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
   <widget class="Line" name="line_7">
    <property name="geometry">
     <rect>
@@ -45,7 +29,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_build_trajectory">
+  <widget class="QPushButton" name="push_create_scan">
    <property name="geometry">
     <rect>
      <x>1150</x>
@@ -55,31 +39,31 @@
     </rect>
    </property>
    <property name="text">
-    <string>Show scan</string>
+    <string>Create scan</string>
    </property>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget_3">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>410</y>
+     <y>370</y>
      <width>701</width>
      <height>501</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_trajectory"/>
   </widget>
-  <widget class="QTabWidget" name="tabWidget_scan">
+  <widget class="QTabWidget" name="tabWidget_scan_type">
    <property name="geometry">
     <rect>
      <x>260</x>
      <y>10</y>
      <width>691</width>
-     <height>271</height>
+     <height>321</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_fly_scan">
     <attribute name="title">
@@ -91,7 +75,7 @@
        <x>20</x>
        <y>20</y>
        <width>422</width>
-       <height>191</height>
+       <height>248</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_34">
@@ -280,22 +264,15 @@
       <rect>
        <x>460</x>
        <y>20</y>
-       <width>165</width>
-       <height>61</height>
+       <width>221</width>
+       <height>41</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_93">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_23">
         <property name="text">
-         <string>Angular offset</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_angle_offset">
-        <property name="text">
-         <string>0.041</string>
+         <string>Pad</string>
         </property>
        </widget>
       </item>
@@ -313,34 +290,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_94">
-        <property name="text">
-         <string>°</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_23">
-        <property name="text">
-         <string>Pad</string>
-        </property>
-       </widget>
-      </item>
      </layout>
-    </widget>
-    <widget class="QPushButton" name="push_update_offset">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>90</y>
-       <width>151</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Update Offset</string>
-     </property>
     </widget>
     <widget class="QWidget" name="gridLayoutWidget_10">
      <property name="geometry">
@@ -348,7 +298,7 @@
        <x>460</x>
        <y>130</y>
        <width>192</width>
-       <height>91</height>
+       <height>117</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_14">
@@ -435,8 +385,8 @@
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>296</width>
-       <height>141</height>
+       <width>304</width>
+       <height>190</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_18">
@@ -444,8 +394,8 @@
        <widget class="QLabel" name="label_100">
         <property name="font">
          <font>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Cantarell</family>
+          <pointsize>11</pointsize>
          </font>
         </property>
         <property name="text">
@@ -654,12 +604,25 @@
        <widget class="QLabel" name="label_83">
         <property name="font">
          <font>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Cantarell</family>
+          <pointsize>11</pointsize>
          </font>
         </property>
         <property name="text">
          <string>Spacing</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3" colspan="2">
+       <widget class="QCheckBox" name="checkBox_energy_down">
+        <property name="text">
+         <string>Energy down</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -687,7 +650,7 @@ Scan Manager</string>
      <x>40</x>
      <y>140</y>
      <width>181</width>
-     <height>161</height>
+     <height>190</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_8">
@@ -695,8 +658,8 @@ Scan Manager</string>
      <widget class="QLabel" name="label_96">
       <property name="font">
        <font>
-        <weight>50</weight>
-        <bold>false</bold>
+        <family>Cantarell</family>
+        <pointsize>11</pointsize>
        </font>
       </property>
       <property name="text">
@@ -825,7 +788,7 @@ Scan Manager</string>
    </property>
    <layout class="QHBoxLayout" name="layout_energy_selector"/>
   </widget>
-  <widget class="QListView" name="listView">
+  <widget class="QListView" name="listView_local_scans">
    <property name="geometry">
     <rect>
      <x>1330</x>
@@ -844,31 +807,17 @@ Scan Manager</string>
      <height>86</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_detectors">
     <item>
      <widget class="QLabel" name="label_102">
       <property name="font">
        <font>
-        <weight>50</weight>
-        <bold>false</bold>
+        <family>Cantarell</family>
+        <pointsize>11</pointsize>
        </font>
       </property>
       <property name="text">
        <string>Detectors</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QCheckBox" name="checkBox">
-      <property name="text">
-       <string>Pilatus 100k</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QCheckBox" name="checkBox_2">
-      <property name="text">
-       <string>Pilatus 100k</string>
       </property>
      </widget>
     </item>
@@ -880,7 +829,7 @@ Scan Manager</string>
      <x>1150</x>
      <y>160</y>
      <width>141</width>
-     <height>36</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -896,6 +845,52 @@ Scan Manager</string>
    <property name="text">
     <string>Scan name</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>970</x>
+     <y>130</y>
+     <width>178</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_93">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Angular offset</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_angle_offset">
+      <property name="text">
+       <string>0.041</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_94">
+      <property name="text">
+       <string>°</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3">
+     <widget class="QPushButton" name="push_update_offset">
+      <property name="text">
+       <string>Update Offset</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

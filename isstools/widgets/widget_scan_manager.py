@@ -6,7 +6,8 @@ from isstools.widgets import widget_energy_selector
 
 import numpy as np
 import pkg_resources
-from PyQt5 import uic, QtWidgets, QtCore
+from PyQt5 import uic, QtWidgets, QtCore, QtGui
+
 from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
 from isstools.elements.figure_update import update_figure
@@ -14,6 +15,7 @@ from xas.trajectory import TrajectoryCreator
 from isstools.elements.figure_update import setup_figure
 from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
+from isstools.dialogs.BasicDialogs import question_message_box, message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_scan_manager.ui')
 
@@ -22,7 +24,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  hhm=None,
-                 trajectory_manager=None,
+                 scan_manager=None,
+                 detector_dict=[],
                  aux_plan_funcs = {},
                  *args, **kwargs):
 
@@ -33,7 +36,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.element = 'Titanium (22)'
         self.e0 = '4966'
         self.edge = 'K'
-
+        self.scan_manager = scan_manager
+        self.detector_dict = detector_dict
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
         #communication between the Energy Selector widget and Trajectory Manager
@@ -44,17 +48,16 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         #
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
+        self.populate_detectors()
+        self.model_scans = QtGui.QStandardItemModel(self)
+        self.listView_local_scans.setModel(self.model_scans)
+        self.model_scans.dataChanged.connect(self.update_user_scans_json)
         #
         # self.trajectory_manager = trajectory_manager
         # self.trajectory_creator = TrajectoryCreator(servocycle=hhm.servocycle, pulses_per_deg=hhm.pulses_per_deg)
         #
         #
-        # self.push_build_trajectory.clicked.connect(self.build_trajectory)
-        # self.push_save_trajectory.clicked.connect(self.save_trajectory)
-
-
-
-
+        self.push_create_scan.clicked.connect(self.create_scan)
 
         self.figure_trajectory, self.canvas_trajectory,\
                 self.toolbar_trajectory = setup_figure(self, self.layout_trajectory)
@@ -62,103 +65,185 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
 
-    def build_trajectory(self):
-        E0 = float(self.e0)
-        preedge_lo = int(self.edit_preedge_lo.text())
-        preedge_hi = int(self.edit_preedge_hi.text())
-        edge_hi = int(self.edit_edge_hi.text())
-        pad_time = float(self.edit_pad_time.text())
-        postedge_k = float(self.edit_postedge_hi.text())
-        postedge_hi = xray.k2e(postedge_k,
-                               E0) - E0  # (1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
 
-        velocity_preedge = int(self.edit_velocity_preedge.text())
-        velocity_edge = int(self.edit_velocity_edge.text())
-        velocity_postedge = int(self.edit_velocity_postedge.text())
+    def populate_detectors(self):
+        detector_names = ['Pilatus 100k', 'Xspress3']
+        for detector in detector_names:
+            qitem = QtWidgets.QCheckBox(detector)
+            qitem.setCheckState(False)
+            qitem.setTristate(False)
+            self.verticalLayout_detectors.addWidget(qitem)
 
-        preedge_stitch_lo = int(self.edit_preedge_stitch_lo.text())
-        preedge_stitch_hi = int(self.edit_preedge_stitch_hi.text())
-        edge_stitch_lo = int(self.edit_edge_stitch_lo.text())
-        edge_stitch_hi = int(self.edit_edge_stitch_hi.text())
-        postedge_stitch_lo = int(self.edit_postedge_stitch_lo.text())
-        postedge_stitch_hi = int(self.edit_postedge_stitch_hi.text())
+    @property
+    def _scan_type(self):
+        return self.tabWidget_scan_type.tabText(self.tabWidget_scan_type.currentIndex()).lower()
 
-        padding_preedge = float(self.edit_padding_preedge.text())
-        padding_postedge = float(self.edit_padding_postedge.text())
+    @property
+    def _traj_dict(self):
+        if self.radioButton_flypath_standard.isChecked():
+             traj_dict = {'type': 'standard',
+                          'preedge_duration': float(self.edit_ds2_pree_duration.text()),
+                          'edge_duration': float(self.edit_ds2_edge_duration.text()),
+                          'postedge_duration': float(self.edit_ds2_poste_duration.text()),
+                          'preedge_flex': float(self.edit_preedge_flex_frac.text()),
+                          'postedge_flex': float(self.edit_postedge_flex_frac.text())}
+        elif self.radioButton_flypath_doublesine.isChecked():
+            traj_dict = {'type': 'double_sine',
+                         'preedge_duration': float(self.edit_ds_pree_duration.text()),
+                         'postedge_duration': float(self.edit_ds_poste_duration.text())}
+        elif self.radioButton_flypath_sine.isChecked():
+            traj_dict = {'type': 'sine',
+                         'duration': float(self.edit_sine_total_duration.text())}
 
-        sine_duration = float(self.edit_sine_total_duration.text())
+        traj_common = {'pad': float(self.edit_pad_time.text()),
+                       'repeat': int(self.spinBox_tiling_repetitions.value()),
+                       'single_direction': self.checkBox_traj_single_dir.isChecked(),
+                       'revert': self.checkBox_traj_revert.isChecked(),
+                       'filename' : ''}
 
-        traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
-        if traj_type == 'Double Sine':
-            dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
-            dsine_edge_duration = None
-            dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
+        return {**traj_dict, **traj_common}
+
+    @property
+    def _step_dict(self):
+        return {'preedge_stepsize': float(self.edit_preedge_spacing.text()),
+                'XANES_stepsize': float(self.edit_xanes_spacing.text()),
+                'EXAFS_stepsize': float(self.edit_exafs_spacing.text()),
+                'preedge_dwelltime': float(self.edit_preedge_dwell.text()),
+                'XANES_dwelltime': float(self.edit_xanes_dwell.text()),
+                'EXAFS_dwelltime': float(self.edit_exafs_dwell.text()),
+                'k_power': int(self.comboBox_exafs_dwell_kpower.currentText()),
+                'revert': self.checkBox_energy_down.isChecked()}
+
+    @property
+    def _scan_parameters(self):
+        scan_type = self._scan_type
+        scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
+                                  'edge': self.widget_energy_selector.comboBox_edge.currentText(),
+                                  'energy': float(self.widget_energy_selector.edit_E0.text()),
+                                  'preedge_start': float(self.edit_preedge_start.text()),
+                                  'XANES_start': float(self.edit_xanes_start.text()),
+                                  'XANES_end': float(self.edit_xanes_end.text()),
+                                  'EXAFS_end': float(self.edit_exafs_end.text()),
+                                  'offset': float(self.label_angle_offset.text())}
+
+        if scan_type == 'fly scan':
+            return {**scan_parameters_common, **self._traj_dict}
+        elif scan_type == 'step scan':
+            return {**scan_parameters_common, **self._step_dict}
+
+    @property
+    def _scan_detectors(self):
+        det_list = []
+        for j in range(1, self.verticalLayout_detectors.count()):
+            checkBox = self.verticalLayout_detectors.itemAt(j).widget()
+            if checkBox.isChecked():
+                det_list.append(self.detectors[checkBox.text()])
+        return det_list
+
+
+
+    def create_scan(self):
+        self.new_scan_dict = {'scan_type' : self._scan_type,
+                              'scan_parameters' : self._scan_parameters,
+                              'detectors' : self._scan_detectors}
+
+
+
+    def add_scan_to_manager(self):
+        name = self.lineEdit_scan_name.text()
+        if name !='':
+            self.scan_manager.append_scan(self.new_scan_dict, name, self.model_scans)
+
         else:
-            dsine_preedge_duration = float(self.edit_ds2_pree_duration.text())
-            dsine_edge_duration = float(self.edit_ds2_edge_duration.text())
-            dsine_postedge_duration = float(self.edit_ds2_poste_duration.text())
+            message_box('Warning', 'Scan name is empty')
 
-        dsine_preedge_flex_frac = float(self.edit_preedge_flex_frac.text())
-        dsine_postedge_flex_frac = float(self.edit_postedge_flex_frac.text())
-
-        # vel_edge = float(self.edit_vel_edge.text())
-        #Define element and edge
-        # TODO: move it to trajectory class definition
-        self.trajectory_creator.elem = f'{self.element}'
-        self.trajectory_creator.edge = f'{self.edge}'
-        self.trajectory_creator.e0 = f'{self.e0}'
+    def update_user_scans_json(self):
+        print('model Changed')
 
 
-
-        # Create and interpolate trajectory
-        self.trajectory_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
-                                       velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
-                                       stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
-                                             postedge_stitch_lo, postedge_stitch_hi]), \
-                                       padding_lo=padding_preedge, padding_hi=padding_postedge,
-                                       sine_duration=sine_duration,
-                                       dsine_preedge_duration=dsine_preedge_duration,
-                                       dsine_edge_duration = dsine_edge_duration,
-                                       dsine_postedge_duration=dsine_postedge_duration,
-                                       dsine_preedge_frac=dsine_preedge_flex_frac,
-                                       dsine_postedge_frac=dsine_postedge_flex_frac,
-                                       trajectory_type=traj_type,
-                                       pad_time=pad_time)
-
-        # self.traj_creator_ref.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
-        #                          velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
-        #                          stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
+        # E0 = float(self.e0)
+        # preedge_lo = int(self.edit_preedge_lo.text())
+        # preedge_hi = int(self.edit_preedge_hi.text())
+        # edge_hi = int(self.edit_edge_hi.text())
+        # pad_time = float(self.edit_pad_time.text())
+        # postedge_k = float(self.edit_postedge_hi.text())
+        # postedge_hi = xray.k2e(postedge_k,
+        #                        E0) - E0  # (1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
+        #
+        # velocity_preedge = int(self.edit_velocity_preedge.text())
+        # velocity_edge = int(self.edit_velocity_edge.text())
+        # velocity_postedge = int(self.edit_velocity_postedge.text())
+        #
+        # preedge_stitch_lo = int(self.edit_preedge_stitch_lo.text())
+        # preedge_stitch_hi = int(self.edit_preedge_stitch_hi.text())
+        # edge_stitch_lo = int(self.edit_edge_stitch_lo.text())
+        # edge_stitch_hi = int(self.edit_edge_stitch_hi.text())
+        # postedge_stitch_lo = int(self.edit_postedge_stitch_lo.text())
+        # postedge_stitch_hi = int(self.edit_postedge_stitch_hi.text())
+        #
+        # padding_preedge = float(self.edit_padding_preedge.text())
+        # padding_postedge = float(self.edit_padding_postedge.text())
+        #
+        # sine_duration = float(self.edit_sine_total_duration.text())
+        #
+        # traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
+        # if traj_type == 'Double Sine':
+        #     dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
+        #     dsine_edge_duration = None
+        #     dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
+        # else:
+        #     dsine_preedge_duration = float(self.edit_ds2_pree_duration.text())
+        #     dsine_edge_duration = float(self.edit_ds2_edge_duration.text())
+        #     dsine_postedge_duration = float(self.edit_ds2_poste_duration.text())
+        #
+        # dsine_preedge_flex_frac = float(self.edit_preedge_flex_frac.text())
+        # dsine_postedge_flex_frac = float(self.edit_postedge_flex_frac.text())
+        #
+        # # vel_edge = float(self.edit_vel_edge.text())
+        # #Define element and edge
+        # # TODO: move it to trajectory class definition
+        # self.trajectory_creator.elem = f'{self.element}'
+        # self.trajectory_creator.edge = f'{self.edge}'
+        # self.trajectory_creator.e0 = f'{self.e0}'
+        #
+        #
+        #
+        # # Create and interpolate trajectory
+        # self.trajectory_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
+        #                                velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
+        #                                stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
         #                                      postedge_stitch_lo, postedge_stitch_hi]), \
-        #                          padding_lo=padding_preedge, padding_hi=padding_postedge,
-        #                          sine_duration=sine_duration,
-        #                          dsine_preedge_duration=10,
-        #                          dsine_edge_duration=dsine_edge_duration,
-        #                          dsine_postedge_duration=20,
-        #                          dsine_preedge_frac=dsine_preedge_flex_frac,
-        #                          dsine_postedge_frac=dsine_postedge_flex_frac,
-        #                          trajectory_type='Double Sine')
-
-        # self.traj_creator.compute_time_per_bin(E0, preedge_hi, edge_hi)
-        self.trajectory_creator.interpolate()
-        # self.traj_creator_ref.interpolate()
-
-
-
-        # Revert trajectory if checkbox checked
-        if self.checkBox_traj_revert.isChecked() and self.checkBox_traj_revert.isEnabled():
-            self.trajectory_creator.revert()
-
-
-
-        self.trajectory_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
-                                     single_direction=self.checkBox_traj_single_dir.isChecked())
-
-        # Convert to encoder counts
-        self.trajectory_creator.e2encoder(float(self.label_angle_offset.text()))
-
-        self._update_figures()
-
-        self.push_save_trajectory.setEnabled(True)
+        #                                padding_lo=padding_preedge, padding_hi=padding_postedge,
+        #                                sine_duration=sine_duration,
+        #                                dsine_preedge_duration=dsine_preedge_duration,
+        #                                dsine_edge_duration = dsine_edge_duration,
+        #                                dsine_postedge_duration=dsine_postedge_duration,
+        #                                dsine_preedge_frac=dsine_preedge_flex_frac,
+        #                                dsine_postedge_frac=dsine_postedge_flex_frac,
+        #                                trajectory_type=traj_type,
+        #                                pad_time=pad_time)
+        #
+        #
+        # self.trajectory_creator.interpolate()
+        #
+        #
+        #
+        #
+        # # Revert trajectory if checkbox checked
+        # if self.checkBox_traj_revert.isChecked() and self.checkBox_traj_revert.isEnabled():
+        #     self.trajectory_creator.revert()
+        #
+        #
+        #
+        # self.trajectory_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
+        #                              single_direction=self.checkBox_traj_single_dir.isChecked())
+        #
+        # # Convert to encoder counts
+        # self.trajectory_creator.e2encoder(float(self.label_angle_offset.text()))
+        #
+        # self._update_figures()
+        #
+        # self.push_save_trajectory.setEnabled(True)
 
 
     def _update_figures(self):
