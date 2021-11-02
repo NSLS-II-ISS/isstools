@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>281</width>
-    <height>297</height>
+    <width>284</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,41 +37,28 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>304</width>
-     <height>211</height>
+     <width>271</width>
+     <height>248</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="4" column="0">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="midLineWidth">
+       <number>0</number>
+      </property>
+      <property name="text">
+       <string>X</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
      <widget class="QLabel" name="label_8">
       <property name="midLineWidth">
        <number>0</number>
       </property>
       <property name="text">
        <string>Theta</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
-      <property name="minimum">
-       <double>-1000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>100000000.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="lineEdit_name"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
-      <property name="minimum">
-       <double>-1000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>10000000000.000000000000000</double>
       </property>
      </widget>
     </item>
@@ -85,6 +72,36 @@
       </property>
      </widget>
     </item>
+    <item row="5" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_theta">
+      <property name="minimum">
+       <double>-100000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100000000000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
+      <property name="minimum">
+       <double>-1000000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100000000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
+      <property name="minimum">
+       <double>-1000000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10000000000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label_4">
       <property name="midLineWidth">
@@ -95,29 +112,6 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="midLineWidth">
-       <number>0</number>
-      </property>
-      <property name="text">
-       <string>X</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_theta">
-      <property name="minimum">
-       <double>-100000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>100000000000.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_comment"/>
-    </item>
     <item row="3" column="0">
      <widget class="QLabel" name="label_7">
       <property name="midLineWidth">
@@ -125,6 +119,32 @@
       </property>
       <property name="text">
        <string>Y</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEdit_name"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEdit_comment"/>
+    </item>
+    <item row="4" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_z">
+      <property name="minimum">
+       <double>-1000000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100000000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="midLineWidth">
+       <number>0</number>
+      </property>
+      <property name="text">
+       <string>Z</string>
       </property>
      </widget>
     </item>

@@ -91,7 +91,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
                         if testing:
                             print('would have moved there', sample.x + delta_x, sample.y + delta_y)
                         else:
-                            yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y)
+                            yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y,
+                                          sample_stage.z, sample.z, sample_stage.th, sample.th )
 
                         for kk in range(sample.rowCount()):
                             child_item = sample.child(kk)
@@ -162,8 +163,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                 if testing:
                                     print('would have moved there', sample.x + delta_x, sample.y + delta_y)
                                 else:
-                                    yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y,
-                                                  sample.y + delta_y)
+                                    yield from mv(sample_stage.x, sample.x + delta_x,
+                                                  sample_stage.y, sample.y + delta_y,
+                                                  sample_stage.z, sample.z,
+                                                  sample_stage.th, sample.th)
 
                                 # see if there is child service
                                 if sample.rowCount() != 0:

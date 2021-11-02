@@ -521,3 +521,41 @@ def c():
             json.dump(d, fp)
 
 
+############################
+
+from PyQt5 import uic, QtGui, QtCore, QtWidgets
+
+
+
+
+class ListWithModel(list):
+
+    def __init__(self, *args, parent=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = QtGui.QStandardItemModel(parent)
+
+    def append(self, __object) -> None:
+        super().append(__object)
+        item = QtGui.QStandardItem(self[-1])
+        parent = self.model.invisibleRootItem()
+        parent.appendRow(item)
+
+    # def insert(self, __index: int, __object) -> None:
+    #     super().insert(__index, __object)
+    #     self.model.item(__index).setText(__object)
+    #     # print('inserting')
+    #
+    # def __setitem__(self, __index: int, __object):
+    #     super().__setitem__(__index, __object)
+    #     self.model.item(__index).setText(__object)
+        # print(__object)
+
+
+        ### GO TO VIEW PLEASE
+
+
+
+
+
+
+

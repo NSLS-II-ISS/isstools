@@ -93,7 +93,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_create_service.clicked.connect(self.create_service)
         self.push_create_map.clicked.connect(self.create_map)
         self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
+        self.radioButton_sample_map_1D.toggled.connect(self.enable_map_spinboxes)
+        self.radioButton_map_steps.toggled.connect(self.enable_map_spinboxes)
         self.enable_user_position_input()
+        self.enable_map_spinboxes()
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
         self.comboBox_service_plan.addItems(self.service_plan_funcs_names)
@@ -147,29 +150,22 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with samples
     '''
 
-    def _check_the_xystage_vs_xylabel(self, tolerance=0.005):
-        x_act = self.sample_stage.x.position
-        y_act = self.sample_stage.y.position
-        x_nom = self.spinBox_sample_x.value()
-        y_nom = self.spinBox_sample_y.value()
-        if not (np.isclose(x_act, x_nom, atol=tolerance) & np.isclose(y_act, y_nom, atol=tolerance)):
-            self.spinBox_sample_x.setValue(x_act)
-            self.spinBox_sample_y.setValue(y_act)
+    def _create_list_of_positions(self):
+        tab_text = self.tabWidget_sample.tabText(self.tabWidget_sample.currentIndex())
+        if tab_text == 'Grid':
+            return self.create_position_grid()
+        elif tab_text == 'Map':
+             return self.create_position_grid()
+        return
 
-    def _create_one_sample(self):
-        sample_name = self.lineEdit_sample_name.text()
-        if sample_name:
-            sample_x = self.spinBox_sample_x.value()
-            sample_y = self.spinBox_sample_y.value()
-            sample_comment = self.lineEdit_sample_comment.text()
-            _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=self.model_samples)
-            self.listView_samples.setModel(self.model_samples)
-        else:
-            message_box('Warning', 'Sample name is empty')
+    def _get_stage_coordinates(self, tolerance=0.005):
+        self.spinBox_sample_x.setValue(self.sample_stage.x.position)
+        self.spinBox_sample_y.setValue(self.sample_stage.y.position)
+        self.spinBox_sample_z.setValue(self.sample_stage.z.position)
+        self.spinBox_sample_th.setValue(self.sample_stage.th.position)
 
-    def create_new_sample(self):
-        if self.checkBox_auto_position.isChecked():
-            self._check_the_xystage_vs_xylabel()
+
+    def _create_grid_of_positions(self):
         step_size = self.spinBox_grid_spacing.value()
         n_x = self.spinBox_grid_x_points.value()
         n_y = self.spinBox_grid_y_points.value()
@@ -177,37 +173,92 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         x_array -= np.median(x_array)
         y_array = np.arange(n_y, dtype=float)
         y_array -= np.median(y_array)
-        x_mesh, y_mesh = np.meshgrid(x_array*step_size, y_array*step_size)
+        x_mesh, y_mesh = np.meshgrid(x_array * step_size, y_array * step_size)
         x_mesh = x_mesh.ravel()
         y_mesh = y_mesh.ravel()
 
         radius = self.spinBox_sample_radius.value()
         if radius > 0:
-            r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
+            r_mesh = np.sqrt(x_mesh ** 2 + y_mesh ** 2)
             x_mesh = x_mesh[r_mesh <= radius]
             y_mesh = y_mesh[r_mesh <= radius]
 
+        if self.checkBox_auto_position.isChecked():
+            self._get_stage_coordinates()
+
         xs = self.spinBox_sample_x.value() + x_mesh
         ys = self.spinBox_sample_y.value() + y_mesh
+        z = self.spinBox_sample_z.value()
+        th = self.spinBox_sample_th.value()
+        npt = xs.size
+        positions = []
+        for i in range(npt):
+            _d = {'x' : xs[i],
+                  'y' : ys[i],
+                  'z' : z,
+                  'th' : th }
+            positions.append(_d)
+        return positions
+
+    def _create_map_of_positions(self):
+        x_1 = self.spinBox_sample_x_map_start.value()
+        y_1 = self.spinBox_sample_y_map_start.value()
+        z_1 = self.spinBox_sample_z_map_start.value()
+        th_1 = self.spinBox_sample_th_map_start.value()
+
+        x_2 = self.spinBox_sample_x_map_end.value()
+        y_2 = self.spinBox_sample_y_map_end.value()
+        z_2 = self.spinBox_sample_z_map_end.value()
+        th_2 = self.spinBox_sample_th_map_end.value()
+
+        if self.radioButton_map_steps.isChecked():
+            n_x = self.spinBox_sample_x_map_steps.value()
+            n_y = self.spinBox_sample_y_map_steps.value()
+        elif self.radioButton_map_spacing.isChecked():
+            n_x = np.floor(np.abs(x_1 - x_2) / self.spinBox_sample_x_map_spacing.value())
+            n_y = np.floor(np.abs(y_1 - y_2) / self.spinBox_sample_y_map_spacing.value())
+
+        if self.radioButton_sample_map_1D.isChecked():
+            xs = np.linspace(x_1, x_2, n_x)
+            ys = np.linspace(y_1, y_2, n_x)
+        elif self.radioButton_sample_map_2D.isChecked():
+            _x = np.linspace(x_1, x_2, n_x)
+            _y = np.linspace(y_1, y_2, n_y)
+            xs, ys = np.meshgrid(np.linspace(x_1, x_2, n_x),
+                                 np.linspace(y_1, y_2, n_y))
+            xs = xs.ravel()
+            ys = ys.ravel()
 
         npt = xs.size
-        x_orig = self.spinBox_sample_x.value()
-        y_orig = self.spinBox_sample_y.value()
+        positions = []
+        for i in range(npt):
+            _d = {'x': xs[i],
+                  'y': ys[i],
+                  'z': np.interp(xs[i], [x_1, x_2], [z_1, z_2]),
+                  'th': np.interp(xs[i], [x_1, x_2], [th_1, th_2])}
+            positions.append(_d)
+        return positions
 
-        base_name = self.lineEdit_sample_name.text()
-        counter = 1
-        for _x, _y in zip(xs, ys):
-            _name = f'{base_name}'
-            if npt > 1:
-                _name += f' pos {counter:02d}'
-            self.lineEdit_sample_name.setText(_name)
-            self.spinBox_sample_x.setValue(_x)
-            self.spinBox_sample_y.setValue(_y)
-            self._create_one_sample()
-            counter += 1
-        self.lineEdit_sample_name.setText(base_name)
-        self.spinBox_sample_x.setValue(x_orig)
-        self.spinBox_sample_y.setValue(y_orig)
+
+    def _create_one_sample(self, name, comment, x, y, z, th):
+        _create_new_sample(name, comment,
+                           x, y, z, th,
+                           model=self.model_samples)
+        self.listView_samples.setModel(self.model_samples)
+
+    def create_new_sample(self):
+        sample_name = self.lineEdit_sample_name.text()
+        if sample_name == '':
+            message_box('Warning', 'Sample name is empty')
+            return
+
+        sample_comment = self.lineEdit_sample_comment.text()
+        positions = self._create_list_of_positions()
+
+        for p in positions:
+            print(f'Creating sample {name} at {p}')
+            self._create_one_sample(sample_name, sample_comment,
+                                    p['x'], p['y'], p['z'], p['th'])
 
     def delete_sample(self):
         view = self.listView_samples
@@ -230,10 +281,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             sample['comment'] = b.comment
             sample['x'] = b.x
             sample['y'] = b.y
+            sample['z'] = b.z
+            sample['th'] = b.th
             samples.append(sample)
 
-        print(samples)
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save trajectory...', '/nsls2/xf08id/Sandbox', '*.smpl',
+        print(f'Saving samples:\n{samples}')
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', '/nsls2/xf08id/Sandbox', '*.smpl',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         print(filename)
         if not filename.endswith('.smpl'):
@@ -252,8 +305,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 samples = json.loads(f.read())
             print(samples)
             for sample in samples:
-                _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=self.model_samples)
-            self.listView_samples.setModel(self.model_samples)
+                self._create_one_sample(sample['name'], sample['comment'],
+                                   sample['x'], sample['y'], sample['z'], sample['th'])
+
 
     def check_all_samples(self):
         for i in range(self.model_samples.rowCount()):
@@ -285,7 +339,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.lineEdit_sample_name.setText(name)
             self.lineEdit_sample_comment.setText(comment)
         except:
-            message_box('Error', 'Autopilot is not  defined')
+            message_box('Error', 'Autopilot table is not defined')
 
 
     def modify_item(self):
@@ -315,6 +369,22 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
                     item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
+
+
+    def move_to_sample(self):
+            sender_object = QObject().sender()
+            selection = sender_object.selectedIndexes()
+            if selection != []:
+                index = sender_object.currentIndex()
+                item = sender_object.model().item(index.row())
+                ret = question_message_box(self, 'Moving to sample', 'Are you sure?')
+                if ret:
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.x, item.x))
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.y, item.y))
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.z, item.z))
+                    self.RE(bps.mv(self.sample_positioner.sample_stage.th, item.th))
+
+
     '''
     Dealing with scans
     '''
@@ -340,14 +410,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         else:
             message_box('Warning','Scan name is empty')
 
-    def delete_batch_element(self):
-        if self.treeView_batch.selectedIndexes():
-            selected_index = self.treeView_batch.selectedIndexes()[0]
-            item = self.model_batch.itemFromIndex(selected_index)
-            if item.item_type=='experiment':
-                self.treeView_batch.model().removeRows(item.row(), 1)
-            else:
-                item.parent().removeRow(item.row())
     '''
     Dealing with measurements
     '''
@@ -416,7 +478,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     # def _create_measurement(self, parent):
-
+    def delete_batch_element(self):
+        if self.treeView_batch.selectedIndexes():
+            selected_index = self.treeView_batch.selectedIndexes()[0]
+            item = self.model_batch.itemFromIndex(selected_index)
+            if item.item_type=='experiment':
+                self.treeView_batch.model().removeRows(item.row(), 1)
+            else:
+                item.parent().removeRow(item.row())
 
     '''
     Dealing with services
@@ -521,86 +590,82 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.comboBox_lut.addItems(
             ['{}-{}'.format(lut, self.trajectories[lut]['name']) for lut in self.trajectories if lut != '9'])
 
-    def create_map(self):
-        if self.treeView_batch.model().rowCount() and self.treeView_batch.selectedIndexes():
-            parent = self.model_batch.itemFromIndex(self.treeView_batch.selectedIndexes()[0])
-            if (parent.item_type == 'experiment') and (self.listView_scans.model() is not None):
-                for index in range(self.listView_scans.model().rowCount()):
-                    item_scan = self.listView_scans.model().item(index)
-                    if item_scan.checkState():
-                        new_item_scan = _clone_scan_item(item_scan)
-                        #calculate_map
+    # def create_map(self):
+    #     if self.treeView_batch.model().rowCount() and self.treeView_batch.selectedIndexes():
+    #         parent = self.model_batch.itemFromIndex(self.treeView_batch.selectedIndexes()[0])
+    #         if (parent.item_type == 'experiment') and (self.listView_scans.model() is not None):
+    #             for index in range(self.listView_scans.model().rowCount()):
+    #                 item_scan = self.listView_scans.model().item(index)
+    #                 if item_scan.checkState():
+    #                     new_item_scan = _clone_scan_item(item_scan)
+    #                     #calculate_map
+    #
+    #                     if self.radioButton_sample_map_1D.isChecked():
+    #                         x_coord = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
+    #                                             int(self.spinBox_sample_x_map_steps.value()))
+    #                         y_coord = np.linspace(self.spinBox_sample_y_map_start.value(),self.spinBox_sample_y_map_end.value(),
+    #                                             int(self.spinBox_sample_x_map_steps.value()))
+    #                         xy_coord = np.column_stack((x_coord,y_coord))
+    #
+    #                     elif self.radioButton_sample_map_2D.isChecked():
+    #                         x_coord = np.ndarray(0)
+    #                         y_coord = np.ndarray(0)
+    #                         y_points = np.linspace(self.spinBox_sample_y_map_start.value(), self.spinBox_sample_y_map_end.value(),
+    #                                               int(self.spinBox_sample_y_map_steps.value()))
+    #
+    #                         if int(self.spinBox_sample_y_map_steps.value()) == 0:
+    #                             message_box('Warning', 'Select nonzero number of steps ')
+    #                             return
+    #                         for i in range(int(self.spinBox_sample_y_map_steps.value())):
+    #                             x_line = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
+    #                                             int(self.spinBox_sample_x_map_steps.value()))
+    #
+    #                             y_line = np.ones(len(x_line))*(y_points[i])
+    #
+    #                             x_coord = np.append(x_coord, x_line)
+    #                             y_coord = np.append(y_coord, y_line)
+    #
+    #                         xy_coord = np.column_stack((x_coord, y_coord))
+    #                     print(xy_coord)
+    #
+    #                     if self.lineEdit_map_name.text():
+    #                         for index in range(len(xy_coord)):
+    #                             x = xy_coord[index, 0]
+    #                             y = xy_coord[index, 1]
+    #                             name = f'{self.lineEdit_map_name.text()} at {x:.3f} {y:.3f}'
+    #
+    #                             item = QtGui.QStandardItem(name)
+    #                             new_item_scan.appendRow(item)
+    #                             item.setDropEnabled(False)
+    #                             item.item_type = 'sample'
+    #                             item.setEditable(False)
+    #                             item.x = x
+    #                             item.y = y
+    #                             item.name = name
+    #                             item.comment = self.lineEdit_map_comment.text()
+    #                             item.setIcon(icon_sample)
+    #                     else:
+    #                         message_box('Warning', 'Select nonzero number of steps ')
+    #
+    #                     parent.appendRow(new_item_scan)
+    #                     new_item_scan.setCheckable(False)
+    #                     new_item_scan.setEditable(False)
+    #
+    #
+    #                 self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+    #
+    #         for index in range(parent.rowCount()):
+    #             self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
+    #             self.treeView_batch.setModel(self.model_batch)
+    #     else:
+    #         message_box('Warning','Select experiment before adding map')
 
-                        if self.radioButton_sample_map_1D.isChecked():
-                            x_coord = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
-                                                int(self.spinBox_sample_x_map_steps.value()))
-                            y_coord = np.linspace(self.spinBox_sample_y_map_start.value(),self.spinBox_sample_y_map_end.value(),
-                                                int(self.spinBox_sample_x_map_steps.value()))
-                            xy_coord = np.column_stack((x_coord,y_coord))
 
-                        elif self.radioButton_sample_map_2D.isChecked():
-                            x_coord = np.ndarray(0)
-                            y_coord = np.ndarray(0)
-                            y_points = np.linspace(self.spinBox_sample_y_map_start.value(), self.spinBox_sample_y_map_end.value(),
-                                                  int(self.spinBox_sample_y_map_steps.value()))
-
-                            if int(self.spinBox_sample_y_map_steps.value()) == 0:
-                                message_box('Warning', 'Select nonzero number of steps ')
-                                return
-                            for i in range(int(self.spinBox_sample_y_map_steps.value())):
-                                x_line = np.linspace(self.spinBox_sample_x_map_start.value(),self.spinBox_sample_x_map_end.value(),
-                                                int(self.spinBox_sample_x_map_steps.value()))
-
-                                y_line = np.ones(len(x_line))*(y_points[i])
-
-                                x_coord = np.append(x_coord, x_line)
-                                y_coord = np.append(y_coord, y_line)
-
-                            xy_coord = np.column_stack((x_coord, y_coord))
-                        print(xy_coord)
-
-                        if self.lineEdit_map_name.text():
-                            for index in range(len(xy_coord)):
-                                x = xy_coord[index, 0]
-                                y = xy_coord[index, 1]
-                                name = f'{self.lineEdit_map_name.text()} at {x:.3f} {y:.3f}'
-
-                                item = QtGui.QStandardItem(name)
-                                new_item_scan.appendRow(item)
-                                item.setDropEnabled(False)
-                                item.item_type = 'sample'
-                                item.setEditable(False)
-                                item.x = x
-                                item.y = y
-                                item.name = name
-                                item.comment = self.lineEdit_map_comment.text()
-                                item.setIcon(icon_sample)
-                        else:
-                            message_box('Warning', 'Select nonzero number of steps ')
-
-                        parent.appendRow(new_item_scan)
-                        new_item_scan.setCheckable(False)
-                        new_item_scan.setEditable(False)
+    '''
+    Dealing with context menus
+    '''
 
 
-                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
-
-            for index in range(parent.rowCount()):
-                self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
-                self.treeView_batch.setModel(self.model_batch)
-        else:
-            message_box('Warning','Select experiment before adding map')
-
-    def move_to_sample(self):
-            sender_object = QObject().sender()
-            selection = sender_object.selectedIndexes()
-            if selection != []:
-                index = sender_object.currentIndex()
-                item = sender_object.model().item(index.row())
-                ret = question_message_box(self, 'Moving to sample', 'Are you sure?')
-                if ret:
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.x, item.x))
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.y, item.y))
 
     def sample_context_menu(self,QPos):
         menu = QMenu()
@@ -641,9 +706,24 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def enable_user_position_input(self):
-        self.spinBox_sample_x.setEnabled(not self.checkBox_auto_position.isChecked())
-        self.spinBox_sample_y.setEnabled(not self.checkBox_auto_position.isChecked())
-        self.push_get_sample_position.setEnabled(not self.checkBox_auto_position.isChecked())
+        manual_positoioning_flag = not self.checkBox_auto_position.isChecked()
+        self.spinBox_sample_x.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_y.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_z.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_th.setEnabled(manual_positoioning_flag)
+        self.push_get_sample_position.setEnabled(manual_positoioning_flag)
+
+
+
+    def enable_map_spinboxes(self):
+        is_1d = self.radioButton_sample_map_1D.isChecked()
+        is_steps = self.radioButton_map_steps.isChecked()
+
+        self.spinBox_sample_x_map_steps.setEnabled(is_steps)
+        self.spinBox_sample_x_map_spacing.setEnabled((not is_steps))
+
+        self.spinBox_sample_y_map_steps.setEnabled((is_steps) and (not is_1d))
+        self.spinBox_sample_y_map_spacing.setEnabled(((not is_steps) and (not is_1d)))
 
 
 
