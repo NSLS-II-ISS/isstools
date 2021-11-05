@@ -521,3 +521,45 @@ def c():
             json.dump(d, fp)
 
 
+
+#######
+
+# mixing samples in a fun way
+
+from isstools.elements.batch_elements import _create_new_sample
+
+
+def load_samples():
+    x = xlive_gui.widget_batch_mode.widget_batch_manual
+    folder = '/nsls2/xf08id/Sandbox/'
+    fnames = ['MoO2_dilute_Hadt_2021_11_3_try2.smpl',
+              'MoO3_dilute_Hadt_2021_11_3.smpl',
+              '2H-MoS2_dilute_Hadt_2021_11_3.smpl'
+              ]
+
+    samples_dict = {}
+
+    b_size = 5
+    n_reps = 30
+    samples = []
+    names = []
+    for file in fnames:
+        with open(folder + file, 'r') as f:
+            samples_dict[file] = json.loads(f.read())
+    idx = 0
+    for i in range(n_reps):
+        for key, item in samples_dict.items():
+            samples.extend(item[idx : (idx + b_size)])
+        idx += b_size
+
+    for sample in samples:
+        print(sample)
+        names.append(sample['name'])
+        _create_new_sample(sample['name'], sample['comment'], sample['x'], sample['y'], model=x.model_samples)
+
+    x.listView_samples.setModel(x.model_samples)
+    return names
+
+
+names = load_samples()
+
