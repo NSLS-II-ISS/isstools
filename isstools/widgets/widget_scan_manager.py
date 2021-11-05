@@ -123,8 +123,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                   'preedge_start': float(self.edit_preedge_start.text()),
                                   'XANES_start': float(self.edit_xanes_start.text()),
                                   'XANES_end': float(self.edit_xanes_end.text()),
-                                  'EXAFS_end': float(self.edit_exafs_end.text()),
-                                  'offset': float(self.label_angle_offset.text())}
+                                  'EXAFS_end': float(self.edit_exafs_end.text())}
 
         if scan_type == 'fly scan':
             return {**scan_parameters_common, **self._traj_dict}
@@ -144,9 +143,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def create_scan(self):
         self.new_scan_dict = {'scan_type' : self._scan_type,
-                              'scan_parameters' : self._scan_parameters,
-                              'detectors' : self._scan_detectors}
+                              'scan_parameters' : self._scan_parameters}
 
+        self.new_scan_aux_parameters = {'detectors' : self._scan_detectors,
+                                        'offset' : float(self.label_angle_offset.text())}
 
 
     def add_scan_to_manager(self):
