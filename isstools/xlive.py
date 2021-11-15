@@ -142,7 +142,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             hhm=hhm,
             scan_manager=scan_manager,
             detector_dict=detector_dict,
-            aux_plan_funcs=aux_plan_funcs
+            aux_plan_funcs=aux_plan_funcs,
+            parent = self
 
         )
         self.layout_scan_manager.addWidget(self.widget_scan_manager)
@@ -157,16 +158,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(
-            plan_funcs=plan_funcs,
-            aux_plan_funcs=aux_plan_funcs,
             RE=RE,
             db=db,
-            hhm=hhm,
-            detector_dict=detector_dict,
-            shutter_dict=shutter_dict,
-            motor_dict=motor_dict,
-            apb=apb,
-            parent=self,
+            scan_manager=scan_manager,
+            parent = None,
         )
         self.layout_run.addWidget(self.widget_run)
 

@@ -27,15 +27,18 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                  scan_manager=None,
                  detector_dict=[],
                  aux_plan_funcs = {},
+                 parent = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-
+        self.parent = parent
 
         self.element = 'Titanium (22)'
         self.e0 = '4966'
         self.edge = 'K'
+
+
         self.scan_manager = scan_manager
         self.detector_dict = detector_dict
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
@@ -45,22 +48,16 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
         self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
         self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
+
         #
         self.hhm = hhm
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
         self.populate_detectors()
-        self.model_scans = QtGui.QStandardItemModel(self)
-        self.listView_local_scans.setModel(self.model_scans)
-        self.model_scans.dataChanged.connect(self.update_user_scans_json)
-        #
-        # self.trajectory_manager = trajectory_manager
-        # self.trajectory_creator = TrajectoryCreator(servocycle=hhm.servocycle, pulses_per_deg=hhm.pulses_per_deg)
-        #
-        #
         self.push_create_scan.clicked.connect(self.create_scan)
+        self.push_add_to_manager.clicked.connect(self.add_scan_to_manager)
+        self.push_delete_scan.clicked.connect(self.delete_scan)
 
-        self.figure_trajectory, self.canvas_trajectory,\
-                self.toolbar_trajectory = setup_figure(self, self.layout_trajectory)
+        self.figure_trajectory, self.canvas_trajectory, self.toolbar_trajectory = setup_figure(self, self.layout_trajectory)
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
@@ -73,6 +70,11 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             qitem.setCheckState(False)
             qitem.setTristate(False)
             self.verticalLayout_detectors.addWidget(qitem)
+
+    @property
+    def _mono_scan(self):
+        return self.tabWidget_mono_scan.tabText(self.tabWidget_scan_type.currentIndex()).lower()
+        #WIP
 
     @property
     def _scan_type(self):
@@ -119,7 +121,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         scan_type = self._scan_type
         scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
                                   'edge': self.widget_energy_selector.comboBox_edge.currentText(),
-                                  'energy': float(self.widget_energy_selector.edit_E0.text()),
+                                  'e0': float(self.widget_energy_selector.edit_E0.text()),
                                   'preedge_start': float(self.edit_preedge_start.text()),
                                   'XANES_start': float(self.edit_xanes_start.text()),
                                   'XANES_end': float(self.edit_xanes_end.text()),
@@ -136,114 +138,46 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         for j in range(1, self.verticalLayout_detectors.count()):
             checkBox = self.verticalLayout_detectors.itemAt(j).widget()
             if checkBox.isChecked():
-                det_list.append(self.detectors[checkBox.text()])
+                det_list.append(checkBox.text())
         return det_list
-
 
 
     def create_scan(self):
         self.new_scan_dict = {'scan_type' : self._scan_type,
                               'scan_parameters' : self._scan_parameters}
-
         self.new_scan_aux_parameters = {'detectors' : self._scan_detectors,
                                         'offset' : float(self.label_angle_offset.text())}
+        self.scan_manager.create_lightweight_trajectory(self.new_scan_dict, self.plot_trajectory_func)
 
 
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()
         if name !='':
-            self.scan_manager.append_scan(self.new_scan_dict, name, self.model_scans)
-
+            self.scan_manager.add_scan(self.new_scan_dict, self.new_scan_aux_parameters, name)
+            self.update_local_manager_list()
         else:
             message_box('Warning', 'Scan name is empty')
 
-    def update_user_scans_json(self):
-        print('model Changed')
+    def plot_trajectory_func(self, x, y):
+        update_figure([self.figure_trajectory.ax], self.toolbar_trajectory, self.canvas_trajectory)
+        self.figure_trajectory.ax.plot(x, y)
+        self.figure_trajectory.ax.set_xlabel('Time, s')
+        self.figure_trajectory.ax.set_ylabel('Energy, eV')
+        self.canvas_trajectory.draw_idle()
+
+    def update_local_manager_list(self):
+        self.listWidget_local_manager.clear()
+        scan_defs = [scan['scan_def']  for scan in self.scan_manager.scan_list_local]
+        self.listWidget_local_manager.addItems(scan_defs )
+        self.parent.widget_run.update_scan_defs(scan_defs)
+
+    def delete_scan(self):
+        idx = self.listWidget_local_manager.currentRow()
+        self.scan_manager.delete_local_scan(idx)
+        self.update_local_manager_list()
 
 
-        # E0 = float(self.e0)
-        # preedge_lo = int(self.edit_preedge_lo.text())
-        # preedge_hi = int(self.edit_preedge_hi.text())
-        # edge_hi = int(self.edit_edge_hi.text())
-        # pad_time = float(self.edit_pad_time.text())
-        # postedge_k = float(self.edit_postedge_hi.text())
-        # postedge_hi = xray.k2e(postedge_k,
-        #                        E0) - E0  # (1000 * ((postedge_k ** 2) + (16.2009 ** 2) * E0/1000) / (16.2009 ** 2)) - E0
-        #
-        # velocity_preedge = int(self.edit_velocity_preedge.text())
-        # velocity_edge = int(self.edit_velocity_edge.text())
-        # velocity_postedge = int(self.edit_velocity_postedge.text())
-        #
-        # preedge_stitch_lo = int(self.edit_preedge_stitch_lo.text())
-        # preedge_stitch_hi = int(self.edit_preedge_stitch_hi.text())
-        # edge_stitch_lo = int(self.edit_edge_stitch_lo.text())
-        # edge_stitch_hi = int(self.edit_edge_stitch_hi.text())
-        # postedge_stitch_lo = int(self.edit_postedge_stitch_lo.text())
-        # postedge_stitch_hi = int(self.edit_postedge_stitch_hi.text())
-        #
-        # padding_preedge = float(self.edit_padding_preedge.text())
-        # padding_postedge = float(self.edit_padding_postedge.text())
-        #
-        # sine_duration = float(self.edit_sine_total_duration.text())
-        #
-        # traj_type = self.tabWidget_2.tabText(self.tabWidget_2.currentIndex())
-        # if traj_type == 'Double Sine':
-        #     dsine_preedge_duration = float(self.edit_ds_pree_duration.text())
-        #     dsine_edge_duration = None
-        #     dsine_postedge_duration = float(self.edit_ds_poste_duration.text())
-        # else:
-        #     dsine_preedge_duration = float(self.edit_ds2_pree_duration.text())
-        #     dsine_edge_duration = float(self.edit_ds2_edge_duration.text())
-        #     dsine_postedge_duration = float(self.edit_ds2_poste_duration.text())
-        #
-        # dsine_preedge_flex_frac = float(self.edit_preedge_flex_frac.text())
-        # dsine_postedge_flex_frac = float(self.edit_postedge_flex_frac.text())
-        #
-        # # vel_edge = float(self.edit_vel_edge.text())
-        # #Define element and edge
-        # # TODO: move it to trajectory class definition
-        # self.trajectory_creator.elem = f'{self.element}'
-        # self.trajectory_creator.edge = f'{self.edge}'
-        # self.trajectory_creator.e0 = f'{self.e0}'
-        #
-        #
-        #
-        # # Create and interpolate trajectory
-        # self.trajectory_creator.define(edge_energy=E0, offsets=([preedge_lo, preedge_hi, edge_hi, postedge_hi]),
-        #                                velocities=([velocity_preedge, velocity_edge, velocity_postedge]), \
-        #                                stitching=([preedge_stitch_lo, preedge_stitch_hi, edge_stitch_lo, edge_stitch_hi,
-        #                                      postedge_stitch_lo, postedge_stitch_hi]), \
-        #                                padding_lo=padding_preedge, padding_hi=padding_postedge,
-        #                                sine_duration=sine_duration,
-        #                                dsine_preedge_duration=dsine_preedge_duration,
-        #                                dsine_edge_duration = dsine_edge_duration,
-        #                                dsine_postedge_duration=dsine_postedge_duration,
-        #                                dsine_preedge_frac=dsine_preedge_flex_frac,
-        #                                dsine_postedge_frac=dsine_postedge_flex_frac,
-        #                                trajectory_type=traj_type,
-        #                                pad_time=pad_time)
-        #
-        #
-        # self.trajectory_creator.interpolate()
-        #
-        #
-        #
-        #
-        # # Revert trajectory if checkbox checked
-        # if self.checkBox_traj_revert.isChecked() and self.checkBox_traj_revert.isEnabled():
-        #     self.trajectory_creator.revert()
-        #
-        #
-        #
-        # self.trajectory_creator.tile(reps=self.spinBox_tiling_repetitions.value(),
-        #                              single_direction=self.checkBox_traj_single_dir.isChecked())
-        #
-        # # Convert to encoder counts
-        # self.trajectory_creator.e2encoder(float(self.label_angle_offset.text()))
-        #
-        # self._update_figures()
-        #
-        # self.push_save_trajectory.setEnabled(True)
+#___________________________________________________________________________________________________-
 
 
     def _update_figures(self):
