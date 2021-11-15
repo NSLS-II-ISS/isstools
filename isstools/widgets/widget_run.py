@@ -42,6 +42,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.run_mode_uids = []
         self.rr_token = None
 
+
+
+
     def addCanvas(self):
         self.figure = Figure()
         self.figure.set_facecolor(color='#FcF9F6')
@@ -88,9 +91,15 @@ class UIRun(*uic.loadUiType(ui_path)):
         #         ignore_shutter = True
         #         break
 
-        name_provided = self.parameter_values[0].text()
-        if name_provided:
-            pass
+        scan_idx = self.comboBox_scan_defs.currentIndex()
+        name = self.lineEdit_exp_name.text()
+        comment = self.lineEdit_exp_comment.text()
+        repeat = self.spinBox_scan_repeat.value()
+        delay = self.spinBox_scan_delay.value()
+
+        if name:
+            self.plans = self.scan_manager.generate_plan_list(scan_idx, name, comment, repeat, delay)
+
             # timenow = datetime.datetime.now()
             # print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S"),flush='true'))
             # start_scan_timer=timer()
