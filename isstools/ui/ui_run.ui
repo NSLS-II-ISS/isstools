@@ -22,7 +22,7 @@
      <height>881</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="plots"/>
+   <layout class="QVBoxLayout" name="layout_plot"/>
   </widget>
   <widget class="QPushButton" name="push_run_scan">
    <property name="geometry">

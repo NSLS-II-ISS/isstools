@@ -65,13 +65,13 @@ class EmittingStream(QtCore.QObject):
             fmt.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
-        elif text.lower().find('starting') >= 0 or text.lower().find('launching') >= 0:
+        elif (text.lower().find('starting') >= 0 or text.lower().find('launching')) >= 0:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.blue)
             fmt.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(fmt)
             cursor.insertText(text)
-        elif text.lower().find('complete') >= 0 or text.lower().find('done') >= 0:
+        elif (text.lower().find('complete') >= 0 or text.lower().find('done') or text.lower().find('finished')) >= 0:
             fmt = cursor.charFormat()
             fmt.setForeground(QtCore.Qt.darkGreen)
             fmt.setFontWeight(QtGui.QFont.Bold)

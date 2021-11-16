@@ -137,83 +137,74 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.dropbox_service = None
         print('cloud complete', ttime.ctime())
 
-        print('widget scan manager loading', ttime.ctime())
-        self.widget_scan_manager = widget_scan_manager.UIScanManager(
-            hhm=hhm,
-            scan_manager=scan_manager,
-            detector_dict=detector_dict,
-            aux_plan_funcs=aux_plan_funcs,
-            parent = self
-
-        )
-        self.layout_scan_manager.addWidget(self.widget_scan_manager)
-
-        print('widget processing loading', ttime.ctime())
-        self.widget_processing = widget_processing.UIProcessing(
-            hhm,
-            db,
-            parent_gui=self,
-        )
-        self.layout_processing.addWidget(self.widget_processing)
 
         print('widget run loading', ttime.ctime())
-        self.widget_run = widget_run.UIRun(
-            RE=RE,
-            db=db,
-            scan_manager=scan_manager,
-            parent = None,
-        )
+        self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
+                                           parent=None,
+                                           )
         self.layout_run.addWidget(self.widget_run)
 
+
+        print('widget scan manager loading', ttime.ctime())
+        self.widget_scan_manager = widget_scan_manager.UIScanManager(hhm=hhm,
+                                                                     scan_manager=scan_manager,
+                                                                     detector_dict=detector_dict,
+                                                                     parent=self
+                                                                     )
+        self.layout_scan_manager.addWidget(self.widget_scan_manager)
+
+
+        print('widget processing loading', ttime.ctime())
+        self.widget_processing = widget_processing.UIProcessing(hhm,
+                                                                db,
+                                                                parent_gui=self,
+                                                                )
+        self.layout_processing.addWidget(self.widget_processing)
+
+
         print('widget camera loading', ttime.ctime())
-        self.widget_camera = widget_camera.UICamera(
-            camera_dict,
-            sample_stage,
-            self.sample_positioner,
-            RE,
-            parent_gui=self,
-            sample_registry=self.sample_registry
-        )
+        self.widget_camera = widget_camera.UICamera(camera_dict,
+                                                    sample_stage,
+                                                    self.sample_positioner,
+                                                    RE,
+                                                    parent_gui=self,
+                                                    sample_registry=self.sample_registry
+                                                    )
         self.layout_camera.addWidget(self.widget_camera)
 
         print('widget batch loading', ttime.ctime())
-        self.widget_batch_mode = widget_batch.UIBatch(
-            plan_funcs=plan_funcs,
-            service_plan_funcs=service_plan_funcs,
-            hhm=hhm,
-            trajectory_manager=trajectory_manager,
-            RE=RE,
-            sample_stage=sample_stage,
-            parent_gui=self,
-            motors_dict=motor_dict,
-            camera_dict=camera_dict,
-            sample_positioner=self.sample_positioner
-        )
+        self.widget_batch_mode = widget_batch.UIBatch(plan_funcs=plan_funcs,
+                                                      service_plan_funcs=service_plan_funcs,
+                                                      hhm=hhm,
+                                                      trajectory_manager=trajectory_manager,
+                                                      RE=RE,
+                                                      sample_stage=sample_stage,
+                                                      parent_gui=self,
+                                                      motors_dict=motor_dict,
+                                                      camera_dict=camera_dict,
+                                                      sample_positioner=self.sample_positioner
+                                                      )
         self.layout_batch.addWidget(self.widget_batch_mode)
 
-
-
-        #Beamline setup
         print('widget beamline setup loading', ttime.ctime())
-        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(
-            RE,
-            hhm,
-            hhm_feedback,
-            apb,
-            apb_trigger_xs,
-            apb_trigger_pil100k,
-            db,
-            db_proc,
-            detector_dict,
-            ic_amplifiers,
-            plan_funcs,
-            service_plan_funcs,
-            aux_plan_funcs,
-            motor_dict,
-            tune_elements,
-            shutter_dict,
-            self,
-        )
+        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
+                                                                           hhm,
+                                                                           hhm_feedback,
+                                                                           apb,
+                                                                           apb_trigger_xs,
+                                                                           apb_trigger_pil100k,
+                                                                           db,
+                                                                           db_proc,
+                                                                           detector_dict,
+                                                                           ic_amplifiers,
+                                                                           plan_funcs,
+                                                                           service_plan_funcs,
+                                                                           aux_plan_funcs,
+                                                                           motor_dict,
+                                                                           tune_elements,
+                                                                           shutter_dict,
+                                                                           self,
+                                                                           )
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
 
         #Info shutters
@@ -223,62 +214,62 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget info general loading', ttime.ctime())
         self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
                                                                      db=db,
-                                                                      parent=self)
+                                                                     parent=self
+                                                                     )
 
         self.layout_info_general.addWidget(self.widget_info_general)
 
         # Info beamline
         print('widget info beamline loading', ttime.ctime())
-        self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(
-            accelerator=accelerator,
-            hhm=hhm,
-            hhm_feedback=hhm_feedback,
-            motor_emission=motor_emission,
-            shutters=shutter_dict,
-            ic_amplifiers=ic_amplifiers,
-            RE=RE,
-            db=None,
-            foil_camera=detector_dict['Camera SP5']['device'],
-            attenuator_camera=detector_dict['Camera SP6']['device'],
-            encoder_pb = self.encoder_pb,
-            aux_plan_funcs=aux_plan_funcs,
-            parent=self)
+        self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(accelerator=accelerator,
+                                                                        hhm=hhm,
+                                                                        hhm_feedback=hhm_feedback,
+                                                                        motor_emission=motor_emission,
+                                                                        shutters=shutter_dict,
+                                                                        ic_amplifiers=ic_amplifiers,
+                                                                        RE=RE,
+                                                                        db=None,
+                                                                        foil_camera=detector_dict['Camera SP5']['device'],
+                                                                        attenuator_camera=detector_dict['Camera SP6']['device'],
+                                                                        encoder_pb = self.encoder_pb,
+                                                                        aux_plan_funcs=aux_plan_funcs,
+                                                                        parent=self)
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
 
 
 
         if sdd is not None:
             print('widget sdd manager loading', ttime.ctime())
-            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs, sdd, RE)
+            self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs,
+                                                                      sdd,
+                                                                      RE)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
         print('widget autopilot loading', ttime.ctime())
-        self.widget_autopilot = widget_autopilot.UIAutopilot(
-            motor_dict,
-            camera_dict,
-            hhm,
-            trajectory_manager,
-            RE,
-            # db,
-            sample_stage,
-            self,
-            service_plan_funcs,
-            plan_funcs
-        )
+        self.widget_autopilot = widget_autopilot.UIAutopilot(motor_dict,
+                                                             camera_dict,
+                                                             hhm,
+                                                             trajectory_manager,
+                                                             RE,
+                                                             # db,
+                                                             sample_stage,
+                                                             self,
+                                                             service_plan_funcs,
+                                                             plan_funcs
+                                                             )
         self.layout_autopilot.addWidget(self.widget_autopilot)
 
 
         print('widget spectrometer loading', ttime.ctime())
-        self.widget_spectrometer = widget_spectrometer.UISpectrometer(
-            RE,
-            db,
-            detector_dict,
-            motor_dict,
-            shutter_dict,
-            aux_plan_funcs,
-            service_plan_funcs,
-            parent=self
-        )
+        self.widget_spectrometer = widget_spectrometer.UISpectrometer(RE,
+                                                                      db,
+                                                                      detector_dict,
+                                                                      motor_dict,
+                                                                      shutter_dict,
+                                                                      aux_plan_funcs,
+                                                                      service_plan_funcs,
+                                                                      parent=self
+                                                                      )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
         # self.widget_scan_manager.trajectoriesChanged.connect(
@@ -286,13 +277,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget loading done', ttime.ctime())
 
-
         self.push_re_abort.clicked.connect(self.re_abort)
-
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
-
         print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
-
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
                                     cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread)
