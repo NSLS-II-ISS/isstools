@@ -10,7 +10,7 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 from xas.xray import generate_energy_grid
 
-from isstools.dialogs.BasicDialogs import question_message_box, message_box
+from isstools.dialogs.BasicDialogs import question_message_box, message_box, error_message_box
 from isstools.elements.figure_update import update_figure
 from isstools.elements.parameter_handler import parse_plan_parameters, return_parameters_from_widget
 from isstools.widgets import widget_energy_selector
@@ -179,8 +179,8 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         name_provided = self.parameter_values[0].text()
         if name_provided:
-            timenow = datetime.datetime.now()
-            print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S"),flush='true'))
+            # timenow = datetime.datetime.now()
+            # print('\nStarting scan at {}'.format(timenow.strftime("%H:%M:%S"),flush='true'))
             start_scan_timer=timer()
             
             # Get parameters from the widgets and organize them in a dictionary (run_params)
@@ -263,7 +263,8 @@ class UIRun(*uic.loadUiType(ui_path)):
                                  e0=self.e0,
                                  edge=self.edge,
                                  ax=self.figure.ax1,
-                                 stdout=self.parent.emitstream_out)]
+                                 stdout=self.parent.emitstream_out,
+                                 error_message_func=error_message_box)]
 
             if plan_key.lower().endswith('pilatus'):
                 if LivePlotPilatus:
@@ -280,9 +281,9 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.run_mode_uids = self.RE(*RE_args)
 
             timenow = datetime.datetime.now()
-            print('Scan complete at {}'.format(timenow.strftime("%H:%M:%S")))
+            print('Scan series complete at {}'.format(timenow.strftime("%H:%M:%S")))
             stop_scan_timer=timer()
-            print('Scan duration {} s'.format(stop_scan_timer-start_scan_timer))
+            print('Scan series duration {} s'.format(stop_scan_timer-start_scan_timer))
             if self.rr_token is not None:
                 self.RE.unsubscribe(self.rr_token)
 
