@@ -249,7 +249,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             ys = ys.ravel()
 
         npt = xs.size
-        positions = []
+        positions = []#
         for i in range(npt):
             _d = {'x': xs[i],
                   'y': ys[i],
