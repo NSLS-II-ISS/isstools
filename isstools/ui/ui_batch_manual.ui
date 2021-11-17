@@ -180,7 +180,7 @@
      </rect>
     </property>
     <property name="selectionMode">
-     <enum>QAbstractItemView::SingleSelection</enum>
+     <enum>QAbstractItemView::MultiSelection</enum>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
@@ -1096,7 +1096,7 @@ XY posisions</string>
    <widget class="QPushButton" name="push_save_samples">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>120</x>
       <y>350</y>
       <width>101</width>
       <height>21</height>
@@ -1104,32 +1104,6 @@ XY posisions</string>
     </property>
     <property name="text">
      <string>Save</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_load_samples">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>350</y>
-      <width>101</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Load</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_check_all">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>380</y>
-      <width>101</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Check all</string>
     </property>
    </widget>
    <widget class="QPushButton" name="push_uncheck_all">
@@ -1162,6 +1136,32 @@ XY posisions</string>
     </property>
     <property name="text">
      <string>Delete all</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_load_samples">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>380</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_check_all">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>350</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Check all</string>
     </property>
    </widget>
   </widget>

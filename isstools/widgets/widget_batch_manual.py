@@ -282,9 +282,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def delete_sample(self):
         view = self.listView_samples
-        index = view.currentIndex()
-        if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
-            view.model().removeRows(index.row(), 1)
+        index_list = view.selectedIndexes()
+        while len(index_list) > 0:
+            index = index_list[0]
+            if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
+                view.model().removeRows(index.row(), 1)
+            index_list = view.selectedIndexes()
 
     def delete_all_samples(self):
         view = self.listView_samples
@@ -365,7 +368,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def modify_item(self):
         sender_object = QObject().sender()
         selection = sender_object.selectedIndexes()
-        if selection != []:
+        if len(selection) == 1:
             index = sender_object.currentIndex()
             if sender_object.type == 'treeView':
                 item = sender_object.model().itemFromIndex(sender_object.selectedIndexes()[0])
@@ -389,12 +392,14 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
                     item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
+        elif len(selection) > 1:
+            message_box('Warning', 'Cannot modify multiple samples. Select one sample!')
 
 
     def move_to_sample(self):
             sender_object = QObject().sender()
             selection = sender_object.selectedIndexes()
-            if selection != []:
+            if len(selection) == 1:
                 index = sender_object.currentIndex()
                 item = sender_object.model().item(index.row())
                 ret = question_message_box(self, 'Moving to sample', 'Are you sure?')
@@ -403,7 +408,18 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                     self.RE(bps.mv(self.sample_positioner.sample_stage.y, item.y))
                     self.RE(bps.mv(self.sample_positioner.sample_stage.z, item.z))
                     self.RE(bps.mv(self.sample_positioner.sample_stage.th, item.th))
+            elif len(selection) > 1:
+                message_box('Warning', 'Cannot move to multiple sample positions. Select one sample!')
 
+
+
+    def check_selected_samples(self, checkstate=2):
+        view = self.listView_samples
+        index_list = view.selectedIndexes()
+        for index in index_list:
+            if (view.model().rowCount() > 0) and (index.row() < view.model().rowCount()):
+                item = view.model().item(index.row())
+                item.setCheckState(checkstate)
 
     '''
     Dealing with scans
@@ -693,6 +709,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def sample_context_menu(self,QPos):
         menu = QMenu()
+        check_selected_samples = menu.addAction("&Check selected samples")
+        uncheck_selected_samples = menu.addAction("&Uncheck selected samples")
         modify = menu.addAction("&Modify")
         move_to_sample = menu.addAction("Mo&ve to sample")
         parentPosition = self.listView_samples.mapToGlobal(QtCore.QPoint(0, 0))
@@ -702,6 +720,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.modify_item()
         elif action == move_to_sample:
             self.move_to_sample()
+        elif action == check_selected_samples:
+            self.check_selected_samples(checkstate=2)
+        elif action == uncheck_selected_samples:
+            self.check_selected_samples(checkstate=0)
 
     def scan_context_menu(self,QPos):
         menu = QMenu()
