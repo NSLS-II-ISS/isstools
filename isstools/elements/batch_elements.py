@@ -39,7 +39,7 @@ def _create_batch_experiment(experiment_name, experiment_rep, model=None):
 
 
 def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, sample_z, sample_th, model=None, setCheckable=True):
-    item = QtGui.QStandardItem(f'{sample_name} at X {sample_x} Y {sample_y}')
+    item = QtGui.QStandardItem(f'{sample_name} at X {sample_x :0.2f} Y {sample_y :0.2f} Z {sample_z :0.2f} Th {sample_th :0.2f}')
     item.setDropEnabled(False)
     item.item_type = 'sample'
     if setCheckable:

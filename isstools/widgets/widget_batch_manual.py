@@ -91,7 +91,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_batch_info.clicked.connect(self.batch_info)
         self.push_create_measurement.clicked.connect(self.create_measurement)
         self.push_create_service.clicked.connect(self.create_service)
-        self.push_create_map.clicked.connect(self.create_map)
+        # self.push_create_map.clicked.connect(self.create_map)
         self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
         self.radioButton_sample_map_1D.toggled.connect(self.enable_map_spinboxes)
         self.radioButton_map_steps.toggled.connect(self.enable_map_spinboxes)
@@ -129,22 +129,39 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         sample_position_widget_dict = {
             'push_get_sample_position':
                 {'x_widget': 'spinBox_sample_x',
-                 'y_widget': 'spinBox_sample_y'},
+                 'y_widget': 'spinBox_sample_y',
+                 'z_widget': 'spinBox_sample_z',
+                 'th_widget': 'spinBox_sample_th',
+                },
             'push_get_sample_position_map_start':
                 {'x_widget': 'spinBox_sample_x_map_start',
-                 'y_widget': 'spinBox_sample_y_map_start'},
+                 'y_widget': 'spinBox_sample_y_map_start',
+                 'z_widget': 'spinBox_sample_z_map_start',
+                 'th_widget': 'spinBox_sample_th_map_start',
+                 },
             'push_get_sample_position_map_end':
                 {'x_widget': 'spinBox_sample_x_map_end',
-                 'y_widget': 'spinBox_sample_y_map_end'},
+                 'y_widget': 'spinBox_sample_y_map_end',
+                 'z_widget': 'spinBox_sample_z_map_end',
+                 'th_widget': 'spinBox_sample_th_map_end'},
         }
 
         sender_object = QObject().sender().objectName()
         x_value = self.sample_stage.x.position
         x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
         x_widget.setValue(x_value)
+
         y_value = self.sample_stage.y.position
         y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
         y_widget.setValue(y_value)
+
+        z_value = self.sample_stage.z.position
+        z_widget = getattr(self, sample_position_widget_dict[sender_object]['z_widget'])
+        z_widget.setValue(z_value)
+
+        th_value = self.sample_stage.th.position
+        th_widget = getattr(self, sample_position_widget_dict[sender_object]['th_widget'])
+        th_widget.setValue(th_value)
 
     ''' 
     Dealing with samples
@@ -153,9 +170,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def _create_list_of_positions(self):
         tab_text = self.tabWidget_sample.tabText(self.tabWidget_sample.currentIndex())
         if tab_text == 'Grid':
-            return self.create_position_grid()
+            return self._create_grid_of_positions()
         elif tab_text == 'Map':
-             return self.create_position_grid()
+             return self._create_map_of_positions()
         return
 
     def _get_stage_coordinates(self, tolerance=0.005):
@@ -215,8 +232,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             n_x = self.spinBox_sample_x_map_steps.value()
             n_y = self.spinBox_sample_y_map_steps.value()
         elif self.radioButton_map_spacing.isChecked():
-            n_x = np.floor(np.abs(x_1 - x_2) / self.spinBox_sample_x_map_spacing.value())
-            n_y = np.floor(np.abs(y_1 - y_2) / self.spinBox_sample_y_map_spacing.value())
+            x_spacing = self.spinBox_sample_x_map_spacing.value()
+            y_spacing = self.spinBox_sample_y_map_spacing.value()
+            n_x = int(np.floor(np.abs(x_1 - x_2) / (x_spacing/np.cos(np.pi/4))))
+            n_y = int(np.floor(np.abs(y_1 - y_2) / y_spacing))
 
         if self.radioButton_sample_map_1D.isChecked():
             xs = np.linspace(x_1, x_2, n_x)
@@ -255,9 +274,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         sample_comment = self.lineEdit_sample_comment.text()
         positions = self._create_list_of_positions()
 
-        for p in positions:
-            print(f'Creating sample {name} at {p}')
-            self._create_one_sample(sample_name, sample_comment,
+        for i, p in enumerate(positions):
+            print(f'Creating sample {sample_name} at {p}')
+            sample_name_i = f'{sample_name} pos {(i+1):3d}'
+            self._create_one_sample(sample_name_i, sample_comment,
                                     p['x'], p['y'], p['z'], p['th'])
 
     def delete_sample(self):
@@ -353,10 +373,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 item = sender_object.model().item(index.row())
             if item.item_type =='sample':
                 dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
-                                                        item.x, item.y, 0,  parent=self)
+                                                        item.x, item.y, item.z, item.th,  parent=self)
                 if dlg.exec_():
-                    item.name, item.comment, item.x, item.y, _ = dlg.getValues()
-                    item.setText(f'{item.name} at X {item.x} Y {item.y}')
+                    item.name, item.comment, item.x, item.y, item.z, item.th = dlg.getValues()
+                    item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
             elif item.item_type == 'scan':
                 scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
                 trajectories = [self.comboBox_lut.itemText(i) for i in range(self.comboBox_lut.count())]
