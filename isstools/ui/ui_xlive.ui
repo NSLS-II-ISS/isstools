@@ -45,11 +45,11 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
-      <string>Beamline setup</string>
+      <string>Beamline Setup</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_10">
       <property name="geometry">
@@ -89,7 +89,7 @@
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
-      <string>Spectrometer alignment</string>
+      <string>Spectrometer Alignment</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_12">
       <property name="geometry">

@@ -186,9 +186,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             uid = local_scan['uid']
             global_scan = self.scan_manager.scan_dict[uid]
             params = ''
+            detectors = local_scan['aux_parameters']['detectors']
             for k, v in global_scan['scan_parameters'].items():
-                params += f' {v}: {k} \n'
-            scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n {params}"
+                params += f' {k}: {v} \n'
+            scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n\n Scan parameters \n {params} \n Detectors: {detectors}"
             message_box('Scan information', scan_info)
 
     def update_offset(self):

@@ -45,7 +45,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         if name:
-            self.plans = self.scan_manager.generate_plan_list(scan_idx, name, comment, repeat, delay)
+            self.plans = self.scan_manager.generate_plan_list(scan_idx, {'name':name, 'comment': comment,
+                                                                         'repeat': repeat, 'delay': delay})
         else:
             message_box('Error', 'Please provide the name for the scan')
 
@@ -56,7 +57,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.spinBox_scan_repeat.setValue(1)
         self.run_scan()
         self.lineEdit_exp_name.setText(name)
-        self.spinBox_scan_repeat.setValue(repeats)
+        self.spinBox_scan_repeat.setValue(repeat)
 
     def update_scan_defs(self, scan_defs):
         self.comboBox_scan_defs.clear()
