@@ -3,7 +3,7 @@ import re
 from PyQt5 import QtWidgets
 
 
-def create_parameter(description, _type, units=None):
+def create_parameter(description, annotation, units=None):
 
     qitem = None
     qlabel = None
@@ -11,19 +11,19 @@ def create_parameter(description, _type, units=None):
 
     if description.find('=') != -1:
         def_val = re.sub(r'.*=', '', description)
-    if _type == int:
+    if annotation == int:
         qitem = QtWidgets.QSpinBox()
         qitem.setMaximum(100000)
         qitem.setMinimum(-100000)
         def_val = int(def_val)
         qitem.setValue(def_val)
-    elif _type == float:
+    elif annotation == float:
         qitem = QtWidgets.QDoubleSpinBox()
         qitem.setMaximum(100000)
         qitem.setMinimum(-100000)
         def_val = float(def_val)
         qitem.setValue(def_val)
-    elif _type == bool:
+    elif annotation == bool:
         qitem = QtWidgets.QCheckBox()
         # if def_val == 'True':
         if 'True' in def_val:
@@ -32,7 +32,7 @@ def create_parameter(description, _type, units=None):
             def_val = False
         qitem.setCheckState(def_val)
         qitem.setTristate(False)
-    elif _type == str:
+    elif annotation == str:
         qitem = QtWidgets.QLineEdit()
         def_val = str(def_val)
         qitem.setText(def_val)

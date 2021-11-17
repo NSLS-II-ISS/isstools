@@ -99,22 +99,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.enable_map_spinboxes()
 
         self.comboBox_scans.addItems(self.plan_funcs_names)
-        self.scan_parameter_values = []
-        self.scan_parameter_descriptions = []
-        self.populate_scan_parameters()
-        self.update_batch_traj()
-
         self.comboBox_service_plan.addItems(self.service_plan_funcs_names)
         self.comboBox_service_plan.currentIndexChanged.connect(self.populate_service_parameters)
         self.push_update_traj_list.clicked.connect(self.update_batch_traj)
         self.last_lut = 0
 
-        self.step_scan_settings_dict = None
-
         self.service_parameter_values = []
         self.service_parameter_descriptions = []
         self.populate_service_parameters()
-
+        self.update_batch_traj()
 
         self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
 
@@ -416,49 +409,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with scans
     '''
 
-    def populate_scan_parameters(self):
-        for value, description in zip(self.scan_parameter_values, self.scan_parameter_descriptions):
-            self.gridLayout_scan_parameters.removeWidget(value)
-            self.gridLayout_scan_parameters.removeWidget(description)
-            value.deleteLater()
-            description.deleteLater()
-        plan_func = self.plan_funcs[self.comboBox_scan_type.currentText()]
-
-        self.scan_parameter_values, self.scan_parameter_descriptions, self.scan_parameter_types = parse_plan_parameters(plan_func)
-
-        for i in range(len(self.scan_parameter_values)):
-            self.gridLayout_scan_parameters.addWidget(self.service_parameter_values[i], i, 0, QtCore.Qt.AlignTop)
-            self.gridLayout_service_parameters.addWidget(self.service_parameter_descriptions[i], i, 1, QtCore.Qt.AlignTop)
-
-        if plan_func.lower().startswith('fly'):
-            self.comboBox_lut.setEnabled(True)
-            # self.update_batch_traj()
-            self.push_set_step_scan_parameters.setEnabled(False)
-        elif plan_func.lower().startswith('step'):
-            self.comboBox_lut.setEnabled(False)
-            self.push_set_step_scan_parameters.setEnabled(True)
-
     def create_new_scan(self):
         scan_name = self.lineEdit_scan_name.text()
         if scan_name:
-            scan_type = self.comboBox_scans.currentText()
-            scan_kwargs = {}
-            if scan_type.lower().startswith('fly'):
-                scan_kwargs['kind'] = 'fly'
-                scan_kwargs['trajectory'] = int(self.comboBox_lut.currentText()[0])
-            elif scan_type.lower().startswith('step'):
-                scan_kwargs['kind'] = 'step'
-                if self.step_scan_settings_dict is not None:
-                    scan_kwargs['step_scan_settings'] = self.step_scan_settings_dict
-                else:
-                    message_box('Warning', 'Step scan ')
-                    return
-            scan_kwargs['repeat'] = self.spinBox_scan_repeat.value()
-            scan_kwargs['delay'] = self.spinBox_scan_delay.value()
+            scan_type= self.comboBox_scans.currentText()
+            scan_traj = int(self.comboBox_lut.currentText()[0])
+            scan_repeat =  self.spinBox_scan_repeat.value()
+            scan_delay = self.spinBox_scan_delay.value()
             scan_autofoil = False
             # name = self.lineEdit_scan_name.text()
-            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil,
-                             model=self.model_scans)
+            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=self.model_scans)
 
             self.listView_scans.setModel(self.model_scans)
         else:
