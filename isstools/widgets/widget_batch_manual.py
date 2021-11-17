@@ -232,9 +232,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             n_x = self.spinBox_sample_x_map_steps.value()
             n_y = self.spinBox_sample_y_map_steps.value()
         elif self.radioButton_map_spacing.isChecked():
-            x_spacing = self.spinBox_sample_x_map_spacing.value()
+            x_spacing = self.spinBox_sample_x_map_spacing.value() / np.cos(np.pi/4)
             y_spacing = self.spinBox_sample_y_map_spacing.value()
-            n_x = int(np.floor(np.abs(x_1 - x_2) / (x_spacing/np.cos(np.pi/4))))
+            n_x = int(np.floor(np.abs(x_1 - x_2) / x_spacing))
             n_y = int(np.floor(np.abs(y_1 - y_2) / y_spacing))
 
         if self.radioButton_sample_map_1D.isChecked():

@@ -271,7 +271,7 @@ Autopilot</string>
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -282,7 +282,7 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>291</width>
+         <width>281</width>
          <height>191</height>
         </rect>
        </property>
@@ -1683,7 +1683,7 @@ XY posisions</string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>
