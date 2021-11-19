@@ -180,7 +180,7 @@
      </rect>
     </property>
     <property name="selectionMode">
-     <enum>QAbstractItemView::MultiSelection</enum>
+     <enum>QAbstractItemView::ExtendedSelection</enum>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
@@ -282,8 +282,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>281</width>
-         <height>191</height>
+         <width>423</width>
+         <height>290</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -551,8 +551,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>281</width>
-         <height>191</height>
+         <width>492</width>
+         <height>330</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
@@ -1683,7 +1683,7 @@ XY posisions</string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>
