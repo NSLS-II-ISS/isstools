@@ -282,8 +282,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>423</width>
-         <height>290</height>
+         <width>281</width>
+         <height>191</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -551,8 +551,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>492</width>
-         <height>330</height>
+         <width>281</width>
+         <height>191</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
