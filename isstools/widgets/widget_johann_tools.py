@@ -191,7 +191,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self._R = float(self.widget_emission_energy.edit_crystal_R.text())
         self._kind = self.widget_emission_energy.comboBox_crystal_kind.currentText()
         _reflection = self.widget_emission_energy.lineEdit_reflection.text()
-        self._hkl = [int(i) for i in _reflection[1:-1].split(',')]
+        _reflection = _reflection.replace(')','').replace('(','').replace(',','')
+        self._hkl = [int(i) for i in _reflection]
 
 
     def move_crystal(self):

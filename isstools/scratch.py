@@ -563,3 +563,124 @@ def load_samples():
 
 names = load_samples()
 
+#%%% SCRATCH FOR DENIS XES PROCESSING
+
+# Co foil
+from xas.file_io import load_interpolated_df_from_file
+x = xview_gui.project
+files = [f[2:] for f in x[-1].md['merged files'].split('\n')[1:-1]]
+for f in [files[0]]:
+    df, header = load_interpolated_df_from_file(f)
+    uid = header[1477:1513].split(' ')[1]
+
+
+
+
+PIL100k_HDF_DATA_KEY = 'entry/instrument/NDAttributes'
+from databroker.assets.handlers import HandlerBase, PilatusCBFHandler, AreaDetectorTiffHandler, Xspress3HDF5Handler
+class ISSPilatusHDF5Handler(Xspress3HDF5Handler): # Denis: I used Xspress3HDF5Handler as basis since it has all the basic functionality and I more or less understand how it works
+    specs = {'PIL100k_HDF5'} | HandlerBase.specs
+    HANDLER_NAME = 'PIL100k_HDF5'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, key=PIL100k_HDF_DATA_KEY, **kwargs)
+        self._roi_data = None
+        self.hdfrois = [f'ROI{i + 1}' for i in range(4)]
+        self.chanrois = [f'pil100k_ROI{i + 1}' for i in range(4)]
+
+
+    def _get_dataset(self):
+        if self._dataset is not None:
+            return
+
+        _data_columns = [self._file[self._key + f'/_{chanroi}Total'][()] for chanroi in self.hdfrois]
+        data_columns = np.vstack(_data_columns).T
+        self._image_data = self._file['entry/data/data'][()]
+        # n_images = images.shape[0]
+        # self._image_data = pd.DataFrame({'image' : [images[i, :, :].squeeze() for i in range(n_images)]})
+        self._roi_data = pd.DataFrame(data_columns, columns=self.chanrois)
+        self._dataset = data_columns
+
+    def __call__(self, *args, frame=None,  **kwargs):
+        self._get_dataset()
+        return_dict = {chanroi: self._roi_data[chanroi][frame] for chanroi in self.chanrois}
+        return_dict['image'] = self._image_data[frame, :, :].squeeze()
+        return return_dict
+        # return self._roi_data
+
+db.reg.register_handler('PIL100k_HDF5',
+                         ISSPilatusHDF5Handler, overwrite=True)
+
+
+from xas.db_io import load_apb_trig_dataset_from_db, load_apb_dataset_from_db
+from xas.file_io import load_interpolated_df_from_file
+from xas.bin import _generate_convolution_bin_matrix
+
+def load_pil100k_dataset_from_db(db, uid, apb_trig_timestamps):
+    hdr = db[uid]
+    # spectra = {}
+    # images = {}
+
+    t = hdr.table(stream_name='pil100k_stream', fill=True)['pil100k_stream']
+    n_images = t.shape[0]
+    _image = t[1]['image']
+
+    pil100k_timestamps = apb_trig_timestamps[:n_images]
+    # keys = t[1].keys()
+    keys = [k for k in t[1].keys() if ('roi' in k.lower())] # do only those with roi in the name
+    # _spectra = np.zeros((n_images, len(keys)))
+    _images = np.zeros((n_images, *_image.shape))
+    for i in range(0, n_images):
+        for j, key in enumerate(keys):
+            # _spectra[i, j] = t[i+1][key]
+            _images[i, :, :] = t[i+1]['image']
+    # for j, key in enumerate(keys):
+        # spectra[key] = pd.DataFrame(np.vstack((pil100k_timestamps, _spectra[:, j])).T,
+        #                             columns=['timestamp', f'pil100k_ROI{j + 1}'])
+        # images[key] = pd.DataFrame(np.vstack((pil100k_timestamps, _images[:, j])).T,
+        #                             columns=['timestamp', f'pil100k_ROI{j + 1}'])
+
+    return pil100k_timestamps, _images
+
+
+#foil_uids
+uids = ['b46dd539-2d9e-4610-8665-ffe59002234']
+
+for uid in uids:
+    apb_dataset, energy_dataset, angle_offset = load_apb_dataset_from_db(db, uid)
+    enc = energy_dataset['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
+    energy = pd.DataFrame()
+    energy['timestamp'] = energy_dataset['ts_s'] + 1e-9 * energy_dataset['ts_ns']
+    energy['energy'] = xray.encoder2energy(enc, 360000, angle_offset)
+    energy_timestamps = energy['timestamp'].values
+    energy_raw = energy['energy'].values
+    apb_trig_timestamps = load_apb_trig_dataset_from_db(db, uid,
+                                                        use_fall=True,
+                                                        stream_name='apb_trigger_pil100k')
+    pil100k_timestamps, images_raw = load_pil100k_dataset_from_db(db, uid, apb_trig_timestamps)
+
+    hdr = db[uid]
+    df, header = load_interpolated_df_from_file(hdr.start['interp_filename'][:-3] + 'dat')
+    energy_bin = np.sort(df['energy'].values)
+    energy_edges = energy_bin[:-1] - 0.5 * np.diff(energy_bin)
+    # energy_edges = np.hstack((energy_edges,
+    #                           energy_bin[-1] - (energy_bin[-1] - energy_bin[-2]) / 2,
+    #                           energy_bin[-1] + (energy_bin[-1] - energy_bin[-2]) / 2))
+    # images = np.zeros((energy_bin.size, *images_raw.shape[1:]))
+    pil100k_energy = np.interp(pil100k_timestamps, energy_timestamps, energy_raw)
+    convo_mat = _generate_convolution_bin_matrix(energy_bin, pil100k_energy)
+    images = -np.tensordot(convo_mat, images_raw, (1, 0))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
