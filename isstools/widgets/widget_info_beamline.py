@@ -97,15 +97,17 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def update_status(self):
 
+        # print(self.parent.scan_processor.plan_list)
         energy = self.hhm.energy.read()['hhm_energy']['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
 
-        if self.motor_emission._initialized:
-            emission_energy = self.motor_emission.energy.position
-            self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
-        else:
-            self.label_emission_energy.setText('Emission Energy N/A')
+        # if self.motor_emission._initialized:
+        #     emission_energy = self.motor_emission.energy.position
+        #     self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
+        # else:
+        #     self.label_emission_energy.setText('Emission Energy N/A')
 
+        self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.scan_processor.plan_list)}')
 
         # if ((self.hhm.fb_status.get()==1) and
         #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):

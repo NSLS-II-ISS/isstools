@@ -53,6 +53,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  service_plan_funcs={},
                  aux_plan_funcs={},
                  scan_manager = None,
+                 scan_processor = None,
                  RE=None,
                  db=None,
                  db_proc=None,
@@ -90,6 +91,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.token = None
         self.window_title = window_title
         self.scan_manager = scan_manager
+        self.scan_processor = scan_processor
 
         
         if RE is not None:
@@ -140,6 +142,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
+                                           scan_processor=scan_processor,
                                            parent=None,
                                            )
         self.layout_run.addWidget(self.widget_run)

@@ -24,6 +24,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
                  scan_manager = None,
+                 scan_processor=None,
                  parent=None,
                  *args, **kwargs):
 
@@ -31,6 +32,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.scan_manager = scan_manager
+        self.scan_processor = scan_processor
         self.push_run_scan.clicked.connect(self.run_scan)
         self.push_run_test_scan.clicked.connect(self.run_test_scan)
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
@@ -45,8 +47,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         if name:
-            self.plans = self.scan_manager.generate_plan_list(scan_idx, {'name':name, 'comment': comment,
-                                                                         'repeat': repeat, 'delay': delay})
+            self._plans = self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
+            self.scan_processor.add_plans(self._plans)
+            #self.scan_processor.run()
         else:
             message_box('Error', 'Please provide the name for the scan')
 
