@@ -120,7 +120,7 @@ Scan Manager</string>
     <rect>
      <x>970</x>
      <y>540</y>
-     <width>181</width>
+     <width>191</width>
      <height>80</height>
     </rect>
    </property>
@@ -186,7 +186,7 @@ Scan Manager</string>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_scan_energy">
      <attribute name="title">
@@ -354,7 +354,7 @@ Scan Manager</string>
        <string>eV</string>
       </property>
      </widget>
-     <widget class="QDoubleSpinBox" name="doubleSpinBox">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_mono_energy">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -953,7 +953,7 @@ Scan Manager</string>
     </widget>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="groupBox_2">
+  <widget class="QGroupBox" name="groupBox_emission">
    <property name="geometry">
     <rect>
      <x>980</x>
@@ -981,7 +981,7 @@ Scan Manager</string>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_scan_energy_2">
      <attribute name="title">
@@ -996,18 +996,64 @@ Scan Manager</string>
         <height>111</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="layout_energy_selector_2"/>
+      <layout class="QHBoxLayout" name="layout_emission_energy_selector"/>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_9">
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>10</x>
         <y>120</y>
-        <width>181</width>
-        <height>190</height>
+        <width>221</width>
+        <height>196</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_9">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_38">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Main Line end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_36">
+         <property name="text">
+          <string> eV </string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_37">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Post-line end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_40">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Pre-Line start</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_122">
          <property name="font">
@@ -1024,7 +1070,7 @@ Scan Manager</string>
        <item row="4" column="2">
         <widget class="QLabel" name="label_34">
          <property name="text">
-          <string> k</string>
+          <string>eV</string>
          </property>
         </widget>
        </item>
@@ -1032,53 +1078,6 @@ Scan Manager</string>
         <widget class="QLabel" name="label_35">
          <property name="text">
           <string> eV </string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_36">
-         <property name="text">
-          <string> eV </string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="edit_exafs_end_2">
-         <property name="text">
-          <string>6</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_xanes_end_2">
-         <property name="text">
-          <string>30</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_37">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>EXAFS end</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_38">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>XANES end</string>
          </property>
         </widget>
        </item>
@@ -1091,20 +1090,21 @@ Scan Manager</string>
           </font>
          </property>
          <property name="text">
-          <string>XANES start</string>
+          <string>Main Line start</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_40">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_preedge_start_2">
          <property name="text">
-          <string>Pre-edge start</string>
+          <string>-50</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="edit_xanes_end_2">
+         <property name="text">
+          <string>30</string>
          </property>
         </widget>
        </item>
@@ -1115,6 +1115,13 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="edit_exafs_end_2">
+         <property name="text">
+          <string>50</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2">
         <widget class="QLabel" name="label_41">
          <property name="text">
@@ -1122,10 +1129,13 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="edit_preedge_start_2">
+       <item row="0" column="1" colspan="2">
+        <widget class="QCheckBox" name="checkBox">
          <property name="text">
-          <string>-100</string>
+          <string>Pre/Post line</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -1192,10 +1202,30 @@ Scan Manager</string>
         <x>20</x>
         <y>20</y>
         <width>304</width>
-        <height>190</height>
+        <height>138</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_20">
+       <item row="2" column="4">
+        <widget class="QLabel" name="label_79">
+         <property name="text">
+          <string> eV </string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_151">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Pre/Post Main line</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_132">
          <property name="font">
@@ -1209,21 +1239,8 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="edit_exafs_dwell_3">
-         <property name="maximumSize">
-          <size>
-           <width>45</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_151">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_153">
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -1231,14 +1248,7 @@ Scan Manager</string>
           </font>
          </property>
          <property name="text">
-          <string>Pre-edge</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="label_152">
-         <property name="text">
-          <string>  s  </string>
+          <string>Main line</string>
          </property>
         </widget>
        </item>
@@ -1253,110 +1263,6 @@ Scan Manager</string>
          <property name="text">
           <string>1</string>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="edit_preedge_dwell_3">
-         <property name="maximumSize">
-          <size>
-           <width>45</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_153">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>XANES</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_154">
-         <property name="text">
-          <string>  s  </string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_155">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>EXAFS</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLineEdit" name="edit_preedge_spacing_3">
-         <property name="maximumSize">
-          <size>
-           <width>45</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>10</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_156">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>k-power</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_157">
-         <property name="text">
-          <string>  s  </string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="comboBox_exafs_dwell_kpower_3">
-         <property name="maximumSize">
-          <size>
-           <width>45</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="1" column="4">
@@ -1375,19 +1281,12 @@ Scan Manager</string>
           </size>
          </property>
          <property name="text">
-          <string>10</string>
+          <string>0.25</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="4">
-        <widget class="QLabel" name="label_79">
-         <property name="text">
-          <string> eV </string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="QLineEdit" name="edit_exafs_spacing_3">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="edit_preedge_dwell_3">
          <property name="maximumSize">
           <size>
            <width>45</width>
@@ -1399,10 +1298,16 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="4">
-        <widget class="QLabel" name="label_158">
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="edit_preedge_spacing_3">
+         <property name="maximumSize">
+          <size>
+           <width>45</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string> k</string>
+          <string>1</string>
          </property>
         </widget>
        </item>
@@ -1419,16 +1324,17 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="3" colspan="2">
-        <widget class="QCheckBox" name="checkBox_energy_down_3">
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_154">
          <property name="text">
-          <string>Revert</string>
+          <string>  s  </string>
          </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <property name="tristate">
-          <bool>false</bool>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_157">
+         <property name="text">
+          <string>  s  </string>
          </property>
         </widget>
        </item>

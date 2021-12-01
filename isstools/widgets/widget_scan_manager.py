@@ -24,6 +24,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  hhm= None,
+                 spectrometer=None,
                  scan_manager=None,
                  detector_dict=[],
                  parent = None,
@@ -33,6 +34,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.hhm = hhm
+        self.spectrometer = spectrometer
         self.element = 'Titanium (22)'
         self.e0 = '4966'
         self.edge = 'K'
@@ -77,7 +79,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     @property
     def _scan_type(self):
-        return self.tabWidget_scan_type.tabText(self.tabWidget_scan_type.currentIndex()).lower()
+        if self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan.currentIndex()).lower() == 'scan energy':
+            return self.tabWidget_scan_type.tabText(self.tabWidget_scan_type.currentIndex()).lower()
+        else:
+            return 'constant energy'
 
     @property
     def _traj_dict(self):
@@ -118,18 +123,21 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     @property
     def _scan_parameters(self):
         scan_type = self._scan_type
-        scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
-                                  'edge': self.widget_energy_selector.comboBox_edge.currentText(),
-                                  'e0': float(self.widget_energy_selector.edit_E0.text()),
-                                  'preedge_start': float(self.edit_preedge_start.text()),
-                                  'XANES_start': float(self.edit_xanes_start.text()),
-                                  'XANES_end': float(self.edit_xanes_end.text()),
-                                  'EXAFS_end': float(self.edit_exafs_end.text())}
+        if scan_type == 'constant energy':
+            return {'energy' : self.doubleSpinBox_mono_energy.value()}
+        else:
+            scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
+                                      'edge': self.widget_energy_selector.comboBox_edge.currentText(),
+                                      'e0': float(self.widget_energy_selector.edit_E0.text()),
+                                      'preedge_start': float(self.edit_preedge_start.text()),
+                                      'XANES_start': float(self.edit_xanes_start.text()),
+                                      'XANES_end': float(self.edit_xanes_end.text()),
+                                      'EXAFS_end': float(self.edit_exafs_end.text())}
 
-        if scan_type == 'fly scan':
-            return {**scan_parameters_common, **self._traj_dict}
-        elif scan_type == 'step scan':
-            return {**scan_parameters_common, **self._step_dict}
+            if scan_type == 'fly scan':
+                return {**scan_parameters_common, **self._traj_dict}
+            elif scan_type == 'step scan':
+                return {**scan_parameters_common, **self._step_dict}
 
     @property
     def _scan_detectors(self):
@@ -140,11 +148,21 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                 det_list.append(checkBox.text())
         return det_list
 
+    @property
+    def _aux_parameters(self):
+        return_dict = {'detectors' : self._scan_detectors,
+                       'offset' : float(self.label_angle_offset.text())}
+        if self.groupBox_emission.isChecked():
+            spectrometer_dict = {}
+
+            return_dict['spectrometer'] = spectrometer_dict
+        return return_dict
+
+
     def create_scan(self):
         self.new_scan_dict = {'scan_type' : self._scan_type,
                               'scan_parameters' : self._scan_parameters}
-        self.new_scan_aux_parameters = {'detectors' : self._scan_detectors,
-                                        'offset' : float(self.label_angle_offset.text())}
+        self.new_scan_aux_parameters = self._aux_parameters
         self.scan_manager.create_lightweight_trajectory(self.new_scan_dict, self.plot_trajectory_func)
 
 
