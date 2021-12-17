@@ -646,6 +646,40 @@ def load_pil100k_dataset_from_db(db, uid, apb_trig_timestamps):
 #foil_uids
 uids = ['b46dd539-2d9e-4610-8665-ffe59002234']
 
+
+def bin_fly_pilatus_images_for_scan(db, uid):
+    apb_dataset, energy_dataset, angle_offset = load_apb_dataset_from_db(db, uid)
+    enc = energy_dataset['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
+    energy = pd.DataFrame()
+    energy['timestamp'] = energy_dataset['ts_s'] + 1e-9 * energy_dataset['ts_ns']
+    energy['energy'] = xray.encoder2energy(enc, 360000, angle_offset)
+    energy_timestamps = energy['timestamp'].values
+    energy_raw = energy['energy'].values
+    apb_trig_timestamps = load_apb_trig_dataset_from_db(db, uid,
+                                                        use_fall=True,
+                                                        stream_name='apb_trigger_pil100k')
+    pil100k_timestamps, images_raw = load_pil100k_dataset_from_db(db, uid, apb_trig_timestamps)
+
+    hdr = db[uid]
+    df, header = load_interpolated_df_from_file(hdr.start['interp_filename'][:-3] + 'dat')
+    energy_bin = np.sort(df['energy'].values)
+    energy_edges = energy_bin[:-1] - 0.5 * np.diff(energy_bin)
+    # energy_edges = np.hstack((energy_edges,
+    #                           energy_bin[-1] - (energy_bin[-1] - energy_bin[-2]) / 2,
+    #                           energy_bin[-1] + (energy_bin[-1] - energy_bin[-2]) / 2))
+    # images = np.zeros((energy_bin.size, *images_raw.shape[1:]))
+    pil100k_energy = np.interp(pil100k_timestamps, energy_timestamps, energy_raw)
+    convo_mat = _generate_convolution_bin_matrix(energy_bin, pil100k_energy)
+    images = -np.tensordot(convo_mat, images_raw, (1, 0))
+    return images
+
+
+def process_step_xes_johann_scan(db, uid):
+    hdr = db[uid]
+    t = hdr.table(fill=True)
+
+
+
 for uid in uids:
     apb_dataset, energy_dataset, angle_offset = load_apb_dataset_from_db(db, uid)
     enc = energy_dataset['encoder'].apply(lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1))
@@ -673,14 +707,74 @@ for uid in uids:
 
 
 
+####
+uids = ['11719da3-236e-40aa-b94d-247307de4ea9',
+        'd0a58ba0-c55f-42a8-a05d-8735c1e5dd72']
+# uids = [-3, -2, -1]
+
+uids = [#'a1516a2a-29a6-479d-aa1f-5d1de422b627', # 6/1
+        'a1516a2a-29a6-479d-aa1f-5d1de422b627', # 20/5
+        '9e06284a-9e41-4a95-befa-87080f547c0c', # 22.5/2.5
+        'c25b61c6-1633-4ac6-9b58-d62885f9f917'] #24/1
+def get_x_y(uid):
+    hdr = db[uid]
+    t = hdr.table()
+    x = t.giantxy_x_user_setpoint
+    y = t.xs_channel1_rois_roi01_value
+    return x, y
+
+plt.figure()
+for uid in uids:
+    x, y = get_x_y(uid)
+    plt.plot(x, y)
+
+#%%
 
 
+def generate_signal(t, F, offset):
+    avs = np.sin(2 * np.pi * t * F)
+    avs_shift = np.sin(2 * np.pi * t * F + np.pi / 2)
+    s = np.random.poisson(avs + offset)
+    x = np.sum(s * avs)
+    y = np.sum(s * avs_shift)
+    R = x**2 + y**2
+    return s, R
+
+t = np.linspace(0, 10, 10001)
+F = 1
+s1, R1 = generate_signal(t, F, 2)
+s2, R2 = generate_signal(t, F, 2000)
 
 
+print(R1, R2)
 
+plt.figure()
+# pl?t.subplot(211)
+plt.plot(t, s1)
+plt.plot(t, s2)
 
+###
 
+from xas.file_io import load_interpolated_df_from_file
 
+df, _ = load_interpolated_df_from_file(r'/nsls2/xf08id/users/2021/3/308208/Ferric Mb 0.9 mM 27_5-2_5 Soller Mn 3 ACTUALLY vs SDD 0001.raw')
 
+muf = df.iff/df.i0
+t = df.timestamp
+energy = df.energy
+muf_fft = np.abs(np.fft.fft(muf))
+freq = np.fft.fftfreq(t.size, d=t[1]-t[0])
+freq_ord = np.argsort(freq)
 
+s_00 = np.sin(2 * np.pi * t * 28.716)
+c_00 = np.cos(2 * np.pi * t * 28.716)
+
+ruf = np.sqrt((muf_fft*s_00)**2 + (muf_fft*s_00)**2)
+
+plt.figure(2)
+plt.clf()
+
+plt.plot(energy, ruf)
+# plt.plot(energy, muf)
+# plt.loglog(freq[freq_ord], muf_fft[freq_ord])
 
