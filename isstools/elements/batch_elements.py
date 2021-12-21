@@ -38,8 +38,8 @@ def _create_batch_experiment(experiment_name, experiment_rep, model=None):
         return item
 
 
-def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=None, setCheckable=True):
-    item = QtGui.QStandardItem(f'{sample_name} at X {sample_x} Y {sample_y}')
+def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, sample_z, sample_th, model=None, setCheckable=True):
+    item = QtGui.QStandardItem(f'{sample_name} at X {sample_x :0.2f} Y {sample_y :0.2f} Z {sample_z :0.2f} Th {sample_th :0.2f}')
     item.setDropEnabled(False)
     item.item_type = 'sample'
     if setCheckable:
@@ -47,6 +47,8 @@ def _create_new_sample(sample_name, sample_comment, sample_x, sample_y, model=No
     item.setEditable(False)
     item.x = sample_x
     item.y = sample_y
+    item.z = sample_z
+    item.th = sample_th
     item.name = sample_name
     item.comment = sample_comment
     item.setIcon(icon_sample)
@@ -93,6 +95,8 @@ def _clone_sample_item(item_sample):
     new_item_sample.item_type = 'sample'
     new_item_sample.x = item_sample.x
     new_item_sample.y = item_sample.y
+    new_item_sample.z = item_sample.z
+    new_item_sample.th = item_sample.th
     new_item_sample.name = item_sample.name
     new_item_sample.comment = item_sample.comment
     new_item_sample.setIcon(icon_sample)

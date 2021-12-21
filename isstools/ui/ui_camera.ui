@@ -159,8 +159,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_up">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>620</y>
+     <x>400</x>
+     <y>550</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -172,8 +172,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_down">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>660</y>
+     <x>400</x>
+     <y>590</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -185,8 +185,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_right">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>640</y>
+     <x>520</x>
+     <y>570</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -198,8 +198,8 @@ coordinates</string>
   <widget class="QPushButton" name="push_stage_left">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>640</y>
+     <x>280</x>
+     <y>570</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -211,8 +211,8 @@ coordinates</string>
   <widget class="QDoubleSpinBox" name="spinBox_ver_step">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>740</y>
+     <x>350</x>
+     <y>670</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -230,8 +230,8 @@ coordinates</string>
   <widget class="QDoubleSpinBox" name="spinBox_hor_step">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>740</y>
+     <x>460</x>
+     <y>670</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -249,8 +249,8 @@ coordinates</string>
   <widget class="QLabel" name="label_qrcode_5">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>690</y>
+     <x>350</x>
+     <y>620</y>
      <width>91</width>
      <height>51</height>
     </rect>
@@ -266,8 +266,8 @@ step</string>
   <widget class="QLabel" name="label_qrcode_6">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>690</y>
+     <x>460</x>
+     <y>620</y>
      <width>91</width>
      <height>51</height>
     </rect>
@@ -433,6 +433,17 @@ coordnates</string>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_sample_registry"/>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_20">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>550</y>
+     <width>281</width>
+     <height>261</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_sample_manager"/>
   </widget>
  </widget>
  <resources/>

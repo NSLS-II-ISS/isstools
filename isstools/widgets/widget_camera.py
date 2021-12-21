@@ -65,6 +65,21 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.timer_track_camera.setInterval(1000)
         self.timer_track_camera.timeout.connect(self.track_camera)
 
+        self.treeView_sample = QtWidgets.QTreeView()
+        self.treeView_sample.header().hide()
+        #self.treeView_sample.setModel(self.model_batch)
+        # self.treeView_sample.setContextMenuPolicy(Qt.CustomContextMenu)
+        # self.treeView_sample.customContextMenuRequested.connect(self.scan_batch_menu)
+        # self.treeView_sample.type = 'treeView'
+        # self.treeView_sample.setSelectionMode(4)  # ContiguousSelection
+        self.gridLayout_sample_manager.addWidget(self.treeView_sample, 0, 0)
+
+        self.push_create_sample.clicked.connect(self.create_new_sample)
+        self.push_get_sample_position.clicked.connect(self.get_sample_position)
+        # self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
+
+
+
         # stage positioning management
         self.push_stage_up.clicked.connect(self.stage_up)
         self.push_stage_down.clicked.connect(self.stage_down)
@@ -176,6 +191,27 @@ class UICamera(*uic.loadUiType(ui_path)):
 
 
     # def show_image(self, camera_):
+
+    def get_sample_position(self):
+        sample_position_widget_dict = {
+            'push_get_sample_position':
+                {'x_widget': 'spinBox_sample_x',
+                 'y_widget': 'spinBox_sample_y'},
+            'push_get_sample_position_map_start':
+                {'x_widget': 'spinBox_sample_x_map_start',
+                 'y_widget': 'spinBox_sample_y_map_start'},
+            'push_get_sample_position_map_end':
+                {'x_widget': 'spinBox_sample_x_map_end',
+                 'y_widget': 'spinBox_sample_y_map_end'},
+        }
+
+        sender_object = QObject().sender().objectName()
+        x_value = self.sample_stage.x.position
+        x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
+        x_widget.setValue(x_value)
+        y_value = self.sample_stage.y.position
+        y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
+        y_widget.setValue(y_value)
 
 
     def show_image(self):
@@ -368,8 +404,6 @@ class UICamera(*uic.loadUiType(ui_path)):
                     self.qr_roi = [(x, y)]
         self.show_image()
 
-
-
     def plot_qr_roi(self):
         if self.qr_vlines:
             self.qr_vlines.remove()
@@ -380,7 +414,6 @@ class UICamera(*uic.loadUiType(ui_path)):
                 self.qr_roi_patch.remove()
         except ValueError:
             pass
-
         if self.qr_roi:
             xlim = self.figure_qr.ax.get_xlim()
             ylim = self.figure_qr.ax.get_ylim()
@@ -394,9 +427,6 @@ class UICamera(*uic.loadUiType(ui_path)):
                 rect = patches.Rectangle((min(x1, x2), min(y1, y2)), abs(x1-x2), abs(y1-y2), linewidth=1, edgecolor='r', facecolor='none')
 
                 self.qr_roi_patch = self.figure_qr.ax.add_patch(rect)
-
-
-
 
     def set_vcursor(self, event):
         # wrapper for separation of event and xdata
@@ -413,7 +443,6 @@ class UICamera(*uic.loadUiType(ui_path)):
         self.h_vc = self.figure_c2.ax.vlines(xdata, y1,y2, color = 'green' )
         self.canvas_c2.draw_idle()
 
-
     def set_hcursor(self, event):
         # wrapper for separation of event and ydata
         if event.button == 3:
@@ -429,11 +458,6 @@ class UICamera(*uic.loadUiType(ui_path)):
         x1, x2 = self.figure_c1.ax.get_xlim()
         self.h_hc = self.figure_c1.ax.hlines(ydata, x1, x2, color='green')
         self.canvas_c1.draw_idle()
-
-
-
-
-
 
     # def set_qr_cursor(self):
     #     color = [0.0, 0.7, 0.0]
