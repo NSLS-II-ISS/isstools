@@ -351,7 +351,7 @@ class processing_thread(QThread):
             try:
                 attempt += 1
                 uid = self.doc['run_start']
-                print(f'File received {uid}')
+                print(f'({ttime.ctime()}) File received {uid}')
                 process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher)
                 self.doc = None
             except Exception as e:

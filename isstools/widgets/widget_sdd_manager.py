@@ -17,6 +17,7 @@ import numpy
 
 from isstools.elements.figure_update import update_figure, setup_figure
 
+from isstools.widgets import widget_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sdd_manager.ui')
 
@@ -38,6 +39,9 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.xs = xs
         self.roi_plots = []
+
+        self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
 
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(1000)
