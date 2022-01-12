@@ -1,3 +1,4 @@
+import numpy as np
 
 bender_current_position = bender.pos.user_readback.get()
 
@@ -706,6 +707,260 @@ for uid in uids:
     images = -np.tensordot(convo_mat, images_raw, (1, 0))
 
 
+####
+# reprocessing of Lynne's data from 2021-1
+# pwd /nsls2/xf08id/users/2021/2/308301
+from xas.file_io import load_interpolated_df_from_file, load_binned_df_from_file, save_binned_df_as_file
+x = xview_gui
+working_folder = x.widget_data.working_folder
+files = [f for f in x.widget_data.file_list if ('210720 CoNC Kb-XES ' in f) and ('_bkg_upd' not in f)][::-1]
+
+keys = list(set([f.split(' ')[3] for f in files]))
+xes_dict = {}
+xes_no_bkg_dict = {}
+
+I0_list = []
+for k in keys:
+    xes_dict[k] = []
+    xes_no_bkg_dict[k] = []
+
+# for f in [files[0]]:
+for f in files:
+    # df, header = load_interpolated_df_from_file(f)
+    print(f'Processing file: {f}')
+    fpath = (working_folder + '/' + f)
+    fkey = f.split(' ')[3]
+
+    df, header = load_binned_df_from_file(fpath)
+    uid = header.split('\n# ')[-3].split(' ')[1]
+    hdr = db[uid]
+    t = hdr.table(fill=True)
+
+    roi1 = []
+    roi1_no_bkg = []
+    for i in t.index:
+        _roi_sum = pil100k_roi_sum(t.pil100k_image[i].squeeze(), (60, 360, 90, 100))
+        _roi_sum_no_bkg = pil100k_roi_sum_w_bkg_removed(t.pil100k_image[i].squeeze(), (60, 360, 90, 100), dw=20)
+        roi1.append(_roi_sum)
+        roi1_no_bkg.append(_roi_sum_no_bkg)
+
+    roi1 = np.array(roi1)
+    roi1_no_bkg = np.array(roi1_no_bkg)
+
+    df['pil100_ROI1_new'] = roi1
+    df['pil100_ROI1_new_no_bkg'] = roi1_no_bkg
+
+    cols = df.columns.tolist()
+    cols = cols[1:] + cols[:1]
+
+    # save_binned_df_as_file(fpath[:-4] + '_bkg_upd.dat', df[cols], header)
+    I0_list = I0_list + df.i0.tolist()
+    emission_energy = t.motor_emission_energy.values
+    xes_dict[fkey].append(-roi1 / df.i0.values)
+    xes_no_bkg_dict[fkey].append(-roi1_no_bkg / df.i0.values)
+    # plt.figure(5)
+    # plt.clf()
+    #
+    # plt.subplot(211)
+    # plt.plot(emission_energy, roi1, 'k.-')
+    # plt.plot(emission_energy, roi1_no_bkg, 'r-')
+
+
+for key in keys:
+    key_av = key+'_av'
+    key_err = key + '_err'
+
+    spectra = []
+    for i in range(len(xes_dict[key])):
+        _spectrum = xes_dict[key][i]
+        _spectrum = _spectrum / np.trapz(_spectrum, emission_energy)
+        spectra.append(_spectrum)
+    xes_dict[key_av] = np.mean(np.array(spectra), axis=0)
+    xes_dict[key_err] = np.std(np.array(spectra), axis=0) / np.sqrt(len(spectra))
+
+    spectra = []
+    for i in range(len(xes_no_bkg_dict[key])):
+        _spectrum = xes_no_bkg_dict[key][i]
+        # _bkg = (_spectrum[0] + _spectrum[1]) / 2
+        # _spectrum = _spectrum - _bkg
+        _spectrum = _spectrum / np.trapz(_spectrum, emission_energy)
+        spectra.append(_spectrum)
+    xes_no_bkg_dict[key_av] = np.mean(np.array(spectra), axis=0)
+    xes_no_bkg_dict[key_err] = np.std(np.array(spectra), axis=0) / np.sqrt(len(spectra))
+
+
+# def normalize_spectra(energy, spectra):
+#     spectra_out = [spectra[0].copy()]
+#     idx1 = 0
+#     idx2 = 10
+#     int_low_tail = np.sum(spectra[0][idx1:idx2])
+#     for spectrum in spectra[1:]:
+#         spectrum_out = spectrum.copy()
+#         spectrum_out = spectrum_out - np.sum(spectrum_out[idx1:idx2]) + int_low_tail
+#         spectrum_out = spectrum_out / np.trapz(spectrum_out, energy)
+#         spectra_out.append(spectrum_out)
+#     return spectra_out
+
+
+
+# bla = normalize_spectra(emission_energy, [xes_no_bkg_dict['300mV_av'], xes_no_bkg_dict['900mV_av']])
+
+def normalize_spectrum(x, s):
+    '''
+    Corrects the background and renormalizes the spectrum.
+    The background is estimated as line going through the first and the last points in spectra.
+    x - energy
+    s - intensity
+    '''
+    x1 = x[0]
+    x2 = x[-1]
+    s1 = s[0]
+    s2 = s[-1]
+    k = (s2 - s1) / (x2 - x1)
+    b = s1 - k * x1
+    bkg = k * x + b
+    s_upd = s - bkg
+    s_upd = s_upd / np.trapz(s_upd, x)
+    return s_upd
+
+plt.figure(44)
+plt.clf()
+
+plt.subplot(211)
+plt.plot(emission_energy, xes_dict['300mV_av'], label='300 mV')
+plt.plot(emission_energy, xes_no_bkg_dict['300mV_av'], label='300 mV no bkg')
+
+plt.subplot(211)
+plt.plot(emission_energy, xes_dict['900mV_av'], label='900 mV')
+plt.plot(emission_energy, xes_no_bkg_dict['900mV_av'], label='900 mV no bkg')
+plt.legend()
+
+plt.subplot(212)
+plt.plot(emission_energy, xes_dict['900mV_av'] - xes_dict['300mV_av'], label='900 mV - 300 mV')
+plt.plot(emission_energy, xes_no_bkg_dict['900mV_av'] - xes_no_bkg_dict['300mV_av'], label='900 mV - 300 mV no bkg')
+plt.legend()
+
+
+plt.figure(45)
+plt.clf()
+
+plt.subplot(211)
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_dict['300mV_av']), label='300 mV renorm')
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']), label='300 mV no bkg renorm')
+# plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_dict['300mV_av']), label='300 mV recorrected')
+# plt.plot(emission_energy, xes_no_bkg_dict['300mV_av'], label='300 mV no bkg')
+
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_dict['900mV_av']), label='900 mV renorm')
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_no_bkg_dict['900mV_av']), label='900 mV no bkg renorm')
+plt.legend()
+
+plt.subplot(212)
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_dict['900mV_av']) -
+                          normalize_spectrum(emission_energy, xes_dict['300mV_av']), label='900 mV - 300 mV renorm')
+plt.plot(emission_energy, normalize_spectrum(emission_energy, xes_no_bkg_dict['900mV_av']) -
+                          normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']), label='900 mV - 300 mV no bkg renorm')
+plt.legend()
+
+
+# plt.figure()
+# plt.plot(emission_energy, xes_dict['900mV_err'])
+# plt.plot(emission_energy, xes_dict['900mV_err'] * normalize_spectrum(emission_energy, xes_no_bkg_dict['900mV_av']) / xes_no_bkg_dict['900mV_av'])
+
+output_dict = {'emission_energy' : emission_energy,
+               '300mV_av' : xes_no_bkg_dict['300mV_av'],
+               '300mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+               '300mV_err' : xes_no_bkg_dict['300mV_err'],
+               '500mV_av' : xes_no_bkg_dict['300mV_av'],
+               '500mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+               '500mV_err' : xes_no_bkg_dict['300mV_err'],
+               '700mV_av' : xes_no_bkg_dict['300mV_av'],
+               '700mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+               '700mV_err' : xes_no_bkg_dict['300mV_err'],
+               '800mV_av' : xes_no_bkg_dict['300mV_av'],
+               '800mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+               '800mV_err' : xes_no_bkg_dict['300mV_err'],
+               '900mV_av' : xes_no_bkg_dict['300mV_av'],
+               '900mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+               '900mV_err' : xes_no_bkg_dict['300mV_err'],
+               }
+output_df.to_csv(working_folder + '/reprocessed_averaged_Co_XES_data.dat', sep='\t', index=False)
+
+def remove_bkg_from_pil100k_roi(image, roi, dw=5, plotting=False):
+    y, x, dy, dx = roi
+    yw, xw, dyw, dxw = y - dw, x - dw, dy + 2 * dw, dx + 2 * dw
+
+    bkg_mask = np.zeros(image.shape, dtype=bool)
+    bkg_mask[yw:yw + dyw, xw:xw + dxw] = True
+    bkg_mask[y:y+dy, x:x+dx] = False
+
+    # image_bkg = image.copy()
+    # image_bkg[~bkg_mask] = -100
+
+    y_size, x_size = image.shape
+    y_mesh, x_mesh = np.meshgrid(np.arange(y_size), np.arange(x_size), indexing='ij')
+
+    y_bkg = y_mesh[bkg_mask].ravel()
+    x_bkg = x_mesh[bkg_mask].ravel()
+    i_bkg = image[bkg_mask].ravel()
+    # dfg
+    # mask = mask_by_percentiles(i_bkg)
+    mask = (i_bkg >= 0) #& (i_bkg < thresh)
+    y_bkg = y_bkg[mask]
+    x_bkg = x_bkg[mask]
+    i_bkg = i_bkg[mask]
+
+    c = fit_linear_surf(y_bkg, x_bkg, i_bkg, plotting=plotting)
+
+    A_fit = np.hstack((y_mesh.ravel()[:, None], x_mesh.ravel()[:, None], np.ones((y_mesh.ravel().size, 1))))
+    i_bkg_fit = (A_fit @ c).reshape(y_size, x_size)
+
+    return image - i_bkg_fit
+
+def pil100k_roi_sum(image, roi):
+    y, x, dy, dx = roi
+    pixels = image[y: y + dy, x: x + dx]
+    return np.sum(pixels[pixels>=0])
+
+def pil100k_roi_sum_w_bkg_removed(image, roi, dw=5, plotting=False):
+    image_no_bkg = remove_bkg_from_pil100k_roi(image, roi, dw=dw, plotting=plotting)
+    y, x, dy, dx = roi
+    pixels = image[y: y + dy, x: x + dx]
+    pixels_no_bkg = image_no_bkg[y: y + dy, x: x + dx]
+    return np.sum(pixels_no_bkg[pixels>=0])
+
+# remove_bkg_from_pil100k_roi(total_image, (60, 360, 90, 100), dw=20)
+
+# pil100k_roi_sum_w_bkg_removed(total_image, (60, 360, 90, 100), dw=20)
+
+def mask_by_percentiles(x, p_lo=5, p_hi=95):
+    x_lo, x_hi = np.percentile(x, [p_lo, p_hi])
+    return ((x > x_lo) & (x < x_hi))
+
+def filter_by_percentiles(x, p_lo=5, p_hi=95):
+    x_mask = mask_by_percentiles(x, p_lo=p_lo, p_hi=p_hi)
+    return x[x_mask]
+
+
+# _x, _y = np.meshgrid(np.arange(10), np.arange(10), indexing='ij')
+# _x = _x.ravel()
+# _y = _y.ravel()
+# _z = _x + _y + 5 + np.random.randn(_x.size)
+
+def fit_linear_surf(x, y, z, plotting=False):
+    A = np.hstack((x[:, None], y[:, None], np.ones((x.size, 1))))
+    c, _, _, _ = np.linalg.lstsq(A, z, rcond=-1)
+    if plotting:
+        try:
+            mplot3d
+        except NameError:
+            from mpl_toolkits import mplot3d
+        fig = plt.figure(333, clear=True)
+        ax = plt.axes(projection='3d')
+        ax.scatter3D(x, y, z, marker='.', color='k')
+        ax.scatter3D(x, y, A @ c, marker='.', color='r')
+    return c
+
+# fit_linear_surf(_x, _y, _z, plotting=True)
 
 ####
 uids = ['11719da3-236e-40aa-b94d-247307de4ea9',

@@ -304,11 +304,11 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def update_feedback_gui_components(self):
         self.label_host.setText(f'Host: {self.hhm_feedback.host}')
-        heartbeat = self.hhm.fb_heartbeat.get()
-        if heartbeat:
-            self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
-        else:
-            self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
+        # heartbeat = self.hhm.fb_heartbeat.get()
+        # if heartbeat:
+        #     self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
+        # else:
+        #     self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
 
 
 
