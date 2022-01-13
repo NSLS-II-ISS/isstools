@@ -60,6 +60,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.figure_trajectory.ax2 = self.figure_trajectory.ax1.twinx()
         self.update_local_manager_list()
 
+        self.groupBox_constant_energy_exposure_params.setChecked(False)
+
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
 
@@ -74,13 +76,13 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     @property
     def _mono_scan(self):
-        return self.tabWidget_mono_scan.tabText(self.tabWidget_scan_type.currentIndex()).lower()
+        return self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan_type.currentIndex()).lower()
         #WIP
 
     @property
-    def _scan_type(self):
+    def _mono_scan_type(self):
         if self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan.currentIndex()).lower() == 'scan energy':
-            return self.tabWidget_scan_type.tabText(self.tabWidget_scan_type.currentIndex()).lower()
+            return self.tabWidget_mono_scan_type.tabText(self.tabWidget_mono_scan_type.currentIndex()).lower()
         else:
             return 'constant energy'
 
@@ -122,9 +124,13 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     @property
     def _scan_parameters(self):
-        scan_type = self._scan_type
+        scan_type = self._mono_scan_type
         if scan_type == 'constant energy':
-            return {'energy' : self.doubleSpinBox_mono_energy.value()}
+            scan_parameters = {'energy' : self.doubleSpinBox_mono_energy.value()}
+            if self.groupBox_constant_energy_exposure_params.isChecked():
+                scan_parameters['dwell_time'] = self.doubleSpinBox_dwell_time.value()
+                scan_parameters['n_exposures'] = self.spinBox_n_exposures.value()
+            return scan_parameters
         else:
             scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
                                       'edge': self.widget_energy_selector.comboBox_edge.currentText(),
@@ -153,11 +159,47 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         return_dict = {'detectors' : self._scan_detectors,
                        'offset' : float(self.label_angle_offset.text())}
         if self.groupBox_emission.isChecked():
-            spectrometer_dict = {}
 
-            return_dict['spectrometer'] = spectrometer_dict
+            return_dict['spectrometer'] = self._spectrometer_parameters
+
         return return_dict
 
+    @property
+    def _spectrometer_parameters(self):
+        scan_type = self._spectrometer_scan_type
+        if scan_type == 'constant energy':
+            scan_parameters = {'energy' : self.doubleSpinBox_spectrometer_energy.value()}
+        else:
+            scan_parameters_common = {#'element': self.widget_energy_selector.comboBox_element.currentText(),
+                                      #'line': self.widget_energy_selector.comboBox_edge.currentText(),
+                                      #'e0': float(self.widget_energy_selector.edit_E0.text()),
+                                      'preline_start': float(self.edit_preline_start.text()),
+                                      'mainline_start': float(self.edit_line_start.text()),
+                                      'mainline_end': float(self.edit_line_end.text()),
+                                      'postline_end': float(self.edit_postline_end.text())}
+            if scan_type == 'fly scan':
+                # return {**scan_parameters_common, **self._spectrometer_traj_dict}
+                raise NotImplementedError('Emission Fly scans are not implemented yet')
+            elif scan_type == 'step scan':
+                scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
+        return {'scan_type' : scan_type, 'scan_parameters' : scan_parameters}
+
+    @property
+    def _spectrometer_scan_type(self):
+        if self.tabWidget_spectrometer_scan.tabText(self.tabWidget_spectrometer_scan.currentIndex()).lower() == 'scan energy':
+            return self.tabWidget_spectrometer_scan_type.tabText(self.tabWidget_spectrometer_scan_type.currentIndex()).lower()
+        else:
+            return 'constant energy'
+
+    @property
+    def _spectrometer_step_dict(self):
+        return {'preline_stepsize': float(self.edit_preline_spacing.text()),
+                'mainline_stepsize': float(self.edit_mainline_spacing.text()),
+                'postline_stepsize': float(self.edit_postline_spacing.text()),
+                'preline_dwelltime': float(self.edit_preline_dwell.text()),
+                'mainline_dwelltime': float(self.edit_mainline_dwell.text()),
+                'postline_dwelltime': float(self.edit_postline_dwell.text()),
+                'revert': self.checkBox_spectrometer_energy_down.isChecked()}
 
     def create_scan(self):
         self.new_scan_dict = {'scan_type' : self._scan_type,
@@ -181,8 +223,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.figure_trajectory.ax1.plot(x, y)
         self.figure_trajectory.ax1.set_xlabel('Time, s')
         self.figure_trajectory.ax1.set_ylabel('Energy, eV')
-        self.figure_trajectory.ax2.plot(x[:-1], np.abs(np.diff(y) / np.diff(x)), 'r')
+        self.figure_trajectory.ax2.plot(x[:-1], np.diff(y) / np.diff(x), 'r--')
         self.figure_trajectory.ax2.set_ylabel('Velocity (eV/s)')
+        self.figure_trajectory.ax1.set_xlim(x.min(), x.max())
+        self.figure_trajectory.ax2.set_xlim(x.min(), x.max())
         self.canvas_trajectory.draw_idle()
 
     def update_local_manager_list(self):
