@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Create scan</string>
+    <string>Preview scan</string>
    </property>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -56,8 +56,8 @@
   <widget class="QPushButton" name="push_add_to_manager">
    <property name="geometry">
     <rect>
-     <x>1160</x>
-     <y>820</y>
+     <x>1170</x>
+     <y>610</y>
      <width>141</width>
      <height>71</height>
     </rect>
@@ -95,8 +95,8 @@ Scan Manager</string>
   <widget class="QLineEdit" name="lineEdit_scan_name">
    <property name="geometry">
     <rect>
-     <x>1160</x>
-     <y>770</y>
+     <x>1170</x>
+     <y>580</y>
      <width>141</width>
      <height>21</height>
     </rect>
@@ -105,8 +105,8 @@ Scan Manager</string>
   <widget class="QLabel" name="label_103">
    <property name="geometry">
     <rect>
-     <x>1160</x>
-     <y>740</y>
+     <x>1170</x>
+     <y>550</y>
      <width>122</width>
      <height>21</height>
     </rect>
@@ -970,7 +970,7 @@ Scan Manager</string>
     </rect>
    </property>
    <property name="title">
-    <string>Emission</string>
+    <string>Spectrometer</string>
    </property>
    <property name="checkable">
     <bool>true</bool>

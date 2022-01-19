@@ -714,8 +714,13 @@ from xas.file_io import load_interpolated_df_from_file, load_binned_df_from_file
 x = xview_gui
 working_folder = x.widget_data.working_folder
 files = [f for f in x.widget_data.file_list if ('210720 CoNC Kb-XES ' in f) and ('_bkg_upd' not in f)][::-1]
-
+roi_vals = (60, 360, 90, 100)
 keys = list(set([f.split(' ')[3] for f in files]))
+
+# files = [f for f in x.widget_data.file_list if ('Fephen-NC XES ' in f) and ('00mV ' in f) and ('_bkg_upd' not in f)][::-1]
+# roi_vals = (40, 70, 120, 40)
+# keys = list(set([f.split(' ')[2] for f in files[:30]] + [f.split(' ')[3] for f in files[30:]]))
+
 xes_dict = {}
 xes_no_bkg_dict = {}
 
@@ -724,12 +729,26 @@ for k in keys:
     xes_dict[k] = []
     xes_no_bkg_dict[k] = []
 
+
+# for f in [files[0]]:
+# # for f in files:
+#     # df, header = load_interpolated_df_from_file(f)
+#     print(f'Processing file: {f}')
+#     fpath = (working_folder + '/' + f)
+#     fkey = f.split(' ')[3]
+#
+#     df, header = load_binned_df_from_file(fpath)
+#     uid = header.split('\n# ')[-3].split(' ')[1]
+#     hdr = db[uid]
+#     t = hdr.table(fill=True)
+
 # for f in [files[0]]:
 for f in files:
     # df, header = load_interpolated_df_from_file(f)
     print(f'Processing file: {f}')
     fpath = (working_folder + '/' + f)
-    fkey = f.split(' ')[3]
+    # fkey = f.split(' ')[3]
+    fkey = keys[[k in f for k in keys].index(True)]
 
     df, header = load_binned_df_from_file(fpath)
     uid = header.split('\n# ')[-3].split(' ')[1]
@@ -739,8 +758,8 @@ for f in files:
     roi1 = []
     roi1_no_bkg = []
     for i in t.index:
-        _roi_sum = pil100k_roi_sum(t.pil100k_image[i].squeeze(), (60, 360, 90, 100))
-        _roi_sum_no_bkg = pil100k_roi_sum_w_bkg_removed(t.pil100k_image[i].squeeze(), (60, 360, 90, 100), dw=20)
+        _roi_sum = pil100k_roi_sum(t.pil100k_image[i].squeeze(), roi_vals)
+        _roi_sum_no_bkg = pil100k_roi_sum_w_bkg_removed(t.pil100k_image[i].squeeze(), roi_vals, dw=20)
         roi1.append(_roi_sum)
         roi1_no_bkg.append(_roi_sum_no_bkg)
 
@@ -753,7 +772,7 @@ for f in files:
     cols = df.columns.tolist()
     cols = cols[1:] + cols[:1]
 
-    # save_binned_df_as_file(fpath[:-4] + '_bkg_upd.dat', df[cols], header)
+    save_binned_df_as_file(fpath[:-4] + '_bkg_upd.dat', df[cols], header)
     I0_list = I0_list + df.i0.tolist()
     emission_energy = t.motor_emission_energy.values
     xes_dict[fkey].append(-roi1 / df.i0.values)
@@ -870,21 +889,51 @@ output_dict = {'emission_energy' : emission_energy,
                '300mV_av' : xes_no_bkg_dict['300mV_av'],
                '300mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
                '300mV_err' : xes_no_bkg_dict['300mV_err'],
-               '500mV_av' : xes_no_bkg_dict['300mV_av'],
-               '500mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
-               '500mV_err' : xes_no_bkg_dict['300mV_err'],
-               '700mV_av' : xes_no_bkg_dict['300mV_av'],
-               '700mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
-               '700mV_err' : xes_no_bkg_dict['300mV_err'],
-               '800mV_av' : xes_no_bkg_dict['300mV_av'],
-               '800mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
-               '800mV_err' : xes_no_bkg_dict['300mV_err'],
-               '900mV_av' : xes_no_bkg_dict['300mV_av'],
-               '900mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
-               '900mV_err' : xes_no_bkg_dict['300mV_err'],
+               '500mV_av' : xes_no_bkg_dict['500mV_av'],
+               '500mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['500mV_av']),
+               '500mV_err' : xes_no_bkg_dict['500mV_err'],
+               '700mV_av' : xes_no_bkg_dict['700mV_av'],
+               '700mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['700mV_av']),
+               '700mV_err' : xes_no_bkg_dict['700mV_err'],
+               '800mV_av' : xes_no_bkg_dict['800mV_av'],
+               '800mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['800mV_av']),
+               '800mV_err' : xes_no_bkg_dict['800mV_err'],
+               '900mV_av' : xes_no_bkg_dict['900mV_av'],
+               '900mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['900mV_av']),
+               '900mV_err' : xes_no_bkg_dict['900mV_err'],
                }
+output_df = pd.DataFrame(output_dict)
 output_df.to_csv(working_folder + '/reprocessed_averaged_Co_XES_data.dat', sep='\t', index=False)
 
+# output_dict = {'emission_energy' : emission_energy,
+#                '300mV_av' : xes_no_bkg_dict['300mV_av'],
+#                '300mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['300mV_av']),
+#                '300mV_err' : xes_no_bkg_dict['300mV_err'],
+#                '700mV_av' : xes_no_bkg_dict['700mV_av'],
+#                '700mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['700mV_av']),
+#                '700mV_err' : xes_no_bkg_dict['700mV_err'],
+#                '900mV_av' : xes_no_bkg_dict['900mV_av'],
+#                '900mV_av_renorm' : normalize_spectrum(emission_energy, xes_no_bkg_dict['900mV_av']),
+#                '900mV_err' : xes_no_bkg_dict['900mV_err'],
+#                }
+# output_df = pd.DataFrame(output_dict)
+# output_df.to_csv(working_folder + '/reprocessed_averaged_Fe_XES_data.dat', sep='\t', index=False)
+
+#
+
+emission_energy = x.project[0].energy
+output_dict = {'energy' : emission_energy}
+for ds in x.project:
+    output_dict[ds.name + '_av'] = ds.mu / np.trapz(ds.mu, emission_energy)
+    output_dict[ds.name + '_renorm'] = normalize_spectrum(emission_energy, ds.mu)
+output_df = pd.DataFrame(output_dict)
+output_df.to_csv(working_folder + '/reprocessed_averaged_Co_reference_XES_data.dat', sep='\t', index=False)
+
+plt.figure(88)
+for ds in x.project:
+    plt.plot(emission_energy, ds.mu / np.trapz(ds.mu, emission_energy))
+
+#######
 def remove_bkg_from_pil100k_roi(image, roi, dw=5, plotting=False):
     y, x, dy, dx = roi
     yw, xw, dyw, dxw = y - dw, x - dw, dy + 2 * dw, dx + 2 * dw
