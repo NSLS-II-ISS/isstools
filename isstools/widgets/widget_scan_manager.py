@@ -196,12 +196,11 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     @property
     def _spectrometer_parameters(self):
         if self.radioButton_spectrometer_von_hamos.isChecked():
-            spectrometer_kind = 'von_hamos'
-            scan_type = 'constant energy'
-            scan_parameters = {}
+            return {'kind': 'von_hamos',
+                    'scan_type': 'constant energy',
+                    'scan_parameters': {}} # just in case
 
         elif self.radioButton_spectrometer_johann.isChecked():
-            spectrometer_kind = 'johann'
             scan_type = self._spectrometer_scan_type
             if scan_type == 'constant energy':
                 scan_parameters = {'energy' : self.doubleSpinBox_spectrometer_energy.value()}
@@ -222,9 +221,13 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     raise NotImplementedError('Emission Fly scans are not implemented yet')
                 elif scan_type == 'step scan':
                     scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
-        return {'kind' : spectrometer_kind,
-                'scan_type' : scan_type,
-                'scan_parameters' : scan_parameters}
+
+            return {'kind': 'johann',
+                    'scan_type': scan_type,
+                    'scan_parameters': scan_parameters}
+
+
+
 
     @property
     def _spectrometer_scan_type(self):
@@ -235,13 +238,19 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     @property
     def _spectrometer_step_dict(self):
-        return {'preline_stepsize': float(self.edit_preline_spacing.text()),
-                'mainline_stepsize': float(self.edit_mainline_spacing.text()),
-                'postline_stepsize': float(self.edit_postline_spacing.text()),
-                'preline_dwelltime': float(self.edit_preline_dwell.text()),
-                'mainline_dwelltime': float(self.edit_mainline_dwell.text()),
-                'postline_dwelltime': float(self.edit_postline_dwell.text()),
-                'revert': self.checkBox_spectrometer_energy_down.isChecked()}
+        output = {'preline_stepsize': float(self.edit_preline_spacing.text()),
+                              'mainline_stepsize': float(self.edit_mainline_spacing.text()),
+                              'postline_stepsize': float(self.edit_postline_spacing.text()),
+                              'revert': self.checkBox_spectrometer_energy_down.isChecked()}
+        if self._mono_scan_type == 'constant energy':
+            emission_dwell_dict = {'preline_dwelltime': float(self.edit_preline_dwell.text()),
+                                   'mainline_dwelltime': float(self.edit_mainline_dwell.text()),
+                                   'postline_dwelltime': float(self.edit_postline_dwell.text())}
+            output = {**output, **emission_dwell_dict}
+
+        return output
+
+
 
     def create_scan(self):
         self.new_scan_dict = self._mono_scan_parameters
