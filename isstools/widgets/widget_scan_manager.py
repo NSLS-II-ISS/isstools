@@ -38,7 +38,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.element = 'Titanium (22)'
         self.e0 = '4966'
         self.edge = 'K'
-        self.spectrometer_kind = None
+        # self.spectrometer_kind = None
 
         self.scan_manager = scan_manager
         self.detector_dict = detector_dict
@@ -62,21 +62,14 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.update_local_manager_list()
 
         self.groupBox_constant_energy_exposure_params.setChecked(False)
-        self.groupBox_emission.toggled.connect(self.enable_spectrometer_scans)
-        # if self.spectrometer_kind is None:
-        #     message_box('Warning', 'Spectrometer is not defined')
-        # else:
+        self.disable_spectrometer_tabs()
+        self.radioButton_spectrometer_none.toggled.connect(self.disable_spectrometer_tabs)
+        self.radioButton_spectrometer_johann.toggled.connect(self.enable_spectrometer_johann)
+        self.radioButton_spectrometer_von_hamos.toggled.connect(self.enable_spectrometer_vonhamos)
+
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
-
-    def update_spectrometer_kind(self, kind):
-        if kind == 'johann':
-            self.groupBox_emission.setTitle('Spectrometer (Johann)')
-            self.spectrometer_kind = 'johann'
-        elif kind == 'von_hamos':
-            self.groupBox_emission.setTitle('Spectrometer (Von Hamos)')
-            self.spectrometer_kind = 'von_hamos'
 
     def populate_detectors(self):
         detector_names = ['Pilatus 100k', 'Xspress3']
@@ -86,23 +79,26 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             qitem.setTristate(False)
             self.verticalLayout_detectors.addWidget(qitem)
 
-    def enable_spectrometer_scans(self):
-        if self.groupBox_emission.isChecked():
-            if self.spectrometer_kind is None:
-                message_box('Warning', 'Spectrometer is not defined')
-                self.groupBox_emission.setChecked(False)
-            elif self.spectrometer_kind == 'johann':
-                self.check_pilatus_detector(True)
-                # enable pilatus by default
-            elif self.spectrometer_kind == 'von_hamos':
-                self.tabWidget_spectrometer_scan.setEnabled(False)
-                self.tabWidget_spectrometer_scan_type.setEnabled(False)
-                self.check_pilatus_detector(True)
-        else:
+    def disable_spectrometer_tabs(self):
+        if self.radioButton_spectrometer_none.isChecked():
+            self.tabWidget_spectrometer_scan.setEnabled(False)
+            self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.check_pilatus_detector(False)
 
+    def enable_spectrometer_johann(self):
+        if self.radioButton_spectrometer_johann.isChecked():
+            self.tabWidget_spectrometer_scan.setEnabled(True)
+            self.tabWidget_spectrometer_scan_type.setEnabled(True)
+            self.check_pilatus_detector(True)
+
+    def enable_spectrometer_vonhamos(self):
+        if self.radioButton_spectrometer_von_hamos.isChecked():
+            self.tabWidget_spectrometer_scan.setEnabled(False)
+            self.tabWidget_spectrometer_scan_type.setEnabled(False)
+            self.check_pilatus_detector(True)
+
+
     def check_pilatus_detector(self, check_state):
-        det_list = []
         for j in range(1, self.verticalLayout_detectors.count()):
             checkBox = self.verticalLayout_detectors.itemAt(j).widget()
             if checkBox.text() == 'Pilatus 100k':
@@ -180,6 +176,13 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         return {'scan_type' : scan_type,
                 'scan_parameters' : scan_parameters}
 
+    @property
+    def _aux_parameters(self):
+        return_dict = {'detectors' : self._scan_detectors,
+                       'offset' : float(self.label_angle_offset.text())}
+        if not self.radioButton_spectrometer_none.isChecked():
+            return_dict['spectrometer'] = self._spectrometer_parameters
+        return return_dict
 
     @property
     def _scan_detectors(self):
@@ -191,21 +194,14 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         return det_list
 
     @property
-    def _aux_parameters(self):
-        return_dict = {'detectors' : self._scan_detectors,
-                       'offset' : float(self.label_angle_offset.text())}
-        if self.groupBox_emission.isChecked():
-            return_dict['spectrometer'] = self._spectrometer_parameters
-
-        return return_dict
-
-    @property
     def _spectrometer_parameters(self):
-        if self.spectrometer_kind == 'von_hamos':
-            scan_type == 'constant energy'
+        if self.radioButton_spectrometer_von_hamos.isChecked():
+            spectrometer_kind = 'von_hamos'
+            scan_type = 'constant energy'
             scan_parameters = {}
 
-        elif self.spectrometer_kind == 'johann':
+        elif self.radioButton_spectrometer_johann.isChecked():
+            spectrometer_kind = 'johann'
             scan_type = self._spectrometer_scan_type
             if scan_type == 'constant energy':
                 scan_parameters = {'energy' : self.doubleSpinBox_spectrometer_energy.value()}
@@ -226,7 +222,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     raise NotImplementedError('Emission Fly scans are not implemented yet')
                 elif scan_type == 'step scan':
                     scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
-        return {'kind' : self.spectrometer_kind,
+        return {'kind' : spectrometer_kind,
                 'scan_type' : scan_type,
                 'scan_parameters' : scan_parameters}
 
@@ -250,7 +246,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     def create_scan(self):
         self.new_scan_dict = self._mono_scan_parameters
         self.new_scan_aux_parameters = self._aux_parameters
-        self.scan_manager.create_lightweight_trajectory(self.new_scan_dict, self.plot_trajectory_func)
+        # self.scan_manager.create_lightweight_trajectory(self.new_scan_dict, self.plot_trajectory_func)
+        self.scan_manager.create_scan_preview(self.new_scan_dict,
+                                              self.new_scan_aux_parameters,
+                                              self.plot_trajectory_func)
 
 
     def add_scan_to_manager(self):
