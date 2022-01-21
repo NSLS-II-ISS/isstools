@@ -22,6 +22,8 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
 
 class UIRun(*uic.loadUiType(ui_path)):
+    # plansAdded = QtCore.pyqtSignal()
+
     def __init__(self,
                  scan_manager = None,
                  scan_processor=None,
@@ -35,6 +37,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.scan_processor = scan_processor
         self.push_run_scan.clicked.connect(self.run_scan)
         self.push_run_test_scan.clicked.connect(self.run_test_scan)
+        self.update_scan_defs()
+
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
         self.figure.ax1 = self.figure.add_subplot(111)
         self.figure.ax2 = self.figure.ax1.twinx()
@@ -49,6 +53,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         if name:
             self._plans = self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
             self.scan_processor.add_plans(self._plans)
+            # self.plansAdded.emit()
             #self.scan_processor.run()
         else:
             message_box('Error', 'Please provide the name for the scan')
@@ -62,7 +67,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.lineEdit_exp_name.setText(name)
         self.spinBox_scan_repeat.setValue(repeat)
 
-    def update_scan_defs(self, scan_defs):
+    def update_scan_defs(self):
+        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
         self.comboBox_scan_defs.clear()
         self.comboBox_scan_defs.addItems(scan_defs)
 

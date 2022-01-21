@@ -22,7 +22,7 @@ from isstools.widgets import widget_emission_energy_selector
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_plan_queue.ui')
 
 class UIPlanQueue(*uic.loadUiType(ui_path)):
-    trajectoriesChanged = QtCore.pyqtSignal()
+    # plansChanged = QtCore.pyqtSignal()
 
     def __init__(self,
                  hhm= None,
@@ -39,3 +39,38 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.spectrometer = spectrometer
 
         self.scan_processor = scan_processor
+
+        self.scan_processor.plan_list_update_signal.connect(self.update_plan_list)
+        self.scan_processor.status_update_signal.connect(self.update_scan_processor_status)
+
+        self.pushButton_run_queue.clicked.connect(self.run_queue)
+        self.pushButton_pause_queue.clicked.connect(self.pause_queue)
+        self.pushButton_resume_queue.clicked.connect(self.resume_queue)
+        self.pushButton_clear_queue.clicked.connect(self.clear_queue)
+
+
+    def update_plan_list(self):
+        self.listWidget_plan_queue.clear()
+        for plan in self.scan_processor.plan_list:
+            plan_description = plan['plan_info']['plan_description']
+            plan_status = plan['status']
+            item = QtWidgets.QListWidgetItem(plan_description)
+            if plan_status == 'paused':
+                item.setForeground(QtGui.QColor('red'))
+            self.listWidget_plan_queue.addItem(item)
+
+    def update_scan_processor_status(self):
+        pass
+
+    def run_queue(self):
+        self.scan_processor.run()
+
+    def pause_queue(self):
+        self.scan_processor.pause_plan_list()
+
+    def resume_queue(self):
+        self.scan_processor.resume_plan_list()
+
+    def clear_queue(self):
+        self.scan_processor.clear_plan_list()
+

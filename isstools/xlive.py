@@ -46,7 +46,8 @@ def auto_redraw_factory(fnc):
 
 
 class XliveGui(*uic.loadUiType(ui_path)):
-
+    plans_changed_signal = QtCore.pyqtSignal()
+    scan_processor_status_changed_signal = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
@@ -93,8 +94,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.window_title = window_title
         self.scan_manager = scan_manager
         self.scan_processor = scan_processor
+        self.scan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
+        self.scan_processor.append_gui_status_update_signal(self.scan_processor_status_changed_signal)
 
-        
         if RE is not None:
             RE.is_aborted = False
             self.timer = QtCore.QTimer()
@@ -276,17 +278,18 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
-        # self.widget_scan_manager.trajectoriesChanged.connect(
-        #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
+        self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
 
         print('widget loading done', ttime.ctime())
 
-        print('widget spectrometer loading', ttime.ctime())
+        print('widget plan queue loading', ttime.ctime())
         self.widget_plan_queue = widget_plan_queue.UIPlanQueue(hhm=hhm,
                                                                scan_processor=scan_processor,
                                                                detector_dict=detector_dict,
                                                                parent=self)
         self.layout_plan_queue.addWidget(self.widget_plan_queue)
+
+        # self.widget_run.plansAdded.connect(self.widget_plan_queue.update_plan_list)
 
         # self.widget_scan_manager.trajectoriesChanged.connect(
         #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
@@ -303,7 +306,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         self.fly_token = self.RE.subscribe(pc, 'stop')
-        print(' scan processgin callback done', ttime.ctime())
+        print(' scan processing callback done', ttime.ctime())
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream(self.textEdit_terminal)
         self.emitstream_err = EmittingStream(self.textEdit_terminal)

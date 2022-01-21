@@ -22,7 +22,7 @@ from isstools.widgets import widget_emission_energy_selector
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_scan_manager.ui')
 
 class UIScanManager(*uic.loadUiType(ui_path)):
-    trajectoriesChanged = QtCore.pyqtSignal()
+    scansChanged = QtCore.pyqtSignal()
 
     def __init__(self,
                  hhm= None,
@@ -366,7 +366,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.listWidget_local_manager.clear()
         scan_defs = [scan['scan_def']  for scan in self.scan_manager.scan_list_local]
         self.listWidget_local_manager.addItems(scan_defs )
-        self.parent.widget_run.update_scan_defs(scan_defs)
+        self.scansChanged.emit()
+        # self.parent.widget_run.update_scan_defs(scan_defs)
 
     def delete_scan(self):
         selection = self.listWidget_local_manager.selectedIndexes()
