@@ -119,6 +119,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(True)
             self.check_pilatus_detector(True)
             self.handle_mono_spectrometer_crosstalk(is_johann=True)
+            self.handle_exposure_parameters_crosstalk(is_johann=True)
 
     def enable_spectrometer_vonhamos(self):
         if self.radioButton_spectrometer_von_hamos.isChecked():
