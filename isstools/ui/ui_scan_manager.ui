@@ -408,6 +408,9 @@ Scan Manager</string>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_34">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMaximumSize</enum>
+       </property>
        <item row="5" column="3">
         <widget class="QLabel" name="label_87">
          <property name="text">
@@ -415,24 +418,66 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QRadioButton" name="radioButton_flypath_doublesine">
-         <property name="text">
-          <string>Double sine</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QLineEdit" name="edit_sine_total_duration">
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="edit_ds_poste_duration">
          <property name="text">
           <string>20</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QLineEdit" name="edit_ds_pree_duration">
+       <item row="1" column="3">
+        <widget class="QLabel" name="label_135">
          <property name="text">
-          <string>20</string>
+          <string>s</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QLineEdit" name="edit_preedge_flex_frac">
+         <property name="text">
+          <string>0.5</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLineEdit" name="edit_ds2_pree_duration">
+         <property name="text">
+          <string>4</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLabel" name="label_141">
+         <property name="text">
+          <string>Postedge flex</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QLineEdit" name="edit_postedge_flex_frac">
+         <property name="text">
+          <string>0.3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLabel" name="label_91">
+         <property name="text">
+          <string>s</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_133">
+         <property name="text">
+          <string>s</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_92">
+         <property name="text">
+          <string>Preedge Duration</string>
          </property>
         </widget>
        </item>
@@ -450,45 +495,10 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QLabel" name="label_86">
+       <item row="3" column="0">
+        <widget class="QRadioButton" name="radioButton_flypath_doublesine">
          <property name="text">
-          <string>Total Duration</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_92">
-         <property name="text">
-          <string>Preedge Duration</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="label_95">
-         <property name="text">
-          <string>Preedge flex</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLineEdit" name="edit_ds2_pree_duration">
-         <property name="text">
-          <string>4</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="5">
-        <widget class="QLineEdit" name="edit_postedge_flex_frac">
-         <property name="text">
-          <string>0.3</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_136">
-         <property name="text">
-          <string>Postedge Duration</string>
+          <string>Double sine</string>
          </property>
         </widget>
        </item>
@@ -506,43 +516,43 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
-        <widget class="QLabel" name="label_91">
+       <item row="3" column="1">
+        <widget class="QLabel" name="label_88">
          <property name="text">
-          <string>s</string>
+          <string>Preedge Duration</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_135">
+       <item row="5" column="0">
+        <widget class="QRadioButton" name="radioButton_flypath_sine">
          <property name="text">
-          <string>s</string>
+          <string>Sine</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="4">
-        <widget class="QLabel" name="label_141">
-         <property name="text">
-          <string>Postedge flex</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QLineEdit" name="edit_ds_poste_duration">
+       <item row="5" column="2">
+        <widget class="QLineEdit" name="edit_sine_total_duration">
          <property name="text">
           <string>20</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
-        <widget class="QLabel" name="label_89">
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_95">
          <property name="text">
-          <string>s</string>
+          <string>Preedge flex</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_133">
+       <item row="4" column="1">
+        <widget class="QLabel" name="label_90">
+         <property name="text">
+          <string>Postedge Duration</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLabel" name="label_89">
          <property name="text">
           <string>s</string>
          </property>
@@ -558,31 +568,24 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
-        <widget class="QRadioButton" name="radioButton_flypath_sine">
+       <item row="5" column="1">
+        <widget class="QLabel" name="label_86">
          <property name="text">
-          <string>Sine</string>
+          <string>Total Duration</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="5">
-        <widget class="QLineEdit" name="edit_preedge_flex_frac">
-         <property name="text">
-          <string>0.5</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="label_90">
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_136">
          <property name="text">
           <string>Postedge Duration</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="label_88">
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="edit_ds_pree_duration">
          <property name="text">
-          <string>Preedge Duration</string>
+          <string>20</string>
          </property>
         </widget>
        </item>
@@ -1000,7 +1003,7 @@ Scan Manager</string>
         <x>10</x>
         <y>0</y>
         <width>221</width>
-        <height>111</height>
+        <height>141</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_emission_energy_selector"/>
@@ -1009,9 +1012,9 @@ Scan Manager</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>155</y>
         <width>221</width>
-        <height>196</height>
+        <height>161</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_9">
@@ -1494,7 +1497,7 @@ Scan Manager</string>
     <rect>
      <x>890</x>
      <y>640</y>
-     <width>191</width>
+     <width>211</width>
      <height>111</height>
     </rect>
    </property>
@@ -1515,8 +1518,8 @@ Scan Manager</string>
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>276</width>
-      <height>92</height>
+      <width>191</width>
+      <height>71</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">

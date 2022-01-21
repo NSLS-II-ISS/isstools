@@ -17,6 +17,8 @@ from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 
+from isstools.widgets import widget_emission_energy_selector
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_scan_manager.ui')
 
 class UIScanManager(*uic.loadUiType(ui_path)):
@@ -35,19 +37,14 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.hhm = hhm
         self.spectrometer = spectrometer
-        self.element = 'Titanium (22)'
-        self.e0 = '4966'
-        self.edge = 'K'
-        # self.spectrometer_kind = None
 
         self.scan_manager = scan_manager
         self.detector_dict = detector_dict
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
 
-        self.widget_energy_selector.edit_E0.textChanged.connect(self.update_E0)
-        self.widget_energy_selector.comboBox_edge.currentTextChanged.connect(self.update_edge)
-        self.widget_energy_selector.comboBox_element.currentTextChanged.connect(self.update_element)
+        self.widget_emission_energy = widget_emission_energy_selector.UIEmissionEnergySelectorEnergyOnly(parent=self)
+        self.layout_emission_energy_selector.addWidget(self.widget_emission_energy)
 
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
         self.populate_detectors()
@@ -205,12 +202,9 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             if scan_type == 'constant energy':
                 scan_parameters = {'energy' : self.doubleSpinBox_spectrometer_energy.value()}
             else:
-                scan_parameters_common = {#'element': self.widget_energy_selector.comboBox_element.currentText(),
-                                          #'line': self.widget_energy_selector.comboBox_edge.currentText(),
-                                          #'e0': float(self.widget_energy_selector.edit_E0.text()),
-                                          'element': 'Co',
-                                          'line': 'Kb',
-                                          'e0': 7650.0,
+                scan_parameters_common = {'element': self.widget_emission_energy.comboBox_element.currentText(),
+                                          'line': self.widget_emission_energy.comboBox_line.currentText(),
+                                          'e0': float(self.widget_emission_energy.edit_E.text()),
                                           'preline_start': float(self.edit_preline_start.text()),
                                           'mainline_start': float(self.edit_line_start.text()),
                                           'mainline_end': float(self.edit_line_end.text()),
@@ -320,15 +314,5 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     print('[New offset] Something went wrong, not the limit: {}'.format(exc))
                 return 1
             return 0
-
-    def update_E0(self, text):
-        self.e0 = text
-
-    def update_edge(self, text):
-        self.edge = text
-
-    def update_element(self, text):
-        self.element = text
-
 
 

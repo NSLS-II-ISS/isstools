@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>162</width>
-    <height>107</height>
+    <width>181</width>
+    <height>135</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,21 +17,35 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
-     <width>161</width>
-     <height>101</height>
+     <y>10</y>
+     <width>181</width>
+     <height>121</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_20">
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_12">
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_129">
       <property name="text">
-       <string>E0</string>
+       <string>Line</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLabel" name="label_13">
+      <property name="text">
+       <string>eV</string>
       </property>
      </widget>
     </item>
     <item row="0" column="1">
      <widget class="QComboBox" name="comboBox_element"/>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="edit_E">
+      <property name="text">
+       <string>11470</string>
+      </property>
+     </widget>
     </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label_105">
@@ -47,26 +61,12 @@
      </widget>
     </item>
     <item row="1" column="1">
-     <widget class="QComboBox" name="comboBox_edge"/>
+     <widget class="QComboBox" name="comboBox_line"/>
     </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_edge_line">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_12">
       <property name="text">
-       <string>Edge</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="edit_E0">
-      <property name="text">
-       <string>11470</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="label_13">
-      <property name="text">
-       <string>eV</string>
+       <string>E</string>
       </property>
      </widget>
     </item>

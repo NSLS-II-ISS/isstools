@@ -16,6 +16,8 @@ class UIEnergySelector(*uic.loadUiType(ui_path)):
            json_data = open(pkg_resources.resource_filename('isstools', 'fluorescence_lines.json')).read()
         else:
             json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
+            self.label_edge_line.setText('Line')
+
         self.elements_data = json.loads(json_data)
         self.comboBox_element.currentIndexChanged.connect(self.update_combo_edge)
         self.comboBox_edge.currentIndexChanged.connect(self.update_e0_value)
