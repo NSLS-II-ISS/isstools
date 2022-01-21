@@ -18,7 +18,8 @@ from .widgets import (widget_info_general,
                       widget_info_beamline,
                       widget_camera,
                       widget_autopilot,
-                      widget_spectrometer)
+                      widget_spectrometer,
+                      widget_plan_queue)
 
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
@@ -279,6 +280,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
         #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         print('widget loading done', ttime.ctime())
+
+        print('widget spectrometer loading', ttime.ctime())
+        self.widget_plan_queue = widget_plan_queue.UIPlanQueue(hhm=hhm,
+                                                               scan_processor=scan_processor,
+                                                               detector_dict=detector_dict,
+                                                               parent=self)
+        self.layout_plan_queue.addWidget(self.widget_plan_queue)
+
+        # self.widget_scan_manager.trajectoriesChanged.connect(
+        #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
+
+        print('widget loading done', ttime.ctime())
+
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)

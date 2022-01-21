@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>9</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -223,6 +223,26 @@
       </layout>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_6">
+     <attribute name="title">
+      <string>Plan Queue</string>
+     </attribute>
+     <widget class="QWidget" name="horizontalLayoutWidget_13">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1631</width>
+        <height>931</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_plan_queue">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetNoConstraint</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
     <property name="enabled">
@@ -379,7 +399,7 @@
      <x>0</x>
      <y>0</y>
      <width>2220</width>
-     <height>28</height>
+     <height>30</height>
     </rect>
    </property>
   </widget>
