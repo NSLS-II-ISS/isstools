@@ -58,15 +58,45 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.figure_trajectory.ax2 = self.figure_trajectory.ax1.twinx()
         self.update_local_manager_list()
 
-        self.groupBox_constant_energy_exposure_params.setChecked(False)
+        self.handle_mono_tabs(self.tabWidget_mono_scan.currentIndex())
+        self.tabWidget_mono_scan.tabBarClicked.connect(self.handle_mono_tabs)
+
+        # self.handle_spectrometer_tabs()
+        self.tabWidget_spectrometer_scan.tabBarClicked.connect(self.handle_spectrometer_tabs)
+
         self.disable_spectrometer_tabs()
         self.radioButton_spectrometer_none.toggled.connect(self.disable_spectrometer_tabs)
         self.radioButton_spectrometer_johann.toggled.connect(self.enable_spectrometer_johann)
         self.radioButton_spectrometer_von_hamos.toggled.connect(self.enable_spectrometer_vonhamos)
 
+        self.handle_exposure_parameters_crosstalk()
+        self.groupBox_constant_energy_exposure_params.toggled.connect(self.handle_exposure_parameters_tab_selection)
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
+
+
+    def handle_mono_tabs(self, index):
+        mono_scan = self.tabWidget_mono_scan.tabText(index).lower()
+        if mono_scan == 'constant energy':
+            self.tabWidget_mono_scan_type.setEnabled(False)
+            self.handle_mono_spectrometer_crosstalk(mono_is_fixed=True)
+            self.handle_exposure_parameters_crosstalk(mono_is_fixed=True)
+        elif mono_scan == 'scan energy':
+            self.tabWidget_mono_scan_type.setEnabled(True)
+            self.handle_mono_spectrometer_crosstalk(mono_is_fixed=False)
+            self.handle_exposure_parameters_crosstalk(mono_is_fixed=False)
+
+    def handle_spectrometer_tabs(self, index):
+        if self.radioButton_spectrometer_johann.isChecked():
+            spectrometer_scan = self.tabWidget_spectrometer_scan.tabText(index).lower()
+            if spectrometer_scan == 'constant energy':
+                self.tabWidget_spectrometer_scan_type.setEnabled(False)
+                self.handle_exposure_parameters_crosstalk(is_johann=True, spectrometer_is_fixed=True)
+            elif spectrometer_scan == 'scan energy':
+                self.tabWidget_spectrometer_scan_type.setEnabled(True)
+                self.handle_mono_spectrometer_crosstalk(is_johann=True, spectrometer_is_not_fixed=True)
+                self.handle_exposure_parameters_crosstalk(is_johann=True, spectrometer_is_fixed=False)
 
     def populate_detectors(self):
         detector_names = ['Pilatus 100k', 'Xspress3']
@@ -81,18 +111,71 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan.setEnabled(False)
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.check_pilatus_detector(False)
+            self.handle_exposure_parameters_crosstalk(spectrometer_is_fixed=True)
 
     def enable_spectrometer_johann(self):
         if self.radioButton_spectrometer_johann.isChecked():
             self.tabWidget_spectrometer_scan.setEnabled(True)
             self.tabWidget_spectrometer_scan_type.setEnabled(True)
             self.check_pilatus_detector(True)
+            self.handle_mono_spectrometer_crosstalk(is_johann=True)
 
     def enable_spectrometer_vonhamos(self):
         if self.radioButton_spectrometer_von_hamos.isChecked():
             self.tabWidget_spectrometer_scan.setEnabled(False)
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.check_pilatus_detector(True)
+            self.handle_exposure_parameters_crosstalk(is_johann=False)
+
+    def handle_mono_spectrometer_crosstalk(self, is_johann=None, mono_is_fixed=None, spectrometer_is_not_fixed=None):
+        if mono_is_fixed is None:
+            mono_is_fixed = (self._mono_scan == 'constant energy')
+        if is_johann is None:
+            is_johann = self.radioButton_spectrometer_johann.isChecked()
+        if spectrometer_is_not_fixed is None:
+            spectrometer_is_not_fixed = (self._spectrometer_scan != 'constant energy')
+        if mono_is_fixed and is_johann and spectrometer_is_not_fixed:
+            self.spectrometer_dwell_setEnabled(True)
+        else:
+            self.spectrometer_dwell_setEnabled(False)
+
+    def spectrometer_dwell_setEnabled(self, state):
+        self.label_spectrometer_dwell.setEnabled(state)
+        self.edit_preline_dwell.setEnabled(state)
+        self.edit_mainline_dwell.setEnabled(state)
+        self.edit_postline_dwell.setEnabled(state)
+        self.label_preline.setEnabled(state)
+        self.label_mainline.setEnabled(state)
+        self.label_postline.setEnabled(state)
+        self.label_preline_dwell_units.setEnabled(state)
+        self.label_mainline_dwell_units.setEnabled(state)
+        self.label_postline_dwell_units.setEnabled(state)
+
+    def handle_exposure_parameters_tab_selection(self, state):
+        if state:
+            if self.tabWidget_mono_scan.currentIndex() != 1:
+                self.tabWidget_mono_scan.setCurrentIndex(1) # switch to constant energy tab
+                self.handle_mono_tabs(1) # and handle it
+            if self.radioButton_spectrometer_johann.isChecked():
+                if self.tabWidget_spectrometer_scan.currentIndex() != 1:
+                    self.tabWidget_spectrometer_scan.setCurrentIndex(1)  # switch to constant energy tab
+                    self.handle_spectrometer_tabs(1)  # and handle it
+
+
+    def handle_exposure_parameters_crosstalk(self, mono_is_fixed=None, is_johann=None, spectrometer_is_fixed=None):
+        if mono_is_fixed is None:
+            mono_is_fixed = (self._mono_scan == 'constant energy')
+        if is_johann is None:
+            is_johann = self.radioButton_spectrometer_johann.isChecked()
+        if not is_johann:
+            spectrometer_is_fixed = True
+        if spectrometer_is_fixed is None:
+            spectrometer_is_fixed = (self._spectrometer_scan == 'constant energy')
+        if mono_is_fixed and spectrometer_is_fixed:
+            self.groupBox_constant_energy_exposure_params.setChecked(True)
+        else:
+            self.groupBox_constant_energy_exposure_params.setChecked(False)
+
 
 
     def check_pilatus_detector(self, check_state):
@@ -103,12 +186,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     @property
     def _mono_scan(self):
-        return self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan_type.currentIndex()).lower()
+        return self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan.currentIndex()).lower()
         #WIP
 
     @property
     def _mono_scan_type(self):
-        if self.tabWidget_mono_scan.tabText(self.tabWidget_mono_scan.currentIndex()).lower() == 'scan energy':
+        if self._mono_scan == 'scan energy':
             return self.tabWidget_mono_scan_type.tabText(self.tabWidget_mono_scan_type.currentIndex()).lower()
         else:
             return 'constant energy'
@@ -191,6 +274,17 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         return det_list
 
     @property
+    def _spectrometer_scan(self):
+        return self.tabWidget_spectrometer_scan.tabText(self.tabWidget_spectrometer_scan.currentIndex()).lower()
+
+    @property
+    def _spectrometer_scan_type(self):
+        if self._spectrometer_scan == 'scan energy':
+            return self.tabWidget_spectrometer_scan_type.tabText(self.tabWidget_spectrometer_scan_type.currentIndex()).lower()
+        else:
+            return 'constant energy'
+
+    @property
     def _spectrometer_parameters(self):
         if self.radioButton_spectrometer_von_hamos.isChecked():
             return {'kind': 'von_hamos',
@@ -220,15 +314,6 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     'scan_type': scan_type,
                     'scan_parameters': scan_parameters}
 
-
-
-
-    @property
-    def _spectrometer_scan_type(self):
-        if self.tabWidget_spectrometer_scan.tabText(self.tabWidget_spectrometer_scan.currentIndex()).lower() == 'scan energy':
-            return self.tabWidget_spectrometer_scan_type.tabText(self.tabWidget_spectrometer_scan_type.currentIndex()).lower()
-        else:
-            return 'constant energy'
 
     @property
     def _spectrometer_step_dict(self):

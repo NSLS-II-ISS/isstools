@@ -1217,7 +1217,7 @@ Scan Manager</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_20">
        <item row="1" column="0">
-        <widget class="QLabel" name="label_151">
+        <widget class="QLabel" name="label_preline">
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -1230,7 +1230,7 @@ Scan Manager</string>
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_153">
+        <widget class="QLabel" name="label_mainline">
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -1243,7 +1243,7 @@ Scan Manager</string>
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QLabel" name="label_154">
+        <widget class="QLabel" name="label_preline_dwell_units">
          <property name="text">
           <string>  s  </string>
          </property>
@@ -1290,7 +1290,7 @@ Scan Manager</string>
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_132">
+        <widget class="QLabel" name="label_spectrometer_dwell">
          <property name="font">
           <font>
            <family>Cantarell</family>
@@ -1342,14 +1342,14 @@ Scan Manager</string>
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QLabel" name="label_157">
+        <widget class="QLabel" name="label_mainline_dwell_units">
          <property name="text">
           <string>  s  </string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_152">
+        <widget class="QLabel" name="label_postline">
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -1375,7 +1375,7 @@ Scan Manager</string>
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QLabel" name="label_155">
+        <widget class="QLabel" name="label_postline_dwell_units">
          <property name="text">
           <string>  s  </string>
          </property>
