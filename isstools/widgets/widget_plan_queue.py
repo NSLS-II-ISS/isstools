@@ -43,6 +43,8 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.scan_processor.plan_list_update_signal.connect(self.update_plan_list)
         self.scan_processor.status_update_signal.connect(self.update_scan_processor_status)
 
+        self.listWidget_plan_queue.itemSelectionChanged.connect(self.show_plan_parameters)
+
         self.pushButton_run_queue.clicked.connect(self.run_queue)
         self.pushButton_pause_queue.clicked.connect(self.pause_queue)
         self.pushButton_resume_queue.clicked.connect(self.resume_queue)
@@ -51,13 +53,30 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
     def update_plan_list(self):
         self.listWidget_plan_queue.clear()
-        for plan in self.scan_processor.plan_list:
-            plan_description = plan['plan_info']['plan_description']
+        for i, plan in enumerate(self.scan_processor.plan_list):
+            item_str = f"{i} - {plan['plan_info']['plan_description']}"
             plan_status = plan['status']
-            item = QtWidgets.QListWidgetItem(plan_description)
+            item = QtWidgets.QListWidgetItem(item_str)
             if plan_status == 'paused':
                 item.setForeground(QtGui.QColor('red'))
             self.listWidget_plan_queue.addItem(item)
+
+    def show_plan_parameters(self):
+        self.listWidget_plan_properties.clear()
+
+        plan_name = self.listWidget_plan_queue.currentItem().text()
+        plan_index = self.listWidget_plan_queue.currentIndex().row()
+        self.label_plan_parameters.setText(f'Parameters for {plan_name}')
+
+        plan_kwargs = self.scan_processor.plan_list[plan_index]['plan_info']['plan_kwargs']
+        for key, arg in plan_kwargs.items():
+            item_str = f"{key}: {arg}"
+            item = QtWidgets.QListWidgetItem(item_str)
+            self.listWidget_plan_properties.addItem(item)
+
+
+
+
 
     def update_scan_processor_status(self):
         pass
