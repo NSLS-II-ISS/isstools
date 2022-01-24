@@ -18,7 +18,7 @@
     <rect>
      <x>20</x>
      <y>90</y>
-     <width>1101</width>
+     <width>711</width>
      <height>431</height>
     </rect>
    </property>
@@ -52,7 +52,7 @@
   <widget class="QPushButton" name="pushButton_clear_queue">
    <property name="geometry">
     <rect>
-     <x>1020</x>
+     <x>630</x>
      <y>540</y>
      <width>100</width>
      <height>36</height>
@@ -73,6 +73,42 @@
    </property>
    <property name="text">
     <string>Resume</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="listWidget_plan_properties">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>90</y>
+     <width>321</width>
+     <height>431</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>81</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Queue list</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>60</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Plan parameters</string>
    </property>
   </widget>
  </widget>

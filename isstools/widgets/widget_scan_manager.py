@@ -15,6 +15,7 @@ from xas.trajectory import TrajectoryCreator
 from isstools.elements.figure_update import setup_figure
 from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
+from xas.xray import e2k, k2e
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
 
 from isstools.widgets import widget_emission_energy_selector
@@ -48,7 +49,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
         self.hhm.angle_offset.subscribe(self.update_angle_offset)
         self.populate_detectors()
-        self.push_create_scan.clicked.connect(self.create_scan)
+        self.push_preview_scan.clicked.connect(self.preview_scan)
         self.push_add_to_manager.clicked.connect(self.add_scan_to_manager)
         self.push_delete_scan.clicked.connect(self.delete_scan)
         self.listWidget_local_manager.doubleClicked.connect(self.local_list_clicked)
@@ -57,6 +58,13 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.figure_trajectory.ax1 = self.figure_trajectory.add_subplot(111)
         self.figure_trajectory.ax2 = self.figure_trajectory.ax1.twinx()
         self.update_local_manager_list()
+
+        self.update_exafs_end_values()
+        self.enable_exafs_end_field()
+        self.edit_exafs_end_k.textChanged.connect(self.update_exafs_end_values)
+        self.edit_exafs_end_eV.textChanged.connect(self.update_exafs_end_values)
+        self.radioButton_exafs_end_eV.toggled.connect(self.enable_exafs_end_field)
+        self.radioButton_exafs_end_k.toggled.connect(self.enable_exafs_end_field)
 
         self.handle_mono_tabs(self.tabWidget_mono_scan.currentIndex())
         self.tabWidget_mono_scan.tabBarClicked.connect(self.handle_mono_tabs)
@@ -74,6 +82,27 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
+
+    def update_exafs_end_values(self):
+        try:
+            if self.radioButton_exafs_end_k.isChecked() and (not self.radioButton_exafs_end_eV.isChecked()):
+                k = float(self.edit_exafs_end_k.text())
+                energy = np.round(k2e(k, 0))
+                self.edit_exafs_end_eV.setText(str(energy))
+            else:
+                energy = float(self.edit_exafs_end_eV.text())
+                k = np.round(e2k(energy, 0), 2)
+                self.edit_exafs_end_k.setText(str(k))
+        except ValueError:
+            pass
+
+    def enable_exafs_end_field(self):
+        if self.radioButton_exafs_end_k.isChecked() and (not self.radioButton_exafs_end_eV.isChecked()):
+            self.edit_exafs_end_k.setEnabled(True)
+            self.edit_exafs_end_eV.setEnabled(False)
+        else:
+            self.edit_exafs_end_k.setEnabled(False)
+            self.edit_exafs_end_eV.setEnabled(True)
 
 
     def handle_mono_tabs(self, index):
@@ -248,7 +277,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                       'preedge_start': float(self.edit_preedge_start.text()),
                                       'XANES_start': float(self.edit_xanes_start.text()),
                                       'XANES_end': float(self.edit_xanes_end.text()),
-                                      'EXAFS_end': float(self.edit_exafs_end.text())}
+                                      'EXAFS_end': float(self.edit_exafs_end_k.text())}
 
             if scan_type == 'fly scan':
                 scan_parameters =  {**scan_parameters_common, **self._traj_dict}
@@ -332,19 +361,19 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
-    def create_scan(self):
-        self.new_scan_dict = self._mono_scan_parameters
-        self.new_scan_aux_parameters = self._aux_parameters
-        # self.scan_manager.create_lightweight_trajectory(self.new_scan_dict, self.plot_trajectory_func)
-        self.scan_manager.create_scan_preview(self.new_scan_dict,
-                                              self.new_scan_aux_parameters,
+    def preview_scan(self):
+        self.scan_manager.create_scan_preview(self._mono_scan_parameters,
+                                              self._aux_parameters,
                                               self.plot_trajectory_func)
 
 
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()
         if name !='':
-            self.scan_manager.add_scan(self.new_scan_dict, self.new_scan_aux_parameters, name)
+
+            self.scan_manager.add_scan(self._mono_scan_parameters,
+                                       self._aux_parameters,
+                                       name)
             self.update_local_manager_list()
         else:
             message_box('Warning', 'Scan name is empty')
