@@ -60,6 +60,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  db=None,
                  db_proc=None,
                  accelerator=None,
+                 hhm_encoder=None,
                  hhm=None,
                  hhm_feedback=None,
                  trajectory_manager=None,
@@ -89,6 +90,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.db_proc = db_proc
         self.apb = apb
         self.hhm = hhm
+        self.hhm_encoder = hhm_encoder
         self.encoder_pb = encoder_pb
         self.token = None
         self.window_title = window_title
@@ -195,6 +197,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget beamline setup loading', ttime.ctime())
         self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
                                                                            hhm,
+                                                                           hhm_encoder,
                                                                            hhm_feedback,
                                                                            apb,
                                                                            apb_trigger_xs,

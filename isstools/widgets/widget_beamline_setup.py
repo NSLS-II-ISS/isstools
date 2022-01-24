@@ -23,6 +23,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def __init__(self,
                     RE,
                     hhm,
+                    hhm_encoder,
                     hhm_feedback,
                     apb,
                     apb_trigger_xs,
@@ -46,6 +47,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.hhm = hhm
+        self.hhm_encoder = hhm_encoder
         self.hhm_feedback = hhm_feedback
         # self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
         self.apb = apb
@@ -123,9 +125,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.spinBox_daq_rate.setValue(daq_rate)
         self.spinBox_daq_rate.valueChanged.connect(self.update_daq_rate)
 
-        enc_rate_in_points = hhm.enc.filter_dt.get()
-        enc_rate = 1/(89600*10*1e-9)/1e3
-        self.spinBox_enc_rate.setValue(enc_rate)
+        self.spinBox_enc_rate.setValue(hhm_encoder.enc_rate)
         self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
 
         trigger_pil100k_freq = self.apb_trigger_pil100k.freq.get()
@@ -368,7 +368,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         rate_in_points = (1/(enc_rate*1e3))*1e9/10
 
         rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
-        self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
+        self.RE(bps.abs_set(self.hhm_encoder.filter_dt, rate_in_points_rounded, wait=True))
 
     def update_trigger_pil100k_freq(self):
         trigger_pil100k_freq = self.spinBox_trigger_pil100k_freq.value()
