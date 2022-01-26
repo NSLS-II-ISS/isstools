@@ -335,7 +335,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.RE.abort()
             self.RE.state == 'abort'
             self.RE.is_aborted = True
-
+        self.plan_processor.pause_plan_list()
         self.hhm.abort_trajectory()
             # self.push_re_abort.setEnabled(1)
 
