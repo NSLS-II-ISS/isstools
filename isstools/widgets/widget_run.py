@@ -58,7 +58,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         if name:
-            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
+            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx, make_liveplot_func=self.make_liveplot_func)
         else:
             message_box('Error', 'Please provide the name for the scan')
 
@@ -92,7 +92,6 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.push_run_test_scan.setEnabled(False)
             self.push_run_scan.setEnabled(False)
 
-
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
         if 'i0' in df and 'it' in df and 'energy' in df:
@@ -114,7 +113,31 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax3.legend(loc=3)
         self.canvas.draw_idle()
 
+    def make_liveplot_func(self, detectors, motor_name):
+        xasplot_list = []
+        plot_keys = [{'num_name' : 'apb_ave_ch1_mean', 'den_name' : 'apb_ave_ch2_mean', 'result_name' : 'Transmission',
+                      'log' : True, 'ax' : self.figure.ax1, 'color' : 'b', 'legend_keys' : ['Transmission']},
+                     {'num_name': 'apb_ave_ch2_mean', 'den_name': 'apb_ave_ch3_mean', 'result_name': 'Reference',
+                      'log': True, 'ax': self.figure.ax2, 'color': 'b', 'legend_keys': ['Reference']},
+                     {'num_name': 'apb_ave_ch4_mean', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'PIPS TFY',
+                      'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['PIPS TFY']},]
+        if 'Pilatus 100k' in detectors:
+            plot_keys.append(
+                     {'num_name' : 'pil100k_stats1_total', 'den_name' : 'apb_ave_ch2_mean', 'result_name' : 'HERFD',
+                      'log' : False, 'ax' : self.figure.ax3, 'color' : 'b', 'legend_keys' : ['HERFD']})
+        if 'Xspress3' in detectors:
+            plot_keys.append(
+                     {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
+                      'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['SDD']})
+        for keys in plot_keys:
+            _xasplot = self._xasplot_from_dict(**keys)
+            xasplot_list.append(_xasplot)
+        return xasplot_list
 
+
+    def _xasplot_from_dict(self, **kwargs):
+        return XASPlot(kwargs['num_name'], kwargs['den_name'], kwargs['result_name'], motor_name, log=kwargs['log'],
+                       ax=kwargs['ax'], color=kwargs['color'], legend_keys=kwargs['legend_keys'])
 
 
 
