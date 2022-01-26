@@ -15,7 +15,6 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch.ui')
 
 class UIBatch(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 plan_funcs=None,
                  service_plan_funcs=None,
                  hhm=None,
                  trajectory_manager=None,
@@ -29,7 +28,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.plan_funcs = plan_funcs
+        # self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
         self.hhm = hhm
@@ -37,8 +36,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.sample_stage = sample_stage
         self.parent_gui = parent_gui
 
-        self.widget_batch_manual = widget_batch_manual.UIBatchManual(plan_funcs,
-                                                                     service_plan_funcs,
+        self.widget_batch_manual = widget_batch_manual.UIBatchManual(service_plan_funcs,
                                                                      hhm,
                                                                      trajectory_manager,
                                                                      sample_stage=sample_stage,

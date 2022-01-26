@@ -47,38 +47,36 @@ def auto_redraw_factory(fnc):
 
 class XliveGui(*uic.loadUiType(ui_path)):
     plans_changed_signal = QtCore.pyqtSignal()
-    scan_processor_status_changed_signal = QtCore.pyqtSignal()
+    plan_processor_status_changed_signal = QtCore.pyqtSignal()
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
-                 plan_funcs={},
-                 service_plan_funcs={},
-                 aux_plan_funcs={},
-                 scan_manager = None,
-                 scan_processor = None,
+                 service_plan_funcs=None,
+                 aux_plan_funcs=None,
+                 scan_manager=None,
+                 plan_processor=None,
                  RE=None,
                  db=None,
                  db_proc=None,
                  accelerator=None,
-                 hhm_encoder=None,
                  hhm=None,
+                 hhm_encoder=None,
                  hhm_feedback=None,
                  trajectory_manager=None,
-                 motor_emission=None,
-                 sdd = None,
-                 encoder_pb = None,
-                 shutter_dict={},
-                 detector_dict={},
-                 motor_dict={},
-                 camera_dict={},
-                 sample_stage=None,
-                 tune_elements=None,
-                 ic_amplifiers={},
-                 window_title=" ",
-                 apb = None,
+                 johann_spectrometer_motor=None,
+                 sdd=None,
+                 pil100k=None,
+                 apb=None,
                  apb_trigger_xs=None,
                  apb_trigger_pil100k=None,
-                 sample_registry=None,
+                 detector_dict=None,
+                 shutter_dict=None,
+                 motor_dict=None,
+                 camera_dict=None,
+                 sample_stage=None,
+                 tune_elements=None,
+                 ic_amplifiers=None,
+                 window_title=None,
                  *args, **kwargs):
 
 
@@ -91,13 +89,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.apb = apb
         self.hhm = hhm
         self.hhm_encoder = hhm_encoder
-        self.encoder_pb = encoder_pb
         self.token = None
         self.window_title = window_title
         self.scan_manager = scan_manager
-        self.scan_processor = scan_processor
-        self.scan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
-        self.scan_processor.append_gui_status_update_signal(self.scan_processor_status_changed_signal)
+        self.plan_processor = plan_processor
+        self.plan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
+        self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
 
         if RE is not None:
             RE.is_aborted = False
@@ -123,7 +120,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                   stage_park_y,
                                                   delta_first_holder_x=sample_park_x - stage_park_x,
                                                   delta_first_holder_y=sample_park_y - stage_park_y)
-        self.sample_registry = sample_registry
 
 
         print('cloud starting', ttime.ctime())
@@ -147,7 +143,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
-                                           scan_processor=scan_processor,
+                                           plan_processor=plan_processor,
                                            parent=None,
                                            )
         self.layout_run.addWidget(self.widget_run)
@@ -176,13 +172,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                     self.sample_positioner,
                                                     RE,
                                                     parent_gui=self,
-                                                    sample_registry=self.sample_registry
+                                                    sample_registry=None
                                                     )
         self.layout_camera.addWidget(self.widget_camera)
 
         print('widget batch loading', ttime.ctime())
-        self.widget_batch_mode = widget_batch.UIBatch(plan_funcs=plan_funcs,
-                                                      service_plan_funcs=service_plan_funcs,
+        self.widget_batch_mode = widget_batch.UIBatch(service_plan_funcs=service_plan_funcs,
                                                       hhm=hhm,
                                                       trajectory_manager=trajectory_manager,
                                                       RE=RE,
@@ -206,7 +201,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                            db_proc,
                                                                            detector_dict,
                                                                            ic_amplifiers,
-                                                                           plan_funcs,
+                                                                           {}, # plan funcs
                                                                            service_plan_funcs,
                                                                            aux_plan_funcs,
                                                                            motor_dict,
@@ -233,14 +228,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(accelerator=accelerator,
                                                                         hhm=hhm,
                                                                         hhm_feedback=hhm_feedback,
-                                                                        motor_emission=motor_emission,
+                                                                        motor_emission=johann_spectrometer_motor,
                                                                         shutters=shutter_dict,
                                                                         ic_amplifiers=ic_amplifiers,
                                                                         RE=RE,
                                                                         db=None,
                                                                         foil_camera=detector_dict['Camera SP5']['device'],
                                                                         attenuator_camera=detector_dict['Camera SP6']['device'],
-                                                                        encoder_pb = self.encoder_pb,
+                                                                        encoder_pb = self.hhm_encoder,
                                                                         aux_plan_funcs=aux_plan_funcs,
                                                                         parent=self)
         self.layout_info_beamline.addWidget(self.widget_info_beamline)
@@ -264,7 +259,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                              sample_stage,
                                                              self,
                                                              service_plan_funcs,
-                                                             plan_funcs
+                                                             {} # plan funcs
                                                              )
         self.layout_autopilot.addWidget(self.widget_autopilot)
 
@@ -287,7 +282,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget plan queue loading', ttime.ctime())
         self.widget_plan_queue = widget_plan_queue.UIPlanQueue(hhm=hhm,
-                                                               scan_processor=scan_processor,
+                                                               plan_processor=plan_processor,
                                                                detector_dict=detector_dict,
                                                                parent=self)
         self.layout_plan_queue.addWidget(self.widget_plan_queue)

@@ -107,7 +107,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         # else:
         #     self.label_emission_energy.setText('Emission Energy N/A')
 
-        self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.scan_processor.plan_list)}')
+        self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
 
         # if ((self.hhm.fb_status.get()==1) and
         #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):

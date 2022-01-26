@@ -19,7 +19,6 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 plan_funcs,
                  service_plan_funcs,
                  hhm,
                  trajectory_manager,
@@ -31,9 +30,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.plan_funcs = plan_funcs
+        self.plan_funcs = {'bla' : 'bla'}
         self.service_plan_funcs = service_plan_funcs
-        self.plan_funcs_names = plan_funcs.keys()
+        self.plan_funcs_names = self.plan_funcs.keys()
         self.service_plan_funcs_names = service_plan_funcs.keys()
         self.sample_stage = sample_stage
         self.RE = RE

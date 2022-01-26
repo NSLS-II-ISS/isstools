@@ -27,7 +27,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
     def __init__(self,
                  hhm= None,
                  spectrometer=None,
-                 scan_processor=None,
+                 plan_processor=None,
                  detector_dict=[],
                  parent = None,
                  *args, **kwargs):
@@ -38,10 +38,10 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.spectrometer = spectrometer
 
-        self.scan_processor = scan_processor
+        self.plan_processor = plan_processor
 
-        self.scan_processor.plan_list_update_signal.connect(self.update_plan_list)
-        self.scan_processor.status_update_signal.connect(self.update_scan_processor_status)
+        self.plan_processor.plan_list_update_signal.connect(self.update_plan_list)
+        self.plan_processor.status_update_signal.connect(self.update_plan_processor_status)
 
         self.listWidget_plan_queue.itemSelectionChanged.connect(self.show_plan_parameters)
 
@@ -53,7 +53,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
     def update_plan_list(self):
         self.listWidget_plan_queue.clear()
-        for i, plan in enumerate(self.scan_processor.plan_list):
+        for i, plan in enumerate(self.plan_processor.plan_list):
             item_str = f"{i} - {plan['plan_info']['plan_description']}"
             plan_status = plan['status']
             item = QtWidgets.QListWidgetItem(item_str)
@@ -68,7 +68,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         plan_index = self.listWidget_plan_queue.currentIndex().row()
         self.label_plan_parameters.setText(f'Parameters for {plan_name}')
 
-        plan_kwargs = self.scan_processor.plan_list[plan_index]['plan_info']['plan_kwargs']
+        plan_kwargs = self.plan_processor.plan_list[plan_index]['plan_info']['plan_kwargs']
         for key, arg in plan_kwargs.items():
             item_str = f"{key}: {arg}"
             item = QtWidgets.QListWidgetItem(item_str)
@@ -78,18 +78,18 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
 
 
-    def update_scan_processor_status(self):
+    def update_plan_processor_status(self):
         pass
 
     def run_queue(self):
-        self.scan_processor.run()
+        self.plan_processor.run()
 
     def pause_queue(self):
-        self.scan_processor.pause_plan_list()
+        self.plan_processor.pause_plan_list()
 
     def resume_queue(self):
-        self.scan_processor.resume_plan_list()
+        self.plan_processor.resume_plan_list()
 
     def clear_queue(self):
-        self.scan_processor.clear_plan_list()
+        self.plan_processor.clear_plan_list()
 

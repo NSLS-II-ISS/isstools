@@ -26,7 +26,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  scan_manager = None,
-                 scan_processor=None,
+                 plan_processor=None,
                  parent=None,
                  *args, **kwargs):
 
@@ -34,7 +34,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.scan_manager = scan_manager
-        self.scan_processor = scan_processor
+        self.plan_processor = plan_processor
         self.push_run_scan.clicked.connect(self.run_scan)
         self.push_run_test_scan.clicked.connect(self.run_test_scan)
         self.update_scan_defs()
@@ -52,7 +52,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         delay = self.spinBox_scan_delay.value()
         if name:
             self._plans = self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
-            self.scan_processor.add_plans(self._plans)
+            self.plan_processor.add_plans(self._plans)
             # self.plansAdded.emit()
             #self.scan_processor.run()
         else:
