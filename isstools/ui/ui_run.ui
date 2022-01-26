@@ -255,6 +255,19 @@
     </property>
    </widget>
   </widget>
+  <widget class="QPushButton" name="push_queue_scan">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>330</y>
+     <width>181</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add to queue</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

@@ -37,6 +37,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.plan_processor = plan_processor
         self.push_run_scan.clicked.connect(self.run_scan)
         self.push_run_test_scan.clicked.connect(self.run_test_scan)
+        self.push_queue_scan.clicked.connect(self.queue_scan)
+        self.plan_processor.status_update_signal.connect(self.handle_execution_buttons)
         self.update_scan_defs()
 
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
@@ -44,33 +46,52 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax2 = self.figure.ax1.twinx()
         self.figure.ax3 = self.figure.ax1.twinx()
 
-    def run_scan(self):
+    def update_scan_defs(self):
+        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
+        self.comboBox_scan_defs.clear()
+        self.comboBox_scan_defs.addItems(scan_defs)
+
+    def make_plans(self):
         scan_idx = self.comboBox_scan_defs.currentIndex()
         name = self.lineEdit_exp_name.text()
         comment = self.lineEdit_exp_comment.text()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         if name:
-            self._plans = self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
-            self.plan_processor.add_plans(self._plans)
-            # self.plansAdded.emit()
-            #self.scan_processor.run()
+            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
         else:
             message_box('Error', 'Please provide the name for the scan')
+
+    def _queue_scan(self, add_at='tail'):
+        plans = self.make_plans()
+        if plans:
+            self.plan_processor.add_plans(plans, add_at=add_at)
+
+    def queue_scan(self):
+        self._queue_scan()
+
+    def run_scan(self):
+        self._queue_scan(add_at='head')
+        self.plan_processor.run()
 
     def run_test_scan(self):
         name = self.lineEdit_exp_name.text()
         repeat = self.spinBox_scan_repeat.value()
         self.lineEdit_exp_name.setText(f'test {name}')
         self.spinBox_scan_repeat.setValue(1)
-        self.run_scan()
+        self._queue_scan(add_at='head')
         self.lineEdit_exp_name.setText(name)
         self.spinBox_scan_repeat.setValue(repeat)
+        self.plan_processor.run()
 
-    def update_scan_defs(self):
-        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
-        self.comboBox_scan_defs.clear()
-        self.comboBox_scan_defs.addItems(scan_defs)
+    def handle_execution_buttons(self):
+        if self.plan_processor.status == 'idle':
+            self.push_run_test_scan.setEnabled(True)
+            self.push_run_scan.setEnabled(True)
+        elif (self.plan_processor.status == 'running') or (self.plan_processor.status == 'paused'):
+            self.push_run_test_scan.setEnabled(False)
+            self.push_run_scan.setEnabled(False)
+
 
     def draw_interpolated_data(self, df):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)

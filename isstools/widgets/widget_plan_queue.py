@@ -16,7 +16,7 @@ from isstools.elements.figure_update import setup_figure
 from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
-
+import time as ttime
 from isstools.widgets import widget_emission_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_plan_queue.ui')
@@ -40,14 +40,13 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
         self.plan_processor = plan_processor
 
+        self.handle_execution_buttons_and_status()
         self.plan_processor.plan_list_update_signal.connect(self.update_plan_list)
-        self.plan_processor.status_update_signal.connect(self.update_plan_processor_status)
-
         self.listWidget_plan_queue.itemSelectionChanged.connect(self.show_plan_parameters)
+        self.plan_processor.status_update_signal.connect(self.handle_execution_buttons_and_status)
 
         self.pushButton_run_queue.clicked.connect(self.run_queue)
-        self.pushButton_pause_queue.clicked.connect(self.pause_queue)
-        self.pushButton_resume_queue.clicked.connect(self.resume_queue)
+        self.pushButton_pause_queue.toggled.connect(self.pause_queue)
         self.pushButton_clear_queue.clicked.connect(self.clear_queue)
 
 
@@ -55,8 +54,11 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.listWidget_plan_queue.clear()
         for i, plan in enumerate(self.plan_processor.plan_list):
             item_str = f"{i} - {plan['plan_info']['plan_description']}"
-            plan_status = plan['status']
+            plan_status = plan['plan_status']
             item = QtWidgets.QListWidgetItem(item_str)
+            if i == 0:
+                if self.plan_processor.top_plan_executing:
+                    item.setForeground(QtGui.QColor('green'))
             if plan_status == 'paused':
                 item.setForeground(QtGui.QColor('red'))
             self.listWidget_plan_queue.addItem(item)
@@ -74,21 +76,36 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
             item = QtWidgets.QListWidgetItem(item_str)
             self.listWidget_plan_properties.addItem(item)
 
+    def handle_execution_buttons_and_status(self):
+        self.pushButton_pause_queue.setChecked(False)
+        if self.plan_processor.status == 'idle':
+            self.pushButton_run_queue.setEnabled(True)
+            self.pushButton_pause_queue.setEnabled(False)
 
+            self.label_plan_processor_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
+            self.label_plan_processor_status_text.setText('Idle')
+            self.label_plan_processor_current_plan.setText(f'Current plan:')
 
+        elif self.plan_processor.status == 'running':
+            self.pushButton_run_queue.setEnabled(False)
+            self.pushButton_pause_queue.setEnabled(True)
 
-
-    def update_plan_processor_status(self):
-        pass
+            self.label_plan_processor_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
+            self.label_plan_processor_status_text.setText('Running')
+            top_item = self.listWidget_plan_queue.item(0)
+            top_item.setForeground(QtGui.QColor('green'))
+            self.label_plan_processor_current_plan.setText(f'Current plan: {top_item.text()}')
 
     def run_queue(self):
         self.plan_processor.run()
 
-    def pause_queue(self):
-        self.plan_processor.pause_plan_list()
-
-    def resume_queue(self):
-        self.plan_processor.resume_plan_list()
+    def pause_queue(self, state):
+        if state:
+            print('!!!!!! pausing queue')
+            self.plan_processor.pause_plan_list()
+        else:
+            print('!!!!!! unpausing queue')
+            self.plan_processor.unpause_plan_list()
 
     def clear_queue(self):
         self.plan_processor.clear_plan_list()

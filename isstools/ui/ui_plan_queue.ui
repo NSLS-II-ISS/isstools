@@ -38,6 +38,9 @@
    <property name="text">
     <string>Pause</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="pushButton_run_queue">
    <property name="geometry">
@@ -63,19 +66,6 @@
    </property>
    <property name="text">
     <string>Clear queue</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_resume_queue">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>540</y>
-     <width>100</width>
-     <height>36</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Resume</string>
    </property>
   </widget>
   <widget class="QListWidget" name="listWidget_plan_properties">
@@ -112,6 +102,61 @@
    </property>
    <property name="text">
     <string>Plan parameters</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>640</y>
+     <width>481</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Plan processor status</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_plan_processor_current_plan">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>690</y>
+     <width>431</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Current plan:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_plan_processor_status_indicator">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>670</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_plan_processor_status_text">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>670</y>
+     <width>431</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Idle</string>
    </property>
   </widget>
  </widget>
