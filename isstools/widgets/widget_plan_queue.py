@@ -56,11 +56,10 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
             item_str = f"{i} - {plan['plan_info']['plan_description']}"
             plan_status = plan['plan_status']
             item = QtWidgets.QListWidgetItem(item_str)
-            if i == 0:
-                if self.plan_processor.top_plan_executing:
-                    item.setForeground(QtGui.QColor('green'))
             if plan_status == 'paused':
                 item.setForeground(QtGui.QColor('red'))
+            elif plan_status == 'executing':
+                item.setForeground(QtGui.QColor('green'))
             self.listWidget_plan_queue.addItem(item)
 
     def show_plan_parameters(self):
@@ -101,10 +100,8 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
     def pause_queue(self, state):
         if state:
-            print('!!!!!! pausing queue')
             self.plan_processor.pause_plan_list()
         else:
-            print('!!!!!! unpausing queue')
             self.plan_processor.unpause_plan_list()
 
     def clear_queue(self):
