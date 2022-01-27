@@ -68,12 +68,14 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         plan_name = self.listWidget_plan_queue.currentItem().text()
         plan_index = self.listWidget_plan_queue.currentIndex().row()
         self.label_plan_parameters.setText(f'Parameters for {plan_name}')
-
-        plan_kwargs = self.plan_processor.plan_list[plan_index]['plan_info']['plan_kwargs']
-        for key, arg in plan_kwargs.items():
-            item_str = f"{key}: {arg}"
-            item = QtWidgets.QListWidgetItem(item_str)
-            self.listWidget_plan_properties.addItem(item)
+        try:
+            plan_kwargs = self.plan_processor.plan_list[plan_index]['plan_info']['plan_kwargs']
+            for key, arg in plan_kwargs.items():
+                item_str = f"{key}: {arg}"
+                item = QtWidgets.QListWidgetItem(item_str)
+                self.listWidget_plan_properties.addItem(item)
+        except:
+            pass
 
     def handle_execution_buttons_and_status(self):
         self.pushButton_pause_queue.setChecked(False)

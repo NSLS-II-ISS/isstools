@@ -113,27 +113,37 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax3.legend(loc=3)
         self.canvas.draw_idle()
 
-    def make_liveplot_func(self, detectors, motor_name):
-        xasplot_list = []
-        plot_keys = [{'num_name' : 'apb_ave_ch1_mean', 'den_name' : 'apb_ave_ch2_mean', 'result_name' : 'Transmission',
-                      'log' : True, 'ax' : self.figure.ax1, 'color' : 'b', 'legend_keys' : ['Transmission']},
-                     {'num_name': 'apb_ave_ch2_mean', 'den_name': 'apb_ave_ch3_mean', 'result_name': 'Reference',
-                      'log': True, 'ax': self.figure.ax2, 'color': 'b', 'legend_keys': ['Reference']},
-                     {'num_name': 'apb_ave_ch4_mean', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'PIPS TFY',
-                      'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['PIPS TFY']},]
-        if 'Pilatus 100k' in detectors:
-            plot_keys.append(
-                     {'num_name' : 'pil100k_stats1_total', 'den_name' : 'apb_ave_ch2_mean', 'result_name' : 'HERFD',
-                      'log' : False, 'ax' : self.figure.ax3, 'color' : 'b', 'legend_keys' : ['HERFD']})
-        if 'Xspress3' in detectors:
-            plot_keys.append(
-                     {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
-                      'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['SDD']})
-        for keys in plot_keys:
-            _xasplot = self._xasplot_from_dict(**keys)
-            xasplot_list.append(_xasplot)
-        return xasplot_list
+    def make_xasplot_func(self, plan_name, plan_kwargs):
 
+        detectors = plan_kwargs['detectors']
+
+        if plan_name in ['step_scan_plan', 'step_scan_von_hamos_plan', 'step_scan_johann_herfd_plan']:
+            motor_name = self.hhm.energy.name
+        elif plan_name in ['step_scan_johann_xes_plan']:
+            motor_name = self.johann_spectrometer_motor.energy.name
+        else:
+            motor_name = 'time'
+
+        xasplot_list = []
+        liveplot_kwargs_list = [{'num_name': 'apb_ave_ch1_mean', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'Transmission',
+                                'log': True, 'ax': self.figure.ax1, 'color': 'b', 'legend_keys': ['Transmission']},
+                               {'num_name': 'apb_ave_ch2_mean', 'den_name': 'apb_ave_ch3_mean', 'result_name': 'Reference',
+                                'log': True, 'ax': self.figure.ax2, 'color': 'b', 'legend_keys': ['Reference']},
+                               {'num_name': 'apb_ave_ch4_mean', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'PIPS TFY',
+                                'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['PIPS TFY']}, ]
+        if 'Pilatus 100k' in detectors:
+            liveplot_kwargs_list.append(
+                {'num_name': 'pil100k_stats1_total', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
+                 'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['HERFD']})
+        if 'Xspress3' in detectors:
+            liveplot_kwargs_list.append(
+                {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
+                 'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['SDD']})
+        for liveplot_kwargs in liveplot_kwargs_list:
+            _xasplot = self._xasplot_from_dict(liveplot_kwargs)
+            xasplot_list.append(_xasplot)
+
+        return xasplot_list
 
     def _xasplot_from_dict(self, **kwargs):
         return XASPlot(kwargs['num_name'], kwargs['den_name'], kwargs['result_name'], motor_name, log=kwargs['log'],

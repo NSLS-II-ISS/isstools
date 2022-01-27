@@ -51,6 +51,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
     progress_sig = QtCore.pyqtSignal()
 
     def __init__(self,
+                 data_collection_plan_funcs=None,
                  service_plan_funcs=None,
                  aux_plan_funcs=None,
                  scan_manager=None,
@@ -95,6 +96,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_processor = plan_processor
         self.plan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
+        self.data_collection_plan_funcs = data_collection_plan_funcs
+
 
         if RE is not None:
             RE.is_aborted = False
@@ -190,7 +193,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_batch.addWidget(self.widget_batch_mode)
 
         print('widget beamline setup loading', ttime.ctime())
-        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(RE,
+        self.widget_beamline_setup = widget_beamline_setup.UIBeamlineSetup(plan_processor,
                                                                            hhm,
                                                                            hhm_encoder,
                                                                            hhm_feedback,
@@ -313,6 +316,22 @@ class XliveGui(*uic.loadUiType(ui_path)):
         sys.stderr = self.emitstream_err
         self.setWindowTitle(window_title)
         #self.processing_thread.start()
+
+        self.plan_processor.append_liveplot_maker(self.make_liveplot_func)
+
+    def make_liveplot_func(self, plan_name, plan_kwargs):
+        if plan_name in self.data_collection_plan_funcs.keys():
+            liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
+        elif plan_name in ['general_scan', 'tuning_scan']:
+            liveplot_list = self.widget_beamline_setup.make_liveplot_func(plan_name, plan_kwargs)
+        else:
+            liveplot_list = []
+
+        return liveplot_list
+
+
+
+
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):
         self.progress_sig.emit()

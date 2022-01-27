@@ -21,7 +21,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def __init__(self,
-                    RE,
+                    plan_processor,
                     hhm,
                     hhm_encoder,
                     hhm_feedback,
@@ -45,7 +45,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.RE = RE
+        self.plan_processor = plan_processor
+        self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
+
         self.hhm = hhm
         self.hhm_encoder = hhm_encoder
         self.hhm_feedback = hhm_feedback
@@ -147,107 +149,118 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
 
+        self.liveplot_kwargs = {}
 
-    def run_gen_scan(self, **kwargs):
-        if 'ignore_shutter' in kwargs:
-            ignore_shutter = kwargs['ignore_shutter']
-        else:
-            ignore_shutter = False
+    def handle_gui_elements(self):
+        if self.plan_processor.status == 'idle':
+            self.figure_gen_scan.tight_layout()
+            self.canvas_gen_scan.draw_idle()
+            self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+            self.liveplot_kwargs = {}
+        elif self.plan_processor.status == 'running':
+            self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
-        if 'curr_element' in kwargs:
-            curr_element = kwargs['curr_element']
-        else:
-            curr_element = None
+    def make_liveplot_func(self, plan_name, plan_kwargs):
+        liveplot_list = []
+        try:
+            liveplot_kwargs = plan_kwargs['liveplot_kwargs']
+            _norm_plot = NormPlot(liveplot_kwargs['channel'],
+                                  liveplot_kwargs['channel_den'],
+                                  liveplot_kwargs['result_name'],
+                                  liveplot_kwargs['curr_mot_name'], ax=self.figure_gen_scan.ax)
+            liveplot_list.append(_norm_plot)
+            # when the liveplot is created, we also update the canvas motor:
+            self._set_canvas_motor_from_name(liveplot_kwargs['curr_mot_name'])
+        except:
+            print(f'could not make liveplot for scan {plan_name}')
+        return liveplot_list
 
-        if 'repeat' in kwargs:
-            repeat = kwargs['repeat']
-        else:
-            repeat = False
-
-        if not ignore_shutter:
-            for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
-                            self.shutter_dictionary[shutter].shutter_type != 'SP']:
-                if shutter.state.get():
-                    ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
-                    if not ret:
-                        print('Aborted!')
-                        return False
-                    break
-
-        if curr_element is not None:
-            self.comboBox_detectors.setCurrentText(curr_element['det_name'])
-            self.comboBox_channels.setCurrentText(curr_element['det_sig'])
-            self.comboBox_detectors_den.setCurrentText('1')
-            self.comboBox_motors.setCurrentText(self.motor_dictionary[curr_element['motor_name']]['description'])
-            self.edit_gen_range.setText(str(curr_element['scan_range']))
-            self.edit_gen_step.setText(str(curr_element['step_size']))
+    def _set_canvas_motor_from_name(self, motor_name):
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if motor_name == motor_dict['object'].name:
+                self.canvas_gen_scan.motor = motor_dict['object']
 
 
+    @property
+    def shutters_open(self):
+        for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
+                        self.shutter_dictionary[shutter].shutter_type != 'SP']:
+            if shutter.state.get():
+                ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
+                if not ret:
+                    print('Aborted!')
+                    return False
+                break
+        return True
+
+    def _get_detectors_for_gen_scan(self):
         curr_det = ''
-        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+
         detectors = []
-        detector_name = self.comboBox_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
+        # detector_name = self.comboBox_detectors.currentText()
+        # detector = self.detector_dictionary[detector_name]['device']
+        detector = self.comboBox_detectors.currentText()
         detectors.append(detector)
-        channels = self.detector_dictionary[detector_name]['channels']
+        channels = self.detector_dictionary[detector]['channels']
         channel = channels[self.comboBox_channels.currentIndex()]
         result_name = channel
 
-        detector_name_den = self.comboBox_detectors_den.currentText()
-        if detector_name_den != '1':
-            detector_den = self.detector_dictionary[detector_name_den]['device']
-            channels_den = self.detector_dictionary[detector_name_den]['channels']
-            channel_den = channels_den[self.comboBox_channels.currentIndex()]
+        # detector_name_den = self.comboBox_detectors_den.currentText()
+        detector_den = self.comboBox_detectors_den.currentText()
+        # if detector_name_den != '1':
+        if detector_den != '1':
+            # detector_den = self.detector_dictionary[detector_name_den]['device']
+            # detector_den = detector_name_den
+            channels_den = self.detector_dictionary[detector]['channels']
+            channel_den = channels_den[self.comboBox_channels_den.currentIndex()]
             detectors.append(detector_den)
             result_name += '/{}'.format(channel_den)
         else:
             channel_den = '1'
 
-        for i in range(self.comboBox_detectors.count()):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-            else:
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
+        liveplot_det_kwargs = {'channel' : channel, 'channel_den' : channel_den, 'result_name' : result_name}
+        return detectors, liveplot_det_kwargs
 
-        #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
-        for motor in self.motor_dictionary:
-            if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
-                curr_mot = self.motor_dictionary[motor]['object']
-                self.canvas_gen_scan.motor = curr_mot
+    def _get_motor_for_gen_scan(self):
+        # curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
+        #
+        curr_mot = self.comboBox_motors.currentText()
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name' : motor_dict['object'].name}
                 break
+        return curr_mot, liveplot_mot_kwargs
 
 
+    def run_gen_scan(self):
+        if not self.shutters_open: return
+
+        detectors, liveplot_det_kwargs = self._get_detectors_for_gen_scan()
+        motor, liveplot_mot_kwargs = self._get_motor_for_gen_scan()
 
         rel_start = -float(self.edit_gen_range.text()) / 2
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
 
-        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
 
-        uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
-                                                               curr_mot,
-                                                               rel_start,
-                                                               rel_stop,
-                                                               num_steps, ),
-                           NormPlot(channel, channel_den, result_name, curr_mot.name, ax=self.figure_gen_scan.ax))
+        plan_name = 'general_scan'
+        plan_kwargs = {'detectors' : detectors,
+                       'motor' : motor,
+                       'rel_start' : rel_start,
+                       'rel_stop' : rel_stop,
+                       'num_steps' : num_steps,
+                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs}}
 
-        self.figure_gen_scan.tight_layout()
-        self.canvas_gen_scan.draw_idle()
-        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+        plans = [{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}]
+        self.plan_processor.add_plans(plans)
 
-        #self.push_gen_scan.setEnabled(True)
-        self.last_gen_scan_uid = self.db[-1]['start']['uid']
-        self.push_gen_scan_save.setEnabled(True)
+        self.push_gen_scan.setEnabled(False)
+        self.plan_processor.run_if_idle()
+
+        self.push_gen_scan.setEnabled(True)
+        # self.last_gen_scan_uid = self.db[-1]['start']['uid']
+        # self.push_gen_scan_save.setEnabled(True)
 
     def getX_gen_scan(self, event):
 
