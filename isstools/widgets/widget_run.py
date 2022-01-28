@@ -62,7 +62,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         if name:
-            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx, make_liveplot_func=self.make_liveplot_func)
+            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
         else:
             message_box('Error', 'Please provide the name for the scan')
 
