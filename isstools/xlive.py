@@ -29,7 +29,7 @@ from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 import time as ttime
 from xas.process import process_interpolate_bin
-
+from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
@@ -147,6 +147,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
                                            plan_processor=plan_processor,
+                                           hhm=hhm,
+                                           johann_spectrometer_motor=johann_spectrometer_motor,
                                            parent=None,
                                            )
         self.layout_run.addWidget(self.widget_run)
@@ -319,6 +321,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.plan_processor.append_liveplot_maker(self.make_liveplot_func)
 
+        self.define_gui_services_dict()
+        self.plan_processor.append_gui_services_dict(self.gui_services_dict)
+
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
@@ -329,7 +334,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         return liveplot_list
 
-
+    def define_gui_services_dict(self):
+        self.gui_services_dict = {'beamline_setup_plot_energy_calibration_data' :
+                                         {'kwarg_name' : 'plot_func',
+                                          'kwarg_value' : self.widget_beamline_setup._update_figure_with_calibration_data},
+                                  'error_message_box' : {'kwarg_name' : 'error_message_func',
+                                                         'kwarg_value' : error_message_box}}
 
 
 

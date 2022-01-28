@@ -27,6 +27,8 @@ class UIRun(*uic.loadUiType(ui_path)):
     def __init__(self,
                  scan_manager = None,
                  plan_processor=None,
+                 hhm=None,
+                 johann_spectrometer_motor=None,
                  parent=None,
                  *args, **kwargs):
 
@@ -35,6 +37,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.scan_manager = scan_manager
         self.plan_processor = plan_processor
+        self.hhm = hhm
+        self.johann_spectrometer_motor = johann_spectrometer_motor
         self.push_run_scan.clicked.connect(self.run_scan)
         self.push_run_test_scan.clicked.connect(self.run_test_scan)
         self.push_queue_scan.clicked.connect(self.queue_scan)

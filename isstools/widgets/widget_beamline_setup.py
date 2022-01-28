@@ -160,6 +160,27 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         elif self.plan_processor.status == 'running':
             self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
 
+    def add_motors(self):
+        self.comboBox_motors.clear()
+        if self.checkBox_user_motors.isChecked():
+            self.comboBox_motors.addItems(self.user_motor_sorted_list)
+        else:
+            self.comboBox_motors.addItems(self.motor_sorted_list)
+
+    def detector_selected(self):
+        self.comboBox_channels.clear()
+        detector = self.comboBox_detectors.currentText()
+        self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
+
+    def detector_selected_den(self):
+        self.comboBox_channels_den.clear()
+        detector = self.comboBox_detectors_den.currentText()
+        if detector == '1':
+            self.comboBox_channels_den.addItem('1')
+        else:
+            self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
+
+
     def make_liveplot_func(self, plan_name, plan_kwargs):
         liveplot_list = []
         try:
@@ -252,8 +273,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                        'num_steps' : num_steps,
                        'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs}}
 
-        plans = [{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}]
-        self.plan_processor.add_plans(plans)
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
         self.push_gen_scan.setEnabled(False)
         self.plan_processor.run_if_idle()
@@ -270,6 +290,18 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                                                       parent=self.canvas_gen_scan)
                 if dlg.exec_():
                     pass
+
+    def prepare_beamline(self, energy_setting=None):
+        if energy_setting:
+            self.lineEdit_energy.setText(str(energy_setting))
+        energy = float(self.lineEdit_energy.text())
+        move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
+
+        plan_name = 'prepare_beamline_plan'
+        plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
+        #                                                         stdout = self.parent_gui.emitstream_out))
 
     def tune_beamline(self):
         self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
@@ -311,48 +343,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
-    def bender_scan(self):
-        message_box('Insert reference sample', 'Please ensure that a reference sample in inserted')
-        print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
-        self.RE(self.aux_plan_funcs['bender_scan']())
-        print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
-
-    def detector_selected(self):
-        self.comboBox_channels.clear()
-        detector = self.comboBox_detectors.currentText()
-        self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
-
-    def detector_selected_den(self):
-        self.comboBox_channels_den.clear()
-        detector = self.comboBox_detectors_den.currentText()
-        if detector == '1':
-            self.comboBox_channels_den.addItem('1')
-        else:
-            self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
-
-    def adjust_gains(self):
-        self.RE(self.service_plan_funcs['adjust_ic_gains'](stdout = self.parent_gui.emitstream_out))
-
-    def prepare_beamline(self, energy_setting=None):
-        if energy_setting:
-            self.lineEdit_energy.setText(str(energy_setting))
-        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
-                                                                stdout = self.parent_gui.emitstream_out))
-    def get_offsets(self):
-        self.RE(self.service_plan_funcs['get_offsets']())
-
-    def add_motors(self):
-        self.comboBox_motors.clear()
-        if self.checkBox_user_motors.isChecked():
-            self.comboBox_motors.addItems(self.user_motor_sorted_list)
-        else:
-            self.comboBox_motors.addItems(self.motor_sorted_list)
-
-    def enable_fb(self, value):
-        value = value > 0
-        self.hhm.fb_status.put(int(value))
-        self.pushEnableHHMFeedback.setChecked(value)
-
     def update_hhm_feedback_settings(self):
         pars = self.hhm_feedback.current_fb_parameters()
         pars_str = [str(i) for i in pars]
@@ -369,6 +359,43 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def update_piezo_center(self):
         self.hhm_feedback.update_center()
+
+    def enable_fb(self, value):
+        value = value > 0
+        self.hhm.fb_status.put(int(value))
+        self.pushEnableHHMFeedback.setChecked(value)
+
+    def adjust_gains(self):
+        plan_name = 'optimize_gains'
+        plan_kwargs = {'n_tries' : 3}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+
+    def get_offsets(self):
+        plan_name = 'get_offsets'
+        plan_kwargs = {'time': 2}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.RE(self.service_plan_funcs['get_offsets']())
+
+    def bender_scan(self):
+        message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
+        plan_name = 'bender_scan'
+        plan_kwargs = {}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
+        # self.RE(self.aux_plan_funcs['bender_scan']())
+        # print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
+
+    def energy_calibration(self):
+        element = self.comboBox_reference_foils.currentText()
+        edge = self.edge_dict[element]
+        plan_name = 'bender_scan'
+        plan_kwargs = {'element' : element, 'edge' : edge}
+        plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+        # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
+        #                                                         plot_func=self._update_figure_with_calibration_data,
+        #                                                         error_message_func=error_message_box)
 
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()
@@ -391,12 +418,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         trigger_xs_freq = self.spinBox_trigger_xs_freq.value()
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
-    def energy_calibration(self):
-        element = self.comboBox_reference_foils.currentText()
-        edge = self.edge_dict[element]
-        plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
-                                                                plot_func=self._update_figure_with_calibration_data,
-                                                                error_message_func=error_message_box)
+
         self.RE(plan)
 
     # def _show_error_message_box(self, msg):
