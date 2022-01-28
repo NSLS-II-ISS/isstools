@@ -304,44 +304,50 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         #                                                         stdout = self.parent_gui.emitstream_out))
 
     def tune_beamline(self):
-        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
-        self.canvas_gen_scan.motor = ''
-        print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
-        self.pushEnableHHMFeedback.setChecked(False)
-        self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
-        previous_detector = ''
-        previous_motor = ''
-        self.RE(bps.sleep(1))
+        plan_name = 'tune_beamline_plan_bundle'
+        plan_kwargs = {'extended_tuning' : False,
+                       'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+                       'do_liveplot' : True}
+        self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+        # self.canvas_gen_scan.motor = ''
+        # print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
+        # self.pushEnableHHMFeedback.setChecked(False)
+        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
+        # previous_detector = ''
+        # previous_motor = ''
+        # self.RE(bps.sleep(1))
 
 
-        for element in self.tune_elements:
-            print(f'[Beamline tuning] {element["comment"]}')
-            detector = self.detector_dictionary[element['detector']]['device']
-            motor = self.motor_dictionary[element['motor']]['object']
-
-            if (detector.name != previous_detector) or (motor.name != previous_motor):
-                update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-
-            self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
-                                                       element['range'],
-                                                       element['step'],
-                                                       retries=element['retries'],
-                                                       stdout=self.parent_gui.emitstream_out
-                                                       ),
-                    LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
-            # turn camera into continuous mode
-            if hasattr(detector, 'image_mode'):
-                self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
-                self.RE(bps.mv(getattr(detector, 'acquire'), 1))
-            previous_detector = detector.name
-            previous_motor = motor.name
-
-        self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
-        if self.checkBox_autoEnableFeedback.isChecked():
-            self.update_piezo_center()
-            self.pushEnableHHMFeedback.setChecked(True)
-
-        print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
+        # for element in self.tune_elements:
+        #     print(f'[Beamline tuning] {element["comment"]}')
+        #     detector = self.detector_dictionary[element['detector']]['device']
+        #     motor = self.motor_dictionary[element['motor']]['object']
+        #
+        #     if (detector.name != previous_detector) or (motor.name != previous_motor):
+        #         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+        #
+        #     self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
+        #                                                element['range'],
+        #                                                element['step'],
+        #                                                retries=element['retries'],
+        #                                                stdout=self.parent_gui.emitstream_out
+        #                                                ),
+        #             LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
+        #     # turn camera into continuous mode
+        #     if hasattr(detector, 'image_mode'):
+        #         self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
+        #         self.RE(bps.mv(getattr(detector, 'acquire'), 1))
+        #     previous_detector = detector.name
+        #     previous_motor = motor.name
+        #
+        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
+        # if self.checkBox_autoEnableFeedback.isChecked():
+        #     self.update_piezo_center()
+        #     self.pushEnableHHMFeedback.setChecked(True)
+        #
+        # print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def update_hhm_feedback_settings(self):
         pars = self.hhm_feedback.current_fb_parameters()
