@@ -308,8 +308,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         plan_kwargs = {'extended_tuning' : False,
                        'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
                        'do_liveplot' : True}
-        self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
-        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
         # self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
         # self.canvas_gen_scan.motor = ''
         # print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
@@ -385,8 +386,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
     def bender_scan(self):
         message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
-        plan_name = 'bender_scan'
+        plan_name = 'bender_scan_plan_bundle'
         plan_kwargs = {}
+        plan_gui_services = ['error_message_box']
+        # self.plan_processor.add_plans([{'plan_name' : plan_name,
+        #                                 'plan_kwargs' : plan_kwargs,
+        #                                 'plan_gui_services' : plan_gui_services}])
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
         # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
         # self.RE(self.aux_plan_funcs['bender_scan']())
