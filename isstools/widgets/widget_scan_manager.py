@@ -69,6 +69,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.handle_mono_tabs(self.tabWidget_mono_scan.currentIndex())
         self.tabWidget_mono_scan.tabBarClicked.connect(self.handle_mono_tabs)
 
+        self.handle_xas_step_scan_group(checked=True)
+        self.groupBox_step_xas_scan.clicked.connect(self.handle_xas_step_scan_group)
+        self.groupBox_step_linear_scan.clicked.connect(self.handle_linear_step_scan_group)
+
+        self.tabWidget_mono_scan_type.tabBarClicked.connect(self.handle_mono_scan_type_tabs)
+
         # self.handle_spectrometer_tabs()
         self.tabWidget_spectrometer_scan.tabBarClicked.connect(self.handle_spectrometer_tabs)
 
@@ -104,7 +110,6 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.edit_exafs_end_k.setEnabled(False)
             self.edit_exafs_end_eV.setEnabled(True)
 
-
     def handle_mono_tabs(self, index):
         mono_scan = self.tabWidget_mono_scan.tabText(index).lower()
         if mono_scan == 'constant energy':
@@ -115,6 +120,25 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_mono_scan_type.setEnabled(True)
             self.handle_mono_spectrometer_crosstalk(mono_is_fixed=False)
             self.handle_exposure_parameters_crosstalk(mono_is_fixed=False)
+            self.handle_xas_edge_parameters_group()
+
+    def handle_mono_scan_type_tabs(self, index):
+        mono_scan_type = self.tabWidget_mono_scan_type.tabText(index).lower()
+        if mono_scan_type == 'step scan':
+            self.handle_xas_edge_parameters_group(step_scan_selected=True)
+        else:
+            self.handle_xas_edge_parameters_group(step_scan_selected=False, linear_scan_checked=False)
+
+    def handle_xas_edge_parameters_group(self, step_scan_selected=None, linear_scan_checked=None):
+        if step_scan_selected is None:
+            step_scan_selected = self.tabWidget_mono_scan_type.tabText(self.tabWidget_mono_scan_type.currentIndex()).lower() == 'step scan'
+        if linear_scan_checked is None:
+            linear_scan_checked = self.groupBox_step_linear_scan.isChecked()
+
+        if step_scan_selected and linear_scan_checked:
+            self.groupBox_xas_edge_parameters.setEnabled(False)
+        else:
+            self.groupBox_xas_edge_parameters.setEnabled(True)
 
     def handle_spectrometer_tabs(self, index):
         if self.radioButton_spectrometer_johann.isChecked():
@@ -126,6 +150,22 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                 self.tabWidget_spectrometer_scan_type.setEnabled(True)
                 self.handle_mono_spectrometer_crosstalk(is_johann=True, spectrometer_is_not_fixed=True)
                 self.handle_exposure_parameters_crosstalk(is_johann=True, spectrometer_is_fixed=False)
+
+    def handle_xas_step_scan_group(self, checked=False):
+        if checked:
+            self.groupBox_step_linear_scan.setChecked(False)
+            self.handle_xas_edge_parameters_group(step_scan_selected=True, linear_scan_checked=False)
+        else:
+            self.groupBox_step_linear_scan.setChecked(True)
+            self.handle_xas_edge_parameters_group(step_scan_selected=True, linear_scan_checked=True)
+
+    def handle_linear_step_scan_group(self, checked=False):
+        if checked:
+            self.groupBox_step_xas_scan.setChecked(False)
+            self.handle_xas_edge_parameters_group(step_scan_selected=True, linear_scan_checked=True)
+        else:
+            self.groupBox_step_xas_scan.setChecked(True)
+            self.handle_xas_edge_parameters_group(step_scan_selected=True, linear_scan_checked=False)
 
     def populate_detectors(self):
         detector_names = ['Pilatus 100k', 'Xspress3']
@@ -251,16 +291,29 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
         return {**traj_dict, **traj_common}
 
+
     @property
     def _step_dict(self):
-        return {'preedge_stepsize': float(self.edit_preedge_spacing.text()),
+        return {'grid_kind' : 'xas',
+                'preedge_stepsize': float(self.edit_preedge_spacing.text()),
                 'XANES_stepsize': float(self.edit_xanes_spacing.text()),
                 'EXAFS_stepsize': float(self.edit_exafs_spacing.text()),
                 'preedge_dwelltime': float(self.edit_preedge_dwell.text()),
                 'XANES_dwelltime': float(self.edit_xanes_dwell.text()),
                 'EXAFS_dwelltime': float(self.edit_exafs_dwell.text()),
-                'k_power': int(self.comboBox_exafs_dwell_kpower.currentText()),
-                'revert': self.checkBox_energy_down.isChecked()}
+                'k_power': int(self.comboBox_exafs_dwell_kpower.currentText())}
+
+    @property
+    def _linear_step_dict(self):
+        return {'grid_kind': 'linear',
+                'energy_min': float(self.edit_linear_scan_start.text()),
+                'energy_max': float(self.edit_linear_scan_end.text()),
+                'energy_step': float(self.edit_linear_scan_spacing.text()),
+                'dwell_time': float(self.edit_linear_scan_dwell.text()),
+                'revert': self.checkBox_energy_down.isChecked(),
+                'element': '',
+                'edge': '',
+                'e0': 0}
 
     @property
     def _mono_scan_parameters(self):
@@ -271,18 +324,21 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                 scan_parameters['dwell_time'] = self.doubleSpinBox_dwell_time.value()
                 scan_parameters['n_exposures'] = self.spinBox_n_exposures.value()
         else:
-            scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
-                                      'edge': self.widget_energy_selector.comboBox_edge.currentText(),
-                                      'e0': float(self.widget_energy_selector.edit_E0.text()),
-                                      'preedge_start': float(self.edit_preedge_start.text()),
-                                      'XANES_start': float(self.edit_xanes_start.text()),
-                                      'XANES_end': float(self.edit_xanes_end.text()),
-                                      'EXAFS_end': float(self.edit_exafs_end_k.text())}
+            if (scan_type == 'step scan') and self.groupBox_step_linear_scan.isChecked():
+                scan_parameters = self._linear_step_dict
+            else:
+                scan_parameters_common = {'element': self.widget_energy_selector.comboBox_element.currentText(),
+                                          'edge': self.widget_energy_selector.comboBox_edge.currentText(),
+                                          'e0': float(self.widget_energy_selector.edit_E0.text()),
+                                          'preedge_start': float(self.edit_preedge_start.text()),
+                                          'XANES_start': float(self.edit_xanes_start.text()),
+                                          'XANES_end': float(self.edit_xanes_end.text()),
+                                          'EXAFS_end': float(self.edit_exafs_end_k.text())}
 
-            if scan_type == 'fly scan':
-                scan_parameters =  {**scan_parameters_common, **self._traj_dict}
-            elif scan_type == 'step scan':
-                scan_parameters = {**scan_parameters_common, **self._step_dict}
+                if scan_type == 'fly scan':
+                    scan_parameters =  {**scan_parameters_common, **self._traj_dict}
+                elif scan_type == 'step scan':
+                    scan_parameters = {**scan_parameters_common, **self._step_dict}
         return {'scan_type' : scan_type,
                 'scan_parameters' : scan_parameters}
 
@@ -362,17 +418,19 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
     def preview_scan(self):
-        self.scan_manager.create_scan_preview(self._mono_scan_parameters,
-                                              self._aux_parameters,
+        self.mono_scan_parameters = self._mono_scan_parameters
+        self.aux_parameters = self._aux_parameters
+        self.scan_manager.create_scan_preview(self.mono_scan_parameters,
+                                              self.aux_parameters,
                                               self.plot_trajectory_func)
 
 
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()
         if name !='':
-
-            self.scan_manager.add_scan(self._mono_scan_parameters,
-                                       self._aux_parameters,
+            self.preview_scan()
+            self.scan_manager.add_scan(self.mono_scan_parameters,
+                                       self.aux_parameters,
                                        name)
             self.update_local_manager_list()
         else:
