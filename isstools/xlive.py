@@ -237,6 +237,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                         shutters=shutter_dict,
                                                                         ic_amplifiers=ic_amplifiers,
                                                                         RE=RE,
+                                                                        plan_processor=plan_processor,
                                                                         db=None,
                                                                         foil_camera=detector_dict['Camera SP5']['device'],
                                                                         attenuator_camera=detector_dict['Camera SP6']['device'],

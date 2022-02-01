@@ -32,9 +32,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  shutters=None,
                  ic_amplifiers = None,
                  RE = None,
+                 plan_processor=None,
                  db = None,
                  foil_camera=None,
-
                  attenuator_camera=None,
                  encoder_pb=None,
                  aux_plan_funcs=None,
@@ -54,6 +54,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.hhm_feedback = hhm_feedback
         self.motor_emission = motor_emission
         self.RE = RE
+        self.plan_processor = plan_processor
         self.db = db
         self.shutters = shutters
         self.ic_amplifiers = ic_amplifiers
@@ -245,7 +246,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 new_energy=float(dlg.getValues())
                 print(new_energy)
                 if (new_energy > 4700) and (new_energy < 32000):
-                    self.RE(bps.mv(self.hhm.energy, new_energy))
+                    self.plan_processor.add_plan_and_run_if_idle('move_mono_energy', {'energy' : new_energy})
+                    # self.RE(bps.mv(self.hhm.energy, new_energy))
                 else:
                     raise ValueError
             except Exception as exc:
@@ -260,7 +262,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 new_energy=float(dlg.getValues())
                 print(new_energy)
                 if (new_energy > limits[0]) and (new_energy < limits[1]):
-                    self.RE(bps.mv(self.motor_emission, new_energy))
+                    self.plan_processor.add_plan_and_run_if_idle('move_johann_spectrometer_energy', {'energy': new_energy})
+                    # self.RE(bps.mv(self.motor_emission, new_energy))
                 else:
                     raise ValueError
             except Exception as exc:
@@ -268,16 +271,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def tweak_pitch_pos(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
-        pitch = self.hhm.pitch.read()['hhm_pitch']['value']
         # self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
         if not self.hhm.pitch.moving:
+            pitch = self.hhm.pitch.read()['hhm_pitch']['value']
             self.hhm.pitch.move(pitch + 0.025)
 
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
-        pitch = self.hhm.pitch.read()['hhm_pitch']['value']
         # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
         if not self.hhm.pitch.moving:
+            pitch = self.hhm.pitch.read()['hhm_pitch']['value']
             self.hhm.pitch.move(pitch - 0.025)
 
     # def update_daq_rate(self):
@@ -297,11 +300,13 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def set_reference_foil(self):
         foil = self.comboBox_reference_foils.currentText()
-        self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
+        self.plan_processor.add_plan_and_run_if_idle('set_reference_foil', {'element': foil})
+        # self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def set_attenuator(self):
         attenuator = self.comboBox_attenuator.currentText()
-        self.RE(self.aux_plan_funcs['set_attenuator'](attenuator))
+        self.plan_processor.add_plan_and_run_if_idle('set_attenuator', {'thickness': attenuator})
+        # self.RE(self.aux_plan_funcs['set_attenuator'](attenuator))
 
 
     def update_feedback_gui_components(self):
