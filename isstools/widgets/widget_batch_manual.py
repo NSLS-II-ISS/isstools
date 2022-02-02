@@ -18,6 +18,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
+    sample_list_changed_signal = QtCore.pyqtSignal()
     def __init__(self,
                  service_plan_funcs,
                  hhm,
@@ -26,6 +27,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  parent_gui = None,
                  sample_positioner = None,
                  RE = None,
+                 sample_manager=None,
+                 scan_manager=None,
+                 plan_processor=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -36,9 +40,17 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.service_plan_funcs_names = service_plan_funcs.keys()
         self.sample_stage = sample_stage
         self.RE = RE
+        self.sample_manager = sample_manager
+        self.scan_manager = scan_manager
+        self.plan_processor = plan_processor
         self.batch_mode_uids = []
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager
+
+        self.sample_manager.append_sample_list_update_signal(self.sample_list_changed_signal)
+
+        self.update_sample_tree()
+        self.sample_list_changed_signal.connect(self.update_sample_tree)
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
@@ -58,7 +70,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         WIP add horizontal scrollbar
         self.treeView_batch.header().horizontalScrollBar()
         '''
-
 
         self.push_create_sample.clicked.connect(self.create_new_sample)
         # self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
@@ -82,6 +93,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.listView_scans.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listView_scans.customContextMenuRequested.connect(self.scan_context_menu)
         self.listView_scans.type  = 'listView'
+
+
 
         self.model_scans = QtGui.QStandardItemModel(self)
         self.push_create_scan.clicked.connect(self.create_new_scan)
@@ -113,6 +126,54 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.sample_positioner = sample_positioner
         self.parent_gui = parent_gui
         self.settings = parent_gui.settings
+
+
+    def _make_sample_item(self, sample_index, sample_str):
+        sample_item = QtWidgets.QTreeWidgetItem(self.treeWidget_samples)
+        sample_item.setText(0, sample_str)
+        sample_item.setExpanded(True)
+        sample_item.setFlags(sample_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        sample_item.kind = 'sample'
+        sample_item.index = sample_index
+        # sample_item.setChecked(False)
+        # sample_item.setCheckable(True)
+        return sample_item
+
+    def _make_sample_point_item(self, point_index, point_str, sample_item, is_exposed):
+        point_item = QtWidgets.QTreeWidgetItem(sample_item)
+        point_item.setText(0, point_str)
+        point_item.setFlags(point_item.flags() | Qt.ItemIsUserCheckable)
+        point_item.setCheckState(0, Qt.Unchecked)
+        point_item.kind = 'sample_point'
+        point_item.index = point_index
+        # point_item.setChecked(False)
+        if is_exposed:
+            point_item.setForeground(QtGui.QColor('red'))
+
+    def update_sample_tree(self):
+        self.treeWidget_samples.clear()
+        for i, sample in enumerate(self.sample_manager.samples):
+            name = sample.name
+            npts = sample.number_of_points
+            npts_fresh = sample.number_of_unexposed_points
+            sample_str = f"{name} ({npts_fresh}/{npts})"
+            sample_item = self._make_sample_item(i, sample_str)
+            # self.treeWidget_samples.addItem(sample_item)
+            for j in range(npts):
+                coord_dict = sample.index_coordinate_dict(j)
+                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                point_str = f'{j+1:3d} - {point_str}'
+                self._make_sample_point_item(j, point_str, sample_item, sample.index_exposed(j))
+
+
+                # sample_item.append_row(point_item)
+
+            # if plan_status == 'paused':
+            #     item.setForeground(QtGui.QColor('red'))
+            # elif plan_status == 'executing':
+            #     item.setForeground(QtGui.QColor('green'))
+            # self.listWidget_plan_queue.addItem(item)
+
 
     '''
     Dealing with batch experiemnts
@@ -178,7 +239,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.spinBox_sample_x.setValue(self.sample_stage.x.position)
         self.spinBox_sample_y.setValue(self.sample_stage.y.position)
         self.spinBox_sample_z.setValue(self.sample_stage.z.position)
-        self.spinBox_sample_th.setValue(self.sample_stage.th.position)
+        print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
+        # self.spinBox_sample_th.setValue(self.sample_stage.th.position)
 
 
     def _create_grid_of_positions(self):
@@ -279,14 +341,34 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self._create_one_sample(sample_name_i, sample_comment,
                                     p['x'], p['y'], p['z'], p['th'])
 
+        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+
     def delete_sample(self):
-        view = self.listView_samples
-        index_list = view.selectedIndexes()
-        while len(index_list) > 0:
-            index = index_list[0]
-            if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
-                view.model().removeRows(index.row(), 1)
-            index_list = view.selectedIndexes()
+        # view = self.listView_samples
+        # index_list = view.selectedIndexes()
+        # while len(index_list) > 0:
+        #     index = index_list[0]
+        #     if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
+        #         view.model().removeRows(index.row(), 1)
+        #     index_list = view.selectedIndexes()
+        index_dict = {}
+
+        index_list = self.treeWidget_samples.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                point_index_list = [item.child(i).index for i in range(item.childCount())]
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                point_index_list = [item.index]
+            if sample_index in index_dict.keys():
+                index_dict[sample_index].expand(point_index_list)
+            else:
+                index_dict[sample_index] = point_index_list
+        self.sample_manager.delete_with_index_dict(index_dict)
+
+
 
     def delete_all_samples(self):
         view = self.listView_samples

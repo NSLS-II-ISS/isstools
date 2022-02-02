@@ -19,6 +19,9 @@ class UIBatch(*uic.loadUiType(ui_path)):
                  hhm=None,
                  trajectory_manager=None,
                  RE=None,
+                 sample_manager=None,
+                 scan_manager=None,
+                 plan_processor=None,
                  sample_stage=None,
                  parent_gui=None,
                  motors_dict=None,
@@ -31,6 +34,9 @@ class UIBatch(*uic.loadUiType(ui_path)):
         # self.plan_funcs = plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
+        self.sample_manager = sample_manager
+        self.scan_manager = scan_manager
+        self.plan_processor = plan_processor
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager
         self.sample_stage = sample_stage
@@ -43,6 +49,9 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                                                      parent_gui=parent_gui,
                                                                      sample_positioner=sample_positioner,
                                                                      RE=RE,
+                                                                     sample_manager=sample_manager,
+                                                                     scan_manager=scan_manager,
+                                                                     plan_processor=plan_processor,
                                                                      )
         self.layout_batch_manual.addWidget(self.widget_batch_manual)
 

@@ -57,7 +57,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_xy_scan.clicked.connect(self.run_2d_pcl_scan)
         self.push_py_scan.clicked.connect(self.run_2d_pcl_scan)
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.push_time_scan.clicked.connect(self.run_time_scan)
+        # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
 
         self.det_list = list(detector_dictionary.keys())
