@@ -128,43 +128,6 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.settings = parent_gui.settings
 
 
-    def _make_sample_item(self, sample_index, sample_str):
-        sample_item = QtWidgets.QTreeWidgetItem(self.treeWidget_samples)
-        sample_item.setText(0, sample_str)
-        sample_item.setExpanded(True)
-        sample_item.setFlags(sample_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
-        sample_item.kind = 'sample'
-        sample_item.index = sample_index
-        # sample_item.setChecked(False)
-        # sample_item.setCheckable(True)
-        return sample_item
-
-    def _make_sample_point_item(self, point_index, point_str, sample_item, is_exposed):
-        point_item = QtWidgets.QTreeWidgetItem(sample_item)
-        point_item.setText(0, point_str)
-        point_item.setFlags(point_item.flags() | Qt.ItemIsUserCheckable)
-        point_item.setCheckState(0, Qt.Unchecked)
-        point_item.kind = 'sample_point'
-        point_item.index = point_index
-        # point_item.setChecked(False)
-        if is_exposed:
-            point_item.setForeground(QtGui.QColor('red'))
-
-    def update_sample_tree(self):
-        self.treeWidget_samples.clear()
-        for i, sample in enumerate(self.sample_manager.samples):
-            name = sample.name
-            npts = sample.number_of_points
-            npts_fresh = sample.number_of_unexposed_points
-            sample_str = f"{name} ({npts_fresh}/{npts})"
-            sample_item = self._make_sample_item(i, sample_str)
-            # self.treeWidget_samples.addItem(sample_item)
-            for j in range(npts):
-                coord_dict = sample.index_coordinate_dict(j)
-                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                point_str = f'{j+1:3d} - {point_str}'
-                self._make_sample_point_item(j, point_str, sample_item, sample.index_exposed(j))
-
 
                 # sample_item.append_row(point_item)
 
@@ -320,11 +283,49 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         return positions
 
 
-    def _create_one_sample(self, name, comment, x, y, z, th):
-        _create_new_sample(name, comment,
-                           x, y, z, th,
-                           model=self.model_samples)
-        self.listView_samples.setModel(self.model_samples)
+    # def _create_one_sample(self, name, comment, x, y, z, th):
+    #     _create_new_sample(name, comment,
+    #                        x, y, z, th,
+    #                        model=self.model_samples)
+    #     self.listView_samples.setModel(self.model_samples)
+
+
+    def _make_sample_item(self, sample_index, sample_str):
+        sample_item = QtWidgets.QTreeWidgetItem(self.treeWidget_samples)
+        sample_item.setText(0, sample_str)
+        sample_item.setExpanded(True)
+        sample_item.setFlags(sample_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        sample_item.kind = 'sample'
+        sample_item.index = sample_index
+        # sample_item.setChecked(False)
+        # sample_item.setCheckable(True)
+        return sample_item
+
+    def _make_sample_point_item(self, point_index, point_str, sample_item, is_exposed):
+        point_item = QtWidgets.QTreeWidgetItem(sample_item)
+        point_item.setText(0, point_str)
+        point_item.setFlags(point_item.flags() | Qt.ItemIsUserCheckable)
+        point_item.setCheckState(0, Qt.Unchecked)
+        point_item.kind = 'sample_point'
+        point_item.index = point_index
+        # point_item.setChecked(False)
+        if is_exposed:
+            point_item.setForeground(QtGui.QColor('red'))
+
+    def update_sample_tree(self):
+        self.treeWidget_samples.clear()
+        for i, sample in enumerate(self.sample_manager.samples):
+            name = sample.name
+            npts = sample.number_of_points
+            npts_fresh = sample.number_of_unexposed_points
+            sample_str = f"{name} ({npts_fresh}/{npts})"
+            sample_item = self._make_sample_item(i, sample_str)
+            # self.treeWidget_samples.addItem(sample_item)
+            for j in range(npts):
+                coord_dict = sample.index_coordinate_dict(j)
+                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                point_str = f'{j+1:3d} - {point_str}'
+                self._make_sample_point_item(j, point_str, sample_item, sample.index_exposed(j))
 
     def create_new_sample(self):
         sample_name = self.lineEdit_sample_name.text()
@@ -335,11 +336,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         sample_comment = self.lineEdit_sample_comment.text()
         positions = self._create_list_of_positions()
 
-        for i, p in enumerate(positions):
-            print(f'Creating sample {sample_name} at {p}')
-            sample_name_i = f'{sample_name} pos {(i+1):3d}'
-            self._create_one_sample(sample_name_i, sample_comment,
-                                    p['x'], p['y'], p['z'], p['th'])
+        # for i, p in enumerate(positions):
+        #     print(f'Creating sample {sample_name} at {p}')
+        #     sample_name_i = f'{sample_name} pos {(i+1):3d}'
+        #     self._create_one_sample(sample_name_i, sample_comment,
+        #                             p['x'], p['y'], p['z'], p['th'])
 
         self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
 
@@ -371,10 +372,11 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def delete_all_samples(self):
-        view = self.listView_samples
-        n_rows = view.model().rowCount()
-        for i in range(n_rows):
-            view.model().removeRows(0, 1)
+        self.sample_manager.reset()
+        # view = self.listView_samples
+        # n_rows = view.model().rowCount()
+        # for i in range(n_rows):
+        #     view.model().removeRows(0, 1)
 
     def save_samples(self):
         samples = []

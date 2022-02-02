@@ -1219,7 +1219,7 @@ XY posisions</string>
       <x>5</x>
       <y>25</y>
       <width>331</width>
-      <height>311</height>
+      <height>71</height>
      </rect>
     </property>
    </widget>
@@ -1496,6 +1496,36 @@ sequence</string>
       <string>test parameter 2</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QTreeWidget" name="treeWidget_scans">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>321</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
+    </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectItems</enum>
+    </property>
+    <property name="indentation">
+     <number>20</number>
+    </property>
+    <property name="rootIsDecorated">
+     <bool>true</bool>
+    </property>
+    <attribute name="headerVisible">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
    </widget>
   </widget>
   <widget class="QPushButton" name="push_batch_delete">
