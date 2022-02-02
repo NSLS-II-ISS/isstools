@@ -21,6 +21,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 class UISpectrometer(*uic.loadUiType(ui_path)):
     def __init__(self,
                  RE,
+                 plan_processor,
                  # hhm,
                  db,
                  detector_dictionary,
@@ -38,6 +39,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.setupUi(self)
 
         self.RE = RE
+        self.plan_processor = plan_processor
         self.db = db
         self.vmax = None
         self.pil_image = None
