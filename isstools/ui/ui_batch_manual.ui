@@ -170,19 +170,6 @@
      <string>Delete</string>
     </property>
    </widget>
-   <widget class="QListView" name="listView_samples">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>25</y>
-      <width>321</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="selectionMode">
-     <enum>QAbstractItemView::ExtendedSelection</enum>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
@@ -1168,16 +1155,19 @@ XY posisions</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
+      <y>30</y>
       <width>311</width>
-      <height>91</height>
+      <height>291</height>
      </rect>
     </property>
     <property name="selectionMode">
      <enum>QAbstractItemView::ExtendedSelection</enum>
     </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectItems</enum>
+    </property>
     <property name="indentation">
-     <number>10</number>
+     <number>20</number>
     </property>
     <property name="rootIsDecorated">
      <bool>true</bool>
@@ -1198,7 +1188,7 @@ XY posisions</string>
      <x>360</x>
      <y>70</y>
      <width>341</width>
-     <height>616</height>
+     <height>781</height>
     </rect>
    </property>
    <property name="title">
@@ -1248,120 +1238,11 @@ XY posisions</string>
     <property name="title">
      <string>Scan definition</string>
     </property>
-    <widget class="QLabel" name="label_121">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>65</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Scan type</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_122">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>67</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Trajectory</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_lut">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>90</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_scans">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>60</y>
-       <width>141</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="push_update_traj_list">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>90</y>
-       <width>24</width>
-       <height>24</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_scan_name">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>30</y>
-       <width>141</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_120">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>76</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Scan name</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_131">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>140</y>
+       <x>240</x>
+       <y>60</y>
        <width>41</width>
        <height>26</height>
       </rect>
@@ -1373,9 +1254,9 @@ XY posisions</string>
     <widget class="QSpinBox" name="spinBox_scan_repeat">
      <property name="geometry">
       <rect>
-       <x>90</x>
-       <y>140</y>
-       <width>61</width>
+       <x>100</x>
+       <y>70</y>
+       <width>121</width>
        <height>26</height>
       </rect>
      </property>
@@ -1398,8 +1279,8 @@ XY posisions</string>
     <widget class="QLabel" name="label_132">
      <property name="geometry">
       <rect>
-       <x>5</x>
-       <y>140</y>
+       <x>15</x>
+       <y>70</y>
        <width>51</width>
        <height>26</height>
       </rect>
@@ -1411,8 +1292,8 @@ XY posisions</string>
     <widget class="QLabel" name="label_133">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>165</y>
+       <x>20</x>
+       <y>95</y>
        <width>51</width>
        <height>26</height>
       </rect>
@@ -1424,9 +1305,9 @@ XY posisions</string>
     <widget class="QDoubleSpinBox" name="spinBox_scan_delay">
      <property name="geometry">
       <rect>
-       <x>90</x>
-       <y>170</y>
-       <width>61</width>
+       <x>100</x>
+       <y>100</y>
+       <width>121</width>
        <height>24</height>
       </rect>
      </property>
@@ -1446,8 +1327,8 @@ XY posisions</string>
     <widget class="QLabel" name="label_134">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>170</y>
+       <x>230</x>
+       <y>100</y>
        <width>66</width>
        <height>26</height>
       </rect>
@@ -1459,7 +1340,7 @@ XY posisions</string>
     <widget class="QPushButton" name="push_create_scan">
      <property name="geometry">
       <rect>
-       <x>230</x>
+       <x>40</x>
        <y>140</y>
        <width>81</width>
        <height>51</height>
@@ -1467,6 +1348,152 @@ XY posisions</string>
      </property>
      <property name="text">
       <string>Create</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_129">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>71</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Scan type</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_scans_2">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>30</y>
+       <width>221</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="push_create_scan_3">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>140</y>
+       <width>81</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Add to
+sequence</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>600</y>
+      <width>291</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Sequence definition</string>
+    </property>
+    <widget class="QPushButton" name="push_create_scan_2">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>40</y>
+       <width>81</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Create
+sequence</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_scan_name_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>161</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_140">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>111</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Sequence name</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>141</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test parameter 1</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_2">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>141</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test parameter 2</string>
      </property>
     </widget>
    </widget>
@@ -1705,6 +1732,128 @@ XY posisions</string>
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_120">
+   <property name="geometry">
+    <rect>
+     <x>920</x>
+     <y>860</y>
+     <width>76</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Scan name</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_122">
+   <property name="geometry">
+    <rect>
+     <x>920</x>
+     <y>920</y>
+     <width>67</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="text">
+    <string>Trajectory</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_121">
+   <property name="geometry">
+    <rect>
+     <x>920</x>
+     <y>895</y>
+     <width>71</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="text">
+    <string>Scan type</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_scan_name">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>860</y>
+     <width>141</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_update_traj_list">
+   <property name="geometry">
+    <rect>
+     <x>1120</x>
+     <y>920</y>
+     <width>24</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_scans">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>890</y>
+     <width>141</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>0</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_lut">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>920</y>
+     <width>111</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QListView" name="listView_samples">
+   <property name="geometry">
+    <rect>
+     <x>530</x>
+     <y>900</y>
+     <width>241</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::ExtendedSelection</enum>
+   </property>
   </widget>
  </widget>
  <resources/>
