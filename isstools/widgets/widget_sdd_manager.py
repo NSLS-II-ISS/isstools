@@ -185,10 +185,10 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         acq_time = self.spinBox_acq_time.value()
         self.xs.test_exposure(acq_time=acq_time)
         # self.RE(plan(acq_time = acq_time))
-        # self.acquired = True
+        self.acquired = True
         self.plot_traces()
-        self.update_roi_plot()
-        self.canvas_mca.draw_idle()
+        # self.update_roi_plot()
+        # self.canvas_mca.draw_idle()
         print('Xspress3 acquisition complete')
 
     def plot_traces(self):
@@ -204,4 +204,4 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     energy = np.arange(mca.size)*10
                     self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
                     self.figure_mca.ax.legend(loc=1)
-        # self.update_roi_plot()
+        self.update_roi_plot()
