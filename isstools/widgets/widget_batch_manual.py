@@ -121,7 +121,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.populate_service_parameters()
         self.update_batch_traj()
 
-        self.push_import_from_autopilot.clicked.connect(self.get_info_from_autopilot)
+        self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
 
         self.sample_positioner = sample_positioner
         self.parent_gui = parent_gui
@@ -394,7 +394,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         #     samples.append(sample)
         #
         # print(f'Saving samples:\n{samples}')
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', '/nsls2/xf08id/Sandbox', '*.smpl',
+        default_fpath = self.sample_manager.local_file_default_path
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', default_fpath, '*.smpl',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         # print(filename)
         if not filename.endswith('.smpl'):
@@ -406,32 +407,43 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         #     f.write(json.dumps(samples))
 
 
-
-
     def load_samples(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(directory='/nsls2/xf08id/Sandbox',
+        default_fpath = self.sample_manager.local_file_default_path
+        filename = QtWidgets.QFileDialog.getOpenFileName(directory=default_fpath,
                                                          filter='*.smpl', parent=self)[0]
-        print(filename)
-        if filename:
-            with open(filename, 'r') as f:
-                samples = json.loads(f.read())
-            print(samples)
-            for sample in samples:
-                self._create_one_sample(sample['name'], sample['comment'],
-                                   sample['x'], sample['y'], sample['z'], sample['th'])
+        self.sample_manager.add_samples_from_file(filename)
+        # print(filename)
+        # if filename:
+        #     with open(filename, 'r') as f:
+        #         samples = json.loads(f.read())
+        #     print(samples)
+        #     for sample in samples:
+        #         self._create_one_sample(sample['name'], sample['comment'],
+        #                            sample['x'], sample['y'], sample['z'], sample['th'])
 
+    @property
+    def treeWidget_samples_root(self):
+        return self.treeWidget_samples.invisibleRootItem()
+
+    def _sample_item_iterator(self):
+        sample_count = self.treeWidget_samples_root.childCount()
+        for i in range(sample_count):
+            yield root.child(i)
+
+    def _sample_point_item_iterator(self, sample_index):
+        sample_item = self.treeWidget_samples_root.childCount().child(sample_index)
+        for i in range(sample_item.childCount()):
+            yield sample_item.child(i)
 
     def check_all_samples(self):
-        for i in range(self.model_samples.rowCount()):
-            item = self.model_samples.item(i)
+        for item in  self._sample_item_iterator():
             item.setCheckState(2)
 
     def uncheck_all_samples(self):
-        for i in range(self.model_samples.rowCount()):
-            item = self.model_samples.item(i)
+        for item in self._sample_item_iterator():
             item.setCheckState(0)
 
-    def get_info_from_autopilot(self):
+    def get_sample_info_from_autopilot(self):
         try:
             df = self.parent_gui.widget_autopilot.sample_df
             str_to_parse = self.lineEdit_sample_name.text()
@@ -455,34 +467,35 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def modify_item(self):
-        sender_object = QObject().sender()
-        selection = sender_object.selectedIndexes()
-        if len(selection) == 1:
-            index = sender_object.currentIndex()
-            if sender_object.type == 'treeView':
-                item = sender_object.model().itemFromIndex(sender_object.selectedIndexes()[0])
-            else:
-                item = sender_object.model().item(index.row())
-            if item.item_type =='sample':
-                dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
-                                                        item.x, item.y, item.z, item.th,  parent=self)
-                if dlg.exec_():
-                    item.name, item.comment, item.x, item.y, item.z, item.th = dlg.getValues()
-                    item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
-            elif item.item_type == 'scan':
-                scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
-                trajectories = [self.comboBox_lut.itemText(i) for i in range(self.comboBox_lut.count())]
-
-                dlg = UpdateScanInfo.UpdateScanInfo(str(item.name), str(item.scan_type),
-                                                item.trajectory, item.repeat, item.delay,
-                                                scan_types, trajectories,
-                                                parent=self)
-
-                if dlg.exec_():
-                    item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
-                    item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
-        elif len(selection) > 1:
-            message_box('Warning', 'Cannot modify multiple samples. Select one sample!')
+        pass
+        # sender_object = QObject().sender()
+        # selection = sender_object.selectedIndexes()
+        # if len(selection) == 1:
+        #     index = sender_object.currentIndex()
+        #     if sender_object.type == 'treeView':
+        #         item = sender_object.model().itemFromIndex(sender_object.selectedIndexes()[0])
+        #     else:
+        #         item = sender_object.model().item(index.row())
+        #     if item.item_type =='sample':
+        #         dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
+        #                                                 item.x, item.y, item.z, item.th,  parent=self)
+        #         if dlg.exec_():
+        #             item.name, item.comment, item.x, item.y, item.z, item.th = dlg.getValues()
+        #             item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
+        #     elif item.item_type == 'scan':
+        #         scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
+        #         trajectories = [self.comboBox_lut.itemText(i) for i in range(self.comboBox_lut.count())]
+        #
+        #         dlg = UpdateScanInfo.UpdateScanInfo(str(item.name), str(item.scan_type),
+        #                                         item.trajectory, item.repeat, item.delay,
+        #                                         scan_types, trajectories,
+        #                                         parent=self)
+        #
+        #         if dlg.exec_():
+        #             item.name, item.scan_type, item.trajectory, item.repeat, item.delay = dlg.getValues()
+        #             item.setText(f'{item.scan_type} with {item.name} {item.repeat} times with {item.delay} s delay')
+        # elif len(selection) > 1:
+        #     message_box('Warning', 'Cannot modify multiple samples. Select one sample!')
 
 
     def move_to_sample(self):
@@ -490,25 +503,49 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             selection = sender_object.selectedIndexes()
             if len(selection) == 1:
                 index = sender_object.currentIndex()
-                item = sender_object.model().item(index.row())
-                ret = question_message_box(self, 'Moving to sample', 'Are you sure?')
-                if ret:
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.x, item.x))
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.y, item.y))
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.z, item.z))
-                    self.RE(bps.mv(self.sample_positioner.sample_stage.th, item.th))
+                item = sender_object.itemFromIndex(index)
+                if item.kind == 'sample_point':
+                    sample_index = item.parent().index
+                    sample_point_index = item.index
+                    name = self.sample_manager.sample_name_from_index(sample_index)
+                    coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
+                    # item = sender_object.model().item(index.row())
+                    ret = question_message_box(self, 'Moving to sample',
+                                               f'Moving to sample {name} at \n' +
+                                               f'x = {coordinate_dict["x"]:.2f}\n' +
+                                               f'y = {coordinate_dict["y"]:.2f}\n' +
+                                               f'z = {coordinate_dict["z"]:.2f}\n' +
+                                               f'th = {coordinate_dict["th"]:.2f}\n' +
+                                               'Are you sure?')
+                    if ret:
+                        self.RE(bps.mv(self.sample_positioner.sample_stage.x, coordinate_dict['x']))
+                        self.RE(bps.mv(self.sample_positioner.sample_stage.y, coordinate_dict['y']))
+                        self.RE(bps.mv(self.sample_positioner.sample_stage.z, coordinate_dict['z']))
+                        self.RE(bps.mv(self.sample_positioner.sample_stage.th, coordinate_dict['th']))
+                else:
+                    message_box('Warning', 'Please select sample point')
             elif len(selection) > 1:
                 message_box('Warning', 'Cannot move to multiple sample positions. Select one sample!')
 
 
 
     def check_selected_samples(self, checkstate=2):
-        view = self.listView_samples
-        index_list = view.selectedIndexes()
+        index_list = self.treeWidget_samples.selectedIndexes()
         for index in index_list:
-            if (view.model().rowCount() > 0) and (index.row() < view.model().rowCount()):
-                item = view.model().item(index.row())
-                item.setCheckState(checkstate)
+            item = self.treeWidget_samples.itemFromIndex(index)
+            item.setCheckState(checkstate)
+            # if item.kind == 'sample':
+            #     sample_index = item.index
+            #     point_index_list = [item.child(i).index for i in range(item.childCount())]
+            # elif item.kind == 'sample_point':
+            #     sample_index = item.parent().index
+            #     point_index_list = [item.index]
+        # view = self.listView_samples
+        # index_list = view.selectedIndexes()
+        # for index in index_list:
+        #     if (view.model().rowCount() > 0) and (index.row() < view.model().rowCount()):
+        #         item = view.model().item(index.row())
+        #         item.setCheckState(checkstate)
 
     '''
     Dealing with scans
