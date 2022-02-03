@@ -87,6 +87,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
 
+        self.treeWidget_samples.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeWidget_samples.customContextMenuRequested.connect(self.sample_context_menu)
+
         self.listView_samples.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listView_samples.customContextMenuRequested.connect(self.sample_context_menu)
         self.listView_samples.type  = 'listView'
@@ -428,20 +431,20 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def _sample_item_iterator(self):
         sample_count = self.treeWidget_samples_root.childCount()
         for i in range(sample_count):
-            yield root.child(i)
+            yield self.treeWidget_samples_root.child(i)
 
     def _sample_point_item_iterator(self, sample_index):
-        sample_item = self.treeWidget_samples_root.childCount().child(sample_index)
+        sample_item = self.treeWidget_samples_root.child(sample_index)
         for i in range(sample_item.childCount()):
             yield sample_item.child(i)
 
     def check_all_samples(self):
         for item in  self._sample_item_iterator():
-            item.setCheckState(2)
+            item.setCheckState(0, 2)
 
     def uncheck_all_samples(self):
         for item in self._sample_item_iterator():
-            item.setCheckState(0)
+            item.setCheckState(0, 0)
 
     def get_sample_info_from_autopilot(self):
         try:
@@ -467,17 +470,28 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def modify_item(self):
-        pass
-        # sender_object = QObject().sender()
-        # selection = sender_object.selectedIndexes()
-        # if len(selection) == 1:
-        #     index = sender_object.currentIndex()
-        #     if sender_object.type == 'treeView':
-        #         item = sender_object.model().itemFromIndex(sender_object.selectedIndexes()[0])
+        sender_object = QObject().sender()
+        selection = sender_object.selectedIndexes()
+        # sdsdfs
+        if len(selection) == 1:
+            index = sender_object.currentIndex()
+            if sender_object == self.treeWidget_samples:
+                item = sender_object.itemFromIndex(index)
         #     else:
         #         item = sender_object.model().item(index.row())
-        #     if item.item_type =='sample':
-        #         dlg = UpdateSampleInfo.UpdateSampleInfo(str(item.name), str(item.comment),
+            if item.kind =='sample':
+                sample_index = item.index
+                sample = self.sample_manager.sample_at_index(sample_index)
+                dlg = UpdateSampleInfo.UpdateSampleInfo(sample.name, sample.comment)
+                if dlg.exec_():
+                    new_name, new_comment = dlg.getValues()
+                    self.sample_manager.update_sample_at_index(sample_index, new_name, new_comment)
+                    item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
+            elif item.kind =='sample_point':
+                sample_index = item.parent().index
+                sample_point_index = item.index
+                coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
+                dlg = UpdateSampleInfo.UpdateSamplePointInfo(coordinate_dict)
         #                                                 item.x, item.y, item.z, item.th,  parent=self)
         #         if dlg.exec_():
         #             item.name, item.comment, item.x, item.y, item.z, item.th = dlg.getValues()
@@ -518,10 +532,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                                f'th = {coordinate_dict["th"]:.2f}\n' +
                                                'Are you sure?')
                     if ret:
-                        self.RE(bps.mv(self.sample_positioner.sample_stage.x, coordinate_dict['x']))
-                        self.RE(bps.mv(self.sample_positioner.sample_stage.y, coordinate_dict['y']))
-                        self.RE(bps.mv(self.sample_positioner.sample_stage.z, coordinate_dict['z']))
-                        self.RE(bps.mv(self.sample_positioner.sample_stage.th, coordinate_dict['th']))
+                        for axis, position in coordinate_dict.items():
+                            plan = 'move_motor_plan'
+                            motor = getattr(self.sample_stage, axis)
+                            plan_kwargs = {'motor_attr' : motor.name, 'based_on' : 'object_name', 'position' : position}
+                            self.plan_processor.add_plan_and_run_if_idle(plan, plan_kwargs)
+                        # self.RE(bps.mv(self.sample_positioner.sample_stage.x, coordinate_dict['x']))
+                        # self.RE(bps.mv(self.sample_positioner.sample_stage.y, coordinate_dict['y']))
+                        # self.RE(bps.mv(self.sample_positioner.sample_stage.z, coordinate_dict['z']))
+                        # self.RE(bps.mv(self.sample_positioner.sample_stage.th, coordinate_dict['th']))
                 else:
                     message_box('Warning', 'Please select sample point')
             elif len(selection) > 1:
@@ -533,7 +552,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         index_list = self.treeWidget_samples.selectedIndexes()
         for index in index_list:
             item = self.treeWidget_samples.itemFromIndex(index)
-            item.setCheckState(checkstate)
+            item.setCheckState(0, checkstate)
             # if item.kind == 'sample':
             #     sample_index = item.index
             #     point_index_list = [item.child(i).index for i in range(item.childCount())]
@@ -839,7 +858,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         uncheck_selected_samples = menu.addAction("&Uncheck selected samples")
         modify = menu.addAction("&Modify")
         move_to_sample = menu.addAction("Mo&ve to sample")
-        parentPosition = self.listView_samples.mapToGlobal(QtCore.QPoint(0, 0))
+        parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
         action = menu.exec_()
         if action == modify:
