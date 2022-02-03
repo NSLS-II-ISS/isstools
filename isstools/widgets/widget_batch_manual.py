@@ -336,13 +336,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         sample_comment = self.lineEdit_sample_comment.text()
         positions = self._create_list_of_positions()
 
+        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+
         # for i, p in enumerate(positions):
         #     print(f'Creating sample {sample_name} at {p}')
         #     sample_name_i = f'{sample_name} pos {(i+1):3d}'
         #     self._create_one_sample(sample_name_i, sample_comment,
         #                             p['x'], p['y'], p['z'], p['th'])
 
-        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+
 
     def delete_sample(self):
         # view = self.listView_samples
@@ -379,27 +381,31 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         #     view.model().removeRows(0, 1)
 
     def save_samples(self):
-        samples = []
-        for index in range(self.listView_samples.model().rowCount()):
-            b = self.listView_samples.model().item(index)
-            sample = {}
-            sample['name'] = b.name
-            sample['comment'] = b.comment
-            sample['x'] = b.x
-            sample['y'] = b.y
-            sample['z'] = b.z
-            sample['th'] = b.th
-            samples.append(sample)
-
-        print(f'Saving samples:\n{samples}')
+        # samples = []
+        # for index in range(self.listView_samples.model().rowCount()):
+        #     b = self.listView_samples.model().item(index)
+        #     sample = {}
+        #     sample['name'] = b.name
+        #     sample['comment'] = b.comment
+        #     sample['x'] = b.x
+        #     sample['y'] = b.y
+        #     sample['z'] = b.z
+        #     sample['th'] = b.th
+        #     samples.append(sample)
+        #
+        # print(f'Saving samples:\n{samples}')
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', '/nsls2/xf08id/Sandbox', '*.smpl',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
-        print(filename)
+        # print(filename)
         if not filename.endswith('.smpl'):
             filename = filename + '.smpl'
 
-        with open(filename, 'w') as f:
-            f.write(json.dumps(samples))
+        self.sample_manager.save_to_file(filename)
+
+        # with open(filename, 'w') as f:
+        #     f.write(json.dumps(samples))
+
+
 
 
     def load_samples(self):
