@@ -486,15 +486,17 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     new_name, new_comment = dlg.getValues()
                     self.sample_manager.update_sample_at_index(sample_index, new_name, new_comment)
-                    item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
+                    # item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
             elif item.kind =='sample_point':
                 sample_index = item.parent().index
+                sample_name =self.sample_manager.sample_name_at_index(sample_index)
                 sample_point_index = item.index
                 coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
-                dlg = UpdateSampleInfo.UpdateSamplePointInfo(coordinate_dict)
-        #                                                 item.x, item.y, item.z, item.th,  parent=self)
-        #         if dlg.exec_():
-        #             item.name, item.comment, item.x, item.y, item.z, item.th = dlg.getValues()
+                dlg = UpdateSampleInfo.UpdateSamplePointInfo(sample_name, **coordinate_dict)
+                if dlg.exec_():
+                    new_coordinate_dict = dlg.getValues()
+                    self.sample_manager.update_sample_coordinates_at_index(sample_index, sample_point_index,
+                                                                           new_coordinate_dict)
         #             item.setText(f'{item.name} at X {item.x :0.2f} Y {item.y :0.2f} Z {item.z :0.2f} Th {item.th :0.2f}')
         #     elif item.item_type == 'scan':
         #         scan_types = [self.comboBox_scans.itemText(i) for i in range(self.comboBox_scans.count())]
@@ -521,7 +523,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 if item.kind == 'sample_point':
                     sample_index = item.parent().index
                     sample_point_index = item.index
-                    name = self.sample_manager.sample_name_from_index(sample_index)
+                    name = self.sample_manager.sample_name_at_index(sample_index)
                     coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
                     # item = sender_object.model().item(index.row())
                     ret = question_message_box(self, 'Moving to sample',
