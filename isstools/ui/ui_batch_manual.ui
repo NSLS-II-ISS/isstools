@@ -1213,16 +1213,6 @@ XY posisions</string>
      <string>Delete</string>
     </property>
    </widget>
-   <widget class="QListView" name="listView_scans">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>25</y>
-      <width>331</width>
-      <height>71</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox">
     <property name="enabled">
      <bool>true</bool>
@@ -1369,28 +1359,6 @@ XY posisions</string>
       <string>Scan type</string>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox_scans_2">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>30</y>
-       <width>221</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </widget>
     <widget class="QPushButton" name="push_create_scan_3">
      <property name="enabled">
       <bool>false</bool>
@@ -1406,6 +1374,28 @@ XY posisions</string>
      <property name="text">
       <string>Add to
 sequence</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_scans">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>30</y>
+       <width>191</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
      </property>
     </widget>
    </widget>
@@ -1501,9 +1491,9 @@ sequence</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
+      <y>30</y>
       <width>311</width>
-      <height>151</height>
+      <height>291</height>
      </rect>
     </property>
     <property name="selectionMode">
@@ -1840,28 +1830,6 @@ sequence</string>
     <string>...</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox_scans">
-   <property name="geometry">
-    <rect>
-     <x>1000</x>
-     <y>890</y>
-     <width>141</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>0</width>
-     <height>0</height>
-    </size>
-   </property>
-  </widget>
   <widget class="QComboBox" name="comboBox_lut">
    <property name="geometry">
     <rect>
@@ -1883,6 +1851,16 @@ sequence</string>
    </property>
    <property name="selectionMode">
     <enum>QAbstractItemView::ExtendedSelection</enum>
+   </property>
+  </widget>
+  <widget class="QListView" name="listView_scans">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>970</y>
+     <width>331</width>
+     <height>71</height>
+    </rect>
    </property>
   </widget>
  </widget>

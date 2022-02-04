@@ -19,6 +19,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
 class UIBatchManual(*uic.loadUiType(ui_path)):
     sample_list_changed_signal = QtCore.pyqtSignal()
+    scan_list_changed_signal = QtCore.pyqtSignal()
     def __init__(self,
                  service_plan_funcs,
                  hhm,
@@ -29,6 +30,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  RE = None,
                  sample_manager=None,
                  scan_manager=None,
+                 scan_sequence_manager=None,
                  plan_processor=None,
                  *args, **kwargs):
 
@@ -42,15 +44,23 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.sample_manager = sample_manager
         self.scan_manager = scan_manager
+        self.scan_sequence_manager = scan_sequence_manager
         self.plan_processor = plan_processor
         self.batch_mode_uids = []
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager
 
         self.sample_manager.append_sample_list_update_signal(self.sample_list_changed_signal)
+        self.scan_sequence_manager.append_scan_list_update_signal(self.scan_list_changed_signal)
 
         self.update_sample_tree()
         self.sample_list_changed_signal.connect(self.update_sample_tree)
+
+
+        self.update_scan_defs()
+        self.update_scan_tree()
+        self.scan_list_changed_signal.connect(self.update_scan_tree)
+
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
@@ -140,6 +150,12 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             #     item.setForeground(QtGui.QColor('green'))
             # self.listWidget_plan_queue.addItem(item)
 
+
+    def update_scan_defs(self):
+        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
+        self.comboBox_scans.clear()
+        self.comboBox_scans.addItems(scan_defs)
+        # self.scan_sequence_manager.reset()
 
     '''
     Dealing with batch experiemnts
@@ -293,24 +309,44 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     #     self.listView_samples.setModel(self.model_samples)
 
 
-    def _make_sample_item(self, sample_index, sample_str):
-        sample_item = QtWidgets.QTreeWidgetItem(self.treeWidget_samples)
-        sample_item.setText(0, sample_str)
-        sample_item.setExpanded(True)
-        sample_item.setFlags(sample_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
-        sample_item.kind = 'sample'
-        sample_item.index = sample_index
-        # sample_item.setChecked(False)
-        # sample_item.setCheckable(True)
-        return sample_item
+    def _make_item(self, parent, item_str, index, kind='', force_unchecked=False, checkable=True):
+        item = QtWidgets.QTreeWidgetItem(parent)
+        item.setText(0, item_str)
+        item.setExpanded(True)
+        if checkable:
+            item.setFlags(item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        if force_unchecked:
+            item.setCheckState(0, Qt.Unchecked)
+        item.kind = kind
+        item.index = index
+        return item
 
-    def _make_sample_point_item(self, point_index, point_str, sample_item, is_exposed):
-        point_item = QtWidgets.QTreeWidgetItem(sample_item)
-        point_item.setText(0, point_str)
-        point_item.setFlags(point_item.flags() | Qt.ItemIsUserCheckable)
-        point_item.setCheckState(0, Qt.Unchecked)
-        point_item.kind = 'sample_point'
-        point_item.index = point_index
+
+    def _make_scan_item(self, scan_str, scan_index, parent=None, force_unchecked=True, checkable=True):
+        if parent is None:
+            parent = self.treeWidget_scans
+        return self._make_item(parent, scan_str, scan_index, kind='scan', force_unchecked=force_unchecked, checkable=checkable)
+
+    def _make_sample_item(self, sample_str, sample_index):
+        return self._make_item(self.treeWidget_samples, sample_str, sample_index, kind='sample', force_unchecked=False)
+        # sample_item = QtWidgets.QTreeWidgetItem(self.treeWidget_samples)
+        # sample_item.setText(0, sample_str)
+        # sample_item.setExpanded(True)
+        # sample_item.setFlags(sample_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        # sample_item.kind = 'sample'
+        # sample_item.index = sample_index
+        # # sample_item.setChecked(False)
+        # # sample_item.setCheckable(True)
+        # return sample_item
+
+    def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
+        point_item =  self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True)
+        # point_item = QtWidgets.QTreeWidgetItem(sample_item)
+        # point_item.setText(0, point_str)
+        # point_item.setFlags(point_item.flags() | Qt.ItemIsUserCheckable)
+        # point_item.setCheckState(0, Qt.Unchecked)
+        # point_item.kind = 'sample_point'
+        # point_item.index = point_index
         # point_item.setChecked(False)
         if is_exposed:
             point_item.setForeground(QtGui.QColor('red'))
@@ -322,13 +358,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             npts = sample.number_of_points
             npts_fresh = sample.number_of_unexposed_points
             sample_str = f"{name} ({npts_fresh}/{npts})"
-            sample_item = self._make_sample_item(i, sample_str)
+            sample_item = self._make_sample_item(sample_str, i)
             # self.treeWidget_samples.addItem(sample_item)
             for j in range(npts):
                 coord_dict = sample.index_coordinate_dict(j)
                 point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
                 point_str = f'{j+1:3d} - {point_str}'
-                self._make_sample_point_item(j, point_str, sample_item, sample.index_exposed(j))
+                self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
 
     def create_new_sample(self):
         sample_name = self.lineEdit_sample_name.text()
@@ -572,28 +608,67 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     Dealing with scans
     '''
 
-    def create_new_scan(self):
-        scan_name = self.lineEdit_scan_name.text()
-        if scan_name:
-            scan_type= self.comboBox_scans.currentText()
-            scan_traj = int(self.comboBox_lut.currentText()[0])
-            scan_repeat =  self.spinBox_scan_repeat.value()
-            scan_delay = self.spinBox_scan_delay.value()
-            scan_autofoil = False
-            # name = self.lineEdit_scan_name.text()
-            _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=self.model_scans)
+    def update_scan_tree(self):
+        self.treeWidget_scans.clear()
+        for i, scan in enumerate(self.scan_sequence_manager.scans):
+            scan_item = self._make_scan_item(scan['name'], i, force_unchecked=True, checkable=True)
+            if scan['type'] == 'scan_sequence':
+                for j, scan_element in scan['scan_list']:
+                    self._make_scan_item(scan_element['name'], j, parent=scan_item, force_unchecked=False, checkable=False)
 
-            self.listView_scans.setModel(self.model_scans)
-        else:
-            message_box('Warning', 'Scan name is empty')
+            # sample_item = self._make_sample_item(i, sample_str)
+            # # self.treeWidget_samples.addItem(sample_item)
+            # for j in range(npts):
+            #     coord_dict = sample.index_coordinate_dict(j)
+            #     point_str = ' '.join([(f"{key}={value : 0.2f}") for key, value in coord_dict.items()])
+            #     point_str = f'{j + 1:3d} - {point_str}'
+            #     self._make_sample_point_item(j, point_str, sample_item, sample.index_exposed(j))
+
+
+    def create_new_scan(self):
+        scan_idx = self.comboBox_scans.currentIndex()
+        name = self.comboBox_scans.currentText()
+        repeat = self.spinBox_scan_repeat.value()
+        delay = self.spinBox_scan_delay.value()
+        scan_str = f'{name} x{repeat}'
+        if delay>0:
+            scan_str += f' delay={delay} s'
+        self.scan_sequence_manager.add_element({'type' : 'scan',
+                                                'name' : scan_str,
+                                                'repeat' : repeat,
+                                                'delay' : delay,
+                                                'scan_idx' : scan_idx})
+
+        # scan_name = self.lineEdit_scan_name.text()
+        # if scan_name:
+        #     scan_type= self.comboBox_scans.currentText()
+        #     scan_traj = int(self.comboBox_lut.currentText()[0])
+        #     scan_repeat =  self.spinBox_scan_repeat.value()
+        #     scan_delay = self.spinBox_scan_delay.value()
+        #     scan_autofoil = False
+        #     # name = self.lineEdit_scan_name.text()
+        #     _create_new_scan(scan_name, scan_type, scan_traj, scan_repeat, scan_delay, scan_autofoil, model=self.model_scans)
+        #
+        #     self.listView_scans.setModel(self.model_scans)
+        # else:
+        #     message_box('Warning', 'Scan name is empty')
 
 
     def delete_scan(self):
+        index_dict = {}
 
-        view = self.listView_scans
-        index = view.currentIndex()
-        if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
-            view.model().removeRows(index.row(), 1)
+        index_list = self.treeWidget_scans.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_scans.itemFromIndex(index)
+            if item.kind == 'scan':
+                idx = item.index
+            elif item.kind == 'scan_sequence':
+                idx = (item.parent().index, item.index)
+        self.scan_sequence_manager.delete_element(idx)
+        # view = self.listView_scans
+        # index = view.currentIndex()
+        # if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
+        #     view.model().removeRows(index.row(), 1)
 
 
 

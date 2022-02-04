@@ -56,6 +56,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  aux_plan_funcs=None,
                  scan_manager=None,
                  sample_manager=None,
+                 scan_sequence_manager=None,
                  plan_processor=None,
                  RE=None,
                  db=None,
@@ -189,6 +190,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                       RE=RE,
                                                       sample_manager=sample_manager,
                                                       scan_manager=scan_manager,
+                                                      scan_sequence_manager=scan_sequence_manager,
                                                       plan_processor=plan_processor,
                                                       sample_stage=sample_stage,
                                                       parent_gui=self,
@@ -288,6 +290,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
+        self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.widget_batch_manual.update_scan_defs)
 
         print('widget loading done', ttime.ctime())
 
