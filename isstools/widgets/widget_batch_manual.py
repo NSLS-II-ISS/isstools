@@ -879,7 +879,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         for index in index_list:
             item = self.treeWidget_batch.itemFromIndex(index_list[0])
-            if item.parent() == self.treeWidget_batch_root: # this must be experiment
+            if item.parent() is None: # this must be experiment
                 index_tuple_list.append( (item.index, ) )
             else:
                 if item.childCount() == 0: # bottom of the tree
@@ -895,13 +895,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     # def _create_measurement(self, parent):
-    def delete_batch_elements(self):
+    def delete_batch_element(self):
         index_tuple_list = self.get_selected_batch_item_index_list()
         if len(index_tuple_list) == 0:
             message_box('Warning', 'Select one element in batch list')
-        elif len(index_tuple_list) > 0:
+        elif len(index_tuple_list) > 2:
             message_box('Warning', 'Select only one element in batch list')
-        self.delete_element.delete_element(index_tuple_list[0])
+        self.batch_manager.delete_element(index_tuple_list[0])
 
         # if self.treeView_batch.selectedIndexes():
         #     selected_index = self.treeView_batch.selectedIndexes()[0]
@@ -916,46 +916,54 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     '''
     def create_service(self):
         #parse parameters
-        service_params = dict()
+
+        service_plan_name = self.comboBox_service_plan.currentText()
+        service_plan_kwargs = dict()
         for i in range(len(self.service_parameter_values)):
             variable = self.service_parameter_descriptions[i].text().split('=')[0]
             if (self.service_parameter_types[i] == int) or (self.service_parameter_types[i] == float):
-                service_params[f'{variable}'] = f'{self.service_parameter_values[i].value()}'
+                service_plan_kwargs[f'{variable}'] = self.service_parameter_values[i].value()
             elif (self.service_parameter_types[i] == bool):
-                service_params[f'{variable}'] = f'{bool(self.service_parameter_values[i].checkState())}'
+                service_plan_kwargs[f'{variable}'] = bool(self.service_parameter_values[i].checkState())
             elif (self.service_parameter_types[i] == str):
-                service_params[f'{variable}'] = f'{self.service_parameter_values[i].text()}'
-        service_plan=self.service_plan_funcs[self.comboBox_service_plan.currentText()]
-        new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_service_plan.currentText()}')
-        new_item_service.item_type = 'service'
-        new_item_service.setIcon(icon_service)
-        new_item_service.service_plan = service_plan
-        new_item_service.service_params = service_params
+                service_plan_kwargs[f'{variable}'] = self.service_parameter_values[i].text()
 
-        if self.treeView_batch.model().rowCount():
-            if self.treeView_batch.selectedIndexes():
-                selected_index = self.treeView_batch.selectedIndexes()[0]
-                index = selected_index.row()
-                item = self.model_batch.itemFromIndex(selected_index)
-                # New code starts here
-                parent_item = item.parent()
-                if item.item_type == 'service':
-                    parent_item.insertRow(index+1,new_item_service)
-                elif item.item_type != 'experiment':
-                    if parent_item.item_type != 'experiment':
-                        parent_item.insertRow(index,new_item_service)
-                        new_item_service.setCheckable(False)
-                        new_item_service.setEditable(False)
-                        self.treeView_batch.expand(self.model_batch.indexFromItem(parent_item))
-                    else:
-                        parent_item.insertRow(index, new_item_service)
-                        new_item_service.setCheckable(False)
-                        new_item_service.setEditable(False)
-                else:
-                    item.appendRow(new_item_service)
-                    self.treeView_batch.expand(self.model_batch.indexFromItem(item))
-                    new_item_service.setCheckable(False)
-                    new_item_service.setEditable(False)
+        index_tuple_list = self.get_selected_batch_item_index_list()
+        for index_tuple in index_tuple_list:
+            self.batch_manager.add_service_to_element_list(index_tuple, {'type' : 'service',
+                                                                         'plan_name' : service_plan_name,
+                                                                         'plan_kwargs' : service_plan_kwargs})
+
+        # new_item_service = QtGui.QStandardItem(f'Service: {self.comboBox_service_plan.currentText()}')
+        # new_item_service.item_type = 'service'
+        # new_item_service.setIcon(icon_service)
+        # new_item_service.service_plan = service_plan
+        # new_item_service.service_params = service_plan_kwargs
+
+        # if self.treeView_batch.model().rowCount():
+        #     if self.treeView_batch.selectedIndexes():
+        #         selected_index = self.treeView_batch.selectedIndexes()[0]
+        #         index = selected_index.row()
+        #         item = self.model_batch.itemFromIndex(selected_index)
+        #         # New code starts here
+        #         parent_item = item.parent()
+        #         if item.item_type == 'service':
+        #             parent_item.insertRow(index+1,new_item_service)
+        #         elif item.item_type != 'experiment':
+        #             if parent_item.item_type != 'experiment':
+        #                 parent_item.insertRow(index,new_item_service)
+        #                 new_item_service.setCheckable(False)
+        #                 new_item_service.setEditable(False)
+        #                 self.treeView_batch.expand(self.model_batch.indexFromItem(parent_item))
+        #             else:
+        #                 parent_item.insertRow(index, new_item_service)
+        #                 new_item_service.setCheckable(False)
+        #                 new_item_service.setEditable(False)
+        #         else:
+        #             item.appendRow(new_item_service)
+        #             self.treeView_batch.expand(self.model_batch.indexFromItem(item))
+        #             new_item_service.setCheckable(False)
+        #             new_item_service.setEditable(False)
                 # elif item.item_type == 'scan':
                 #     parent_item = item.parent()
                 #     if parent_item.item_type == 'experiment':
@@ -986,12 +994,13 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
 
     def batch_info(self):
-        if self.treeView_batch.model().rowCount():
-            if self.treeView_batch.selectedIndexes():
-                selected_index = self.treeView_batch.selectedIndexes()[0]
-                item = self.model_batch.itemFromIndex(selected_index)
-                if item.item_type == 'service':
-                    message_box(f'Batch element: {item.item_type}')
+        pass
+        # if self.treeView_batch.model().rowCount():
+        #     if self.treeView_batch.selectedIndexes():
+        #         selected_index = self.treeView_batch.selectedIndexes()[0]
+        #         item = self.model_batch.itemFromIndex(selected_index)
+        #         if item.item_type == 'service':
+        #             message_box(f'Batch element: {item.item_type}')
 
     def populate_service_parameters(self):
         for i in range(len(self.service_parameter_values)):
@@ -1000,6 +1009,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.service_parameter_values[i].deleteLater()
             self.service_parameter_descriptions[i].deleteLater()
         service_plan_func = self.service_plan_funcs[self.comboBox_service_plan.currentText()]
+        if type(service_plan_func) == dict:
+            service_plan_func = service_plan_func['func']
 
         [self.service_parameter_values, self.service_parameter_descriptions, self.service_parameter_types]\
             = parse_plan_parameters(service_plan_func)

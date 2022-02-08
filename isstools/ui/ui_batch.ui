@@ -45,7 +45,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="push_run_batch">
+  <widget class="QPushButton" name="push_parse_batch">
    <property name="geometry">
     <rect>
      <x>1420</x>
@@ -61,7 +61,7 @@
     </sizepolicy>
    </property>
    <property name="text">
-    <string>Run batch</string>
+    <string>Parse batch into queue</string>
    </property>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget">

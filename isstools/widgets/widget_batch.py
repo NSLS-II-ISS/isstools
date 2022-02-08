@@ -60,25 +60,27 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                                                      )
         self.layout_batch_manual.addWidget(self.widget_batch_manual)
 
-        self.push_run_batch.clicked.connect(self.run_batch)
+        self.push_parse_batch.clicked.connect(self.parse_batch)
 
-    def run_batch(self, testing=False):
-        print('[Batch scan] Starting...')
-        batch = self.widget_batch_manual.treeView_batch.model()
-        self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs, testing=testing))
+    def parse_batch(self, testing=False):
+        plans = self.batch_manager.generate_plan_list()
+        self.plan_processor.add_plans(plans)
+        # print('[Batch scan] Starting...')
+        # batch = self.widget_batch_manual.treeView_batch.model()
+        # self.RE(self.batch_parse_and_run(self.hhm, self.sample_stage, batch, self.plan_funcs, testing=testing))
 
 
-    def randomize_position(self):
-        if self.widget_batch_manual.checkBox_randomize.isChecked():
-            delta_x = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
-            delta_y = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
-        else:
-            delta_x = 0
-            delta_y = 0
-
-        print(f'>>>>>>>>>>>>>>>>>>> {delta_x}')
-        print(f'>>>>>>>>>>>>>>>>>>> {delta_y}')
-        return delta_x, delta_y
+    # def randomize_position(self):
+    #     if self.widget_batch_manual.checkBox_randomize.isChecked():
+    #         delta_x = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
+    #         delta_y = (random() - 0.5) * self.widget_batch_manual.spinBox_randomize_step.value()*2
+    #     else:
+    #         delta_x = 0
+    #         delta_y = 0
+    #
+    #     print(f'>>>>>>>>>>>>>>>>>>> {delta_x}')
+    #     print(f'>>>>>>>>>>>>>>>>>>> {delta_y}')
+    #     return delta_x, delta_y
 
 
     def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict, testing=False):
