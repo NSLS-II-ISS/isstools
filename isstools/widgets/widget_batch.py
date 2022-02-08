@@ -22,6 +22,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                  sample_manager=None,
                  scan_manager=None,
                  scan_sequence_manager=None,
+                 batch_manager=None,
                  plan_processor=None,
                  sample_stage=None,
                  parent_gui=None,
@@ -37,6 +38,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.sample_manager = sample_manager
         self.scan_manager = scan_manager
+        self.batch_manager = batch_manager
         self.plan_processor = plan_processor
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager
@@ -53,6 +55,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                                                                      sample_manager=sample_manager,
                                                                      scan_manager=scan_manager,
                                                                      scan_sequence_manager=scan_sequence_manager,
+                                                                     batch_manager=batch_manager,
                                                                      plan_processor=plan_processor,
                                                                      )
         self.layout_batch_manual.addWidget(self.widget_batch_manual)

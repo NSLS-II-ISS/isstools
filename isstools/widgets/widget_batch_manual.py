@@ -20,6 +20,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 class UIBatchManual(*uic.loadUiType(ui_path)):
     sample_list_changed_signal = QtCore.pyqtSignal()
     scan_list_changed_signal = QtCore.pyqtSignal()
+    batch_list_changed_signal = QtCore.pyqtSignal()
     def __init__(self,
                  service_plan_funcs,
                  hhm,
@@ -31,6 +32,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                  sample_manager=None,
                  scan_manager=None,
                  scan_sequence_manager=None,
+                 batch_manager=None,
                  plan_processor=None,
                  *args, **kwargs):
 
@@ -45,6 +47,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.sample_manager = sample_manager
         self.scan_manager = scan_manager
         self.scan_sequence_manager = scan_sequence_manager
+        self.batch_manager = batch_manager
         self.plan_processor = plan_processor
         self.batch_mode_uids = []
         self.hhm = hhm
@@ -52,6 +55,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         self.sample_manager.append_sample_list_update_signal(self.sample_list_changed_signal)
         self.scan_sequence_manager.append_scan_list_update_signal(self.scan_list_changed_signal)
+        self.batch_manager.append_batch_list_update_signal(self.batch_list_changed_signal)
 
         self.update_sample_tree()
         self.sample_list_changed_signal.connect(self.update_sample_tree)
@@ -61,6 +65,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.update_scan_tree()
         self.scan_list_changed_signal.connect(self.update_scan_tree)
 
+
+        self.update_batch_tree()
+        self.batch_list_changed_signal.connect(self.update_batch_tree)
 
         # sample functions
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
@@ -163,7 +170,56 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def create_batch_experiment(self):
         experiment_name = self.lineEdit_batch_experiment_name.text()
         experiment_rep = self.spinBox_exp_rep.value()
-        _create_batch_experiment(experiment_name, experiment_rep, model=self.model_batch)
+        self.batch_manager.add_new_experiment(experiment_name, experiment_rep)
+
+        # experiment_name = self.lineEdit_batch_experiment_name.text()
+        # experiment_rep = self.spinBox_exp_rep.value()
+        # _create_batch_experiment(experiment_name, experiment_rep, model=self.model_batch)
+
+
+
+
+    def update_batch_tree(self):
+        self.treeWidget_batch.clear()
+        self._make_batch_element_children(self.treeWidget_batch, self.batch_manager.experiments)
+
+
+    # def _make_batch_item(self, parent, item_str, index, kind=''):
+    #     return self._make_item(parent, item_str, index, kind=kind, force_unchecked=False, checkable=False)
+
+    def _make_batch_element_children(self, parent, element_list):
+        for i, element in enumerate(element_list):
+            if element['type'] == 'experiment':
+                item_str = f"{element['name']} x{element['repeat']} times"
+                item = self._make_batch_item(parent, item_str, i, kind='batch_experiment')
+            elif element['type'] == 'sample':
+                item_str = self.batch_manager.sample_str_from_element(element)
+                item = self._make_batch_item(parent, item_str, i, kind='batch_sample')
+            elif element['type'] == 'scan':
+                item_str = self.batch_manager.scan_str_from_element(element)
+                item = self._make_batch_item(parent, item_str, i, kind='batch_scan')
+            elif element['type'] == 'service':
+                item_str = self.batch_manager.service_str_from_element(element)
+                item = self._make_batch_item(parent, item_str, i, kind='batch_service')
+
+            if 'element_list' in element.keys():
+                self._make_batch_element_children(item, element['element_list'])
+
+    # def update_sample_tree(self):
+    #     self.treeWidget_samples.clear()
+    #     for i, sample in enumerate(self.sample_manager.samples):
+    #         name = sample.name
+    #         npts = sample.number_of_points
+    #         npts_fresh = sample.number_of_unexposed_points
+    #         sample_str = f"{name} ({npts_fresh}/{npts})"
+    #         sample_item = self._make_sample_item(sample_str, i)
+    #         # self.treeWidget_samples.addItem(sample_item)
+    #         for j in range(npts):
+    #             coord_str = sample.index_coordinate_str(j)
+    #             # coord_str = ' '.join([(f"{key}={value : 0.2f}") for key, value in coord_dict.items()])
+    #             point_str = f'{j + 1:3d} - {coord_str}'
+    #             self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
+
     '''
     General methods used more than once
     '''
@@ -351,6 +407,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         if is_exposed:
             point_item.setForeground(QtGui.QColor('red'))
 
+    def _make_batch_item(self, parent, item_str, index, kind=''):
+        return self._make_item(parent, item_str, index, kind=kind, force_unchecked=False, checkable=False)
+
     def update_sample_tree(self):
         self.treeWidget_samples.clear()
         for i, sample in enumerate(self.sample_manager.samples):
@@ -464,6 +523,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def treeWidget_samples_root(self):
         return self.treeWidget_samples.invisibleRootItem()
 
+
     def _sample_item_iterator(self):
         sample_count = self.treeWidget_samples_root.childCount()
         for i in range(sample_count):
@@ -475,7 +535,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             yield sample_item.child(i)
 
     def check_all_samples(self):
-        for item in  self._sample_item_iterator():
+        for item in self._sample_item_iterator():
             item.setCheckState(0, 2)
 
     def uncheck_all_samples(self):
@@ -604,6 +664,20 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         #         item = view.model().item(index.row())
         #         item.setCheckState(checkstate)
 
+    def get_checked_sample_index_dict(self):
+        index_dict = {}
+        for i, sample_item in enumerate(self._sample_item_iterator()):
+            sample_key = sample_item.index
+            for sample_point_item in self._sample_point_item_iterator(i):
+                sample_point_index = sample_point_item.index
+                point_is_checked = sample_point_item.checkState(0)
+                if point_is_checked:
+                    if sample_key not in index_dict.keys():
+                        index_dict[sample_key] = []
+                    index_dict[sample_key].append(sample_point_index)
+        return index_dict
+
+
     '''
     Dealing with scans
     '''
@@ -630,7 +704,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         name = self.comboBox_scans.currentText()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
-        scan_str = f'{name} x{repeat}'
+        scan_str = f'{name} x{repeat} times'
         if delay>0:
             scan_str += f' delay={delay} s'
         self.scan_sequence_manager.add_element({'type' : 'scan',
@@ -670,84 +744,172 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         # if (view.model().rowCount()>0) and (index.row() < view.model().rowCount()):
         #     view.model().removeRows(index.row(), 1)
 
+    @property
+    def treeWidget_scans_root(self):
+        return self.treeWidget_scans.invisibleRootItem()
 
+    def _scan_item_iterator(self):
+        scan_count = self.treeWidget_scans_root.childCount()
+        for i in range(scan_count):
+            yield self.treeWidget_scans_root.child(i)
+
+    def get_checked_scan_index_list(self):
+        index_list = []
+        for scan_item in self._scan_item_iterator():
+            index_list.append(scan_item.index)
+        return index_list
 
     '''
     Dealing with measurements
     '''
-    def create_measurement(self):
-        if self.treeView_batch.model().rowCount():
-            if self.treeView_batch.selectedIndexes():
-                selected_index = self.treeView_batch.selectedIndexes()[0]
-                parent = self.model_batch.itemFromIndex(selected_index)
-                if parent.item_type == 'experiment':
-                    if self.radioButton_priority_sample.isChecked():
-                        if self.listView_samples.model() is not None:
-                            for index in range(self.listView_samples.model().rowCount()):
-                                item_sample = self.listView_samples.model().item(index)
-                                if item_sample.checkState():
-                                    new_item_sample = _clone_sample_item(item_sample)
-                                    if self.listView_scans.model() is not None:
-                                        scans_selected = 0
-                                        for index in range(self.listView_scans.model().rowCount()):
-                                            item_scan = self.listView_scans.model().item(index)
-                                            if item_scan.checkState():
-                                                scans_selected = 1
-                                                new_item_scan = _clone_scan_item(item_scan)
-                                                new_item_sample.appendRow(new_item_scan)
-                                                new_item_scan.setCheckable(False)
-                                                new_item_scan.setEditable(False)
-                                                new_item_scan.setIcon(icon_scan)
-                                    if scans_selected:
-                                        parent.appendRow(new_item_sample)
-                                        new_item_sample.setCheckable(False)
-                                        new_item_sample.setEditable(False)
-                    else:
-                        if self.listView_scans.model() is not None:
-                            for index in range(self.listView_scans.model().rowCount()):
-                                item_scan = self.listView_scans.model().item(index)
-                                if item_scan.checkState():
-                                    new_item_scan = _clone_scan_item(item_scan)
-                                    print(f' Repeat {new_item_scan.repeat}')
-                                    if self.listView_samples.model() is not None:
-                                        samples_selected=0
-                                        for index in range(self.listView_samples.model().rowCount()):
-                                            item_sample = self.listView_samples.model().item(index)
-                                            if item_sample.checkState():
-                                                samples_selected = 1
-                                                new_item_sample = _clone_sample_item(item_sample)
-                                                new_item_scan.appendRow(new_item_sample)
-                                                new_item_scan.setCheckable(False)
-                                                new_item_scan.setEditable(False)
-                                                new_item_scan.setIcon(icon_scan)
-                                        if samples_selected:
-                                            parent.appendRow(new_item_scan)
-                                            new_item_scan.setCheckable(False)
-                                            new_item_scan.setEditable(False)
 
-                    self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+    def treeWidget_batch_root(self):
+        return self.treeWidget_batch.invisibleRootItem()
 
-                    for index in range(parent.rowCount()):
-                        self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
-                    self.treeView_batch.setModel(self.model_batch)
-                else:
-                    message_box('Warning', 'Select experiment before adding measurements')
-            else:
-                message_box('Warning', 'Select experiment before adding measurements')
+    def get_selected_experiment_index(self):
+        index_list = self.treeWidget_batch.selectedIndexes()
+
+        if len(index_list) > 1:
+            message_box('Warning', 'Must select only one experiment!')
+            return None
+        elif len(index_list) == 0:
+            message_box('Warning', 'Must select at least one experiment!')
+            return None
+
+        item = self.treeWidget_batch.itemFromIndex(index_list[0])
+        if item.kind == 'batch_experiment':
+            return item.index
         else:
-            message_box('Warning', 'Select experiment before adding measurements')
+            message_box('Warning', 'Must select an experiment!')
+            return None
 
+    @property
+    def measurement_priority(self):
+        if self.radioButton_priority_scan.isChecked():
+            return 'scan'
+        elif self.radioButton_priority_sample.isChecked():
+            return 'sample'
+
+
+    def create_measurement(self):
+        experiment_index = self.get_selected_experiment_index()
+        if experiment_index is None:
+            # message boxes are handled upstream
+            return
+
+        sample_index_dict = self.get_checked_sample_index_dict()
+        if len(sample_index_dict.keys()) == 0:
+            message_box('Warning', 'Must select at least one sample point!')
+            return
+
+        scan_index_list = self.get_checked_scan_index_list()
+        if len(scan_index_list) == 0:
+            message_box('Warning', 'Must select at least one scan!')
+            return
+
+        priority = self.measurement_priority
+        self.batch_manager.add_measurement_to_experiment(experiment_index, sample_index_dict, scan_index_list, priority=priority)
+
+        # if self.treeView_batch.model().rowCount():
+        #     if self.treeView_batch.selectedIndexes():
+        #         selected_index = self.treeView_batch.selectedIndexes()[0]
+        #         parent = self.model_batch.itemFromIndex(selected_index)
+        #         if parent.item_type == 'experiment':
+        #             if self.radioButton_priority_sample.isChecked():
+        #                 if self.listView_samples.model() is not None:
+        #                     for index in range(self.listView_samples.model().rowCount()):
+        #                         item_sample = self.listView_samples.model().item(index)
+        #                         if item_sample.checkState():
+        #                             new_item_sample = _clone_sample_item(item_sample)
+        #                             if self.listView_scans.model() is not None:
+        #                                 scans_selected = 0
+        #                                 for index in range(self.listView_scans.model().rowCount()):
+        #                                     item_scan = self.listView_scans.model().item(index)
+        #                                     if item_scan.checkState():
+        #                                         scans_selected = 1
+        #                                         new_item_scan = _clone_scan_item(item_scan)
+        #                                         new_item_sample.appendRow(new_item_scan)
+        #                                         new_item_scan.setCheckable(False)
+        #                                         new_item_scan.setEditable(False)
+        #                                         new_item_scan.setIcon(icon_scan)
+        #                             if scans_selected:
+        #                                 parent.appendRow(new_item_sample)
+        #                                 new_item_sample.setCheckable(False)
+        #                                 new_item_sample.setEditable(False)
+        #             else:
+        #                 if self.listView_scans.model() is not None:
+        #                     for index in range(self.listView_scans.model().rowCount()):
+        #                         item_scan = self.listView_scans.model().item(index)
+        #                         if item_scan.checkState():
+        #                             new_item_scan = _clone_scan_item(item_scan)
+        #                             print(f' Repeat {new_item_scan.repeat}')
+        #                             if self.listView_samples.model() is not None:
+        #                                 samples_selected=0
+        #                                 for index in range(self.listView_samples.model().rowCount()):
+        #                                     item_sample = self.listView_samples.model().item(index)
+        #                                     if item_sample.checkState():
+        #                                         samples_selected = 1
+        #                                         new_item_sample = _clone_sample_item(item_sample)
+        #                                         new_item_scan.appendRow(new_item_sample)
+        #                                         new_item_scan.setCheckable(False)
+        #                                         new_item_scan.setEditable(False)
+        #                                         new_item_scan.setIcon(icon_scan)
+        #                                 if samples_selected:
+        #                                     parent.appendRow(new_item_scan)
+        #                                     new_item_scan.setCheckable(False)
+        #                                     new_item_scan.setEditable(False)
+        #
+        #             self.treeView_batch.expand(self.model_batch.indexFromItem(parent))
+        #
+        #             for index in range(parent.rowCount()):
+        #                 self.treeView_batch.expand(self.model_batch.indexFromItem(parent.child(index)))
+        #             self.treeView_batch.setModel(self.model_batch)
+        #         else:
+        #             message_box('Warning', 'Select experiment before adding measurements')
+        #     else:
+        #         message_box('Warning', 'Select experiment before adding measurements')
+        # else:
+        #     message_box('Warning', 'Select experiment before adding measurements')
+
+
+
+    def get_selected_batch_item_index_list(self):
+        index_list = self.treeWidget_batch.selectedIndexes()
+        index_tuple_list = []
+
+        for index in index_list:
+            item = self.treeWidget_batch.itemFromIndex(index_list[0])
+            if item.parent() == self.treeWidget_batch_root: # this must be experiment
+                index_tuple_list.append( (item.index, ) )
+            else:
+                if item.childCount() == 0: # bottom of the tree
+                    experiment_index = item.parent().parent().index
+                    element_index = item.parent().index
+                    item_index = item.index
+                    index_tuple_list.append((experiment_index, element_index, item_index))
+                else: # either sample or scan in the middle of the tree
+                    experiment_index = item.parent().index
+                    item_index = item.index
+                    index_tuple_list.append((experiment_index, element_index, item_index))
+        return index_tuple_list
 
 
     # def _create_measurement(self, parent):
-    def delete_batch_element(self):
-        if self.treeView_batch.selectedIndexes():
-            selected_index = self.treeView_batch.selectedIndexes()[0]
-            item = self.model_batch.itemFromIndex(selected_index)
-            if item.item_type=='experiment':
-                self.treeView_batch.model().removeRows(item.row(), 1)
-            else:
-                item.parent().removeRow(item.row())
+    def delete_batch_elements(self):
+        index_tuple_list = self.get_selected_batch_item_index_list()
+        if len(index_tuple_list) == 0:
+            message_box('Warning', 'Select one element in batch list')
+        elif len(index_tuple_list) > 0:
+            message_box('Warning', 'Select only one element in batch list')
+        self.delete_element.delete_element(index_tuple_list[0])
+
+        # if self.treeView_batch.selectedIndexes():
+        #     selected_index = self.treeView_batch.selectedIndexes()[0]
+        #     item = self.model_batch.itemFromIndex(selected_index)
+        #     if item.item_type=='experiment':
+        #         self.treeView_batch.model().removeRows(item.row(), 1)
+        #     else:
+        #         item.parent().removeRow(item.row())
 
     '''
     Dealing with services

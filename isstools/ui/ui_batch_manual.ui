@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1601</width>
-    <height>1044</height>
+    <height>1099</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QWidget" name="gridLayoutWidget_20">
    <property name="geometry">
     <rect>
-     <x>1020</x>
-     <y>35</y>
+     <x>1000</x>
+     <y>990</y>
      <width>576</width>
-     <height>706</height>
+     <height>81</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_batch_definition"/>
@@ -1188,7 +1188,7 @@ XY posisions</string>
      <x>360</x>
      <y>70</y>
      <width>341</width>
-     <height>781</height>
+     <height>591</height>
     </rect>
    </property>
    <property name="title">
@@ -1359,23 +1359,6 @@ XY posisions</string>
       <string>Scan type</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_create_scan_3">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>140</y>
-       <width>81</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Add to
-sequence</string>
-     </property>
-    </widget>
     <widget class="QComboBox" name="comboBox_scans">
      <property name="geometry">
       <rect>
@@ -1399,94 +1382,6 @@ sequence</string>
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>600</y>
-      <width>291</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Sequence definition</string>
-    </property>
-    <widget class="QPushButton" name="push_create_scan_2">
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>40</y>
-       <width>81</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Create
-sequence</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_scan_name_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>161</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_140">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Sequence name</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>100</y>
-       <width>141</width>
-       <height>26</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>test parameter 1</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_2">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>141</width>
-       <height>26</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>test parameter 2</string>
-     </property>
-    </widget>
-   </widget>
    <widget class="QTreeWidget" name="treeWidget_scans">
     <property name="geometry">
      <rect>
@@ -1497,7 +1392,7 @@ sequence</string>
      </rect>
     </property>
     <property name="selectionMode">
-     <enum>QAbstractItemView::ExtendedSelection</enum>
+     <enum>QAbstractItemView::SingleSelection</enum>
     </property>
     <property name="selectionBehavior">
      <enum>QAbstractItemView::SelectItems</enum>
@@ -1862,6 +1757,36 @@ sequence</string>
      <height>71</height>
     </rect>
    </property>
+  </widget>
+  <widget class="QTreeWidget" name="treeWidget_batch">
+   <property name="geometry">
+    <rect>
+     <x>1020</x>
+     <y>30</y>
+     <width>571</width>
+     <height>711</height>
+    </rect>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::SingleSelection</enum>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectItems</enum>
+   </property>
+   <property name="indentation">
+    <number>20</number>
+   </property>
+   <property name="rootIsDecorated">
+    <bool>true</bool>
+   </property>
+   <attribute name="headerVisible">
+    <bool>false</bool>
+   </attribute>
+   <column>
+    <property name="text">
+     <string notr="true">1</string>
+    </property>
+   </column>
   </widget>
  </widget>
  <resources/>
