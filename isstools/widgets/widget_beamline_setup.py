@@ -308,8 +308,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         plan_kwargs = {'extended_tuning' : False,
                        'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
                        'do_liveplot' : True}
-        # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
         # self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
         # self.canvas_gen_scan.motor = ''
