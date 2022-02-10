@@ -7,6 +7,8 @@ from isstools.widgets import widget_energy_selector
 import numpy as np
 import pkg_resources
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
+from PyQt5.Qt import Qt
+from PyQt5.QtWidgets import QMenu
 
 from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
@@ -46,17 +48,23 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.listWidget_plan_queue.itemSelectionChanged.connect(self.show_plan_parameters)
         self.plan_processor.status_update_signal.connect(self.handle_execution_buttons_and_status)
 
+        self.update_plan_list()
+
         self.pushButton_run_queue.clicked.connect(self.run_queue)
         self.pushButton_pause_queue.toggled.connect(self.pause_queue)
         self.pushButton_clear_queue.clicked.connect(self.clear_queue)
+
+        self.listWidget_plan_queue.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_plan_queue.customContextMenuRequested.connect(self.plan_queue_context_menu)
 
 
     def update_plan_list(self):
         self.listWidget_plan_queue.clear()
         for i, plan in enumerate(self.plan_processor.plan_list):
-            item_str = f"{i} - {plan['plan_info']['plan_description']}"
+            item_str = f"{i+1} - {plan['plan_info']['plan_description']}"
             plan_status = plan['plan_status']
             item = QtWidgets.QListWidgetItem(item_str)
+            item.index = i
             if plan_status == 'paused':
                 item.setForeground(QtGui.QColor('red'))
             elif plan_status == 'executing':
@@ -110,3 +118,37 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
     def clear_queue(self):
         self.plan_processor.clear_plan_list()
 
+    def select_item_index_iterator(self):
+        index_list = self.listWidget_plan_queue.selectedIndexes()
+        for index in index_list:
+            item = self.listWidget_plan_queue.itemFromIndex(index)
+            yield item.index
+
+    def delete_selected_plans(self):
+        index_to_delete_list = []
+        for index in self.select_item_index_iterator():
+            index_to_delete_list.append(index)
+        self.plan_processor.delete_multiple_items(index_to_delete_list)
+
+    def pause_after_selected_index(self):
+        indexes = list(self.select_item_index_iterator())
+        index = min(indexes)
+        self.plan_processor.pause_after_index(index)
+
+    def unpause_plan_list(self):
+        self.plan_processor.unpause_plan_list()
+
+    def plan_queue_context_menu(self, QPos):
+        menu = QMenu()
+        delete_selected_plans = menu.addAction("&Delete selected samples")
+        pause_after_selected_index = menu.addAction("&Pause after selected index")
+        unpause_all = menu.addAction("&Unpause all")
+        parentPosition = self.listWidget_plan_queue.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition+QPos)
+        action = menu.exec_()
+        if action == delete_selected_plans:
+            self.delete_selected_plans()
+        elif action == pause_after_selected_index:
+            self.pause_after_selected_index()
+        elif action == unpause_all:
+            self.unpause_plan_list()
