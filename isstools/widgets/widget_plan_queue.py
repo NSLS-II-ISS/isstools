@@ -41,7 +41,8 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.plan_processor = plan_processor
 
         self.handle_execution_buttons_and_status()
-        self.plan_processor.plan_list_update_signal.connect(self.update_plan_list)
+        # self.plan_processor.plan_list_update_signal.connect(self.update_plan_list)
+        self.plan_processor.list_update_signal.connect(self.update_plan_list)
         self.listWidget_plan_queue.itemSelectionChanged.connect(self.show_plan_parameters)
         self.plan_processor.status_update_signal.connect(self.handle_execution_buttons_and_status)
 

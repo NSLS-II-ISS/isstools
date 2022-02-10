@@ -97,7 +97,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.window_title = window_title
         self.scan_manager = scan_manager
         self.plan_processor = plan_processor
-        self.plan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
+        # self.plan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
+        self.plan_processor.append_list_update_signal(self.plans_changed_signal)
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
         self.data_collection_plan_funcs = data_collection_plan_funcs
 
