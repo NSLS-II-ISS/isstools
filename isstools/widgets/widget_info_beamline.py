@@ -271,6 +271,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def tweak_pitch_pos(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
+        self.hhm.fb_status.put(int(0))
         # self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
         if not self.hhm.pitch.moving:
             pitch = self.hhm.pitch.read()['hhm_pitch']['value']
@@ -278,6 +279,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
+        self.hhm.fb_status.put(int(0))
         # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
         if not self.hhm.pitch.moving:
             pitch = self.hhm.pitch.read()['hhm_pitch']['value']
@@ -311,11 +313,11 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def update_feedback_gui_components(self):
         self.label_host.setText(f'Host: {self.hhm_feedback.host}')
-        # heartbeat = self.hhm.fb_heartbeat.get()
-        # if heartbeat:
-        #     self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
-        # else:
-        #     self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
+        heartbeat = self.hhm.fb_heartbeat.get()
+        if heartbeat:
+            self.label_heartbeat.setStyleSheet('background-color: rgb(95,249,95)')
+        else:
+            self.label_heartbeat.setStyleSheet('background-color: rgb(0,94,0)')
 
 
 

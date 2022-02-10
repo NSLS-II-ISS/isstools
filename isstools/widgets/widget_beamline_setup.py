@@ -182,6 +182,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
+        self.start_gen_scan_figure()
         liveplot_list = []
         try:
             liveplot_kwargs = plan_kwargs['liveplot_kwargs']
@@ -400,7 +401,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def energy_calibration(self):
         element = self.comboBox_reference_foils.currentText()
         edge = self.edge_dict[element]
-        plan_name = 'bender_scan'
+        plan_name = 'calibrate_mono_energy_plan'
         plan_kwargs = {'element' : element, 'edge' : edge}
         plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
@@ -435,14 +436,21 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     # def _show_error_message_box(self, msg):
     #     message_box('Error', msg)
 
-    def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+    def start_gen_scan_figure(self):
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+
+    def stop_gen_scan_figure(self):
+        self.figure_gen_scan.tight_layout()
+        self.canvas_gen_scan.draw_idle()
+
+    def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+        self.start_gen_scan_figure()
+        # update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
         self.figure_gen_scan.ax.plot(en_ref, mu_ref, label='Reference')
         self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
         self.figure_gen_scan.ax.set_xlabel('Energy')
         self.figure_gen_scan.ax.set_ylabel('mu')
         self.figure_gen_scan.ax.set_xlim(en_ref[0], en_ref[-1])
         self.figure_gen_scan.legend(loc='upper left')
-        self.figure_gen_scan.tight_layout()
-        self.canvas_gen_scan.draw_idle()
+        self.stop_gen_scan_figure()
         self.canvas_gen_scan.motor = None

@@ -7,6 +7,9 @@ class NormPlot(LivePlot):
         self.num_name = num_name
         self.den_name = den_name
         self.result_name = result_name
+        # self.start_figure_func = start_figure_func
+        # self.stop_figure_func = stop_figure_func
+        # self.start_figure_func()
 
     def event(self, doc):
         doc = dict(doc)
@@ -20,6 +23,16 @@ class NormPlot(LivePlot):
         except KeyError as ke:
             print(f"KeyError: {ke}")
         super().event(doc)
+
+    # def start(self, doc):
+    #     result = super().start(doc)
+    #     if start_figure_func is not None:
+    #         self.start_figure_func()
+
+    # def stop(self, doc):
+    #     if stop_figure_func is not None:
+    #         self.stop_figure_func()
+    #     return super().stop(doc)
 
 
 class XASPlot(LivePlot):
