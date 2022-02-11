@@ -9,7 +9,7 @@ from PyQt5 import uic, QtWidgets, QtCore
 from PyQt5.QtCore import QThread, QSettings
 from bluesky.callbacks import LivePlot
 from isstools.dialogs import (UpdateHHMFeedbackSettings, MoveMotorDialog)
-from isstools.dialogs.BasicDialogs import question_message_box, message_box
+from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
 from matplotlib.widgets import Cursor
 from isstools.elements.liveplots import NormPlot
 import json
@@ -21,8 +21,9 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
 class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def __init__(self,
-                    RE,
+                    plan_processor,
                     hhm,
+                    hhm_encoder,
                     hhm_feedback,
                     apb,
                     apb_trigger_xs,
@@ -44,8 +45,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.RE = RE
+        self.plan_processor = plan_processor
+        self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
+
         self.hhm = hhm
+        self.hhm_encoder = hhm_encoder
         self.hhm_feedback = hhm_feedback
         # self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
         self.apb = apb
@@ -123,9 +127,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.spinBox_daq_rate.setValue(daq_rate)
         self.spinBox_daq_rate.valueChanged.connect(self.update_daq_rate)
 
-        enc_rate_in_points = hhm.enc.filter_dt.get()
-        enc_rate = 1/(89600*10*1e-9)/1e3
-        self.spinBox_enc_rate.setValue(enc_rate)
+        self.spinBox_enc_rate.setValue(hhm_encoder.enc_rate)
         self.spinBox_enc_rate.valueChanged.connect(self.update_enc_rate)
 
         trigger_pil100k_freq = self.apb_trigger_pil100k.freq.get()
@@ -147,162 +149,23 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
 
+        self.liveplot_kwargs = {}
 
-    def run_gen_scan(self, **kwargs):
-        if 'ignore_shutter' in kwargs:
-            ignore_shutter = kwargs['ignore_shutter']
+    def handle_gui_elements(self):
+        if self.plan_processor.status == 'idle':
+            self.figure_gen_scan.tight_layout()
+            self.canvas_gen_scan.draw_idle()
+            self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+            self.liveplot_kwargs = {}
+        elif self.plan_processor.status == 'running':
+            self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+
+    def add_motors(self):
+        self.comboBox_motors.clear()
+        if self.checkBox_user_motors.isChecked():
+            self.comboBox_motors.addItems(self.user_motor_sorted_list)
         else:
-            ignore_shutter = False
-
-        if 'curr_element' in kwargs:
-            curr_element = kwargs['curr_element']
-        else:
-            curr_element = None
-
-        if 'repeat' in kwargs:
-            repeat = kwargs['repeat']
-        else:
-            repeat = False
-
-        if not ignore_shutter:
-            for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
-                            self.shutter_dictionary[shutter].shutter_type != 'SP']:
-                if shutter.state.get():
-                    ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
-                    if not ret:
-                        print('Aborted!')
-                        return False
-                    break
-
-        if curr_element is not None:
-            self.comboBox_detectors.setCurrentText(curr_element['det_name'])
-            self.comboBox_channels.setCurrentText(curr_element['det_sig'])
-            self.comboBox_detectors_den.setCurrentText('1')
-            self.comboBox_motors.setCurrentText(self.motor_dictionary[curr_element['motor_name']]['description'])
-            self.edit_gen_range.setText(str(curr_element['scan_range']))
-            self.edit_gen_step.setText(str(curr_element['step_size']))
-
-
-        curr_det = ''
-        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
-        detectors = []
-        detector_name = self.comboBox_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
-        detectors.append(detector)
-        channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_channels.currentIndex()]
-        result_name = channel
-
-        detector_name_den = self.comboBox_detectors_den.currentText()
-        if detector_name_den != '1':
-            detector_den = self.detector_dictionary[detector_name_den]['device']
-            channels_den = self.detector_dictionary[detector_name_den]['channels']
-            channel_den = channels_den[self.comboBox_channels.currentIndex()]
-            detectors.append(detector_den)
-            result_name += '/{}'.format(channel_den)
-        else:
-            channel_den = '1'
-
-        for i in range(self.comboBox_detectors.count()):
-            if hasattr(self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'], 'dev_name'):
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].dev_name.get():
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-            else:
-                if self.comboBox_detectors.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-                if self.comboBox_detectors_den.currentText() == self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device'].name:
-                    curr_det = self.detector_dictionary[list(self.detector_dictionary.keys())[i]]['device']
-                    detectors.append(curr_det)
-
-        #curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
-        for motor in self.motor_dictionary:
-            if self.comboBox_motors.currentText() == self.motor_dictionary[motor]['description']:
-                curr_mot = self.motor_dictionary[motor]['object']
-                self.canvas_gen_scan.motor = curr_mot
-                break
-
-
-
-        rel_start = -float(self.edit_gen_range.text()) / 2
-        rel_stop = float(self.edit_gen_range.text()) / 2
-        num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
-
-        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan,self.canvas_gen_scan)
-
-        uid_list = self.RE(self.aux_plan_funcs['general_scan'](detectors,
-                                                               curr_mot,
-                                                               rel_start,
-                                                               rel_stop,
-                                                               num_steps, ),
-                           NormPlot(channel, channel_den, result_name, curr_mot.name, ax=self.figure_gen_scan.ax))
-
-        self.figure_gen_scan.tight_layout()
-        self.canvas_gen_scan.draw_idle()
-        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
-
-        #self.push_gen_scan.setEnabled(True)
-        self.last_gen_scan_uid = self.db[-1]['start']['uid']
-        self.push_gen_scan_save.setEnabled(True)
-
-    def getX_gen_scan(self, event):
-
-        if event.button == 3:
-            if self.canvas_gen_scan.motor != '':
-                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_gen_scan.motor,
-                                                      parent=self.canvas_gen_scan)
-                if dlg.exec_():
-                    pass
-
-    def tune_beamline(self):
-        self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
-        self.canvas_gen_scan.motor = ''
-        print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
-        self.pushEnableHHMFeedback.setChecked(False)
-        self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
-        previous_detector = ''
-        previous_motor = ''
-        self.RE(bps.sleep(1))
-
-
-        for element in self.tune_elements:
-            print(f'[Beamline tuning] {element["comment"]}')
-            detector = self.detector_dictionary[element['detector']]['device']
-            motor = self.motor_dictionary[element['motor']]['object']
-
-            if (detector.name != previous_detector) or (motor.name != previous_motor):
-                update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-
-            self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
-                                                       element['range'],
-                                                       element['step'],
-                                                       retries=element['retries'],
-                                                       stdout=self.parent_gui.emitstream_out
-                                                       ),
-                    LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
-            # turn camera into continuous mode
-            if hasattr(detector, 'image_mode'):
-                self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
-                self.RE(bps.mv(getattr(detector, 'acquire'), 1))
-            previous_detector = detector.name
-            previous_motor = motor.name
-
-        self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
-        if self.checkBox_autoEnableFeedback.isChecked():
-            self.update_piezo_center()
-            self.pushEnableHHMFeedback.setChecked(True)
-
-        print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
-
-    def bender_scan(self):
-        message_box('Insert reference sample', 'Please ensure that a reference sample in inserted')
-        print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
-        self.RE(self.aux_plan_funcs['bender_scan']())
-        print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
+            self.comboBox_motors.addItems(self.motor_sorted_list)
 
     def detector_selected(self):
         self.comboBox_channels.clear()
@@ -317,28 +180,176 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         else:
             self.comboBox_channels_den.addItems(self.detector_dictionary[detector]['channels'])
 
-    def adjust_gains(self):
-        self.RE(self.service_plan_funcs['adjust_ic_gains'](stdout = self.parent_gui.emitstream_out))
+
+    def make_liveplot_func(self, plan_name, plan_kwargs):
+        self.start_gen_scan_figure()
+        liveplot_list = []
+        try:
+            liveplot_kwargs = plan_kwargs['liveplot_kwargs']
+            _norm_plot = NormPlot(liveplot_kwargs['channel'],
+                                  liveplot_kwargs['channel_den'],
+                                  liveplot_kwargs['result_name'],
+                                  liveplot_kwargs['curr_mot_name'], ax=self.figure_gen_scan.ax)
+            liveplot_list.append(_norm_plot)
+            # when the liveplot is created, we also update the canvas motor:
+            self._set_canvas_motor_from_name(liveplot_kwargs['curr_mot_name'])
+        except:
+            print(f'could not make liveplot for scan {plan_name}')
+        return liveplot_list
+
+    def _set_canvas_motor_from_name(self, motor_name):
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if motor_name == motor_dict['object'].name:
+                self.canvas_gen_scan.motor = motor_dict['object']
+
+
+    @property
+    def shutters_open(self):
+        for shutter in [self.shutter_dictionary[shutter] for shutter in self.shutter_dictionary if
+                        self.shutter_dictionary[shutter].shutter_type != 'SP']:
+            if shutter.state.get():
+                ret = question_message_box(self,'Photon shutter closed', 'Proceed with the shutter closed?')
+                if not ret:
+                    print('Aborted!')
+                    return False
+                break
+        return True
+
+    def _get_detectors_for_gen_scan(self):
+        curr_det = ''
+
+        detectors = []
+        # detector_name = self.comboBox_detectors.currentText()
+        # detector = self.detector_dictionary[detector_name]['device']
+        detector = self.comboBox_detectors.currentText()
+        detectors.append(detector)
+        channels = self.detector_dictionary[detector]['channels']
+        channel = channels[self.comboBox_channels.currentIndex()]
+        result_name = channel
+
+        # detector_name_den = self.comboBox_detectors_den.currentText()
+        detector_den = self.comboBox_detectors_den.currentText()
+        # if detector_name_den != '1':
+        if detector_den != '1':
+            # detector_den = self.detector_dictionary[detector_name_den]['device']
+            # detector_den = detector_name_den
+            channels_den = self.detector_dictionary[detector]['channels']
+            channel_den = channels_den[self.comboBox_channels_den.currentIndex()]
+            detectors.append(detector_den)
+            result_name += '/{}'.format(channel_den)
+        else:
+            channel_den = '1'
+
+        liveplot_det_kwargs = {'channel' : channel, 'channel_den' : channel_den, 'result_name' : result_name}
+        return detectors, liveplot_det_kwargs
+
+    def _get_motor_for_gen_scan(self):
+        # curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
+        #
+        curr_mot = self.comboBox_motors.currentText()
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name' : motor_dict['object'].name}
+                break
+        return curr_mot, liveplot_mot_kwargs
+
+
+    def run_gen_scan(self):
+        if not self.shutters_open: return
+
+        detectors, liveplot_det_kwargs = self._get_detectors_for_gen_scan()
+        motor, liveplot_mot_kwargs = self._get_motor_for_gen_scan()
+
+        rel_start = -float(self.edit_gen_range.text()) / 2
+        rel_stop = float(self.edit_gen_range.text()) / 2
+        num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
+
+        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+
+        plan_name = 'general_scan'
+        plan_kwargs = {'detectors' : detectors,
+                       'motor' : motor,
+                       'rel_start' : rel_start,
+                       'rel_stop' : rel_stop,
+                       'num_steps' : num_steps,
+                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs}}
+
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+        self.push_gen_scan.setEnabled(False)
+        self.plan_processor.run_if_idle()
+
+        self.push_gen_scan.setEnabled(True)
+        # self.last_gen_scan_uid = self.db[-1]['start']['uid']
+        # self.push_gen_scan_save.setEnabled(True)
+
+    def getX_gen_scan(self, event):
+
+        if event.button == 3:
+            if self.canvas_gen_scan.motor != '':
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_gen_scan.motor,
+                                                      parent=self.canvas_gen_scan)
+                if dlg.exec_():
+                    pass
 
     def prepare_beamline(self, energy_setting=None):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
-        self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
-                                                                stdout = self.parent_gui.emitstream_out))
-    def get_offsets(self):
-        self.RE(self.service_plan_funcs['get_offsets']())
+        energy = float(self.lineEdit_energy.text())
+        move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
 
-    def add_motors(self):
-        self.comboBox_motors.clear()
-        if self.checkBox_user_motors.isChecked():
-            self.comboBox_motors.addItems(self.user_motor_sorted_list)
-        else:
-            self.comboBox_motors.addItems(self.motor_sorted_list)
+        plan_name = 'prepare_beamline_plan'
+        plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
+        #                                                         stdout = self.parent_gui.emitstream_out))
 
-    def enable_fb(self, value):
-        value = value > 0
-        self.hhm.fb_status.put(int(value))
-        self.pushEnableHHMFeedback.setChecked(value)
+    def tune_beamline(self):
+        plan_name = 'tune_beamline_plan_bundle'
+        plan_kwargs = {'extended_tuning' : False,
+                       'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+                       'do_liveplot' : True}
+        self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+        # self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
+        # self.canvas_gen_scan.motor = ''
+        # print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
+        # self.pushEnableHHMFeedback.setChecked(False)
+        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
+        # previous_detector = ''
+        # previous_motor = ''
+        # self.RE(bps.sleep(1))
+
+
+        # for element in self.tune_elements:
+        #     print(f'[Beamline tuning] {element["comment"]}')
+        #     detector = self.detector_dictionary[element['detector']]['device']
+        #     motor = self.motor_dictionary[element['motor']]['object']
+        #
+        #     if (detector.name != previous_detector) or (motor.name != previous_motor):
+        #         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+        #
+        #     self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
+        #                                                element['range'],
+        #                                                element['step'],
+        #                                                retries=element['retries'],
+        #                                                stdout=self.parent_gui.emitstream_out
+        #                                                ),
+        #             LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
+        #     # turn camera into continuous mode
+        #     if hasattr(detector, 'image_mode'):
+        #         self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
+        #         self.RE(bps.mv(getattr(detector, 'acquire'), 1))
+        #     previous_detector = detector.name
+        #     previous_motor = motor.name
+        #
+        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
+        # if self.checkBox_autoEnableFeedback.isChecked():
+        #     self.update_piezo_center()
+        #     self.pushEnableHHMFeedback.setChecked(True)
+        #
+        # print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def update_hhm_feedback_settings(self):
         pars = self.hhm_feedback.current_fb_parameters()
@@ -357,6 +368,47 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def update_piezo_center(self):
         self.hhm_feedback.update_center()
 
+    def enable_fb(self, value):
+        value = value > 0
+        self.hhm.fb_status.put(int(value))
+        self.pushEnableHHMFeedback.setChecked(value)
+
+    def adjust_gains(self):
+        plan_name = 'optimize_gains'
+        plan_kwargs = {'n_tries' : 3}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+
+    def get_offsets(self):
+        plan_name = 'get_offsets'
+        plan_kwargs = {'time': 2}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.RE(self.service_plan_funcs['get_offsets']())
+
+    def bender_scan(self):
+        message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
+        plan_name = 'bender_scan_plan_bundle'
+        plan_kwargs = {}
+        plan_gui_services = ['error_message_box']
+        # self.plan_processor.add_plans([{'plan_name' : plan_name,
+        #                                 'plan_kwargs' : plan_kwargs,
+        #                                 'plan_gui_services' : plan_gui_services}])
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
+        # self.RE(self.aux_plan_funcs['bender_scan']())
+        # print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
+
+    def energy_calibration(self):
+        element = self.comboBox_reference_foils.currentText()
+        edge = self.edge_dict[element]
+        plan_name = 'calibrate_mono_energy_plan'
+        plan_kwargs = {'element' : element, 'edge' : edge}
+        plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+        # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
+        #                                                         plot_func=self._update_figure_with_calibration_data,
+        #                                                         error_message_func=error_message_box)
+
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()
         # 374.94 is the nominal RF frequency
@@ -368,7 +420,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         rate_in_points = (1/(enc_rate*1e3))*1e9/10
 
         rate_in_points_rounded = int(np.ceil(rate_in_points / 100.0) * 100)
-        self.RE(bps.abs_set(self.hhm.enc.filter_dt, rate_in_points_rounded, wait=True))
+        self.RE(bps.abs_set(self.hhm_encoder.filter_dt, rate_in_points_rounded, wait=True))
 
     def update_trigger_pil100k_freq(self):
         trigger_pil100k_freq = self.spinBox_trigger_pil100k_freq.value()
@@ -378,20 +430,27 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         trigger_xs_freq = self.spinBox_trigger_xs_freq.value()
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
-    def energy_calibration(self):
-        element = self.comboBox_reference_foils.currentText()
-        edge = self.edge_dict[element]
-        plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge, plot_fun=self._update_figure_with_calibration_data)
+
         self.RE(plan)
 
-    def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+    # def _show_error_message_box(self, msg):
+    #     message_box('Error', msg)
+
+    def start_gen_scan_figure(self):
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+
+    def stop_gen_scan_figure(self):
+        self.figure_gen_scan.tight_layout()
+        self.canvas_gen_scan.draw_idle()
+
+    def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
+        self.start_gen_scan_figure()
+        # update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
         self.figure_gen_scan.ax.plot(en_ref, mu_ref, label='Reference')
         self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
         self.figure_gen_scan.ax.set_xlabel('Energy')
         self.figure_gen_scan.ax.set_ylabel('mu')
         self.figure_gen_scan.ax.set_xlim(en_ref[0], en_ref[-1])
         self.figure_gen_scan.legend(loc='upper left')
-        self.figure_gen_scan.tight_layout()
-        self.canvas_gen_scan.draw_idle()
+        self.stop_gen_scan_figure()
         self.canvas_gen_scan.motor = None

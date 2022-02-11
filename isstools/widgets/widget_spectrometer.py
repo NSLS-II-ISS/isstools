@@ -21,6 +21,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 class UISpectrometer(*uic.loadUiType(ui_path)):
     def __init__(self,
                  RE,
+                 plan_processor,
                  # hhm,
                  db,
                  detector_dictionary,
@@ -38,6 +39,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.setupUi(self)
 
         self.RE = RE
+        self.plan_processor = plan_processor
         self.db = db
         self.vmax = None
         self.pil_image = None
@@ -55,7 +57,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_xy_scan.clicked.connect(self.run_2d_pcl_scan)
         self.push_py_scan.clicked.connect(self.run_2d_pcl_scan)
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
-        self.push_time_scan.clicked.connect(self.run_time_scan)
+        # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
 
         self.det_list = list(detector_dictionary.keys())
@@ -149,10 +151,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             m2 = 'yaw'
 
         self.canvas_scan.mpl_disconnect(self.cid_scan)
-        detector_name = self.comboBox_detectors.currentText()
+        detector_name = self.comboBox_pcl_detectors.currentText()
         detector = self.detector_dictionary[detector_name]['device']
         channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_channels.currentIndex()]
+        channel = channels[self.comboBox_pcl_channels.currentIndex()]
 
         motor1 = self.motor_dictionary[f'six_axes_stage_{m1}']['object']
         motor2 = self.motor_dictionary[f'six_axes_stage_{m2}']['object']

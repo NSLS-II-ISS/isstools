@@ -38,7 +38,7 @@
       <x>0</x>
       <y>60</y>
       <width>781</width>
-      <height>121</height>
+      <height>122</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_8">
@@ -289,6 +289,8 @@
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -393,6 +395,8 @@
     <property name="font">
      <font>
       <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -589,7 +593,7 @@ position</string>
     <property name="geometry">
      <rect>
       <x>270</x>
-      <y>110</y>
+      <y>140</y>
       <width>221</width>
       <height>91</height>
      </rect>
@@ -597,6 +601,8 @@ position</string>
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -621,6 +627,8 @@ position</string>
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -642,6 +650,8 @@ position</string>
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -666,6 +676,8 @@ position</string>
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -673,6 +685,22 @@ position</string>
     </property>
     <property name="wordWrap">
      <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_move_cm_miirror">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>110</y>
+      <width>171</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Move CM mirror?</string>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
     </property>
    </widget>
   </widget>

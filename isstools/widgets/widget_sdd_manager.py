@@ -17,6 +17,7 @@ import numpy
 
 from isstools.elements.figure_update import update_figure, setup_figure
 
+from isstools.widgets import widget_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sdd_manager.ui')
 
@@ -38,6 +39,9 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.xs = xs
         self.roi_plots = []
+
+        self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
 
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(1000)
@@ -171,19 +175,20 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                         h = self.figure_mca.ax.plot([value, value], [0, ylims[1] * 0.85], color, linestyle='dashed',
                                                         linewidth=0.5)
                         self.roi_plots.append(h)
-
+        # self.figure_mca.ax.set_ylim(ylims)
         self.canvas_mca.draw_idle()
 
     def xs3_acquire(self):
         self.roi_plots = []
         print('Xspress3 acquisition starting...')
-        plan = self.service_plan_funcs['xs_count']
+        # plan = self.service_plan_funcs['xs_count']
         acq_time = self.spinBox_acq_time.value()
-        self.RE(plan(acq_time = acq_time))
+        self.xs.test_exposure(acq_time=acq_time)
+        # self.RE(plan(acq_time = acq_time))
         self.acquired = True
         self.plot_traces()
-        self.update_roi_plot()
-        self.canvas_mca.draw_idle()
+        # self.update_roi_plot()
+        # self.canvas_mca.draw_idle()
         print('Xspress3 acquisition complete')
 
     def plot_traces(self):
@@ -195,7 +200,8 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                 if getattr(self, self.checkbox_ch.format(indx+1)).isChecked():
                     ch = getattr(self.xs,'mca{}'.format(indx+1))
                     mca = ch.get()
-                    energy = np.array(list(range(len(mca))))*10
-                    self.figure_mca.ax.plot(energy[10:],mca[10:],self.colors[indx], label = 'Channel {}'.format(indx+1))
+                    # energy = np.array(list(range(len(mca))))*10
+                    energy = np.arange(mca.size)*10
+                    self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
                     self.figure_mca.ax.legend(loc=1)
         self.update_roi_plot()

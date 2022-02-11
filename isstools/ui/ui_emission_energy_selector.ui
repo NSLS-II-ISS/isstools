@@ -18,11 +18,11 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>203</width>
-     <height>248</height>
+     <width>201</width>
+     <height>254</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="gridLayout_20">
+   <layout class="QGridLayout" name="gridLayout_all">
     <item row="0" column="1">
      <widget class="QComboBox" name="comboBox_element"/>
     </item>

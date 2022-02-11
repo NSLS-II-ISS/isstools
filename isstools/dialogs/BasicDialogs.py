@@ -7,6 +7,14 @@ def message_box(title, message):
     messageBox.setWindowTitle(title)
     messageBox.exec_()
 
+def error_message_box(message):
+    messageBox = QtWidgets.QMessageBox()
+    messageBox.setText(message)
+    messageBox.addButton(QtWidgets.QPushButton('OK'), QtWidgets.QMessageBox.YesRole)
+    messageBox.setWindowTitle('Error')
+    messageBox.exec_()
+
+
 
 def question_message_box(qwidget,title, question):
     reply = QtWidgets.QMessageBox.question(qwidget,title,
