@@ -261,8 +261,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.spinBox_sample_x.setValue(self.sample_stage.x.position)
         self.spinBox_sample_y.setValue(self.sample_stage.y.position)
         self.spinBox_sample_z.setValue(self.sample_stage.z.position)
-        print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
-        # self.spinBox_sample_th.setValue(self.sample_stage.th.position)
+        # print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
+        self.spinBox_sample_th.setValue(self.sample_stage.th.position)
 
 
     def _create_grid_of_positions(self):
