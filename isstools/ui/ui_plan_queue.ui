@@ -159,6 +159,19 @@
     <string>Idle</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_reset_queue">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>590</y>
+     <width>100</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reset queue</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

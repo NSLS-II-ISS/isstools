@@ -53,6 +53,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.pushButton_run_queue.clicked.connect(self.run_queue)
         self.pushButton_pause_queue.toggled.connect(self.pause_queue)
         self.pushButton_clear_queue.clicked.connect(self.clear_queue)
+        self.pushButton_reset_queue.clicked.connect(self.reset_queue)
 
         self.listWidget_plan_queue.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listWidget_plan_queue.customContextMenuRequested.connect(self.plan_queue_context_menu)
@@ -117,6 +118,11 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
     def clear_queue(self):
         self.plan_processor.clear_plan_list()
+
+    def reset_queue(self):
+        ret = question_message_box(self, 'Warning', 'Are you sure? Reseeting the queue will clear all plans and stop its execution')
+        if ret:
+            self.plan_processor.reset()
 
     def select_item_index_iterator(self):
         index_list = self.listWidget_plan_queue.selectedIndexes()
