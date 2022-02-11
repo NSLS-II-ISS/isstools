@@ -14,7 +14,7 @@ from isscloudtools.initialize import get_slack_service, get_dropbox_service, get
 import bluesky.plan_stubs as bps
 from PyQt5 import uic, QtWidgets
 
-
+from xas.file_io import make_user_dir
 from isscloudtools.slack import *
 from isscloudtools.gmail import *
 from isscloudtools.dropbox import *
@@ -29,6 +29,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
                  db = None,
                  parent = None,
                  cloud_dispatcher = None,
+                 manager_dict = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -48,6 +49,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.cloud_dispatcher = cloud_dispatcher
         self.RE = RE
+        self.manager_dict = manager_dict
 
         if parent.gmail_service is None:
             self.push_cloud_setup.setEnabled(False)
@@ -115,6 +117,11 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
                 'PI'] = dlg.getValues()
             stop1 = timer()
             self.update_user_info()
+
+    def reset_managers(self):
+        make_user_dir()
+        for item in self.manager_dict.values():
+            item.reset()
 
 
     def send_results(self):

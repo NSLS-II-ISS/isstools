@@ -102,6 +102,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
         self.data_collection_plan_funcs = data_collection_plan_funcs
 
+        self.manager_dict = {'scan_manager' : scan_manager,
+                             'sample_manager' : sample_manager,
+                             'scan_sequence_manager' : scan_sequence_manager,
+                             'batch_manager' : batch_manager,
+                             'plan_processor' : plan_processor,}
 
         if RE is not None:
             RE.is_aborted = False
@@ -232,7 +237,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget info general loading', ttime.ctime())
         self.widget_info_general = widget_info_general.UIInfoGeneral(RE=RE,
                                                                      db=db,
-                                                                     parent=self
+                                                                     parent=self,
+                                                                     manager_dict=self.manager_dict
                                                                      )
 
         self.layout_info_general.addWidget(self.widget_info_general)
