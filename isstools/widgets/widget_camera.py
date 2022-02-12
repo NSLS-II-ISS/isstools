@@ -74,8 +74,8 @@ class UICamera(*uic.loadUiType(ui_path)):
         # self.treeView_sample.setSelectionMode(4)  # ContiguousSelection
         self.gridLayout_sample_manager.addWidget(self.treeView_sample, 0, 0)
 
-        self.push_create_sample.clicked.connect(self.create_new_sample)
-        self.push_get_sample_position.clicked.connect(self.get_sample_position)
+        # self.push_create_sample.clicked.connect(self.create_new_sample)
+        # self.push_get_sample_position.clicked.connect(self.get_sample_position)
         # self.push_create_sample_grid.clicked.connect(self.create_sample_grid)
 
 

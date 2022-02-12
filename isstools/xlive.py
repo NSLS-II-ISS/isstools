@@ -357,7 +357,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                          {'kwarg_name' : 'plot_func',
                                           'kwarg_value' : self.widget_beamline_setup._update_figure_with_calibration_data},
                                   'error_message_box' : {'kwarg_name' : 'error_message_func',
-                                                         'kwarg_value' : error_message_box}}
+                                                         'kwarg_value' : error_message_box},
+                                  'question_message_box': {'kwarg_name': 'question_message_func',
+                                                           'kwarg_value': question_message_box}}
 
 
 

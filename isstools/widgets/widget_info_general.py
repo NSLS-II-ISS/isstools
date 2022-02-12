@@ -117,11 +117,15 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
                 'PI'] = dlg.getValues()
             stop1 = timer()
             self.update_user_info()
+            self.reset_managers()
 
     def reset_managers(self):
-        make_user_dir()
+        path = self.manager_dict['sample_manager'].local_file_default_path
+        make_user_dir(path)
         for item in self.manager_dict.values():
             item.reset()
+        self.parent.widget_scan_manager.scansChanged.emit()
+        self.parent.widget_scan_manager.update_local_manager_list()
 
 
     def send_results(self):

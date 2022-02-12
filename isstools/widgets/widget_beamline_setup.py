@@ -107,6 +107,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.pushEnableHHMFeedback.setChecked(self.hhm_feedback.status)
         self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+        self.hhm.fb_status.subscribe(self.update_pushEnableHHMFeedback_status)
+
         self.push_update_feedback_settings.clicked.connect(self.update_hhm_feedback_settings)
         self.push_increase_fb_center.clicked.connect(self.feedback_center_increase)
         self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
@@ -310,46 +312,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                        'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
                        'do_liveplot' : True}
         self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
-        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-        # self.canvas_gen_scan.mpl_disconnect(self.cid_gen_scan)
-        # self.canvas_gen_scan.motor = ''
-        # print(f'[Beamline tuning] Starting...', file=self.parent_gui.emitstream_out, flush=True )
-        # self.pushEnableHHMFeedback.setChecked(False)
-        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'],'insert'))
-        # previous_detector = ''
-        # previous_motor = ''
-        # self.RE(bps.sleep(1))
-
-
-        # for element in self.tune_elements:
-        #     print(f'[Beamline tuning] {element["comment"]}')
-        #     detector = self.detector_dictionary[element['detector']]['device']
-        #     motor = self.motor_dictionary[element['motor']]['object']
-        #
-        #     if (detector.name != previous_detector) or (motor.name != previous_motor):
-        #         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
-        #
-        #     self.RE(self.aux_plan_funcs['tuning_scan'](motor, detector,
-        #                                                element['range'],
-        #                                                element['step'],
-        #                                                retries=element['retries'],
-        #                                                stdout=self.parent_gui.emitstream_out
-        #                                                ),
-        #             LivePlot(detector.hints['fields'][0], x=motor.name, ax=self.figure_gen_scan.ax))
-        #     # turn camera into continuous mode
-        #     if hasattr(detector, 'image_mode'):
-        #         self.RE(bps.mv(getattr(detector, 'image_mode'), 2))
-        #         self.RE(bps.mv(getattr(detector, 'acquire'), 1))
-        #     previous_detector = detector.name
-        #     previous_motor = motor.name
-        #
-        # self.RE(bps.mv(self.detector_dictionary['Focusing mirror BPM']['device'], 'retract'))
-        # if self.checkBox_autoEnableFeedback.isChecked():
-        #     self.update_piezo_center()
-        #     self.pushEnableHHMFeedback.setChecked(True)
-        #
-        # print('[Beamline tuning] Beamline tuning complete',file=self.parent_gui.emitstream_out, flush=True)
 
     def update_hhm_feedback_settings(self):
         pars = self.hhm_feedback.current_fb_parameters()
@@ -372,6 +335,11 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         value = value > 0
         self.hhm.fb_status.put(int(value))
         self.pushEnableHHMFeedback.setChecked(value)
+
+    def update_pushEnableHHMFeedback_status(self, value, **kwargs):
+        self.pushEnableHHMFeedback.toggled.disconnect(self.enable_fb)
+        self.pushEnableHHMFeedback.setChecked(value)
+        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
     def adjust_gains(self):
         plan_name = 'optimize_gains'
@@ -401,10 +369,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def energy_calibration(self):
         element = self.comboBox_reference_foils.currentText()
         edge = self.edge_dict[element]
-        plan_name = 'calibrate_mono_energy_plan'
-        plan_kwargs = {'element' : element, 'edge' : edge}
-        plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+        # plan_name = 'calibrate_mono_energy_plan'
+        # plan_kwargs = {'element' : element, 'edge' : edge}
+        # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+        plan_name = 'calibrate_mono_energy_plan_bundle'
+        some_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+        plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : some_gui_services}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
         # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
         #                                                         plot_func=self._update_figure_with_calibration_data,
         #                                                         error_message_func=error_message_box)

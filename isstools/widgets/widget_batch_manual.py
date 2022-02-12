@@ -592,7 +592,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def get_checked_scan_index_list(self):
         index_list = []
         for scan_item in self._scan_item_iterator():
-            index_list.append(scan_item.index)
+            if scan_item.checkState(0):
+                index_list.append(scan_item.index)
         return index_list
 
     '''
