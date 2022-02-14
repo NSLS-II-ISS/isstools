@@ -95,10 +95,15 @@ plt.plot(tt[mask], hhm_feedback._pitch_vals[mask])
 # 30000  8.55645  44.04957  c09dd8b9-dd39-4135-9f63-b9104725e05f
 
 
+#
+
+# df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation.json')
+# df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation_high_energies.json')
 
 
-df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation.json')
-df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2021_09_09_beamline_tabulation/beamline_hhmy_hhrmy_tabulation_high_energies.json')
+df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2022_02_10_beamline_tabulation/beamline_hhmy_tabulation_att2.json')
+df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2022_02_10_beamline_tabulation/beamline_hhmy_tabulation_att2_high_energies.json')
+
 df_all = df.append(df2)
 energy = df_all.energy.values
 hhmy = df_all.hhmy.values
