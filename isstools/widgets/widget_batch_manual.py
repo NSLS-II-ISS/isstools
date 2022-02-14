@@ -551,6 +551,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def create_new_scan(self):
         scan_idx = self.comboBox_scans.currentIndex()
+        scan_local_dict = self.scan_manager.scan_list_local[scan_idx]
         name = self.comboBox_scans.currentText()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
@@ -561,7 +562,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                                                 'name' : scan_str,
                                                 'repeat' : repeat,
                                                 'delay' : delay,
-                                                'scan_idx' : scan_idx})
+                                                'scan_idx' : scan_idx,
+                                                'scan_local_dict' : scan_local_dict})
 
 
     def delete_scan(self):
