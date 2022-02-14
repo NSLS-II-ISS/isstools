@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>221</width>
-    <height>105</height>
+    <width>219</width>
+    <height>290</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>60</y>
+     <y>250</y>
      <width>201</width>
      <height>32</height>
     </rect>
@@ -36,21 +36,103 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
+     <y>40</y>
      <width>201</width>
      <height>41</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_offset">
       <property name="text">
        <string>Offset</string>
       </property>
      </widget>
     </item>
+    <item row="0" column="2">
+     <widget class="QLineEdit" name="lineEdit_offset"/>
+    </item>
+    <item row="0" column="3">
+     <widget class="QLabel" name="label_offset_units">
+      <property name="text">
+       <string>°</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_new_val_deg">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>191</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set new angular offset</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_new_energy">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>100</y>
+     <width>191</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set new energy</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>130</y>
+     <width>201</width>
+     <height>106</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEdit_new_energy"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_new_energy">
+      <property name="text">
+       <string>New energy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_old_energy">
+      <property name="text">
+       <string>Old energy</string>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="1">
-     <widget class="QLineEdit" name="lineEdit"/>
+     <widget class="QLineEdit" name="lineEdit_old_energy"/>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_old_energy_units">
+      <property name="text">
+       <string>eV</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QLabel" name="label_new_energy_units">
+      <property name="text">
+       <string>eV</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

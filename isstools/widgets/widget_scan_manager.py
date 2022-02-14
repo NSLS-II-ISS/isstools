@@ -47,7 +47,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.widget_emission_energy = widget_emission_energy_selector.UIEmissionEnergySelectorEnergyOnly(parent=self)
         self.layout_emission_energy_selector.addWidget(self.widget_emission_energy)
 
-        self.hhm.angle_offset.subscribe(self.update_angle_offset)
+        self.hhm.angle_offset.subscribe(self.update_angle_offset_label)
         self.populate_detectors()
         self.push_preview_scan.clicked.connect(self.preview_scan)
         self.push_add_to_manager.clicked.connect(self.add_scan_to_manager)
@@ -86,7 +86,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.handle_exposure_parameters_crosstalk()
         self.groupBox_constant_energy_exposure_params.toggled.connect(self.handle_exposure_parameters_tab_selection)
 
-    def update_angle_offset(self, pvname = None, value=None, char_value=None, **kwargs):
+    def update_angle_offset_label(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
 
     def update_exafs_end_values(self):
@@ -476,17 +476,24 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             message_box('Scan information', scan_info)
 
     def update_offset(self):
-        dlg = UpdateAngleOffset.UpdateAngleOffset(self.label_angle_offset.text(), parent=self)
+        offset = float(self.label_angle_offset.text())
+        energy = float(self.widget_energy_selector.edit_E0.text())
+        dlg = UpdateAngleOffset.UpdateAngleOffset(offset, energy, parent=self)
         if dlg.exec_():
             try:
-                self.hhm.angle_offset.put(float(dlg.getValues()))
-                self.update_angle_offset(value=float(dlg.getValues()))
+                values = dlg.getValues()
+                if len(values) == 1:
+                    offset = values[0]
+                    self.hhm.angle_offset.put(float(offset))
+                    self.update_angle_offset_label(value=float(dlg.getValues()))
+                elif len(values) == 2:
+                    old_energy_str, new_energy_str = values
+                    self.hhm.calibrate(float(old_energy_str), float(new_energy_str))
+                    self.update_angle_offset_label(value=self.hhm.angle_offset.get())
             except Exception as exc:
                 if type(exc) == ophyd_utils.errors.LimitError:
                     print('[New offset] {}. No reason to be desperate, though.'.format(exc))
                 else:
                     print('[New offset] Something went wrong, not the limit: {}'.format(exc))
-                return 1
-            return 0
 
 

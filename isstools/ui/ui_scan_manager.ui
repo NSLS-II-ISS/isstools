@@ -221,7 +221,7 @@ Scan Manager</string>
          <x>10</x>
          <y>30</y>
          <width>221</width>
-         <height>151</height>
+         <height>161</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_8">
@@ -420,7 +420,7 @@ Scan Manager</string>
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>401</width>
+        <width>411</width>
         <height>251</height>
        </rect>
       </property>
@@ -1195,7 +1195,7 @@ Scan Manager</string>
         <x>10</x>
         <y>155</y>
         <width>221</width>
-        <height>151</height>
+        <height>141</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_9">
