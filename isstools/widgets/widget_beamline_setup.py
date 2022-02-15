@@ -13,8 +13,10 @@ from isstools.dialogs.BasicDialogs import question_message_box, error_message_bo
 from matplotlib.widgets import Cursor
 from isstools.elements.liveplots import NormPlot
 import json
+from isstools.widgets import widget_energy_selector
 from isstools.elements.figure_update import update_figure, setup_figure
 # from xas.energy_calibration import validate_calibration, process_calibration
+import xraydb
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -140,16 +142,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.spinBox_trigger_xs_freq.setValue(trigger_xs_freq)
         self.spinBox_trigger_xs_freq.valueChanged.connect(self.update_trigger_xs_freq)
 
-        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
-            foil_info = json.load(fp)
-            reference_foils = [item['element'] for item in foil_info]
-            edges = [item['edge'] for item in foil_info]
-            self.edge_dict={}
-            for foil, edge in zip(reference_foils, edges):
-                self.edge_dict[foil]= edge
-            reference_foils.append('--')
-        for foil in reference_foils:
-            self.comboBox_reference_foils.addItem(foil)
+        self.widget_energy_selector = widget_energy_selector.UIEnergySelectorFoil()
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
+
+        # with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+        #     foil_info = json.load(fp)
+        #     reference_foils = [item['element'] for item in foil_info]
+        #     edges = [item['edge'] for item in foil_info]
+        #     self.edge_dict={}
+        #     for foil, edge in zip(reference_foils, edges):
+        #         self.edge_dict[foil]= edge
+        #     reference_foils.append('--')
+        # for foil in reference_foils:
+        #     self.comboBox_reference_foils.addItem(foil)
 
         self.liveplot_kwargs = {}
 
@@ -294,10 +299,23 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     pass
 
+
+    def read_energy_label(self):
+        label_text = self.lineEdit_energy.text()
+        try:
+            energy = float(label_text)
+        except ValueError:
+            element, edge = label_text.split('-')
+            energy = xraydb.xray_edge(element, edge).energy
+            self.lineEdit_energy.setText(str(int(energy)))
+        return energy
+
+
     def prepare_beamline(self, energy_setting=None):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
-        energy = float(self.lineEdit_energy.text())
+        # energy = float(self.lineEdit_energy.text())
+        energy = self.read_energy_label()
         move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
 
         plan_name = 'prepare_beamline_plan'
@@ -358,8 +376,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def bender_scan(self):
         ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
         if ret:
-            element = self.comboBox_reference_foils.currentText()
-            edge = self.edge_dict[element]
+            # element = self.comboBox_reference_foils.currentText()
+            # edge = self.edge_dict[element]
+            element, edge = self.widget_energy_selector.element_edge
+
             # message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
             plan_name = 'bender_scan_plan_bundle'
             plan_kwargs = {'element' : element, 'edge' : edge}
@@ -375,8 +395,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def energy_calibration(self):
         ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
         if ret:
-            element = self.comboBox_reference_foils.currentText()
-            edge = self.edge_dict[element]
+            # element = self.comboBox_reference_foils.currentText()
+            # edge = self.edge_dict[element]
+            element, edge = self.widget_energy_selector.element_edge
             # plan_name = 'calibrate_mono_energy_plan'
             # plan_kwargs = {'element' : element, 'edge' : edge}
             # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']

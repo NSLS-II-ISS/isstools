@@ -1195,7 +1195,7 @@ Scan Manager</string>
         <x>10</x>
         <y>155</y>
         <width>221</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_9">

@@ -981,7 +981,7 @@ position</string>
     <rect>
      <x>20</x>
      <y>480</y>
-     <width>211</width>
+     <width>401</width>
      <height>171</height>
     </rect>
    </property>
@@ -991,7 +991,7 @@ position</string>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>30</y>
       <width>111</width>
       <height>20</height>
@@ -1001,21 +1001,11 @@ position</string>
      <string>Reference foil</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox_reference_foils">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>30</y>
-      <width>71</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="push_bender_scan">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
+      <x>210</x>
+      <y>60</y>
       <width>181</width>
       <height>41</height>
      </rect>
@@ -1027,7 +1017,7 @@ position</string>
    <widget class="QPushButton" name="push_calibration_scan">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>210</x>
       <y>120</y>
       <width>181</width>
       <height>41</height>
@@ -1036,6 +1026,17 @@ position</string>
     <property name="text">
      <string>Energy Calibration</string>
     </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>181</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="layout_energy_selector"/>
    </widget>
   </widget>
  </widget>

@@ -359,8 +359,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                   'error_message_box' : {'kwarg_name' : 'error_message_func',
                                                          'kwarg_value' : error_message_box},
                                   'question_message_box': {'kwarg_name': 'question_message_func',
-                                                           'kwarg_value': question_message_box}}
+                                                           'kwarg_value': self.question_message_box_func}}
 
+    def question_message_box_func(self, *args):
+        return question_message_box(self, *args)
 
 
     def update_progress(self, pvname=None, value=None, char_value=None, **kwargs):

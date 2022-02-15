@@ -27,8 +27,8 @@ class UpdateAngleOffset(*uic.loadUiType(ui_path)):
         self.handle_offset_fields(self.radioButton_new_val_deg.isChecked())
         self.handle_energy_fields(self.radioButton_new_energy.isChecked())
 
-        self.radioButton_new_val_deg.toggled.connect()
-        self.radioButton_new_energy.toggled.connect()
+        self.radioButton_new_val_deg.toggled.connect(self.handle_offset_fields)
+        self.radioButton_new_energy.toggled.connect(self.handle_energy_fields)
 
         self.lineEdit_offset.setText(f'{offset}')
         self.lineEdit_old_energy.setText(f'{energy}')

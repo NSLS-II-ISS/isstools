@@ -47,6 +47,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.widget_emission_energy = widget_emission_energy_selector.UIEmissionEnergySelectorEnergyOnly(parent=self)
         self.layout_emission_energy_selector.addWidget(self.widget_emission_energy)
 
+        self.push_update_offset.clicked.connect(self.update_offset)
+
         self.hhm.angle_offset.subscribe(self.update_angle_offset_label)
         self.populate_detectors()
         self.push_preview_scan.clicked.connect(self.preview_scan)
@@ -488,7 +490,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     self.update_angle_offset_label(value=float(dlg.getValues()))
                 elif len(values) == 2:
                     old_energy_str, new_energy_str = values
-                    self.hhm.calibrate(float(old_energy_str), float(new_energy_str))
+                    # self.hhm.calibrate(float(old_energy_str), float(new_energy_str))
+                    self.hhm.calibrate(float(new_energy_str), float(old_energy_str))
                     self.update_angle_offset_label(value=self.hhm.angle_offset.get())
                 message_box('Warning', 'The new calibration will be applied only to new scans.\nIf you want new calibration to apply to old scans, you will have to redefine/recreate them.')
             except Exception as exc:
