@@ -356,34 +356,38 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         # self.RE(self.service_plan_funcs['get_offsets']())
 
     def bender_scan(self):
-        element = self.comboBox_reference_foils.currentText()
-        edge = self.edge_dict[element]
-        # message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
-        plan_name = 'bender_scan_plan_bundle'
-        plan_kwargs = {'element' : element, 'edge' : edge}
-        plan_gui_services = ['error_message_box']
-        # self.plan_processor.add_plans([{'plan_name' : plan_name,
-        #                                 'plan_kwargs' : plan_kwargs,
-        #                                 'plan_gui_services' : plan_gui_services}])
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services)
-        # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
-        # self.RE(self.aux_plan_funcs['bender_scan']())
-        # print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
+        ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
+        if ret:
+            element = self.comboBox_reference_foils.currentText()
+            edge = self.edge_dict[element]
+            # message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
+            plan_name = 'bender_scan_plan_bundle'
+            plan_kwargs = {'element' : element, 'edge' : edge}
+            plan_gui_services = ['error_message_box']
+            # self.plan_processor.add_plans([{'plan_name' : plan_name,
+            #                                 'plan_kwargs' : plan_kwargs,
+            #                                 'plan_gui_services' : plan_gui_services}])
+            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services)
+            # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
+            # self.RE(self.aux_plan_funcs['bender_scan']())
+            # print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
 
     def energy_calibration(self):
-        element = self.comboBox_reference_foils.currentText()
-        edge = self.edge_dict[element]
-        # plan_name = 'calibrate_mono_energy_plan'
-        # plan_kwargs = {'element' : element, 'edge' : edge}
-        # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
-        plan_name = 'calibrate_mono_energy_plan_bundle'
-        some_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-        plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : some_gui_services}
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
-        # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
-        #                                                         plot_func=self._update_figure_with_calibration_data,
-        #                                                         error_message_func=error_message_box)
+        ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
+        if ret:
+            element = self.comboBox_reference_foils.currentText()
+            edge = self.edge_dict[element]
+            # plan_name = 'calibrate_mono_energy_plan'
+            # plan_kwargs = {'element' : element, 'edge' : edge}
+            # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+            # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+            plan_name = 'calibrate_mono_energy_plan_bundle'
+            some_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+            plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : some_gui_services}
+            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
+            # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
+            #                                                         plot_func=self._update_figure_with_calibration_data,
+            #                                                         error_message_func=error_message_box)
 
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()
