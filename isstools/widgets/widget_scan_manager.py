@@ -490,6 +490,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     old_energy_str, new_energy_str = values
                     self.hhm.calibrate(float(old_energy_str), float(new_energy_str))
                     self.update_angle_offset_label(value=self.hhm.angle_offset.get())
+                message_box('Warning', 'The new calibration will be applied only to new scans.\nIf you want new calibration to apply to old scans, you will have to redefine/recreate them.')
             except Exception as exc:
                 if type(exc) == ophyd_utils.errors.LimitError:
                     print('[New offset] {}. No reason to be desperate, though.'.format(exc))
