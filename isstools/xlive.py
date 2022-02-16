@@ -80,6 +80,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  sample_stage=None,
                  tune_elements=None,
                  ic_amplifiers=None,
+                 print_to_gui=None,
                  window_title=None,
                  *args, **kwargs):
 
@@ -101,6 +102,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_processor.append_list_update_signal(self.plans_changed_signal)
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
         self.data_collection_plan_funcs = data_collection_plan_funcs
+        self.print_to_gui = print_to_gui
 
         self.manager_dict = {'scan_manager' : scan_manager,
                              'sample_manager' : sample_manager,
@@ -119,7 +121,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
 
-        self.processing_thread = processing_thread(self)
+        self.processing_thread = ProcessingThread(self, print_func=print_to_gui)
 
         # define sample positioner to pass it to widget camera and further
         stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -323,7 +325,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
-                                    cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread)
+                                    cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread, print_func=print_to_gui)
 
 
         self.fly_token = self.RE.subscribe(pc, 'stop')
@@ -405,11 +407,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
 
-class processing_thread(QThread):
-    def __init__(self, gui):
+class ProcessingThread(QThread):
+    def __init__(self, gui, print_func=None):
         QThread.__init__(self)
         self.gui = gui
         self.doc = None
+        if print_func is None:
+            self.print = print
+        else:
+            self.print = print_func
 
     def run(self):
         attempt = 0
@@ -417,12 +423,12 @@ class processing_thread(QThread):
             try:
                 attempt += 1
                 uid = self.doc['run_start']
-                print(f'({ttime.ctime()}) File received {uid}')
-                process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher)
+                self.print(f'({ttime.ctime()}) File received {uid}')
+                process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
                 self.doc = None
             except Exception as e:
                 print(e)
-                print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+                self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
                 ttime.sleep(1)
             if attempt == 5:
                 break

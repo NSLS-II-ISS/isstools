@@ -4,12 +4,16 @@ from xas.process import process_interpolate_bin
 import time as ttime
 
 class ScanProcessingCallback(CallbackBase):
-    def __init__(self, db, draw_func_interp, draw_func_bin, cloud_dispatcher,thread):
+    def __init__(self, db, draw_func_interp, draw_func_bin, cloud_dispatcher,thread, print_func=None):
         self.db = db
         self.draw_func_interp = draw_func_interp
         self.draw_func_bin = draw_func_bin
         self.cloud_dispatcher = cloud_dispatcher
         self.thread = thread
+        if print_func is None:
+            self.print = print
+        else:
+            self.print = print_func
         super().__init__()
 
     def stop(self, doc):
@@ -20,6 +24,6 @@ class ScanProcessingCallback(CallbackBase):
             self.thread.start()
         else:
             reason = doc['reason']
-            print(f'Scan failed, reason: {reason}')
+            self.print(f'Scan failed, reason: {reason}')
 
 
