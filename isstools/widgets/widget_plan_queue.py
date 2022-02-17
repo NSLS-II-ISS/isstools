@@ -21,7 +21,7 @@ from isstools.dialogs.BasicDialogs import question_message_box, message_box
 import time as ttime
 from isstools.widgets import widget_emission_energy_selector
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_plan_queue.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_plan_queue_v2.ui')
 
 class UIPlanQueue(*uic.loadUiType(ui_path)):
     # plansChanged = QtCore.pyqtSignal()
