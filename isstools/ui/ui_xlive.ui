@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>8</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -223,26 +223,6 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_6">
-     <attribute name="title">
-      <string>Plan Queue</string>
-     </attribute>
-     <widget class="QWidget" name="horizontalLayoutWidget_13">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1631</width>
-        <height>931</height>
-       </rect>
-      </property>
-      <layout class="QHBoxLayout" name="layout_plan_queue">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetNoConstraint</enum>
-       </property>
-      </layout>
-     </widget>
-    </widget>
    </widget>
    <widget class="QTextEdit" name="textEdit_terminal">
     <property name="enabled">
@@ -251,9 +231,9 @@
     <property name="geometry">
      <rect>
       <x>1660</x>
-      <y>190</y>
-      <width>541</width>
-      <height>951</height>
+      <y>170</y>
+      <width>551</width>
+      <height>431</height>
      </rect>
     </property>
     <property name="font">
@@ -335,8 +315,8 @@
    <widget class="QLabel" name="label_59">
     <property name="geometry">
      <rect>
-      <x>1660</x>
-      <y>170</y>
+      <x>1670</x>
+      <y>150</y>
       <width>141</width>
       <height>20</height>
      </rect>
@@ -387,6 +367,21 @@
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_info_beamline">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetNoConstraint</enum>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_13">
+    <property name="geometry">
+     <rect>
+      <x>1660</x>
+      <y>610</y>
+      <width>551</width>
+      <height>521</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="layout_plan_queue">
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
