@@ -388,8 +388,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
             self.RE.abort()
             self.RE.state == 'abort'
             self.RE.is_aborted = True
-        self.plan_processor.pause_plan_list()
-        self.hhm.abort_trajectory()
+        self.hhm.abort_trajectory() # it only aborts if there is a trajectory running
+        ret = question_message_box(self, 'Aborting the scan', 'Would you like to clear/reset queue?')
+        if ret:
+            self.plan_processor.reset()
+        else:
+            self.plan_processor.pause_plan_list()
+            if not self.plan_processor.RE_is_running:
+                self.plan_processor.update_status('idle')
             # self.push_re_abort.setEnabled(1)
 
     def update_re_state(self):

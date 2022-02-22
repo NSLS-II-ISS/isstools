@@ -261,15 +261,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         dlg = SetEnergy.SetEnergy(energy, parent=self)
         if dlg.exec_():
             try:
-                new_energy=float(dlg.getValues())
+                new_energy = float(dlg.getValues())
                 print(new_energy)
-                if (new_energy > limits[0]) and (new_energy < limits[1]):
-                    # self.plan_processor.add_plan_and_run_if_idle('move_johann_spectrometer_energy', {'energy': new_energy})
-                    self.plan_processor.add_execute_pause_plan_at_head('move_johann_spectrometer_energy', {'energy': new_energy})
-                    # self.RE(bps.mv(self.motor_emission, new_energy))
-                else:
-                    raise ValueError
             except Exception as exc:
+                message_box('Incorrect energy', 'Energy should be numerical')
+
+            if (new_energy > 4700) and (new_energy < 32000):
+                # self.plan_processor.add_plan_and_run_if_idle('move_mono_energy', {'energy' : new_energy})
+                self.plan_processor.add_execute_pause_plan_at_head('move_johann_spectrometer_energy', {'energy': new_energy})
+                # self.RE(bps.mv(self.hhm.energy, new_energy))
+            else:
                 message_box('Incorrect energy', f'Energy should be within {limits[0]}-{limits[1]} eV range')
 
     def tweak_pitch_pos(self):
