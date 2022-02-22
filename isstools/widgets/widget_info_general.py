@@ -121,9 +121,10 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
     def reset_managers(self):
         path = self.manager_dict['sample_manager'].local_file_default_path
-        make_user_dir(path)
+        folder_exists = make_user_dir(path)
         for item in self.manager_dict.values():
             item.reset()
+            item.init_from_settings()
         self.parent.widget_scan_manager.scansChanged.emit()
         self.parent.widget_scan_manager.update_local_manager_list()
 

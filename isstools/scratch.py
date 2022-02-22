@@ -1087,3 +1087,42 @@ plt.plot(energy, ruf)
 # plt.plot(energy, muf)
 # plt.loglog(freq[freq_ord], muf_fft[freq_ord])
 
+########
+
+
+year='2022'
+cycle='1'
+proposal = '309839'
+PI = ''#self.RE.md['PI']
+working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+zip_file = f'{working_directory}/{proposal}.zip'
+
+id = str(uuid.uuid4())[0:5]
+
+zip_id_file = f'{proposal}-{id}.zip'
+
+if os.path.exists(zip_file):
+    os.remove(zip_file)
+
+# os.system(f'zip {zip_file} {working_directory}/*.* ')
+os.system(f'zip {zip_file} {working_directory}/*.dat')
+
+folder = f'/{year}/{cycle}/'
+dropbox_upload_files(dropbox_service, zip_file,folder,zip_id_file)
+
+link_url = dropbox_get_shared_link(dropbox_service, f'{folder}{zip_id_file}' )
+print('Upload succesful')
+
+
+message = create_html_message(
+    'staff08id@gmail.com',
+    email_address,
+    f'ISS beamline results Proposal {proposal}',
+    f' <p> Dear {PI},</p> <p>You can download the result of your'
+    f' experiment at ISS under proposal {proposal} here,</p> <p> {link_url} '
+    f'</p> <p> Sincerely, </p> <p> ISS Staff </p>'
+    )
+
+draft = upload_draft(self.parent.gmail_service, message)
+sent = send_draft(self.parent.gmail_service, draft)
+print('Email sent')
