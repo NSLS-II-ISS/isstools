@@ -102,13 +102,13 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         energy = self.hhm.energy.read()['hhm_energy']['value']
         self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
 
-        # if self.motor_emission._initialized:
-        #     emission_energy = self.motor_emission.energy.position
-        #     self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
-        # else:
-        #     self.label_emission_energy.setText('Emission Energy N/A')
+        if self.motor_emission._initialized:
+            emission_energy = self.motor_emission.energy.position
+            self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
+        else:
+            self.label_emission_energy.setText('Emission Energy N/A')
 
-        self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
+        # self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
 
         # if ((self.hhm.fb_status.get()==1) and
         #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
@@ -243,15 +243,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         dlg = SetEnergy.SetEnergy(round(energy), parent=self)
         if dlg.exec_():
             try:
-                new_energy=float(dlg.getValues())
+                new_energy = float(dlg.getValues())
                 print(new_energy)
-                if (new_energy > 4700) and (new_energy < 32000):
-                    # self.plan_processor.add_plan_and_run_if_idle('move_mono_energy', {'energy' : new_energy})
-                    self.plan_processor.add_execute_pause_plan_at_head('move_mono_energy', {'energy': new_energy})
-                    # self.RE(bps.mv(self.hhm.energy, new_energy))
-                else:
-                    raise ValueError
             except Exception as exc:
+                message_box('Incorrect energy','Energy should be numerical')
+
+            if (new_energy > 4700) and (new_energy < 32000):
+                # self.plan_processor.add_plan_and_run_if_idle('move_mono_energy', {'energy' : new_energy})
+                self.plan_processor.add_execute_pause_plan_at_head('move_mono_energy', {'energy': new_energy})
+                # self.RE(bps.mv(self.hhm.energy, new_energy))
+            else:
                 message_box('Incorrect energy','Energy should be within 4700-32000 eV range')
 
     def set_emission_energy(self):
