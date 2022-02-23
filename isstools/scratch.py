@@ -1064,6 +1064,25 @@ plt.plot(t, s2)
 
 ###
 
+s1 = _23
+s2 = _22
+
+plt.figure(1, clear=True)
+# plt.plot((s2 - s1)[:, 0])
+plt.semilogy(s1[:, 0], label='11200 eV')
+plt.semilogy(s2[:, 0], label='11215 eV')
+
+plt.xlim(700, 1200)
+plt.xlabel('Channels')
+plt.ylabel('Counts')
+
+# plt.plot(s1)
+
+
+
+
+###
+
 from xas.file_io import load_interpolated_df_from_file
 
 df, _ = load_interpolated_df_from_file(r'/nsls2/xf08id/users/2021/3/308208/Ferric Mb 0.9 mM 27_5-2_5 Soller Mn 3 ACTUALLY vs SDD 0001.raw')

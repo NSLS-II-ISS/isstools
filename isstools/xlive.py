@@ -435,7 +435,7 @@ class ProcessingThread(QThread):
             except Exception as e:
                 print(e)
                 self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
-                ttime.sleep(1)
+                ttime.sleep(3)
             if attempt == 5:
                 break
 
