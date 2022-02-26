@@ -426,6 +426,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                               self.aux_parameters,
                                               self.plot_trajectory_func)
 
+        signature  = f'{self.widget_energy_selector.comboBox_element.currentText()}-' \
+                     f'{self.widget_energy_selector.comboBox_edge.currentText()}'
+        self.lineEdit_scan_name.setText(signature)
+
 
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()

@@ -1149,3 +1149,70 @@ message = create_html_message(
 draft = upload_draft(self.parent.gmail_service, message)
 sent = send_draft(self.parent.gmail_service, draft)
 print('Email sent')
+
+
+##############
+from xas.file_io import validate_file_exists
+from xas.process import process_interpolate_bin_from_uid
+cloud_dispatcher = xlive_gui.cloud_dispatcher
+for i in range(197472, 198382):
+# for i in range(197472, 197500):
+    hdr = db[i]
+    start = hdr.start
+    if 'interp_filename' in list(start.keys()):
+        filename = start['interp_filename']
+        filename_check = validate_file_exists(filename)
+        if filename_check == filename:
+            print(i)
+            process_interpolate_bin_from_uid(i, db, cloud_dispatcher=cloud_dispatcher)
+
+####
+
+file_list = ['/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0041-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0031-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0026-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0020-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0004-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0048-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0046-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0041-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0039-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0036-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0033-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0031-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0022-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0020-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  0014-r0004.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 8 (pos 001) Ir XANES L3  0019-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 8 (pos 001) Ir XANES L3  0015-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 8 (pos 001) Ir XANES L3  0008-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 8 (pos 001) Ir XANES L3  0003-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 7 (pos 001) Ir XANES L3  0014-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 6 (pos 001) Ir XANES L3  0015-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 6 (pos 001) Ir XANES L3  0013-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 6 (pos 001) Ir XANES L3  0007-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 5 (pos 001) Ir XANES L3  0015-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 3 (pos 001) Ir XANES L3  0014-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 3 (pos 001) Ir XANES L3  0009-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 3 (pos 001) Ir XANES L3  0007-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 3 (pos 001) Ir XANES L3  0005-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 1 (pos 001) Ir XANES L3  0018-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 1 (pos 001) Ir XANES L3  0005-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0050-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0044-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 5 (pos 001) Ir XANES L3  0007-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/test 0003-r0003.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 1 SDD test 0001-r0002.dat',
+'/nsls2/xf08id/users/2022/1/309628/Sample 4 (pos 001) Ir XANES L3  0041-r0003.dat']
+
+for f in file_list:
+    xlive_gui.cloud_dispatcher.load_to_dropbox(f)
