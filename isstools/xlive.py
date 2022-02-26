@@ -425,7 +425,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         ret = messageBox.exec_()
         if ret == 0:
             plans = []
-        elif ret == 2:
+        elif ret == 1:
             pause_after = True
             add_at = 'head'
         elif ret == 2:
