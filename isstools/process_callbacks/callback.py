@@ -13,7 +13,9 @@ class ScanProcessingCallback(CallbackBase):
         if print_func is None:
             self.print = print
         else:
-            self.print = print_func
+            def _print_func(msg):
+                print_func(msg, tag='Processing', add_timestamp=True)
+            self.print = _print_func
         super().__init__()
 
     def stop(self, doc):
