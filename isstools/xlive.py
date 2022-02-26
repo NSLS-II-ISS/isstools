@@ -421,7 +421,10 @@ class ProcessingThread(QThread):
         if print_func is None:
             self.print = print
         else:
-            self.print = print_func
+            def _print_func(msg):
+                print_func(msg, tag='Processing', add_timestamp=True)
+            self.print = _print_func
+        self.soft_mode = True
 
     def run(self):
         attempt = 0
@@ -429,13 +432,16 @@ class ProcessingThread(QThread):
             try:
                 attempt += 1
                 uid = self.doc['run_start']
-                self.print(f'({ttime.ctime()}) File received {uid}')
+                self.print(f' File received {uid}')
                 process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
                 self.doc = None
             except Exception as e:
-                print(e)
-                self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
-                ttime.sleep(3)
+                if self.soft_mode:
+                    self.print(f'Exception: {e}')
+                    self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+                    ttime.sleep(3)
+                else:
+                    raise e
             if attempt == 5:
                 break
 
