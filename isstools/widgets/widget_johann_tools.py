@@ -21,6 +21,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
     def __init__(self, parent=None,
                  db=None,
                  RE=None,
+                 plan_processor=None,
                  motor_dictionary=None,
                  detector_dictionary=None,
                  aux_plan_funcs=None,
@@ -39,6 +40,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.aux_plan_funcs = aux_plan_funcs
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
+        self.plan_processor = plan_processor
         self.db = db
 
         self.motor_emission = self.motor_dictionary['motor_emission']['object']
@@ -240,22 +242,46 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.doubleSpinBox_tweak_motor_pos.setValue(pos)
 
     def scan_crystal_y(self):
-        detector = self.detector_dictionary['Pilatus 100k']['device']
+
+        detectors = ['Pilatus 100k']
         channel = self.comboBox_pilatus_channels.currentText()
-        motor = self.motor_dictionary['auxxy_y']['object']
+        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
+
+        curr_mot = 'Crystal Y'
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
+                break
+
         scan_range = self.doubleSpinBox_range_crystal_y.value()
         scan_step = self.doubleSpinBox_step_crystal_y.value()
-        self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+        self._run_any_scan(detectors, liveplot_det_kwargs, curr_mot, liveplot_mot_kwargs, scan_range, scan_step)
 
 
     def scan_energy(self):
-        detector = self.detector_dictionary['Pilatus 100k']['device']
+
+        detectors = ['Pilatus 100k']
         channel = self.comboBox_pilatus_channels.currentText()
-        motor = self.motor_dictionary['hhm_energy']['object']
+        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
+
+        curr_mot = 'A Monochromator Energy'
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
+                break
+
         scan_range = self.doubleSpinBox_range_energy.value()
         scan_step = self.doubleSpinBox_step_energy.value()
-        uids = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
-        self.analyze_resolution_scan(uids)
+        self._run_any_scan(detectors, liveplot_det_kwargs, curr_mot, liveplot_mot_kwargs, scan_range, scan_step)
+        self.analyze_resolution_scan([-1])
+
+        # detector = self.detector_dictionary['Pilatus 100k']['device']
+        # channel = self.comboBox_pilatus_channels.currentText()
+        # motor = self.motor_dictionary['hhm_energy']['object']
+        # scan_range = self.doubleSpinBox_range_energy.value()
+        # scan_step = self.doubleSpinBox_step_energy.value()
+        # uids = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+        # self.analyze_resolution_scan(uids)
 
 
 

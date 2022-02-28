@@ -14,7 +14,8 @@ from isstools.elements.figure_update import update_figure_with_colorbar, update_
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
-from ..elements.liveplots import XASPlot#, XASPlotX
+from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
+# from isstools.elements.liveplots import NormPlot
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
@@ -40,6 +41,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.plan_processor = plan_processor
+        self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
+
         self.db = db
         self.vmax = None
         self.pil_image = None
@@ -93,6 +96,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                                                                      motor_dictionary=motor_dictionary,
                                                                      db=db,
                                                                      RE=RE,
+                                                                     plan_processor=plan_processor,
                                                                      detector_dictionary=detector_dictionary,
                                                                      aux_plan_funcs=aux_plan_funcs,
                                                                      service_plan_funcs=service_plan_funcs,
@@ -103,24 +107,87 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
 
-    def _run_any_scan(self, detector, channel, motor, scan_range, scan_step):
-        self.canvas_scan.mpl_disconnect(self.cid_scan)
+    # def _run_any_scan(self, detector, channel, motor, scan_range, scan_step):
+    #     self.canvas_scan.mpl_disconnect(self.cid_scan)
+    #     update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+    #     self.figure_scan.ax.set_aspect('auto')
+    #
+    #     rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
+    #
+    #     uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
+    #                                                            motor,
+    #                                                            rel_start,
+    #                                                            rel_stop,
+    #                                                            num_steps, ),
+    #                        LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
+    #     self.figure_scan.tight_layout()
+    #     self.canvas_scan.draw_idle()
+    #     self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+    #     self.last_motor_used = motor
+    #     return uid_list
+
+    def handle_gui_elements(self):
+        if self.plan_processor.status == 'idle':
+            self.figure_scan.tight_layout()
+            self.canvas_scan.draw_idle()
+            self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+            self.liveplot_kwargs = {}
+        elif self.plan_processor.status == 'running':
+            self.canvas_scan.mpl_disconnect(self.cid_scan)
+
+    def make_liveplot_func(self, plan_name, plan_kwargs):
+        self.start_gen_scan_figure()
+        liveplot_list = []
+        try:
+            liveplot_kwargs = plan_kwargs['liveplot_kwargs']
+            _norm_plot = NormPlot(liveplot_kwargs['channel'],
+                                  liveplot_kwargs['channel_den'],
+                                  liveplot_kwargs['result_name'],
+                                  liveplot_kwargs['curr_mot_name'], ax=self.figure_scan.ax)
+            liveplot_list.append(_norm_plot)
+            # when the liveplot is created, we also update the canvas motor:
+            self._set_canvas_motor_from_name(liveplot_kwargs['curr_mot_name'])
+        except:
+            print(f'could not make liveplot for scan {plan_name}')
+        return liveplot_list
+
+    def _set_canvas_motor_from_name(self, motor_name):
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if motor_name == motor_dict['object'].name:
+                self.canvas_scan.motor = motor_dict['object']
+
+    def start_gen_scan_figure(self):
         update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
-        self.figure_scan.ax.set_aspect('auto')
+
+    def _run_any_scan(self, detectors, liveplot_det_kwargs, motor, liveplot_mot_kwargs,
+                      scan_range, scan_step):
+        # self.canvas_scan.mpl_disconnect(self.cid_scan)
+        # update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+        # self.figure_scan.ax.set_aspect('auto')
 
         rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
 
-        uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
-                                                               motor,
-                                                               rel_start,
-                                                               rel_stop,
-                                                               num_steps, ),
-                           LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
-        self.figure_scan.tight_layout()
-        self.canvas_scan.draw_idle()
-        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.last_motor_used = motor
-        return uid_list
+        plan_name = 'general_scan'
+        plan_kwargs = {'detectors': detectors,
+                       'motor': motor,
+                       'rel_start': rel_start,
+                       'rel_stop': rel_stop,
+                       'num_steps': num_steps,
+                       'liveplot_kwargs': {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab' : 'spectrometer'}}
+        # return plan_name, plan_kwargs
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.plan_processor.run_if_idle()
+        # uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
+        #                                                        motor,
+        #                                                        rel_start,
+        #                                                        rel_stop,
+        #                                                        num_steps, ),
+        #                    LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
+        # self.figure_scan.tight_layout()
+        # self.canvas_scan.draw_idle()
+        # self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+        # self.last_motor_used = motor
+        # return uid_list
 
 
     def run_pcl_scan(self, **kwargs):
@@ -264,24 +331,29 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def getX_scan(self, event):
         print(f'Event {event.button}')
         if event.button == 3:
-            if self.last_motor_used:
-                if type(self.last_motor_used) == list:
-                    motor1, motor2 = self.last_motor_used
-                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=motor1,
+            if self.canvas_scan.motor != '':
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_scan.motor,
                                                           parent=self.canvas_scan)
-                    if dlg.exec_():
-                        pass
-
-                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.ydata, motor=motor2,
-                                                          parent=self.canvas_scan)
-                    if dlg.exec_():
-                        pass
-
-                else:
-                    dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.last_motor_used,
-                                                          parent=self.canvas_scan)
-                    if dlg.exec_():
-                        pass
+                if dlg.exec_():
+                    pass
+            # if self.last_motor_used:
+            #     if type(self.last_motor_used) == list:
+            #         motor1, motor2 = self.last_motor_used
+            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=motor1,
+            #                                               parent=self.canvas_scan)
+            #         if dlg.exec_():
+            #             pass
+            #
+            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.ydata, motor=motor2,
+            #                                               parent=self.canvas_scan)
+            #         if dlg.exec_():
+            #             pass
+            #
+            #     else:
+            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.last_motor_used,
+            #                                               parent=self.canvas_scan)
+            #         if dlg.exec_():
+            #             pass
 
 
     def _detector_selected(self, cb_det, cb_chan):

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
+    <width>569</width>
     <height>878</height>
    </rect>
   </property>
@@ -78,10 +78,10 @@
   <widget class="QWidget" name="gridLayoutWidget_7">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>20</y>
-     <width>581</width>
-     <height>71</height>
+     <width>551</width>
+     <height>81</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_8">
@@ -193,9 +193,9 @@
   <widget class="QWidget" name="gridLayoutWidget_9">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>190</x>
      <y>130</y>
-     <width>401</width>
+     <width>371</width>
      <height>188</height>
     </rect>
    </property>
@@ -357,9 +357,9 @@
   <widget class="QWidget" name="gridLayoutWidget_5">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>580</y>
-     <width>581</width>
+     <width>551</width>
      <height>132</height>
     </rect>
    </property>
@@ -529,8 +529,8 @@ Emission motor</string>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>355</y>
-     <width>571</width>
+     <y>350</y>
+     <width>551</width>
      <height>201</height>
     </rect>
    </property>
@@ -931,10 +931,10 @@ Emission motor</string>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>751</y>
-     <width>581</width>
-     <height>111</height>
+     <x>10</x>
+     <y>750</y>
+     <width>551</width>
+     <height>121</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -1052,10 +1052,10 @@ Emission energ</string>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>140</y>
+     <x>10</x>
+     <y>130</y>
      <width>171</width>
-     <height>161</height>
+     <height>191</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_emission_energy"/>

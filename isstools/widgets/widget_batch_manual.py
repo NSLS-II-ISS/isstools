@@ -244,6 +244,24 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             elif len(selection) > 1:
                 message_box('Warning', 'Cannot move to multiple sample positions. Select one sample!')
 
+    def set_as_exposed_selected_samples(self, exposed=True):
+        index_dict = {}
+
+        index_list = self.treeWidget_samples.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                point_index_list = [item.child(i).index for i in range(item.childCount())]
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                point_index_list = [item.index]
+            if sample_index in index_dict.keys():
+                index_dict[sample_index].expand(point_index_list)
+            else:
+                index_dict[sample_index] = point_index_list
+        self.sample_manager.set_as_exposed_with_index_dict(index_dict, exposed=exposed)
+
 
     ''' 
     Dealing with sample positioning and definition
@@ -369,7 +387,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
     def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
         point_item =  self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True)
         if is_exposed:
-            point_item.setForeground(QtGui.QColor('red'))
+            point_item.setForeground(0, QtGui.QColor('red'))
+
 
     def _make_batch_item(self, parent, item_str, index, kind=''):
         return self._make_item(parent, item_str, index, kind=kind, force_unchecked=False, checkable=False)
@@ -760,6 +779,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         uncheck_selected_samples = menu.addAction("&Uncheck selected samples")
         modify = menu.addAction("&Modify")
         move_to_sample = menu.addAction("Mo&ve to sample")
+        set_as_exposed = menu.addAction("Set as exposed")
+        set_as_unexposed = menu.addAction("Set as unexposed")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
         action = menu.exec_()
@@ -771,6 +792,10 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.check_selected_samples(checkstate=2)
         elif action == uncheck_selected_samples:
             self.check_selected_samples(checkstate=0)
+        elif action == set_as_exposed:
+            self.set_as_exposed_selected_samples()
+        elif action == set_as_unexposed:
+            self.set_as_exposed_selected_samples(exposed=False)
 
     def scan_context_menu(self,QPos):
         menu = QMenu()

@@ -348,7 +348,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         if plan_name in self.data_collection_plan_funcs.keys():
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
         elif plan_name in ['general_scan', 'tuning_scan']:
-            liveplot_list = self.widget_beamline_setup.make_liveplot_func(plan_name, plan_kwargs)
+            if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
+                if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
+                    liveplot_list = self.widget_spectrometer.make_liveplot_func(plan_name, plan_kwargs)
+            else:
+                liveplot_list = self.widget_beamline_setup.make_liveplot_func(plan_name, plan_kwargs)
         else:
             liveplot_list = []
 

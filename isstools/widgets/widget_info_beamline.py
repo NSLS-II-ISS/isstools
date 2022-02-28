@@ -326,6 +326,6 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
 
     def take_pilatus_image(self):
-        plan = self.aux_plan_funcs['n_pil100k_exposures_plan'](1)
-        self.RE(plan)
+        self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
+
 

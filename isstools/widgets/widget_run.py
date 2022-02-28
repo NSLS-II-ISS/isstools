@@ -132,26 +132,26 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         xasplot_list = []
         liveplot_kwargs_list = [{'num_name': 'apb_ave_ch1_mean', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'Transmission',
-                                'log': True, 'ax': self.figure.ax1, 'color': 'b', 'legend_keys': ['Transmission']},
+                                'log': True, 'ax': self.figure.ax1, 'color': 'r', 'legend_keys': ['Transmission']},
                                {'num_name': 'apb_ave_ch2_mean', 'den_name': 'apb_ave_ch3_mean', 'result_name': 'Reference',
                                 'log': True, 'ax': self.figure.ax2, 'color': 'b', 'legend_keys': ['Reference']},
                                {'num_name': 'apb_ave_ch4_mean', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'PIPS TFY',
-                                'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['PIPS TFY']}, ]
+                                'log': False, 'ax': self.figure.ax3, 'color': 'g', 'legend_keys': ['PIPS TFY']}, ]
         if 'Pilatus 100k' in detectors:
             liveplot_kwargs_list.append(
                 {'num_name': 'pil100k_stats1_total', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
-                 'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['HERFD']})
+                 'log': False, 'ax': self.figure.ax3, 'color': 'm', 'legend_keys': ['HERFD']})
         if 'Xspress3' in detectors:
             liveplot_kwargs_list.append(
-                {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
-                 'log': False, 'ax': self.figure.ax3, 'color': 'b', 'legend_keys': ['SDD']})
+                {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'SDD',
+                 'log': False, 'ax': self.figure.ax3, 'color': 'm', 'legend_keys': ['SDD']})
         for liveplot_kwargs in liveplot_kwargs_list:
-            _xasplot = self._xasplot_from_dict(liveplot_kwargs)
+            _xasplot = self._xasplot_from_dict(liveplot_kwargs, motor_name)
             xasplot_list.append(_xasplot)
 
         return xasplot_list
 
-    def _xasplot_from_dict(self, **kwargs):
+    def _xasplot_from_dict(self, kwargs, motor_name):
         return XASPlot(kwargs['num_name'], kwargs['den_name'], kwargs['result_name'], motor_name, log=kwargs['log'],
                        ax=kwargs['ax'], color=kwargs['color'], legend_keys=kwargs['legend_keys'])
 
