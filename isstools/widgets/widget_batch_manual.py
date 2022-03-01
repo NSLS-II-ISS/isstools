@@ -257,7 +257,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 sample_index = item.parent().index
                 point_index_list = [item.index]
             if sample_index in index_dict.keys():
-                index_dict[sample_index].expand(point_index_list)
+                index_dict[sample_index].extend(point_index_list)
             else:
                 index_dict[sample_index] = point_index_list
         self.sample_manager.set_as_exposed_with_index_dict(index_dict, exposed=exposed)
@@ -456,7 +456,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
                 sample_index = item.parent().index
                 point_index_list = [item.index]
             if sample_index in index_dict.keys():
-                index_dict[sample_index].expand(point_index_list)
+                index_dict[sample_index].extend(point_index_list)
             else:
                 index_dict[sample_index] = point_index_list
         self.sample_manager.delete_samples_with_index_dict(index_dict)
