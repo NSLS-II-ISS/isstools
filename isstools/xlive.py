@@ -4,7 +4,8 @@ import numpy as np
 import pkg_resources
 import math
 
-from PyQt5 import uic, QtGui, QtCore
+from PyQt5 import uic, QtGui, QtCore, QtWidgets
+
 from PyQt5.QtCore import QThread, QSettings
 
 from .widgets import (widget_info_general,
@@ -344,6 +345,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.define_gui_services_dict()
         self.plan_processor.append_gui_services_dict(self.gui_services_dict)
 
+        self.plan_processor.append_add_plans_question_box_func(self.add_plans_question_box)
+
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
@@ -415,7 +418,25 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.label_RE_state.setPalette(palette)
         self.label_RE_state.setText(self.RE.state)
 
-
+    def add_plans_question_box(self, plans, add_at, idx, pause_after):
+        messageBox = QtWidgets.QMessageBox()
+        messageBox.setWindowTitle('Warning')
+        messageBox.setText('Queue is not empty')
+        messageBox.addButton(QtWidgets.QPushButton('Skip'), QtWidgets.QMessageBox.NoRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to head and pause after'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to head'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to tail'), QtWidgets.QMessageBox.YesRole)
+        ret = messageBox.exec_()
+        if ret == 0:
+            plans = []
+        elif ret == 1:
+            pause_after = True
+            add_at = 'head'
+        elif ret == 2:
+            add_at = 'head'
+        elif ret == 3:
+            add_at = 'tail'
+        return plans, add_at, idx, pause_after
 
 class ProcessingThread(QThread):
     def __init__(self, gui, print_func=None):
