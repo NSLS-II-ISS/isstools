@@ -303,7 +303,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                 'preedge_dwelltime': float(self.edit_preedge_dwell.text()),
                 'XANES_dwelltime': float(self.edit_xanes_dwell.text()),
                 'EXAFS_dwelltime': float(self.edit_exafs_dwell.text()),
-                'k_power': int(self.comboBox_exafs_dwell_kpower.currentText())}
+                'k_power': int(self.comboBox_exafs_dwell_kpower.currentText()),
+                'revert': self.checkBox_energy_down.isChecked()}
 
     @property
     def _linear_step_dict(self):
