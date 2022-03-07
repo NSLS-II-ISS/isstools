@@ -1216,3 +1216,55 @@ file_list = ['/nsls2/xf08id/users/2022/1/309628/Sample 2 (pos 001) Ir XANES L3  
 
 for f in file_list:
     xlive_gui.cloud_dispatcher.load_to_dropbox(f)
+
+
+a=xview_gui.project
+
+b=a[-1]
+
+b.md_processing = {"Processing steps": ['merge']}
+b. md_sample = {'Composition': 'NMCA','Comment':'1','Charging cycle':2,'Voltage': 4.8}
+full_dict= [b.md, b.md_sample,b.md_processing, {'Energy': b.energy.tolist(), 'mu_flat': b.flat.tolist()}]
+filename = b.md_sample['Composition'] + ' ' + b.md_sample['Comment'] + ' Charging cycle '+ str(b.md_sample['Charging cycle'])+ ' ' + str(b.md_sample['Voltage']) + 'V ' +str(b.md['element'])+ '.json'
+print(filename)
+print(b.md['merged files'])
+
+json_object = json.dumps(full_dict)
+
+# Writing to sample.json
+with open(filename, "w") as f:
+     f.write(json_object)
+
+
+
+#%%%
+# from xas import filter_df_by_valid_keys
+from xas.file_io import stepscan_remove_offsets, stepscan_normalize_xs, combine_xspress3_channels
+
+
+# uid = '1145befd-c665-4740-98b4-6dc3d0671aaf'
+uid = 'b05d6f55-fe76-4df4-bceb-7542c9cf7293'
+
+df_raw = stepscan_remove_offsets(db[uid])
+df_raw = stepscan_normalize_xs(df_raw)
+df_raw = combine_xspress3_channels(df_raw)
+
+df_processed = filter_df_by_valid_keys(df_raw)
+
+def process_von_hamos_scan(df_processed, df_raw, roi='auto'):
+    vh_scan = VonHamosScan(df_processed, df_raw)
+    if roi == 'auto':
+        pass
+    vh_scan.set_roi(*roi)
+    vh_scan.integrate_images()
+    return vh_scan
+
+vh_scan = process_von_hamos_scan(df_processed, df_raw, roi=(65, 30, 100, 300))
+
+#################################
+
+for i in range(-5, -200, -1):
+   hdr = db[i]
+   if 'experiment' in hdr.start.keys():
+       if hdr.start['experiment'] == 'collect_n_exposures':
+           process_interpolate_bin_from_uid(i, db)
