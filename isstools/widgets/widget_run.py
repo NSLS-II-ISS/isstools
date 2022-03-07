@@ -130,6 +130,8 @@ class UIRun(*uic.loadUiType(ui_path)):
         else:
             motor_name = 'time'
 
+        update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
+
         xasplot_list = []
         liveplot_kwargs_list = [{'num_name': 'apb_ave_ch1_mean', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'Transmission',
                                 'log': True, 'ax': self.figure.ax1, 'color': 'r', 'legend_keys': ['Transmission']},

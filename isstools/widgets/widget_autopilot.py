@@ -226,10 +226,10 @@ class UIAutopilot(*uic.loadUiType(ui_path)):
                             df_row_index += 1
 
         self.sample_df_to_table_widget()
-        combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number #???
-        combo_run.clear
-        for indx, _ in self.sample_df.iterrows():
-            combo_run.addItem(str(indx + 1))
+        # combo_run = self.parent_gui.widget_run.comboBox_autopilot_sample_number #???
+        # combo_run.clear
+        # for indx, _ in self.sample_df.iterrows():
+        #     combo_run.addItem(str(indx + 1))
 
     def clear_table(self):
         self.sample_df = pd.DataFrame(columns=self.table_keys)
