@@ -20,7 +20,8 @@ from .widgets import (widget_info_general,
                       widget_camera,
                       widget_autopilot,
                       widget_spectrometer,
-                      widget_plan_queue)
+                      widget_plan_queue,
+                      widget_sample_view)
 
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
@@ -184,14 +185,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         print('widget camera loading', ttime.ctime())
-        self.widget_camera = widget_camera.UICamera(camera_dict,
-                                                    sample_stage,
-                                                    self.sample_positioner,
-                                                    RE,
-                                                    parent_gui=self,
-                                                    sample_registry=None
+
+        # self.widget_camera = widget_camera.UICamera(camera_dict,
+        #                                             sample_stage,
+        #                                             self.sample_positioner,
+        #                                             RE,
+        #                                             parent_gui=self,
+        #                                             sample_registry=None
+        #                                             )
+        # self.layout_camera.addWidget(self.widget_camera)
+
+        self.widget_camera = widget_sample_view.UISampleView(camera_dict=camera_dict,
                                                     )
         self.layout_camera.addWidget(self.widget_camera)
+
+
 
         print('widget batch loading', ttime.ctime())
         self.widget_batch_mode = widget_batch.UIBatch(service_plan_funcs=service_plan_funcs,
