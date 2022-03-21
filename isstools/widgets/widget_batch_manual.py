@@ -729,15 +729,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             if item.parent() is None: # this must be experiment
                 index_tuple_list.append( (item.index, ) )
             else:
-                if item.childCount() == 0: # bottom of the tree
+                if item.parent().kind == 'batch_experiment':
+                    experiment_index = item.parent().index
+                    item_index = item.index
+                    index_tuple_list.append((experiment_index, item_index))
+                else:
                     experiment_index = item.parent().parent().index
                     element_index = item.parent().index
                     item_index = item.index
                     index_tuple_list.append((experiment_index, element_index, item_index))
-                else: # either sample or scan in the middle of the tree
-                    experiment_index = item.parent().index
-                    item_index = item.index
-                    index_tuple_list.append((experiment_index, item_index))
+
         return index_tuple_list
 
 
