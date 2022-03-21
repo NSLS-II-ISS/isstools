@@ -357,9 +357,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.pushEnableHHMFeedback.setChecked(value)
 
     def update_pushEnableHHMFeedback_status(self, value, **kwargs):
-        self.pushEnableHHMFeedback.toggled.disconnect(self.enable_fb)
+        # self.pushEnableHHMFeedback.toggled.disconnect(self.enable_fb)
         self.pushEnableHHMFeedback.setChecked(value)
-        self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
+        # self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
     def adjust_gains(self):
         plan_name = 'optimize_gains'
