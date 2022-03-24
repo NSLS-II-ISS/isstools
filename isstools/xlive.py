@@ -393,13 +393,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
     def re_abort(self):
-        if self.RE.state != 'idle':
-            # self.push_re_abort.setEnabled(0)
-            self.RE.abort()
-            self.RE.state == 'abort'
-            self.RE.is_aborted = True
-        self.hhm.abort_trajectory() # it only aborts if there is a trajectory running
+        hhm_flying = self.hhm.abort_trajectory() # it only aborts if there is a trajectory running
+        # print(f'>>>>>>>>>>>>> HHM_FLYING = {hhm_flying}')
+        # print(f'>>>>>>>>>>>>> HHM_FLYING_STATUS = {self.hhm.flying_status}')
+        if not hhm_flying:
+            if self.RE.state != 'idle':
+                # self.push_re_abort.setEnabled(0)
+                self.RE.abort()
+                self.RE.state == 'abort'
+                self.RE.is_aborted = True
+
         ret = question_message_box(self, 'Aborting the scan', 'Would you like to clear/reset queue?')
+
+        self.plan_processor.pause_plan_list()
         if ret:
             self.plan_processor.reset()
         else:
