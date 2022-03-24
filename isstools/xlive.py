@@ -234,7 +234,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_beamline_setup.addWidget(self.widget_beamline_setup)
 
         #Info shutters
-        self.layout_info_shutters.addWidget(widget_info_shutters.UIInfoShutters(shutter_dict))
+        self.widget_info_shutters = widget_info_shutters.UIInfoShutters(shutters=shutter_dict,
+                                                                        plan_processor=plan_processor,
+                                                                        parent=self)
+        self.layout_info_shutters.addWidget(self.widget_info_shutters)
 
         #Info general
         print('widget info general loading', ttime.ctime())

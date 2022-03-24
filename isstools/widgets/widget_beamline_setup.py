@@ -283,10 +283,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-        self.push_gen_scan.setEnabled(False)
-        self.plan_processor.run_if_idle()
+        # self.push_gen_scan.setEnabled(False)
+        # self.plan_processor.run_if_idle()
 
-        self.push_gen_scan.setEnabled(True)
+        # self.push_gen_scan.setEnabled(True)
         # self.last_gen_scan_uid = self.db[-1]['start']['uid']
         # self.push_gen_scan_save.setEnabled(True)
 

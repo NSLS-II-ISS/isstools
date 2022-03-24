@@ -352,7 +352,7 @@
       <x>1820</x>
       <y>10</y>
       <width>381</width>
-      <height>131</height>
+      <height>151</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_info_shutters"/>

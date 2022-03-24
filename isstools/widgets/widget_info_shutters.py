@@ -8,11 +8,19 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_shutters.ui')
 class UIInfoShutters(*uic.loadUiType(ui_path)):
     shutters_sig = QtCore.pyqtSignal()
     def __init__(self,
-                 shutters={},
+                 shutters=None,
+                 plan_processor=None,
+                 parent=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self.parent = parent
+        self.plan_processor = plan_processor
+
+        self.check_vacuum_and_shutters(self.checkBox_check_vacuum_and_shutters.isChecked())
+        self.checkBox_check_vacuum_and_shutters.clicked.connect(self.check_vacuum_and_shutters)
+
         # Initialize Ophyd elements
         self.shutters_sig.connect(self.change_shutter_color)
         self.shutters = shutters
@@ -28,7 +36,7 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
             label.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
 
             button = QtWidgets.QPushButton('')
-            button.setFixedSize(self.height() * 0.5, self.height() * 0.5)
+            button.setFixedSize(self.height() * 0.4, self.height() * 0.4)
             self.shutter_layout.addWidget(button)
             # button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
 
@@ -95,3 +103,7 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
 
     def change_shutter_color(self):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
+
+    def check_vacuum_and_shutters(self, state):
+        self.plan_processor.check_valves = state
+        self.plan_processor.check_shutters = state

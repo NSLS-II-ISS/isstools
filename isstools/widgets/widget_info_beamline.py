@@ -82,6 +82,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_auto_pitch.clicked.connect(self.auto_pitch)
 
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
+
+        self.set_autofoil(self.checkBox_autofoil.isChecked())
+        self.checkBox_autofoil.clicked.connect(self.set_autofoil)
         self.push_set_attenuator.clicked.connect(self.set_attenuator)
 
         self.push_pilatus_image.clicked.connect(self.take_pilatus_image)
@@ -313,6 +316,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         foil = self.comboBox_reference_foils.currentText()
         self.plan_processor.add_plan_and_run_if_idle('set_reference_foil', {'element': foil})
         # self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
+
+    def set_autofoil(self, state):
+        self.plan_processor.auto_foil_set = state
 
     def set_attenuator(self):
         attenuator = self.comboBox_attenuator.currentText()

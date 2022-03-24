@@ -721,7 +721,7 @@ Image</string>
    <property name="geometry">
     <rect>
      <x>460</x>
-     <y>120</y>
+     <y>115</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -734,7 +734,7 @@ Image</string>
    <property name="geometry">
     <rect>
      <x>710</x>
-     <y>30</y>
+     <y>32</y>
      <width>111</width>
      <height>21</height>
     </rect>
