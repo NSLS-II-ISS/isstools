@@ -272,7 +272,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 message_box('Incorrect energy', 'Energy should be numerical')
 
             if (new_energy > 4700) and (new_energy < 32000):
-                self.plan_processor.add_plan_and_run_if_idle('move_mono_energy', {'energy' : new_energy})
+                self.plan_processor.add_plan_and_run_if_idle('move_johann_spectrometer_energy', {'energy' : new_energy})
                 # self.plan_processor.add_execute_pause_plan_at_head('move_johann_spectrometer_energy', {'energy': new_energy})
                 # self.RE(bps.mv(self.hhm.energy, new_energy))
             else:

@@ -102,6 +102,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.push_create_scan.clicked.connect(self.create_new_scan)
         self.push_delete_scan.clicked.connect(self.delete_scan)
 
+        self.comboBox_scans.currentIndexChanged.connect(self.update_n_eff_label)
+
         # services
         self.push_create_service.clicked.connect(self.create_service)
         self.comboBox_service_plan.addItems(self.service_plan_funcs_names)
@@ -125,6 +127,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
         self.comboBox_scans.clear()
         self.comboBox_scans.addItems(scan_defs)
+        self.update_n_eff_label(0)
         # self.scan_sequence_manager.reset()
 
 
@@ -616,6 +619,16 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             if scan_item.checkState(0):
                 index_list.append(scan_item.index)
         return index_list
+
+    def update_n_eff_label(self, index):
+        local_scan_dict = self.scan_manager.scan_list_local[index]
+        scan_key = local_scan_dict['aux_parameters']['scan_key']
+        if scan_key == 'johann_rixs':
+            energy_grid = local_scan_dict['aux_parameters']['spectrometer']['scan_parameters']['energy_grid']
+            n_eff = len(energy_grid)
+        else:
+            n_eff = 1
+        self.label_n_eff.setText(f'n_eff={n_eff}')
 
     '''
     Dealing with services
