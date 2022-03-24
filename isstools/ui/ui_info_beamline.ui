@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1076</width>
-    <height>120</height>
+    <height>148</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -497,7 +497,7 @@
   <widget class="QLabel" name="label_reference_foil">
    <property name="geometry">
     <rect>
-     <x>730</x>
+     <x>690</x>
      <y>80</y>
      <width>181</width>
      <height>20</height>
@@ -533,7 +533,7 @@
   <widget class="QLabel" name="label_attenuator">
    <property name="geometry">
     <rect>
-     <x>730</x>
+     <x>690</x>
      <y>100</y>
      <width>171</width>
      <height>20</height>
@@ -551,7 +551,7 @@
   <widget class="QComboBox" name="comboBox_reference_foils">
    <property name="geometry">
     <rect>
-     <x>910</x>
+     <x>840</x>
      <y>80</y>
      <width>87</width>
      <height>20</height>
@@ -561,7 +561,7 @@
   <widget class="QPushButton" name="push_set_reference_foil">
    <property name="geometry">
     <rect>
-     <x>1000</x>
+     <x>930</x>
      <y>80</y>
      <width>71</width>
      <height>20</height>
@@ -574,7 +574,7 @@
   <widget class="QComboBox" name="comboBox_attenuator">
    <property name="geometry">
     <rect>
-     <x>910</x>
+     <x>840</x>
      <y>100</y>
      <width>87</width>
      <height>20</height>
@@ -584,7 +584,7 @@
   <widget class="QPushButton" name="push_set_attenuator">
    <property name="geometry">
     <rect>
-     <x>1000</x>
+     <x>930</x>
      <y>100</y>
      <width>71</width>
      <height>20</height>
@@ -715,6 +715,48 @@
    <property name="text">
     <string>Pilatus
 Image</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_auto_gains">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>120</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Auto gains</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="push_auto_pitch">
+   <property name="geometry">
+    <rect>
+     <x>710</x>
+     <y>30</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Auto pitch</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_autofoil">
+   <property name="geometry">
+    <rect>
+     <x>1010</x>
+     <y>80</y>
+     <width>96</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Auto</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

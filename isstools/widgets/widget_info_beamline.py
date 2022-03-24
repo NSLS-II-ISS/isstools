@@ -74,10 +74,12 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
         self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
         self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
+        self.push_auto_gains.clicked.connect(parent.widget_beamline_setup.adjust_gains)
         self.push_set_energy.clicked.connect(self.set_energy)
         self.push_set_emission_energy.clicked.connect(self.set_emission_energy)
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
+        self.push_auto_pitch.clicked.connect(self.auto_pitch)
 
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
         self.push_set_attenuator.clicked.connect(self.set_attenuator)
@@ -288,6 +290,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         if not self.hhm.pitch.moving:
             pitch = self.hhm.pitch.read()['hhm_pitch']['value']
             self.hhm.pitch.move(pitch - 0.025)
+
+    def auto_pitch(self):
+        self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', {})
 
     # def update_daq_rate(self):
     #     daq_rate = self.spinBox_daq_rate.value()

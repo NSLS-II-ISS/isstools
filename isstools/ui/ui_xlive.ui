@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>2220</width>
-    <height>1194</height>
+    <height>1240</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>2220</width>
-    <height>1194</height>
+    <height>1240</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>2220</width>
-    <height>1194</height>
+    <height>1240</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -39,7 +39,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>170</y>
       <width>1641</width>
       <height>961</height>
      </rect>
@@ -231,7 +231,7 @@
     <property name="geometry">
      <rect>
       <x>1660</x>
-      <y>170</y>
+      <y>190</y>
       <width>551</width>
       <height>431</height>
      </rect>
@@ -252,7 +252,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>1120</y>
+      <y>1140</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -290,7 +290,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>1120</y>
+      <y>1140</y>
       <width>101</width>
       <height>28</height>
      </rect>
@@ -303,7 +303,7 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>1120</y>
+      <y>1140</y>
       <width>1301</width>
       <height>23</height>
      </rect>
@@ -316,7 +316,7 @@
     <property name="geometry">
      <rect>
       <x>1670</x>
-      <y>150</y>
+      <y>170</y>
       <width>141</width>
       <height>20</height>
      </rect>
@@ -363,7 +363,7 @@
       <x>720</x>
       <y>10</y>
       <width>1091</width>
-      <height>131</height>
+      <height>151</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_info_beamline">
@@ -376,7 +376,7 @@
     <property name="geometry">
      <rect>
       <x>1660</x>
-      <y>610</y>
+      <y>630</y>
       <width>551</width>
       <height>521</height>
      </rect>
