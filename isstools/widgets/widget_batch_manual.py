@@ -711,6 +711,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             return 'scan'
         elif self.radioButton_priority_sample.isChecked():
             return 'sample'
+        elif self.radioButton_priority_sample_coords.isChecked():
+            return 'sample_point'
 
 
     def create_measurement(self):
