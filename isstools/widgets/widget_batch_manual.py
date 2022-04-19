@@ -621,12 +621,15 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         return index_list
 
     def update_n_eff_label(self, index):
-        local_scan_dict = self.scan_manager.scan_list_local[index]
-        scan_key = local_scan_dict['aux_parameters']['scan_key']
-        if scan_key == 'johann_rixs':
-            energy_grid = local_scan_dict['aux_parameters']['spectrometer']['scan_parameters']['energy_grid']
-            n_eff = len(energy_grid)
-        else:
+        try:
+            local_scan_dict = self.scan_manager.scan_list_local[index]
+            scan_key = local_scan_dict['aux_parameters']['scan_key']
+            if scan_key == 'johann_rixs':
+                energy_grid = local_scan_dict['aux_parameters']['spectrometer']['scan_parameters']['energy_grid']
+                n_eff = len(energy_grid)
+            else:
+                n_eff = 1
+        except:
             n_eff = 1
         self.label_n_eff.setText(f'n_eff={n_eff}')
 

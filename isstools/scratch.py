@@ -1137,6 +1137,7 @@ link_url = dropbox_get_shared_link(dropbox_service, f'{folder}{zip_id_file}' )
 print('Upload succesful')
 
 
+
 message = create_html_message(
     'staff08id@gmail.com',
     email_address,
@@ -1268,3 +1269,31 @@ for i in range(-5, -200, -1):
    if 'experiment' in hdr.start.keys():
        if hdr.start['experiment'] == 'collect_n_exposures':
            process_interpolate_bin_from_uid(i, db)
+
+
+
+'''
+In [1]: [Queue] (2022-04-11 11:08:59.173233) Execution of plan fly_scan_plan starting...
+[Flyer] (2022-04-11 11:08:59.235931) Preparing mono starting...
+[Flyer] (2022-04-11 11:09:03.264127) Preparing mono complete
+[Flyer] (2022-04-11 11:09:03.264235) Fly scan staging starting...
+[Flyer] (2022-04-11 11:09:03.376111) 	start staging apb_stream ...
+[Flyer] (2022-04-11 11:09:03.378491) 	start staging pb9_enc1 ...
+[Flyer] (2022-04-11 11:09:03.379319) Fly scan staging complete
+CA.Client.Exception...............................................
+    Warning: "Channel write request failed"
+    Context: "op=1, channel=XF:08IDA-CT{Enc09:1}ID:File.VAL, type=DBR_CHAR, count=30, ctx="XF:08IDA-CT{Enc09:1}ID:File""
+    Source File: ../oldChannelNotify.cpp line 158
+    Current Time: Mon Apr 11 2022 11:09:03.379631513
+..................................................................
+[Flyer] (2022-04-11 11:09:03.575839) Detector kickoff starting...
+Mon Apr 11 11:09:03 2022 >>> User Shutter opening...
+[Flyer] (2022-04-11 11:09:06.165611) Detector kickoff complete
+[Flyer] (2022-04-11 11:09:06.165883) Mono trajectory motion starting...
+[Flyer] (2022-04-11 11:09:37.273874) Mono trajectory motion complete
+[Flyer] (2022-04-11 11:09:37.274177) Detector complete starting...
+(2022-04-11 11:09:37.274408) apb_stream complete starting
+(2022-04-11 11:09:37.277092) apb_stream complete done
+Mon Apr 11 11:09:37 2022 >>> pb9_enc1 complete starting...
+Mon Apr 11 11:09:39 2022 Moving file from /mnt/xf08ida-ioc1/en_566ffce6 to /nsls2/data/iss/legacy/raw/2022/04/11/en_566ffce6
+'''
