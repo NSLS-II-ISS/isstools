@@ -1,8 +1,9 @@
 import time
 import random
+import numpy as np
 
-from qtpy.QtCore import Signal, QByteArray, QPoint, QRect, QSize, QTimer, Qt, QObject, QUrl
-from qtpy.QtGui import QBrush, QColor, QFont, QImage, QPainter
+from qtpy.QtCore import Signal, QByteArray, QPoint, QPointF, QRect, QSize, QTimer, Qt, QObject, QUrl
+from qtpy.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPolygon
 from qtpy.QtWidgets import QWidget
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
@@ -38,6 +39,105 @@ class Downloader(QObject):
         self.reply = None
 
 
+# class CustomQPoint(QPoint):
+#
+#     @property
+#     def xy(self):
+#         return self.x(), self.y()
+
+class CustomQPolygon(QPolygon):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dragging_index = None
+        self.dragging_whole = None
+        self.whole_ref_point = None
+
+    def distance_to_vertices(self, point : QPoint):
+
+        if self.count() == 0:
+            return None
+
+        x, y = point.x(), point.y()
+
+        dist = []
+        for i in range(self.count()):
+            point_i = self.at(i)
+            x_i, y_i = point_i.x(), point_i.y()
+            dist_i = np.sqrt((x - x_i) ** 2 + (y - y_i) ** 2)
+            dist.append(dist_i)
+
+        return np.array(dist)
+
+    def closest_point_index(self, point : QPoint, margin=30):
+        dist = self.distance_to_vertices(point)
+        if dist is not None:
+            idx = dist.argmin()
+            val = dist.min()
+            if val < margin:
+                return idx
+
+        return None
+
+    def closest_point(self, point):
+        index = self.closest_point_index(point)
+        if index is not None:
+            return self.at(index)
+        return None
+
+    def close_to_center(self, point):
+        x = point.x()
+        y = point.y()
+
+        rect = self.boundingRect()
+        cen = rect.center()
+        x_cen = cen.x()
+        y_cen = cen.y()
+        rx = rect.width() / 4
+        ry = rect.height() / 4
+
+        dist = np.sqrt(((x - x_cen) / rx)**2 + ((y - y_cen) / ry)**2)
+
+        return (dist < 1) or None
+
+    def start_drag(self, point):
+        if self.dragging_index is None:
+            self.dragging_index = self.closest_point_index(point)
+        if self.dragging_index is None:
+            if self.dragging_whole is None:
+                self.dragging_whole = self.close_to_center(point)
+                self.whole_ref_point = point
+
+    def drag(self, point):
+        if self.dragging_index is not None:
+            self.drag_point(point)
+            return
+
+        if self.dragging_whole is not None:
+            self.drag_whole(point)
+            return
+
+    def drag_point(self, point):
+        print(self.dragging_index)
+        self.setPoint(self.dragging_index, point)
+
+    def drag_whole(self, point):
+        dx = point.x() - self.whole_ref_point.x()
+        dy = point.y() - self.whole_ref_point.y()
+        self.translate(dx, dy)
+        self.whole_ref_point = point
+
+    def stop_drag(self):
+        self.dragging_index = None
+        self.dragging_whole = None
+        self.whole_ref_point = None
+
+    def remove_point(self, point):
+        remove_index = self.closest_point_index(point)
+        print(remove_index)
+        if remove_index is not None:
+            self.remove(remove_index)
+
 class Microscope(QWidget):
     roiClicked = Signal(int, int)
 
@@ -68,6 +168,13 @@ class Microscope(QWidget):
         self.downloader = Downloader(self)
         self.downloader.imageReady.connect(self.updateImageData)
 
+        self.calibration_polygon = CustomQPolygon()
+        self.dragging_index = None
+
+    @property
+    def mode(self):
+        return self.parent().parent().interaction_mode
+
     def updatedImageSize(self):
         if self.image.size() != self.minimumSize():
             self.setMinimumSize(self.image.size())
@@ -83,7 +190,7 @@ class Microscope(QWidget):
             self.timer.stop()
 
     def paintEvent(self, event):
-        tic = time.perf_counter()
+        # tic = time.perf_counter()
         painter = QPainter(self)
         rect = event.rect()
         #self.image = self.image.scaledToWidth(780)
@@ -97,7 +204,9 @@ class Microscope(QWidget):
             elif self.mark_direction == 0:
                 painter.drawLine(self.center.x()-200, self.mark_location.y(), self.center.x() + 200, self.mark_location.y())
 
-        #Draw the center mark
+        painter.drawPolygon(self.calibration_polygon)
+
+        # #Draw the center mark
         painter.setPen(QColor.fromRgb(255, 0, 0))
         painter.drawLine(
              self.center.x() - 20, self.center.y(), self.center.x() + 20, self.center.y()
@@ -107,33 +216,53 @@ class Microscope(QWidget):
         )
  
     def mousePressEvent(self, event):
+
+        pos = event.pos()
+        # print(pos, type(pos))
+
         if event.button() == Qt.RightButton:
-            if self.mark_location_set:
-                ret = question_message_box(self, 'Warning', 'Do you want to redefine beam location mark')
-                if not ret:
-                    return
 
-            pos = event.pos()
-            self.roiClicked.emit(pos.x(), pos.y())
-            self.mark_location = pos
+            if self.mode == 'calibration':
+                self.calibration_polygon.append(pos)
 
-            self.mark_location_set = True
+            elif self.mode == 'default':
+                self.mark_beam_location(pos)
+
         elif event.button() == Qt.LeftButton:
-            pos = event.pos()
-            self.zoom_location_start = pos
-        self.update()
+            if self.mode == 'calibration':
+                self.calibration_polygon.start_drag(pos)
+
+
+    def mark_beam_location(self, pos):
+        if self.mark_location_set:
+            ret = question_message_box(self, 'Warning', 'Do you want to redefine beam location mark')
+            if not ret:
+                return
+        self.roiClicked.emit(pos.x(), pos.y())
+        self.mark_location = pos
+        self.mark_location_set = True
+
+    def mouseMoveEvent(self, event):
+        pos = event.pos()
+        if self.mode == 'calibration':
+            self.calibration_polygon.drag(pos)
+
+
 
     def mouseReleaseEvent(self, event):
+        pos = event.pos()
         if event.button() == Qt.LeftButton:
-            pos = event.pos()
-
-            self.zoom_location_end = pos
-
+            if self.mode == 'calibration':
+                self.calibration_polygon.stop_drag()
 
 
-    # def mouseMoveEvent(self, event):
-    #     self.end = event.pos()
-    #     self.update()
+    def mouseDoubleClickEvent(self, event):
+        print(event, event.button())
+        pos = event.pos()
+        if event.button() == Qt.LeftButton:
+            if self.mode == 'calibration':
+                self.calibration_polygon.remove_point(pos)
+
 
     def sizeHint(self):
         return QSize(400, 400)

@@ -34,9 +34,15 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.camera1 = self.camera_dict['camera_sample1']
         self.camera2 = self.camera_dict['camera_sample2']
 
+        self.interaction_mode = 'default'
+
         self.pushButton_visualize_sample.clicked.connect(self.visualize_sample)
         self.pushButton_visualize_beam.clicked.connect(self.visualize_beam)
 
+        self.spinBox_image_min.valueChanged.connect(self.update_image_limits)
+        self.spinBox_image_max.valueChanged.connect(self.update_image_limits)
+
+        self.pushButton_calibration_mode.clicked.connect(self.set_to_calibration_mode)
 
         self.cam1_url = cam1_url
         self.sample_cam1 = Microscope(parent = self, mark_direction=1,)
@@ -66,7 +72,17 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.camera2.exp_time.set(exposure)
 
 
+    def update_image_limits(self):
+        vmin = self.spinBox_image_min.value()
+        vmax = self.spinBox_image_max.value()
+        print(vmin, vmax)
 
+
+    def set_to_calibration_mode(self, state):
+        if state:
+            self.interaction_mode = 'calibration'
+        else:
+            self.interaction_mode = 'default'
 
 
 
