@@ -138,8 +138,16 @@ class CustomQPolygon(QPolygon):
         if remove_index is not None:
             self.remove(remove_index)
 
+    @property
+    def coordinate_list(self):
+        output = []
+        for i in range(self.count()):
+            output.append([self.at(i).x(), self.at(i).y()])
+        return output
+
 class Microscope(QWidget):
     roiClicked = Signal(int, int)
+    polygonDrawingSignal = Signal(QPoint)
 
     def __init__(self, parent=None, mark_direction = 1):
         #mark_direction = 0 for horizontal, 1 for vertical
@@ -169,11 +177,19 @@ class Microscope(QWidget):
         self.downloader.imageReady.connect(self.updateImageData)
 
         self.calibration_polygon = CustomQPolygon()
-        self.dragging_index = None
+
+        self.A_xy2px = None
+        self.A_xy2py = None
+
+
 
     @property
     def mode(self):
         return self.parent().parent().interaction_mode
+
+    @property
+    def draw_calibration_isChecked(self):
+        return self.parent().parent().checkBox_draw_calibration.isChecked()
 
     def updatedImageSize(self):
         if self.image.size() != self.minimumSize():
@@ -214,7 +230,26 @@ class Microscope(QWidget):
         painter.drawLine(
              self.center.x(), self.center.y() - 20, self.center.x(), self.center.y() + 20
         )
- 
+
+        # draw calibration
+        if (self.A_xy2px is not None) and (self.A_xy2py is not None):
+            if self.draw_calibration_isChecked:
+
+                painter.setPen(QColor.fromRgb(0, 0, 255))
+
+                dx = self.A_xy2px @ [1, 0]
+                dy = self.A_xy2py @ [1, 0]
+
+                for y in range(0, 1000, 100):
+                    painter.drawLine(1000, y, 1000+dx*150, y+dy*150)
+
+                dx = self.A_xy2px @ [0, 1]
+                dy = self.A_xy2py @ [0, 1]
+
+                for x in range(0, 1000, 100):
+                    painter.drawLine(x, 1000, x + dx * 150, 1000 + dy * 150)
+
+
     def mousePressEvent(self, event):
 
         pos = event.pos()
@@ -223,6 +258,7 @@ class Microscope(QWidget):
         if event.button() == Qt.RightButton:
 
             if self.mode == 'calibration':
+                self.polygonDrawingSignal.emit(pos)
                 self.calibration_polygon.append(pos)
 
             elif self.mode == 'default':

@@ -82,8 +82,8 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.verticalSlider_xstep.valueChanged.connect(self.update_sample_stage_step)
         self.verticalSlider_ystep.valueChanged.connect(self.update_sample_stage_step)
 
-
         self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
+        self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
 
         self.cam1_url = cam1_url
         self.sample_cam1 = Microscope(parent = self, mark_direction=1,)
@@ -100,6 +100,11 @@ class UISampleView(*uic.loadUiType(ui_path)):
 
         self.layout_sample_cam2.addWidget(self.sample_cam2)
         self.sample_cam2.acquire(True)
+
+        self.sample_cam1.polygonDrawingSignal.connect(self.sample_cam2.calibration_polygon.append)
+        self.sample_cam2.polygonDrawingSignal.connect(self.sample_cam1.calibration_polygon.append)
+
+        self.calibration_data = []
 
 
     def visualize_beam(self):
@@ -128,6 +133,12 @@ class UISampleView(*uic.loadUiType(ui_path)):
             self.pushButton_register_calibration_point.setEnabled(False)
 
     def register_calibration_point(self):
+        output_dict = self.sample_stage.positions('x', 'y', prefix='sample_stage')
+        output_dict['cam1'] = self.sample_cam1.calibration_polygon.coordinate_list
+        output_dict['cam2'] = self.sample_cam2.calibration_polygon.coordinate_list
+        self.calibration_data.append(output_dict)
+
+    def process_calibration_data(self):
         pass
 
     def move_sample_stage(self):
@@ -136,8 +147,7 @@ class UISampleView(*uic.loadUiType(ui_path)):
         direction = stage_widget_dict[sender_object]['direction']
         step_label_widget = getattr(self, stage_widget_dict[sender_object]['step_size_widget'])
         step = float(step_label_widget.text())
-        status = self.sample_stage.mvr({axis : direction * step})
-        # status.wait()
+        self.sample_stage.mvr({axis : direction * step})
 
     def update_sample_stage_step(self, idx):
         slider_object = QObject().sender()
@@ -147,7 +157,6 @@ class UISampleView(*uic.loadUiType(ui_path)):
         step_label_widget.setText(str(value))
 
     def _compute_step_value(self, slider_object, idx, min_step=0.1, max_step=50, logarithmic=True):
-
         n = int(slider_object.maximum() - slider_object.minimum()) + 1
         if logarithmic:
             step_array =  10 ** np.linspace(np.log10(min_step), np.log10(max_step), n)
@@ -156,4 +165,40 @@ class UISampleView(*uic.loadUiType(ui_path)):
         return np.round(step_array[idx], 2)
 
 
+class CamCalibration:
 
+    def __init__(self, cdata):
+        self.cdata = cdata
+
+        self.process_cdata(cdata)
+
+    def process_cdata(self, cdata):
+        points = []
+        coords = []
+        n_entries = len(cdata)
+
+        for i_dict in cdata:
+            points.append(i_dict['cam1'])
+            coords.append([i_dict['sample_stage_x'], i_dict['sample_stage_y']])
+
+        points = np.array(points)
+        coords = np.array(coords)
+
+        points_mid = points[:-1, :, :] + np.diff(points, axis=0)
+
+        # points_delta = np.diff(points, axis=0)
+        points_delta = np.mean(np.diff(points, axis=0), axis=1)
+        coords_delta = np.diff(coords, axis=0)
+
+        # points_delta_mean = np.mean(points_delta, axis=(0, 1))
+        # coords_delta_mean = np.mean(coords_delta, axis=0)
+
+        self.A_xy2px, _, _, _ = np.linalg.lstsq(coords_delta, points_delta[:, 0], rcond=-1)
+        self.A_xy2py, _, _, _ = np.linalg.lstsq(coords_delta, points_delta[:, 1], rcond=-1)
+
+
+# cc = CamCalibration(x.calibration_data)
+
+# dx = self.A_xy2px @ [1, 0]
+# self.A_xy2px = np.array([-7.91148978e+00,  8.63858905e-04])
+# self.A_xy2py = np.array([ -1.7081848 , -12.94478738])
