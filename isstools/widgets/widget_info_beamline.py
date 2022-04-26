@@ -19,7 +19,7 @@ import uuid
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_beamline.ui')
 
-
+ROOT_PATH_SHARED = '/nsls2/data/iss/legacy/xf08id'
 
 
 class UIInfoBeamline(*uic.loadUiType(ui_path)):
@@ -90,13 +90,13 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_pilatus_image.clicked.connect(self.take_pilatus_image)
 
 
-        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+        with open(f'{ROOT_PATH_SHARED}/settings/json/foil_wheel.json') as fp:
             reference_foils = [item['element'] for item in json.load(fp)]
             reference_foils.append('--')
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
 
-        with open('/nsls2/xf08id/settings/json/attenuator.json') as fp:
+        with open(f'{ROOT_PATH_SHARED}/settings/json/attenuator.json') as fp:
             attenuators = [item['attenuator'] for item in json.load(fp)]
         for att in attenuators:
             self.comboBox_attenuator.addItem(att)

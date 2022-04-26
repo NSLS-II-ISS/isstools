@@ -7,6 +7,9 @@ from PyQt5 import uic
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_energy_selector.ui')
 ui_path_without_e0 = pkg_resources.resource_filename('isstools', 'ui/ui_energy_selector_without_e0.ui')
 
+ROOT_PATH_SHARED = '/nsls2/data/iss/legacy/xf08id'
+
+
 class UIEnergySelector(*uic.loadUiType(ui_path)):
     def __init__(self, emission = None, *args, **kwargs):
 
@@ -56,7 +59,7 @@ class UIEnergySelectorFoil(*uic.loadUiType(ui_path_without_e0)):
 
 
 
-        with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
+        with open(f'{ROOT_PATH_SHARED}/settings/json/foil_wheel.json') as fp:
             foil_info = json.load(fp)
             foils = [item['element'] for item in foil_info]
 

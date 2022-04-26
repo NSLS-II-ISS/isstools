@@ -21,6 +21,8 @@ from xas.file_io import load_interpolated_df_from_file,  save_binned_df_as_file
 from xas.bin import bin
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
+ROOT_PATH = '/nsls2/data/iss/legacy'
+USER_PATH = 'processed'
 
 
 
@@ -51,7 +53,7 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.settings = parent_gui.settings
         self.edit_E0.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
         self.edit_E0.textChanged.connect(self.save_e0_processing_value)
-        self.user_dir = self.settings.value('user_dir', defaultValue = '/nsls2/xf08id/users/', type = str)
+        self.user_dir = self.settings.value('user_dir', defaultValue = f'{ROOT_PATH}/{USER_PATH}', type = str)
 
         # Initialize 'processing' tab
         self.push_select_file.clicked.connect(self.select_files_to_bin)

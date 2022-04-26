@@ -22,6 +22,9 @@ import uuid
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_info_general.ui')
 
+ROOT_PATH = '/nsls2/data/iss/legacy'
+USER_PATH = 'processed'
+
 
 class UIInfoGeneral(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -146,7 +149,8 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         cycle=self.RE.md['cycle']
         proposal = self.RE.md['PROPOSAL']
         PI = self.RE.md['PI']
-        working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+        # working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+        working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
         zip_file = f'{working_directory}/{proposal}.zip'
 
         id = str(uuid.uuid4())[0:5]
@@ -234,7 +238,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         year = self.RE.md['year']
         cycle = self.RE.md['cycle']
         proposal = self.RE.md['PROPOSAL']
-        working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+        working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
         list_files_to_send = QtWidgets.QFileDialog.getOpenFileNames(directory = working_directory,
                                                            parent = self)[0]
         if list_files_to_send:
