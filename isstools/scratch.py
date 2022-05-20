@@ -103,8 +103,14 @@ plt.plot(tt[mask], hhm_feedback._pitch_vals[mask])
 
 df = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2022_02_10_beamline_tabulation/beamline_hhmy_tabulation_att2.json')
 df2 = pd.read_json('/nsls2/xf08id/Sandbox/Beamline_components/2022_02_10_beamline_tabulation/beamline_hhmy_tabulation_att2_high_energies.json')
-
 df_all = df.append(df2)
+
+# df = pd.read_json('/nsls2/data/iss/legacy/xf08id/calibration/beamline_hhmy_tabulation_2022_05_19.json')
+# df2 = pd.read_json('/nsls2/data/iss/legacy/xf08id/calibration/beamline_hhmy_tabulation_2022_05_19_high_energies.json')
+# df3 = pd.read_json('/nsls2/data/iss/legacy/xf08id/calibration/beamline_hhmy_tabulation_2022_05_19_high_energies_2.json')
+# df_all = df.append(df2)
+# df_all = df_all.append(df3)
+
 energy = df_all.energy.values
 hhmy = df_all.hhmy.values
 from xas.xray import energy2angle
@@ -128,13 +134,15 @@ def fit_hhmy(offset=0):
     hhmy_fit_grid_poly = np.polyval(p, energy_grid)
 
     plt.figure(1)
-    plt.clf()
-    plt.plot(energy, hhmy, 'k.')
-    plt.plot(energy_grid, hhmy_fit_grid, 'r-')
+    # plt.clf()
+    plt.plot(energy, hhmy, 'm.')
+    plt.plot(energy_grid, hhmy_fit_grid, 'b-')
     # plt.plot(energy_grid, hhmy_fit_grid_poly, 'b-')
 
 fit_hhmy(offset=0)
 
+
+###
 mylist = []
 for element in elements_data:
     sym = element['symbol']

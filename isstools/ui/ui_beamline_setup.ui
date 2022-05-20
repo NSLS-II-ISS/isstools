@@ -435,28 +435,14 @@
    <widget class="QPushButton" name="push_update_feedback_settings">
     <property name="geometry">
      <rect>
-      <x>790</x>
-      <y>50</y>
-      <width>221</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Set feedback settings</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_update_feedback_center">
-    <property name="geometry">
-     <rect>
-      <x>860</x>
+      <x>850</x>
       <y>110</y>
-      <width>91</width>
+      <width>111</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Update 
-position</string>
+     <string>Feedback settings</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushEnableHHMFeedback">
@@ -701,6 +687,19 @@ position</string>
     </property>
     <property name="checked">
      <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_update_feedback_center">
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>50</y>
+      <width>221</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Define beam position</string>
     </property>
    </widget>
   </widget>
