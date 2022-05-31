@@ -141,7 +141,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                                 'log': False, 'ax': self.figure.ax3, 'color': 'g', 'legend_keys': ['PIPS TFY']}, ]
         if 'Pilatus 100k' in detectors:
             liveplot_kwargs_list.append(
-                {'num_name': 'pil100k_stats1_total', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'HERFD',
+                {'num_name': 'pil100k_stats1_total', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'HERFD',
                  'log': False, 'ax': self.figure.ax3, 'color': 'm', 'legend_keys': ['HERFD']})
         if 'Xspress3' in detectors:
             liveplot_kwargs_list.append(

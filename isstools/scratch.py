@@ -1297,3 +1297,81 @@ Mon Apr 11 11:09:03 2022 >>> User Shutter opening...
 Mon Apr 11 11:09:37 2022 >>> pb9_enc1 complete starting...
 Mon Apr 11 11:09:39 2022 Moving file from /mnt/xf08ida-ioc1/en_566ffce6 to /nsls2/data/iss/legacy/raw/2022/04/11/en_566ffce6
 '''
+
+
+########
+
+
+def plot_trig_data(uid):
+    hdr = db[uid]
+    t = hdr.table(stream_name='apb_trigger_pil100k', fill=True)
+    d = t['apb_trigger_pil100k'][1]
+    ts, trig = d[:, 0], d[:, 1]
+
+    t_apb = hdr.table(stream_name='apb_stream', fill=True)
+    d_apb = t_apb['apb_stream'][1]
+    d_apb.shape
+    ts_apb = d_apb[:, 0]
+    trig_apb = d_apb[:, 6]
+    trig_apb -= trig_apb.min()
+    trig_apb /= trig_apb.max()
+
+    plt.figure(); plt.plot(ts_apb, trig_apb); plt.plot(ts, trig)
+
+plot_trig_data('57f8dc26-bdc1-4e2b-b6ee-5d74876804d9')
+plot_trig_data('68cf1eef-6a76-4597-818c-2bd02ae47867')
+
+
+#########
+
+
+-50 1549
+-49 1549
+-48 1549
+-47 1549
+-46 1539
+-45 1515
+-44 1549
+-43 1549
+-42 1549
+-41 1549
+-40 1549
+-39 1549
+-38 1549
+-37 1531
+-36 1549
+-35 1549
+-34 1549
+-33 1547
+-32 1549
+-31 1549
+-30 1549
+-29 1549
+-28 1549
+-27 1549
+-26 1549
+-25 1549
+-24 1549
+-23 1548
+-22 302
+-21 1549
+-20 1549
+-19 1549
+-18 1549
+-17 1549
+-16 1549
+-15 1549
+-14 1549
+-13 1547
+-12 1549
+-11 1549
+-10 1549
+-9 1549
+-8 1549
+-7 1549
+-6 1549
+-5 1507
+-4 1549
+-3 1549
+-2 1549
+-1 1549

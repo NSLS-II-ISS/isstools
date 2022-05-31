@@ -78,7 +78,7 @@
     <string>Check vacuum and shutters</string>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </widget>
  </widget>
