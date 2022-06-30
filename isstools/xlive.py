@@ -122,7 +122,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
 
-        self.processing_thread = ProcessingThread(self, print_func=print_to_gui)
+        # self.processing_thread = ProcessingThread(self, print_func=print_to_gui)
 
         # define sample positioner to pass it to widget camera and further
         stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -327,12 +327,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
         print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
-        pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
-                                    draw_func_bin=None,
-                                    cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread, print_func=print_to_gui)
+        self.pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
+                                         draw_func_bin=None,
+                                         cloud_dispatcher=self.cloud_dispatcher, make_thread_func=self.make_processing_thread, print_func=print_to_gui)
 
 
-        self.fly_token = self.RE.subscribe(pc, 'stop')
+        self.fly_token = self.RE.subscribe(self.pc, 'stop')
         print(' scan processing callback done', ttime.ctime())
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream(self.textEdit_terminal)
@@ -447,6 +447,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
             add_at = 'tail'
         return plans, add_at, idx, pause_after
 
+    def make_processing_thread(self):
+        return ProcessingThread(self, print_func=self.print_to_gui)
+
 class ProcessingThread(QThread):
     def __init__(self, gui, print_func=None):
         QThread.__init__(self)
@@ -467,7 +470,8 @@ class ProcessingThread(QThread):
                 attempt += 1
                 uid = self.doc['run_start']
                 self.print(f' File received {uid}')
-                process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
+                # process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
+                process_interpolate_bin(self.doc, self.gui.db, None, None, None, print_func=self.print)
                 self.doc = None
             except Exception as e:
                 if self.soft_mode:

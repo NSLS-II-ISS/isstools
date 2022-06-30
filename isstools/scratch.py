@@ -1375,3 +1375,27 @@ plot_trig_data('68cf1eef-6a76-4597-818c-2bd02ae47867')
 -3 1549
 -2 1549
 -1 1549
+
+
+#####
+
+x = xview_gui.project
+
+energy = x[0].energy
+x_mu = x[0].mu
+x_xs = x[1].mu
+x_i0 = x[2].mu
+
+plt.figure()
+# plt.plot(energy, x_mu)
+# plt.plot(energy, x_xs )
+plt.plot(energy, x_i0 )
+
+
+def print_memory_usage():
+    print(f'Memory usage:')
+    print(f'\tRE:\t{asizeof.asizeof(RE)}')
+    print(f'\tgui:\t{asizeof.asizeof(xlive_gui)}')
+    print(f'\tdb:\t{asizeof.asizeof(db)}')
+
+print_memory_usage()
