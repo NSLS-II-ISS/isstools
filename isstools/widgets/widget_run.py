@@ -16,6 +16,7 @@ from isstools.elements.figure_update import update_figure, setup_figure
 from bluesky.callbacks import LivePlot
 
 from ..elements.liveplots import XASPlot#, XASPlotX
+from ..elements.elements import remove_special_characters
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_run.ui')
 
@@ -58,6 +59,7 @@ class UIRun(*uic.loadUiType(ui_path)):
     def make_plans(self):
         scan_idx = self.comboBox_scan_defs.currentIndex()
         name = self.lineEdit_exp_name.text()
+        name = remove_special_characters(name)
         comment = self.lineEdit_exp_comment.text()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()

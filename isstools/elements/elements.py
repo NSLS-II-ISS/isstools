@@ -93,11 +93,11 @@ def remove_ev_from_energy_str(energy):
     return energy
 
 
-special_char_list = [' ', '!', '@', '#', '$', '%','^', '&', '*', '(', ')', '/', '\\']
-def remove_special_characters(input):
+special_char_list = ['!', '@', '#', '$', '%','^', '&', '*', '/', '\\', '.']
+def remove_special_characters(input_str):
     for c in special_char_list:
-        input = input.replace(c, '_')
-    return input
+        input_str = input_str.replace(c, '_')
+    return input_str
 
 
 
