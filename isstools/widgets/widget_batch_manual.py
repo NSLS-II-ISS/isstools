@@ -13,7 +13,7 @@ import json
 from isstools.dialogs import UpdateSampleInfo, UpdateScanInfo
 from isstools.dialogs.BasicDialogs import question_message_box
 import bluesky.plan_stubs as bps
-
+from ..elements.elements import remove_special_characters
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_batch_manual.ui')
 
 
@@ -440,7 +440,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         if sample_name == '':
             message_box('Warning', 'Sample name is empty')
             return
-
+        sample_name = remove_special_characters(sample_name)
         sample_comment = self.lineEdit_sample_comment.text()
         positions = self._create_list_of_positions()
 
