@@ -17,7 +17,7 @@ from ophyd import utils as ophyd_utils
 from xas.bin import xas_energy_grid
 from xas.xray import e2k, k2e
 from isstools.dialogs.BasicDialogs import question_message_box, message_box
-
+from ..elements.elements import remove_special_characters
 from isstools.widgets import widget_emission_energy_selector
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_scan_manager.ui')
@@ -435,6 +435,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()
         if name !='':
+            name = remove_special_characters(name)
             self.preview_scan()
             self.scan_manager.add_scan(self.mono_scan_parameters,
                                        self.aux_parameters,
