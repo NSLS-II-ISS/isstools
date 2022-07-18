@@ -420,23 +420,23 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
-    def preview_scan(self):
+    def preview_scan(self, update_scan_name=True):
         self.mono_scan_parameters = self._mono_scan_parameters
         self.aux_parameters = self._aux_parameters
         self.scan_manager.create_scan_preview(self.mono_scan_parameters,
                                               self.aux_parameters,
                                               self.plot_trajectory_func)
-
-        signature  = f'{self.widget_energy_selector.comboBox_element.currentText()}-' \
-                     f'{self.widget_energy_selector.comboBox_edge.currentText()}'
-        self.lineEdit_scan_name.setText(signature)
+        if update_scan_name:
+            signature  = f'{self.widget_energy_selector.comboBox_element.currentText()}-' \
+                         f'{self.widget_energy_selector.comboBox_edge.currentText()}'
+            self.lineEdit_scan_name.setText(signature)
 
 
     def add_scan_to_manager(self):
         name = self.lineEdit_scan_name.text()
         if name !='':
             name = remove_special_characters(name)
-            self.preview_scan()
+            self.preview_scan(update_scan_name=False)
             self.scan_manager.add_scan(self.mono_scan_parameters,
                                        self.aux_parameters,
                                        name)
