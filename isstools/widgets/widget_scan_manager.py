@@ -420,15 +420,16 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
-    def preview_scan(self, update_scan_name=True):
+    def preview_scan(self, keep_scan_name=False):
         self.mono_scan_parameters = self._mono_scan_parameters
         self.aux_parameters = self._aux_parameters
         self.scan_manager.create_scan_preview(self.mono_scan_parameters,
                                               self.aux_parameters,
                                               self.plot_trajectory_func)
-        if update_scan_name:
+        if not keep_scan_name:
             signature  = f'{self.widget_energy_selector.comboBox_element.currentText()}-' \
                          f'{self.widget_energy_selector.comboBox_edge.currentText()}'
+            print(signature)
             self.lineEdit_scan_name.setText(signature)
 
 
@@ -436,7 +437,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         name = self.lineEdit_scan_name.text()
         if name !='':
             name = remove_special_characters(name)
-            self.preview_scan(update_scan_name=False)
+            self.preview_scan(keep_scan_name=True)
             self.scan_manager.add_scan(self.mono_scan_parameters,
                                        self.aux_parameters,
                                        name)
