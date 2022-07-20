@@ -63,6 +63,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  RE=None,
                  db=None,
                  db_proc=None,
+                 processing_ioc_uid=None,
                  accelerator=None,
                  hhm=None,
                  hhm_encoder=None,
@@ -122,7 +123,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
 
-        self.processing_thread = ProcessingThread(self, print_func=print_to_gui)
+        self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
 
         # define sample positioner to pass it to widget camera and further
         stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -448,7 +449,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         return plans, add_at, idx, pause_after
 
 class ProcessingThread(QThread):
-    def __init__(self, gui, print_func=None):
+    def __init__(self, gui, print_func=None, processing_ioc_uid=None):
         QThread.__init__(self)
         self.gui = gui
         self.doc = None
@@ -459,6 +460,7 @@ class ProcessingThread(QThread):
                 print_func(msg, tag='Processing', add_timestamp=True)
             self.print = _print_func
         self.soft_mode = True
+        self.processing_ioc_uid = processing_ioc_uid
 
     def run(self):
         attempt = 0
@@ -466,8 +468,11 @@ class ProcessingThread(QThread):
             try:
                 attempt += 1
                 uid = self.doc['run_start']
-                self.print(f' File received {uid}')
-                process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
+                if self.processing_ioc_uid is not None:
+                    self.processing_ioc_uid.put(uid)
+                else:
+                    self.print(f' File received {uid}')
+                    process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
                 self.doc = None
             except Exception as e:
                 if self.soft_mode:
