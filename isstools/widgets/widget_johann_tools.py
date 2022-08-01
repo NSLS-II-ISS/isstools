@@ -22,6 +22,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
                  db=None,
                  RE=None,
                  plan_processor=None,
+                 hhm=None,
+                 johann_emission=None,
                  motor_dictionary=None,
                  detector_dictionary=None,
                  aux_plan_funcs=None,
@@ -43,7 +45,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.plan_processor = plan_processor
         self.db = db
 
-        self.motor_emission = self.motor_dictionary['motor_emission']['object']
+        self.hhm=hhm
+        self.johann_emission = johann_emission
 
         self.figure_proc = figure_proc,
         self.canvas_proc = canvas_proc,
@@ -73,7 +76,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.comboBox_pilatus_channels.setCurrentIndex(self.settings.value('johann_alignment_pilatus_channel', defaultValue=0, type=int))
         self.comboBox_pilatus_channels.currentIndexChanged.connect(self.update_pilatus_channel_selection)
 
-        self.push_scan_crystal_y.clicked.connect(self.scan_crystal_y)
+        # self.push_scan_crystal_y.clicked.connect(self.scan_crystal_y)
         self.push_scan_energy.clicked.connect(self.scan_energy)
 
         self.spinBox_crystal_park_x.setValue(self.settings.value('johann_crystal_park_x', defaultValue=0, type=float))
@@ -104,12 +107,11 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         self.lineEdit_current_spectrometer_file.setText(self.settings.value('johann_registration_file_str', defaultValue=''))
         self.lineEdit_current_spectrometer_file.textChanged.connect(self.update_settings_current_spectrometer_file)
 
-        self.align_motor_dict = {'Crystal X' : 'auxxy_x',
-                                 'Bender' : 'bender',
-                                 'Crystal Z' : 'usermotor1'}
+        self.align_motor_dict = {'Spectrometer X' : 'johann_x',
+                                 'Bender' : 'bender'}
 
         self.push_initialize_emission_motor.clicked.connect(self.initialize_emission_motor)
-        self.push_save_emission_motor.clicked.connect(self.save_emission_motor)
+        # self.push_save_emission_motor.clicked.connect(self.save_emission_motor)
         self.push_select_config_file.clicked.connect(self.select_config_file)
         self.push_load_emission_motor.clicked.connect(self.load_emission_motor)
         self.push_calibrate_energy.clicked.connect(self.calibrate_energy)
@@ -241,21 +243,21 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         pos = motor.user_readback.get()
         self.doubleSpinBox_tweak_motor_pos.setValue(pos)
 
-    def scan_crystal_y(self):
-
-        detectors = ['Pilatus 100k']
-        channel = self.comboBox_pilatus_channels.currentText()
-        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
-
-        curr_mot = 'Crystal Y'
-        for motor_key, motor_dict in self.motor_dictionary.items():
-            if curr_mot == motor_dict['description']:
-                liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
-                break
-
-        scan_range = self.doubleSpinBox_range_crystal_y.value()
-        scan_step = self.doubleSpinBox_step_crystal_y.value()
-        self._run_any_scan(detectors, liveplot_det_kwargs, curr_mot, liveplot_mot_kwargs, scan_range, scan_step)
+    # def scan_crystal_y(self):
+    #
+    #     detectors = ['Pilatus 100k']
+    #     channel = self.comboBox_pilatus_channels.currentText()
+    #     liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
+    #
+    #     curr_mot = 'Crystal Y'
+    #     for motor_key, motor_dict in self.motor_dictionary.items():
+    #         if curr_mot == motor_dict['description']:
+    #             liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
+    #             break
+    #
+    #     scan_range = self.doubleSpinBox_range_crystal_y.value()
+    #     scan_step = self.doubleSpinBox_step_crystal_y.value()
+    #     self._run_any_scan(detectors, liveplot_det_kwargs, curr_mot, liveplot_mot_kwargs, scan_range, scan_step)
 
 
     def scan_energy(self):
@@ -326,9 +328,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         value = self.lineEdit_current_spectrometer_file.text()
         self.settings.setValue('johann_registration_file_str', value)
 
-    def _initialize_emission_motor(self, registration_energy, R, kind, hkl, cr_x0=None, cr_y0=None, det_y0=None, energy_limits=None):
-        self.motor_emission.define_motor_coordinates(registration_energy, R, kind, hkl,
-                                  cr_x0=cr_x0, cr_y0=cr_y0, det_y0=det_y0, energy_limits=energy_limits)
+    def _initialize_emission_motor(self, registration_energy, energy_limits=None):
+        self.johann_emission.register_energy(registration_energy, energy_limits=energy_limits)
         self.parent.parent.widget_info_beamline.push_set_emission_energy.setEnabled(1)
 
     def initialize_emission_motor(self):
@@ -355,15 +356,15 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         spectrometer_dict = {}
 
-        spectrometer_dict['registration_energy'] = self.motor_emission.energy0
-        spectrometer_dict['R'] = self.motor_emission.crystal.R
-        spectrometer_dict['kind'] = self.motor_emission.crystal.kind
-        spectrometer_dict['hkl'] = self.motor_emission.crystal.hkl
-        spectrometer_dict['cr_x0'] = self.motor_emission.cr_x0
-        spectrometer_dict['cr_y0'] = self.motor_emission.cr_y0
-        spectrometer_dict['det_y0'] = self.motor_emission.det_y0
-        spectrometer_dict['energy_limits_lo'] = self.motor_emission.energy.limits[0]
-        spectrometer_dict['energy_limits_hi'] = self.motor_emission.energy.limits[1]
+        spectrometer_dict['registration_energy'] = self.johann_emission.energy0
+        spectrometer_dict['R'] = self.johann_emission.crystal.R
+        spectrometer_dict['kind'] = self.johann_emission.crystal.kind
+        spectrometer_dict['hkl'] = self.johann_emission.crystal.hkl
+        spectrometer_dict['cr_x0'] = self.johann_emission.cr_x0
+        spectrometer_dict['cr_y0'] = self.johann_emission.cr_y0
+        spectrometer_dict['det_y0'] = self.johann_emission.det_y0
+        spectrometer_dict['energy_limits_lo'] = self.johann_emission.energy.limits[0]
+        spectrometer_dict['energy_limits_hi'] = self.johann_emission.energy.limits[1]
 
         with open(filename, 'w') as f:
             f.write(json.dumps(spectrometer_dict))
@@ -372,7 +373,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         # self.settings.setValue('johann_registration_file_str', filename)
 
     def select_config_file(self):
-        user_folder_path = (self.motor_emission.spectrometer_root_path +
+        user_folder_path = (self.johann_emission.spectrometer_root_path +
                             f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.jcfg', parent=self)[0]
@@ -428,13 +429,31 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         each_scan_range = self.doubleSpinBox_range_energy.value()
         each_scan_step = self.doubleSpinBox_step_energy.value()
 
-        plan = self.service_plan_funcs['johann_calibration_scan_plan'](energies, DE=each_scan_range, dE=each_scan_step)
+        detectors = ['Pilatus 100k']
         channel = self.comboBox_pilatus_channels.currentText()
-        motor = self.motor_dictionary['hhm_energy']['object']
-        uids = self.RE(plan, LivePlot(channel,  motor.name, ax=self.parent.figure_scan.ax))
+        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
+
+        curr_mot = 'A Monochromator Energy'
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
+                break
+
+        for energy in energies:
+            self.plan_processor.add_plan_and_run_if_idle('move_motor_plan',
+                                                         {'motor_attr': self.hhm.energy.name,
+                                                          'based_on': 'object_name',
+                                                          'position': energy})
+            self.plan_processor.add_plan_and_run_if_idle('move_motor_plan',
+                                                         {'motor_attr': self.johann_emission.energy.name,
+                                                          'based_on': 'object_name',
+                                                          'position': energy})
+            self._run_any_scan(detectors, liveplot_det_kwargs, curr_mot, liveplot_mot_kwargs, each_scan_range, each_scan_step)
+
+        uids = np.arange(-energies.size, 0)
 
         energy_converter, energies_act, resolutions, I_fit_raws = analyze_many_elastic_scans(self.db, uids, energies, short_output=False)
-        self.motor_emission.append_energy_converter(energy_converter)
+        self.johann_emission.append_energy_converter(energy_converter)
 
         for each_energy_nom, each_energy_act, each_resolution, each_uid in zip(energies, energies_act, resolutions, uids):
             data_dict = {'energy_nom' : each_energy_nom,
@@ -459,7 +478,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         print('Successfully saved the spectrometer calibration')
 
     def select_energy_calibration_file(self):
-        user_folder_path = (self.motor_emission.spectrometer_root_path +
+        user_folder_path = (self.johann_emission.spectrometer_root_path +
                             f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.jcalib', parent=self)[0]
@@ -475,7 +494,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         energies_nom = self._calibration_data['energy_nom'].values
         energies_act = self._calibration_data['energy_act'].values
         energy_converter = Nominal2ActualConverter(energies_nom, energies_act)
-        self.motor_emission.append_energy_converter(energy_converter)
+        self.johann_emission.append_energy_converter(energy_converter)
         print('Successfully loaded the spectrometer calibration')
 
 

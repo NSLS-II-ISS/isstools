@@ -1323,5 +1323,24 @@ plot_trig_data('68cf1eef-6a76-4597-818c-2bd02ae47867')
 
 
 #########
+def plot_scan(uid, *args, dx=0, dy=0, ys=1, **kwargs):
+    hdr = db[uid]
+    t = hdr.table()
+    plt.plot(t.sample_stage_y + dx, (t.apb_ave_ch2 + dy) * ys, *args, **kwargs)
+
+
+plt.figure(1, clear=True)
+plot_scan( 'afa2b264-bfbe-43b6-aaad-1fd9dbbcd5ad', 'b-', dx=56.74, dy=123, ys=1/155.48, label='Z=-1.77')
+plot_scan('f0b79b3e-4c48-4c94-99cf-6ff542f38316', 'm-', dx=56.593, dy=116, ys=1/148.5, label='Z= 2.69')
+plt.hlines([0.05, 0.95], -0.5, 0.5, colors='k')
+plt.vlines([-0.12, 0.11], -1, 2, colors='m', linestyles='--')
+plt.vlines([-0.065, 0.065], -1, 2, colors='b', linestyles='--')
+
+plt.legend()
+plt.xlim(-0.3, 0.3)
+plt.ylim(-0.1, 1.1)
+
+
+
 
 

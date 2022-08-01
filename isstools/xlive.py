@@ -69,7 +69,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  hhm_encoder=None,
                  hhm_feedback=None,
                  trajectory_manager=None,
-                 johann_spectrometer_motor=None,
+                 johann_emission=None,
                  sdd=None,
                  pil100k=None,
                  apb=None,
@@ -161,7 +161,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
                                            plan_processor=plan_processor,
                                            hhm=hhm,
-                                           johann_spectrometer_motor=johann_spectrometer_motor,
+                                           johann_spectrometer_motor=johann_emission,
                                            parent=None,
                                            )
         self.layout_run.addWidget(self.widget_run)
@@ -255,7 +255,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(accelerator=accelerator,
                                                                         hhm=hhm,
                                                                         hhm_feedback=hhm_feedback,
-                                                                        motor_emission=johann_spectrometer_motor,
+                                                                        motor_emission=johann_emission,
                                                                         shutters=shutter_dict,
                                                                         ic_amplifiers=ic_amplifiers,
                                                                         RE=RE,
@@ -295,7 +295,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget spectrometer loading', ttime.ctime())
         self.widget_spectrometer = widget_spectrometer.UISpectrometer(RE,
                                                                       plan_processor,
+                                                                      hhm,
                                                                       db,
+                                                                      johann_emission,
                                                                       detector_dict,
                                                                       motor_dict,
                                                                       shutter_dict,
