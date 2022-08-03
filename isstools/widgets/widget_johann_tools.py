@@ -295,7 +295,9 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         for k in self.align_motor_dict.keys():
             proper_key = self.align_motor_dict[k]
             motor = self.motor_dictionary[proper_key]['object']
-            data_dict[k] = motor.user_readback.get()
+            # data_dict[k] = motor.user_readback.get()
+            data_dict[k] = motor.position
+
         data_dict['fwhm'] = fwhm
         data_dict['ecen'] = Ecen
         data_dict['uid'] = uid
