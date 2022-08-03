@@ -102,99 +102,101 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             self.comboBox_attenuator.addItem(att)
 
     def update_status(self):
+        try:
+            # print(self.parent.scan_processor.plan_list)
+            energy = self.hhm.energy.read()['hhm_energy']['value']
+            self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
 
-        # print(self.parent.scan_processor.plan_list)
-        energy = self.hhm.energy.read()['hhm_energy']['value']
-        self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
+            if self.motor_emission._initialized:
+                emission_energy = self.motor_emission.energy.position
+                self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
+            else:
+                self.label_emission_energy.setText('Emission Energy N/A')
 
-        if self.motor_emission._initialized:
-            emission_energy = self.motor_emission.energy.position
-            self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
-        else:
-            self.label_emission_energy.setText('Emission Energy N/A')
+            # self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
 
-        # self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
-
-        # if ((self.hhm.fb_status.get()==1) and
-        #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
-        # if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
-        #     if self.hhm_feedback.status_err:
-        #         fb_msg = f'Feedback error: {self.hhm_feedback.status_msg}'
-        #         fb_color = 'color: rgb(255, 128, 0)'
-        #         fb_bkg_color =
-        #     else:
-        #         fb_msg = 'Feedback on'
-        #         fb_color = 'color: rgb(19,139,67)'
-        #
-        #     self.label_feedback_status.setText(fb_msg)
-        #     self.label_feedback_status.setStyleSheet(fb_color)
-
-
-        if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
-            if not self.hhm_feedback.status_err: # no error
-                self.label_feedback_status.setText('Feedback on')
-                self.label_feedback_status.setStyleSheet('color: rgb(19, 139, 67)')
-                self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95, 249, 95)')
-            else: # error
-                self.label_feedback_status.setText(f'Feedback error: {self.hhm_feedback.status_msg}')
-                self.label_feedback_status.setStyleSheet('color: rgb(180, 0, 0)')
-                self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(255, 128, 0)')
-        else:
-            self.label_feedback_status.setText('Feedback off')
-            self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')
-            self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
-
-        i0_gain = self.ic_amplifiers['i0_amp'].get_gain()[0]
-        it_gain = self.ic_amplifiers['it_amp'].get_gain()[0]
-        ir_gain = self.ic_amplifiers['ir_amp'].get_gain()[0]
-        if_gain = self.ic_amplifiers['iff_amp'].get_gain()[0]
-
-        self.label_gain_i0.setText(f'I<sub>0</sub>: 10<sup>{i0_gain}</sup>')
-        self.label_gain_it.setText(f'I<sub>t</sub>: 10<sup>{it_gain}</sup>')
-        self.label_gain_ir.setText(f'I<sub>r</sub>: 10<sup>{ir_gain}</sup>')
-        self.label_gain_if.setText(f'I<sub>f</sub>: 10<sup>{if_gain}</sup>') 
-        if (self.RE.state == 'idle'):
-            self.label_RE.setText('Run Engine is idle')
-            self.label_RE_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
-        elif (self.RE.state == 'running'):
-            self.label_RE.setText('Run Engine is running')
-            self.label_RE_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
-        elif (self.RE.state == 'paused'):
-            self.label_RE.setText('Run Engine is paused')
-            self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,153,51)')
-        elif (self.RE.state == 'abort'):
-            self.label_RE.setText('Run Engine is aborted')
-            self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
-
-        #reference foil
-        barcode1 = self.foil_camera.barcode1
-        barcode2 = self.foil_camera.barcode2
-
-        if (barcode1 == 'empty' and  barcode2 != 'empty'):
-            self.label_reference_foil.setText(f'Reference: {barcode2}')
-        elif (barcode2 == 'empty' and  barcode1 != 'empty'):
-            self.label_reference_foil.setText(f'Reference: {barcode1}')
-        elif (barcode2 == 'empty' and barcode1 == 'empty'):
-             self.label_reference_foil.setText(f'No reference foil set')
-        else:
-            self.label_reference_foil.setText(f'Check reference foil')
-
-        barcode1 = str(self.attenuator_camera.bar1.get()[:-1], encoding='UTF-8')
-
-        if barcode1 == '0':
-            self.label_attenuator.setText(f'No attenuation')
-        elif barcode1 == '':
-            self.label_attenuator.setText(f'Check attenuation')
-        else:
-            self.label_attenuator.setText(f'Attenuation {barcode1} um Al')
-
-        #show encoder readout error
-        error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
-        self.label_offset_error.setText(f'Encoder error: {int(error)}')
+            # if ((self.hhm.fb_status.get()==1) and
+            #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
+            # if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
+            #     if self.hhm_feedback.status_err:
+            #         fb_msg = f'Feedback error: {self.hhm_feedback.status_msg}'
+            #         fb_color = 'color: rgb(255, 128, 0)'
+            #         fb_bkg_color =
+            #     else:
+            #         fb_msg = 'Feedback on'
+            #         fb_color = 'color: rgb(19,139,67)'
+            #
+            #     self.label_feedback_status.setText(fb_msg)
+            #     self.label_feedback_status.setStyleSheet(fb_color)
 
 
-        #update feedback heartbeat
-        self.update_feedback_gui_components()
+            if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
+                if not self.hhm_feedback.status_err: # no error
+                    self.label_feedback_status.setText('Feedback on')
+                    self.label_feedback_status.setStyleSheet('color: rgb(19, 139, 67)')
+                    self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(95, 249, 95)')
+                else: # error
+                    self.label_feedback_status.setText(f'Feedback error: {self.hhm_feedback.status_msg}')
+                    self.label_feedback_status.setStyleSheet('color: rgb(180, 0, 0)')
+                    self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(255, 128, 0)')
+            else:
+                self.label_feedback_status.setText('Feedback off')
+                self.label_feedback_status.setStyleSheet('color: rgb(190,190,190)')
+                self.label_feedback_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
+
+            i0_gain = self.ic_amplifiers['i0_amp'].get_gain()[0]
+            it_gain = self.ic_amplifiers['it_amp'].get_gain()[0]
+            ir_gain = self.ic_amplifiers['ir_amp'].get_gain()[0]
+            if_gain = self.ic_amplifiers['iff_amp'].get_gain()[0]
+
+            self.label_gain_i0.setText(f'I<sub>0</sub>: 10<sup>{i0_gain}</sup>')
+            self.label_gain_it.setText(f'I<sub>t</sub>: 10<sup>{it_gain}</sup>')
+            self.label_gain_ir.setText(f'I<sub>r</sub>: 10<sup>{ir_gain}</sup>')
+            self.label_gain_if.setText(f'I<sub>f</sub>: 10<sup>{if_gain}</sup>')
+            if (self.RE.state == 'idle'):
+                self.label_RE.setText('Run Engine is idle')
+                self.label_RE_status_indicator.setStyleSheet('background-color: rgb(0,94,0)')
+            elif (self.RE.state == 'running'):
+                self.label_RE.setText('Run Engine is running')
+                self.label_RE_status_indicator.setStyleSheet('background-color: rgb(95,249,95)')
+            elif (self.RE.state == 'paused'):
+                self.label_RE.setText('Run Engine is paused')
+                self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,153,51)')
+            elif (self.RE.state == 'abort'):
+                self.label_RE.setText('Run Engine is aborted')
+                self.label_RE_status_indicator.setStyleSheet('background-color: rgb(255,0,0)')
+
+            #reference foil
+            barcode1 = self.foil_camera.barcode1
+            barcode2 = self.foil_camera.barcode2
+
+            if (barcode1 == 'empty' and  barcode2 != 'empty'):
+                self.label_reference_foil.setText(f'Reference: {barcode2}')
+            elif (barcode2 == 'empty' and  barcode1 != 'empty'):
+                self.label_reference_foil.setText(f'Reference: {barcode1}')
+            elif (barcode2 == 'empty' and barcode1 == 'empty'):
+                 self.label_reference_foil.setText(f'No reference foil set')
+            else:
+                self.label_reference_foil.setText(f'Check reference foil')
+
+            barcode1 = str(self.attenuator_camera.bar1.get()[:-1], encoding='UTF-8')
+
+            if barcode1 == '0':
+                self.label_attenuator.setText(f'No attenuation')
+            elif barcode1 == '':
+                self.label_attenuator.setText(f'Check attenuation')
+            else:
+                self.label_attenuator.setText(f'Attenuation {barcode1} um Al')
+
+            #show encoder readout error
+            error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
+            self.label_offset_error.setText(f'Encoder error: {int(error)}')
+
+
+            #update feedback heartbeat
+            self.update_feedback_gui_components()
+        except Exception as e:
+            print(e)
 
 
     def update_beam_current(self, **kwargs):

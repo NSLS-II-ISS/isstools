@@ -25,7 +25,8 @@ from .widgets import (widget_info_general,
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
 from .process_callbacks.callback import ScanProcessingCallback
-from .elements.cloud_dispatcher import CloudDispatcher
+# from .elements.cloud_dispatcher import CloudDispatcher
+from isscloudtools.cloud_dispatcher import CloudDispatcher
 from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 import time as ttime
