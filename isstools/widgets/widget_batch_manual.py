@@ -389,6 +389,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
     def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
         point_item =  self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True)
+        point_item.is_exposed = is_exposed
         if is_exposed:
             point_item.setForeground(0, QtGui.QColor('red'))
 
@@ -542,6 +543,22 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         for index in index_list:
             item = self.treeWidget_samples.itemFromIndex(index)
             item.setCheckState(0, checkstate)
+
+
+    def check_n_unexposed_samples(self):
+        n_to_check = int(self.label_n_eff.text().split('=')[-1])
+        index_selected = self.treeWidget_samples.selectedIndexes()[0]
+        item = self.treeWidget_samples.itemFromIndex(index_selected)
+        if item.kind == 'sample_point':
+            item = item.parent()
+        n_checked = 0
+        for i in range(item.childCount()):
+            point = item.child(i)
+            if not point.is_exposed:
+                point.setCheckState(0, 2)
+                n_checked += 1
+            if n_checked == n_to_check:
+                break
 
 
     def get_checked_sample_index_dict(self):
@@ -800,6 +817,7 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         move_to_sample = menu.addAction("Mo&ve to sample")
         set_as_exposed = menu.addAction("Set as exposed")
         set_as_unexposed = menu.addAction("Set as unexposed")
+        check_n_unexposed_samples = menu.addAction("&Check N unexposed samples")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
         action = menu.exec_()
@@ -815,6 +833,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
             self.set_as_exposed_selected_samples()
         elif action == set_as_unexposed:
             self.set_as_exposed_selected_samples(exposed=False)
+        elif action == check_n_unexposed_samples:
+            self.check_n_unexposed_samples()
 
     def scan_context_menu(self,QPos):
         menu = QMenu()
