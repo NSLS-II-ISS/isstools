@@ -259,6 +259,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                         motor_emission=johann_emission,
                                                                         shutters=shutter_dict,
                                                                         ic_amplifiers=ic_amplifiers,
+                                                                        apb=apb,
                                                                         RE=RE,
                                                                         plan_processor=plan_processor,
                                                                         db=None,

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1076</width>
+    <width>1101</width>
     <height>148</height>
    </rect>
   </property>
@@ -476,7 +476,7 @@
     <string>&gt;</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="label_pitch">
    <property name="geometry">
     <rect>
      <x>734</x>
@@ -497,8 +497,8 @@
   <widget class="QLabel" name="label_reference_foil">
    <property name="geometry">
     <rect>
-     <x>690</x>
-     <y>80</y>
+     <x>620</x>
+     <y>90</y>
      <width>181</width>
      <height>20</height>
     </rect>
@@ -533,8 +533,8 @@
   <widget class="QLabel" name="label_attenuator">
    <property name="geometry">
     <rect>
-     <x>690</x>
-     <y>100</y>
+     <x>620</x>
+     <y>114</y>
      <width>171</width>
      <height>20</height>
     </rect>
@@ -551,8 +551,8 @@
   <widget class="QComboBox" name="comboBox_reference_foils">
    <property name="geometry">
     <rect>
-     <x>840</x>
-     <y>80</y>
+     <x>770</x>
+     <y>90</y>
      <width>87</width>
      <height>20</height>
     </rect>
@@ -561,8 +561,8 @@
   <widget class="QPushButton" name="push_set_reference_foil">
    <property name="geometry">
     <rect>
-     <x>930</x>
-     <y>80</y>
+     <x>860</x>
+     <y>90</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -574,8 +574,8 @@
   <widget class="QComboBox" name="comboBox_attenuator">
    <property name="geometry">
     <rect>
-     <x>840</x>
-     <y>100</y>
+     <x>770</x>
+     <y>114</y>
      <width>87</width>
      <height>20</height>
     </rect>
@@ -584,8 +584,8 @@
   <widget class="QPushButton" name="push_set_attenuator">
    <property name="geometry">
     <rect>
-     <x>930</x>
-     <y>100</y>
+     <x>860</x>
+     <y>114</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -645,6 +645,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="label_feedback_status_2">
    <property name="geometry">
@@ -692,7 +695,7 @@
     <string>feedback host</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
    <property name="wordWrap">
     <bool>true</bool>
@@ -746,8 +749,8 @@ Image</string>
   <widget class="QCheckBox" name="checkBox_autofoil">
    <property name="geometry">
     <rect>
-     <x>1010</x>
-     <y>80</y>
+     <x>940</x>
+     <y>90</y>
      <width>96</width>
      <height>20</height>
     </rect>
@@ -757,6 +760,88 @@ Image</string>
    </property>
    <property name="checked">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_i0_saturation">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>120</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_it_saturation">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>120</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_ir_saturation">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>120</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_iff_saturation">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>120</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_attenuation">
+   <property name="geometry">
+    <rect>
+     <x>940</x>
+     <y>114</y>
+     <width>81</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Attenuator</string>
    </property>
   </widget>
  </widget>

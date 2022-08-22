@@ -31,6 +31,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  motor_emission=None,
                  shutters=None,
                  ic_amplifiers = None,
+                 apb=None,
                  RE = None,
                  plan_processor=None,
                  db = None,
@@ -53,6 +54,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
         self.motor_emission = motor_emission
+        self.apb = apb
         self.RE = RE
         self.plan_processor = plan_processor
         self.db = db
@@ -112,23 +114,6 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
             else:
                 self.label_emission_energy.setText('Emission Energy N/A')
-
-            # self.label_emission_energy.setText(f'{(int(ttime.time() - 1638396657.4016898))} {len(self.parent.plan_processor.plan_list)}')
-
-            # if ((self.hhm.fb_status.get()==1) and
-            #         (self.shutters['FE Shutter'].state.get()==0) and (self.shutters['PH Shutter'].state.get()==0)):
-            # if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
-            #     if self.hhm_feedback.status_err:
-            #         fb_msg = f'Feedback error: {self.hhm_feedback.status_msg}'
-            #         fb_color = 'color: rgb(255, 128, 0)'
-            #         fb_bkg_color =
-            #     else:
-            #         fb_msg = 'Feedback on'
-            #         fb_color = 'color: rgb(19,139,67)'
-            #
-            #     self.label_feedback_status.setText(fb_msg)
-            #     self.label_feedback_status.setStyleSheet(fb_color)
-
 
             if self.hhm_feedback.status and self.hhm_feedback.shutters_open:
                 if not self.hhm_feedback.status_err: # no error
@@ -191,6 +176,23 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             #show encoder readout error
             error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
             self.label_offset_error.setText(f'Encoder error: {int(error)}')
+
+            #check for detector saturation
+            saturation_list = [{'ch':self.apb.ch1.value, 'label':self.label_i0_saturation },
+                               {'ch':self.apb.ch2.value, 'label':self.label_it_saturation },
+                               {'ch':self.apb.ch3.value, 'label':self.label_ir_saturation },
+                               {'ch':self.apb.ch4.value, 'label':self.label_iff_saturation }]
+            for element in saturation_list:
+                if element['ch'] > -3600:
+                    element['label'].setStyleSheet('background-color: rgb(95,249,95)')
+                    element['label'].setText('In range')
+                else:
+                    element['label'].setStyleSheet('background-color: rgb(255,0,0)')
+                    element['label'].setText('Saturated')
+
+
+
+
 
 
             #update feedback heartbeat
