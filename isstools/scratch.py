@@ -1145,7 +1145,6 @@ link_url = dropbox_get_shared_link(dropbox_service, f'{folder}{zip_id_file}' )
 print('Upload succesful')
 
 
-
 message = create_html_message(
     'staff08id@gmail.com',
     email_address,
@@ -1272,83 +1271,302 @@ vh_scan = process_von_hamos_scan(df_processed, df_raw, roi=(65, 30, 100, 300))
 
 #################################
 
-for i in range(-5, -200, -1):
-   hdr = db[i]
-   if 'experiment' in hdr.start.keys():
-       if hdr.start['experiment'] == 'collect_n_exposures':
-           process_interpolate_bin_from_uid(i, db)
+start_times = []
+stop_times = []
+
+for i in range(203684, 204565+1):
+    hdr = db[i]
+    if 'experiment' in hdr.start.keys():
+       if (hdr.start['experiment'] == 'step_scan') and (hdr.start['monochromator_scan_uid'] == 'b48af1b1-95c8'):
+
+           if ('time' in hdr.start.keys()) and ('time' in hdr.stop.keys()):
+               print(i, (i - 203684) / (204565 - 203684))
+               start_times.append(hdr.start['time'])
+               stop_times.append(hdr.stop['time'])
+
+##
+
+start_times = np.array(start_times)
+stop_times = np.array(stop_times)
 
 
-
-'''
-In [1]: [Queue] (2022-04-11 11:08:59.173233) Execution of plan fly_scan_plan starting...
-[Flyer] (2022-04-11 11:08:59.235931) Preparing mono starting...
-[Flyer] (2022-04-11 11:09:03.264127) Preparing mono complete
-[Flyer] (2022-04-11 11:09:03.264235) Fly scan staging starting...
-[Flyer] (2022-04-11 11:09:03.376111) 	start staging apb_stream ...
-[Flyer] (2022-04-11 11:09:03.378491) 	start staging pb9_enc1 ...
-[Flyer] (2022-04-11 11:09:03.379319) Fly scan staging complete
-CA.Client.Exception...............................................
-    Warning: "Channel write request failed"
-    Context: "op=1, channel=XF:08IDA-CT{Enc09:1}ID:File.VAL, type=DBR_CHAR, count=30, ctx="XF:08IDA-CT{Enc09:1}ID:File""
-    Source File: ../oldChannelNotify.cpp line 158
-    Current Time: Mon Apr 11 2022 11:09:03.379631513
-..................................................................
-[Flyer] (2022-04-11 11:09:03.575839) Detector kickoff starting...
-Mon Apr 11 11:09:03 2022 >>> User Shutter opening...
-[Flyer] (2022-04-11 11:09:06.165611) Detector kickoff complete
-[Flyer] (2022-04-11 11:09:06.165883) Mono trajectory motion starting...
-[Flyer] (2022-04-11 11:09:37.273874) Mono trajectory motion complete
-[Flyer] (2022-04-11 11:09:37.274177) Detector complete starting...
-(2022-04-11 11:09:37.274408) apb_stream complete starting
-(2022-04-11 11:09:37.277092) apb_stream complete done
-Mon Apr 11 11:09:37 2022 >>> pb9_enc1 complete starting...
-Mon Apr 11 11:09:39 2022 Moving file from /mnt/xf08ida-ioc1/en_566ffce6 to /nsls2/data/iss/legacy/raw/2022/04/11/en_566ffce6
-'''
-
-
-########
-
-
-def plot_trig_data(uid):
-    hdr = db[uid]
-    t = hdr.table(stream_name='apb_trigger_pil100k', fill=True)
-    d = t['apb_trigger_pil100k'][1]
-    ts, trig = d[:, 0], d[:, 1]
-
-    t_apb = hdr.table(stream_name='apb_stream', fill=True)
-    d_apb = t_apb['apb_stream'][1]
-    d_apb.shape
-    ts_apb = d_apb[:, 0]
-    trig_apb = d_apb[:, 6]
-    trig_apb -= trig_apb.min()
-    trig_apb /= trig_apb.max()
-
-    plt.figure(); plt.plot(ts_apb, trig_apb); plt.plot(ts, trig)
-
-plot_trig_data('57f8dc26-bdc1-4e2b-b6ee-5d74876804d9')
-plot_trig_data('68cf1eef-6a76-4597-818c-2bd02ae47867')
-
-
-#########
-def plot_scan(uid, *args, dx=0, dy=0, ys=1, **kwargs):
-    hdr = db[uid]
-    t = hdr.table()
-    plt.plot(t.sample_stage_y + dx, (t.apb_ave_ch2 + dy) * ys, *args, **kwargs)
-
+start_times_str = [ttime.ctime(t) for t in start_times]
 
 plt.figure(1, clear=True)
-plot_scan( 'afa2b264-bfbe-43b6-aaad-1fd9dbbcd5ad', 'b-', dx=56.74, dy=123, ys=1/155.48, label='Z=-1.77')
-plot_scan('f0b79b3e-4c48-4c94-99cf-6ff542f38316', 'm-', dx=56.593, dy=116, ys=1/148.5, label='Z= 2.69')
-plt.hlines([0.05, 0.95], -0.5, 0.5, colors='k')
-plt.vlines([-0.12, 0.11], -1, 2, colors='m', linestyles='--')
-plt.vlines([-0.065, 0.065], -1, 2, colors='b', linestyles='--')
+plt.plot(stop_times - start_times
 
-plt.legend()
-plt.xlim(-0.3, 0.3)
-plt.ylim(-0.1, 1.1)
+uids = [203724,
+203725,
+203728,
+203729,
+203730,
+203731,
+203732,
+203733,
+203750,
+203757,
+203764,
+203768,
+203769,
+203771,
+203772,
+203773,
+203774,
+203775,
+203776,
+203777,
+203778,
+203779,
+203780,
+203783,
+203784,
+203785,
+203786,
+203787,
+203788,
+203789,
+203790,
+203791,
+203792,
+203793,
+203794,
+203795,
+203796,
+203797,
+203798,
+203799,
+203800,
+203801,
+203812,
+203813,
+203814,
+203815,
+203816,
+203817,
+203818,
+203819,
+203820,
+203821,
+203833,
+203834,
+203835,
+203839,
+203840,
+203842,
+203843,
+203844,
+203845,
+203846,
+203847,
+203848,
+203852,
+203853,
+203854,
+203855,
+203856,
+203857,
+203858,
+203859,
+203860,
+203861,
+203863,
+203864,
+203865,
+203866,
+203867,
+203868,
+203869,
+203870,
+203871,
+203872,
+203873,
+203874,
+203875,
+203876,
+203877,
+203878,
+203879,
+203880,
+203881,
+203882,
+204128,
+204135,
+204140,
+204141,
+204142,
+204143,
+204144,
+204145,
+204146,
+204147,
+204148,
+204149,
+204150,
+204151,
+204152,
+204153,
+204154,
+204155,
+204156,
+204157,
+204158,
+204159,
+204160,
+204161,
+204162,
+204163,
+204164,
+204165,
+204166,
+204167,
+204168,
+204169,
+204170,
+204171,
+204172,
+204173,
+204174,
+204175,
+204176,
+204177,
+204178,
+204179,
+204180,
+204181,
+204182,
+204183,
+204184,
+204185,
+204186,
+204187,
+204188,
+204189,
+204241,
+204242,
+204243,
+204244,
+204245,
+204246,
+204247,
+204248,
+204249,
+204250,
+204251,
+204252,
+204353,
+204355,
+204356,
+204357,
+204358,
+204359,
+204360,
+204361,
+204362,
+204363,
+204364,
+204365,
+204366,
+204471,
+204472,
+204473,
+204474,
+204475,
+204476,
+204477,
+204478,
+204479,
+204480,
+204481,
+204482,
+204483,
+204484,
+204485,
+204486,
+204487,
+204488,
+204489,
+204490,
+204492,
+204493,
+204494,
+204495,
+204496,
+204497,
+204498,
+204499,
+204500,
+204501,
+204502,
+204504,
+204505,
+204506,
+204507,
+204508,
+204509,
+204510,
+204511,
+204512,
+204513,
+204515,
+204516,
+204517,
+204518,
+204519,
+204520,
+204521,
+204522,
+204523,
+204524,
+204525,
+204526,
+204527,
+204528,
+204529,
+204530,
+204531,
+204532,
+204533,
+204534,
+204535,
+204536,
+204537,
+204538,
+204539,
+204540,
+204541,
+204542,
+204543,
+204544,
+204545,
+204546,
+204547,
+204548,
+204549,
+204550,
+204551,
+204552,
+204553,
+204554,
+204555,
+204556,
+204557,
+204558,
+204559,
+204560,
+204561,
+204562,
+204563,
+204564,
+204565]
 
 
+hdr2 = db[204141] # bad long scan
+t2 = hdr2.table()
+t2_tstep = np.array(np.diff(t2.time), dtype='float')*1e-9
 
+hdr1 = db[203876] # good normal scan
+t1 = hdr1.table()
+t1_tstep = np.array(np.diff(t1.time), dtype='float')*1e-9
 
-
+In [59]: print(np.mean(t2_tstep), np.mean(t1_tstep))
+5.775684015212903 4.038622562348387
