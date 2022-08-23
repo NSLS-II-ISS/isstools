@@ -53,8 +53,9 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.trajectory_manager = trajectory_manager
         self.sample_positioner = sample_positioner
+        self.parent_gui = parent_gui
 
-        self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
+        # self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
         self.scan_sequence_manager.append_list_update_signal(self.scan_list_changed_signal)
         self.batch_manager.append_list_update_signal(self.batch_list_changed_signal)
 
@@ -71,7 +72,8 @@ class UIBatchManual(*uic.loadUiType(ui_path)):
 
         # samples
         self.update_sample_tree()
-        self.sample_list_changed_signal.connect(self.update_sample_tree)
+        self.parent_gui.widget_camera.sample_list_changed_signal.connect(self.update_sample_tree)
+        # self.sample_list_changed_signal.connect(self.update_sample_tree)
 
         self.push_create_sample.clicked.connect(self.create_new_sample)
 

@@ -6,10 +6,10 @@ import math
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
-from PyQt5.Qt import QObject
+from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
 from isstools.elements.qmicroscope import Microscope
-
+from ..elements.elements import remove_special_characters
 
 
 
@@ -125,15 +125,36 @@ slider_widget_dict = {
                                       },
                       }
 
-class UISampleView(*uic.loadUiType(ui_path)):
+sample_position_widget_dict = {
+            'push_get_sample_position':
+                {'x_widget': 'spinBox_sample_x',
+                 'y_widget': 'spinBox_sample_y',
+                 'z_widget': 'spinBox_sample_z',
+                 'th_widget': 'spinBox_sample_th',
+                 },
+            'push_get_sample_position_map_start':
+                {'x_widget': 'spinBox_sample_x_map_start',
+                 'y_widget': 'spinBox_sample_y_map_start',
+                 'z_widget': 'spinBox_sample_z_map_start',
+                 'th_widget': 'spinBox_sample_th_map_start',
+                 },
+            'push_get_sample_position_map_end':
+                {'x_widget': 'spinBox_sample_x_map_end',
+                 'y_widget': 'spinBox_sample_y_map_end',
+                 'z_widget': 'spinBox_sample_z_map_end',
+                 'th_widget': 'spinBox_sample_th_map_end'},
+        }
 
+
+class UISampleView(*uic.loadUiType(ui_path)):
+    sample_list_changed_signal = QtCore.pyqtSignal()
 
     def __init__(self,
                  sample_stage=None,
                  camera_dict=None,
+                 sample_manager=None,
                  cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
                  cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',
-
                  *args, **kwargs):
 
 
@@ -145,7 +166,13 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.camera1 = self.camera_dict['camera_sample1']
         self.camera2 = self.camera_dict['camera_sample2']
 
-        self.interaction_mode = 'default'
+        self.sample_manager = sample_manager
+        self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
+
+        # motion controls and stages
+
+        pixmap = QPixmap(coordinate_system_file)
+        self.label_coordinate_system.setPixmap(pixmap)
 
         self.pushButton_visualize_sample.clicked.connect(self.visualize_sample)
         self.pushButton_visualize_beam.clicked.connect(self.visualize_beam)
@@ -196,11 +223,29 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_stage_z_position_sp.returnPressed.connect(self.move_sample_stage_abs)
         self.lineEdit_sample_stage_th_position_sp.returnPressed.connect(self.move_sample_stage_abs)
 
+        # sample management
+        self.update_sample_tree()
+        self.sample_list_changed_signal.connect(self.update_sample_tree)
 
+        self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
+        self.push_create_sample.clicked.connect(self.create_new_sample)
 
-        self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
-        self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
+        self.push_delete_sample.clicked.connect(self.delete_sample)
+        self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
 
+        self.push_get_sample_position.clicked.connect(self.get_sample_position)
+        self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
+        self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
+        self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
+        self.radioButton_sample_map_1D.toggled.connect(self.enable_map_spinboxes)
+        self.radioButton_map_steps.toggled.connect(self.enable_map_spinboxes)
+        self.enable_user_position_input()
+        self.enable_map_spinboxes()
+
+        self.treeWidget_samples.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeWidget_samples.customContextMenuRequested.connect(self.sample_context_menu)
+
+        # cameras and visualization
         self.cam1_url = cam1_url
         self.sample_cam1 = Microscope(parent = self, mark_direction=1,)
         self.sample_cam1.url = self.cam1_url
@@ -220,29 +265,13 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.sample_cam1.polygonDrawingSignal.connect(self.sample_cam2.calibration_polygon.append)
         self.sample_cam2.polygonDrawingSignal.connect(self.sample_cam1.calibration_polygon.append)
 
+        self.interaction_mode = 'default'
         self.calibration_data = []
-        pixmap = QPixmap(coordinate_system_file)
-        self.label_coordinate_system.setPixmap(pixmap)
+        self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
+        self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
 
 
-    def test_func(self):
-        print('BLA BLA')
-
-    def visualize_beam(self):
-        exposure = self.doubleSpinBox_exposure_beam.value()
-        self.camera1.exp_time.set(exposure)
-        self.camera2.exp_time.set(exposure)
-
-    def visualize_sample(self):
-        exposure = self.doubleSpinBox_exposure_sample.value()
-        self.camera1.exp_time.set(exposure)
-        self.camera2.exp_time.set(exposure)
-
-
-    def update_image_limits(self):
-        vmin = self.spinBox_image_min.value()
-        vmax = self.spinBox_image_max.value()
-        print(vmin, vmax)
+    # motion control methods
 
     def move_sample_stage_rel(self):
         sender_object = QObject().sender().objectName()
@@ -288,6 +317,392 @@ class UISampleView(*uic.loadUiType(ui_path)):
             widget = getattr(self, stage_lineEdit_widget_dict[obj_name]['widget'])
             widget.setText(f'{value:0.3f}')
 
+    # sample/sample coordinates management methods
+
+
+
+    def enable_user_position_input(self):
+        manual_positoioning_flag = not self.checkBox_auto_position.isChecked()
+        self.spinBox_sample_x.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_y.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_z.setEnabled(manual_positoioning_flag)
+        self.spinBox_sample_th.setEnabled(manual_positoioning_flag)
+        self.push_get_sample_position.setEnabled(manual_positoioning_flag)
+
+    def enable_map_spinboxes(self):
+        is_1d = self.radioButton_sample_map_1D.isChecked()
+        is_steps = self.radioButton_map_steps.isChecked()
+
+        self.spinBox_sample_x_map_steps.setEnabled(is_steps)
+        self.spinBox_sample_x_map_spacing.setEnabled((not is_steps))
+
+        self.spinBox_sample_y_map_steps.setEnabled((is_steps) and (not is_1d))
+        self.spinBox_sample_y_map_spacing.setEnabled(((not is_steps) and (not is_1d)))
+
+
+    ''' 
+    Dealing with sample positioning and definition
+    '''
+
+    def get_sample_position(self):
+        sender_object = QObject().sender().objectName()
+        x_value = self.sample_stage.x.position
+        x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
+        x_widget.setValue(x_value)
+
+        y_value = self.sample_stage.y.position
+        y_widget = getattr(self, sample_position_widget_dict[sender_object]['y_widget'])
+        y_widget.setValue(y_value)
+
+        z_value = self.sample_stage.z.position
+        z_widget = getattr(self, sample_position_widget_dict[sender_object]['z_widget'])
+        z_widget.setValue(z_value)
+
+        th_value = self.sample_stage.th.position
+        th_widget = getattr(self, sample_position_widget_dict[sender_object]['th_widget'])
+        th_widget.setValue(th_value)
+
+    def _create_list_of_positions(self):
+        tab_text = self.tabWidget_sample.tabText(self.tabWidget_sample.currentIndex())
+        if tab_text == 'Grid':
+            return self._create_grid_of_positions()
+        elif tab_text == 'Map':
+            return self._create_map_of_positions()
+        return
+
+    def _get_stage_coordinates(self, tolerance=0.005):
+        self.spinBox_sample_x.setValue(self.sample_stage.x.position)
+        self.spinBox_sample_y.setValue(self.sample_stage.y.position)
+        self.spinBox_sample_z.setValue(self.sample_stage.z.position)
+        # print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
+        self.spinBox_sample_th.setValue(self.sample_stage.th.position)
+
+    def _create_grid_of_positions(self):
+        step_size = self.spinBox_grid_spacing.value()
+        n_x = self.spinBox_grid_x_points.value()
+        n_y = self.spinBox_grid_y_points.value()
+        x_array = np.arange(n_x, dtype=float)
+        x_array -= np.median(x_array)
+        y_array = np.arange(n_y, dtype=float)
+        y_array -= np.median(y_array)
+        x_mesh, y_mesh = np.meshgrid(x_array * step_size, y_array * step_size)
+        x_mesh = x_mesh.ravel()
+        y_mesh = y_mesh.ravel()
+
+        radius = self.spinBox_sample_radius.value()
+        if radius > 0:
+            r_mesh = np.sqrt(x_mesh ** 2 + y_mesh ** 2)
+            x_mesh = x_mesh[r_mesh <= radius]
+            y_mesh = y_mesh[r_mesh <= radius]
+
+        if self.checkBox_auto_position.isChecked():
+            self._get_stage_coordinates()
+
+        xs = self.spinBox_sample_x.value() + x_mesh
+        ys = self.spinBox_sample_y.value() + y_mesh
+        z = self.spinBox_sample_z.value()
+        th = self.spinBox_sample_th.value()
+        npt = xs.size
+        positions = []
+        for i in range(npt):
+            _d = {'x': xs[i],
+                  'y': ys[i],
+                  'z': z,
+                  'th': th}
+            positions.append(_d)
+        return positions
+
+    def _create_map_of_positions(self):
+        x_1 = self.spinBox_sample_x_map_start.value()
+        y_1 = self.spinBox_sample_y_map_start.value()
+        z_1 = self.spinBox_sample_z_map_start.value()
+        th_1 = self.spinBox_sample_th_map_start.value()
+
+        x_2 = self.spinBox_sample_x_map_end.value()
+        y_2 = self.spinBox_sample_y_map_end.value()
+        z_2 = self.spinBox_sample_z_map_end.value()
+        th_2 = self.spinBox_sample_th_map_end.value()
+
+        if self.radioButton_map_steps.isChecked():
+            n_x = self.spinBox_sample_x_map_steps.value()
+            n_y = self.spinBox_sample_y_map_steps.value()
+        elif self.radioButton_map_spacing.isChecked():
+            x_spacing = self.spinBox_sample_x_map_spacing.value() / np.cos(np.pi / 4)
+            y_spacing = self.spinBox_sample_y_map_spacing.value()
+            n_x = int(np.floor(np.abs(x_1 - x_2) / x_spacing))
+            n_y = int(np.floor(np.abs(y_1 - y_2) / y_spacing))
+
+        if self.radioButton_sample_map_1D.isChecked():
+            xs = np.linspace(x_1, x_2, n_x)
+            ys = np.linspace(y_1, y_2, n_x)
+        elif self.radioButton_sample_map_2D.isChecked():
+            _x = np.linspace(x_1, x_2, n_x)
+            _y = np.linspace(y_1, y_2, n_y)
+            xs, ys = np.meshgrid(np.linspace(x_1, x_2, n_x),
+                                 np.linspace(y_1, y_2, n_y))
+            xs = xs.ravel()
+            ys = ys.ravel()
+
+        npt = xs.size
+        positions = []  #
+        for i in range(npt):
+            _d = {'x': xs[i],
+                  'y': ys[i],
+                  'z': np.interp(xs[i], [x_1, x_2], [z_1, z_2]),
+                  'th': np.interp(xs[i], [x_1, x_2], [th_1, th_2])}
+            positions.append(_d)
+        return positions
+
+    '''
+    Dealing with making qt items of all sorts
+    '''
+
+    def _make_item(self, parent, item_str, index, kind='', force_unchecked=False, checkable=True):
+        item = QtWidgets.QTreeWidgetItem(parent)
+        item.setText(0, item_str)
+        item.setExpanded(True)
+        if checkable:
+            item.setFlags(item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        if force_unchecked:
+            item.setCheckState(0, Qt.Unchecked)
+        item.kind = kind
+        item.index = index
+        return item
+
+    # def _make_scan_item(self, scan_str, scan_index, parent=None, force_unchecked=True, checkable=True):
+    #     if parent is None:
+    #         parent = self.treeWidget_scans
+    #     return self._make_item(parent, scan_str, scan_index, kind='scan', force_unchecked=force_unchecked,
+    #                            checkable=checkable)
+
+    def _make_sample_item(self, sample_str, sample_index):
+        return self._make_item(self.treeWidget_samples, sample_str, sample_index, kind='sample', force_unchecked=False)
+
+    def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
+        point_item = self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True)
+        point_item.is_exposed = is_exposed
+        if is_exposed:
+            point_item.setForeground(0, QtGui.QColor('red'))
+
+    # def _make_batch_item(self, parent, item_str, index, kind=''):
+    #     return self._make_item(parent, item_str, index, kind=kind, force_unchecked=False, checkable=False)
+
+    # def _make_batch_element_children(self, parent, element_list):
+    #     for i, element in enumerate(element_list):
+    #         if element['type'] == 'experiment':
+    #             item_str = f"{element['name']} x{element['repeat']} times"
+    #             item = self._make_batch_item(parent, item_str, i, kind='batch_experiment')
+    #         elif element['type'] == 'sample':
+    #             item_str = self.batch_manager.sample_str_from_element(element)
+    #             item = self._make_batch_item(parent, item_str, i, kind='batch_sample')
+    #         elif element['type'] == 'scan':
+    #             item_str = self.batch_manager.scan_str_from_element(element)
+    #             item = self._make_batch_item(parent, item_str, i, kind='batch_scan')
+    #         elif element['type'] == 'service':
+    #             item_str = self.batch_manager.service_str_from_element(element)
+    #             item = self._make_batch_item(parent, item_str, i, kind='batch_service')
+    #
+    #         if 'element_list' in element.keys():
+    #             self._make_batch_element_children(item, element['element_list'])
+
+    '''
+    Dealing with samples
+    '''
+    def update_sample_tree(self):
+        self.treeWidget_samples.clear()
+        for i, sample in enumerate(self.sample_manager.samples):
+            name = sample.name
+            npts = sample.number_of_points
+            npts_fresh = sample.number_of_unexposed_points
+            sample_str = f"{name} ({npts_fresh}/{npts})"
+            sample_item = self._make_sample_item(sample_str, i)
+            # self.treeWidget_samples.addItem(sample_item)
+            for j in range(npts):
+                coord_dict = sample.index_coordinate_dict(j)
+                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                point_str = f'{j+1:3d} - {point_str}'
+                self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
+
+    def create_new_sample(self):
+        sample_name = self.lineEdit_sample_name.text()
+        if sample_name == '':
+            message_box('Warning', 'Sample name is empty')
+            return
+        sample_name = remove_special_characters(sample_name)
+        sample_comment = self.lineEdit_sample_comment.text()
+        positions = self._create_list_of_positions()
+
+        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+
+    def get_sample_info_from_autopilot(self):
+        try:
+            df = self.parent_gui.widget_autopilot.sample_df
+            str_to_parse = self.lineEdit_sample_name.text()
+            if '_' in str_to_parse:
+                try:
+                    n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
+                    select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
+                    select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
+                    line_number = np.where(select_holders & select_sample_n)[0][0]
+                except:
+                    pass
+            else:
+                line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
+            name = df.iloc[line_number]['Name']
+            comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
+            name = name.replace('/', '_')
+            self.lineEdit_sample_name.setText(name)
+            self.lineEdit_sample_comment.setText(comment)
+        except:
+            message_box('Error', 'Autopilot table is not defined')
+
+    def delete_sample(self):
+        index_dict = {}
+
+        index_list = self.treeWidget_samples.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                point_index_list = [item.child(i).index for i in range(item.childCount())]
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                point_index_list = [item.index]
+            if sample_index in index_dict.keys():
+                index_dict[sample_index].extend(point_index_list)
+            else:
+                index_dict[sample_index] = point_index_list
+        self.sample_manager.delete_samples_with_index_dict(index_dict)
+
+
+
+    def delete_all_samples(self):
+        self.sample_manager.reset()
+
+    '''
+    Sample Context menu
+    '''
+
+    def sample_context_menu(self, QPos):
+        menu = QMenu()
+        check_selected_samples = menu.addAction("&Check selected samples")
+        uncheck_selected_samples = menu.addAction("&Uncheck selected samples")
+        modify = menu.addAction("&Modify")
+        move_to_sample = menu.addAction("Mo&ve to sample")
+        set_as_exposed = menu.addAction("Set as exposed")
+        set_as_unexposed = menu.addAction("Set as unexposed")
+        check_n_unexposed_samples = menu.addAction("&Check N unexposed samples")
+        parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition + QPos)
+        action = menu.exec_()
+        if action == modify:
+            self.modify_item()
+        elif action == move_to_sample:
+            self.move_to_sample()
+        elif action == check_selected_samples:
+            self.check_selected_samples(checkstate=2)
+        elif action == uncheck_selected_samples:
+            self.check_selected_samples(checkstate=0)
+        elif action == set_as_exposed:
+            self.set_as_exposed_selected_samples()
+        elif action == set_as_unexposed:
+            self.set_as_exposed_selected_samples(exposed=False)
+        elif action == check_n_unexposed_samples:
+            self.check_n_unexposed_samples()
+
+    def modify_item(self):
+        sender_object = QObject().sender()
+        selection = sender_object.selectedIndexes()
+        if len(selection) == 1:
+            index = sender_object.currentIndex()
+            if sender_object == self.treeWidget_samples:
+                item = sender_object.itemFromIndex(index)
+            else:
+                return
+
+            if item.kind == 'sample':
+                sample_index = item.index
+                sample = self.sample_manager.sample_at_index(sample_index)
+                dlg = UpdateSampleInfo.UpdateSampleInfo(sample.name, sample.comment)
+                if dlg.exec_():
+                    new_name, new_comment = dlg.getValues()
+                    self.sample_manager.update_sample_at_index(sample_index, new_name, new_comment)
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                sample_name = self.sample_manager.sample_name_at_index(sample_index)
+                sample_point_index = item.index
+                coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
+                dlg = UpdateSampleInfo.UpdateSamplePointInfo(sample_name, **coordinate_dict)
+                if dlg.exec_():
+                    new_coordinate_dict = dlg.getValues()
+                    self.sample_manager.update_sample_coordinates_at_index(sample_index, sample_point_index,
+                                                                           new_coordinate_dict)
+
+    def move_to_sample(self):
+        sender_object = QObject().sender()
+        selection = sender_object.selectedIndexes()
+        if len(selection) == 1:
+            index = sender_object.currentIndex()
+            item = sender_object.itemFromIndex(index)
+            if item.kind == 'sample_point':
+                sample_index = item.parent().index
+                sample_point_index = item.index
+                name = self.sample_manager.sample_name_at_index(sample_index)
+                coordinate_dict = self.sample_manager.sample_coordinate_dict_at_index(sample_index, sample_point_index)
+                ret = question_message_box(self, 'Moving to sample',
+                                           f'Moving to sample {name} at \n' +
+                                           f'x = {coordinate_dict["x"]:.2f}\n' +
+                                           f'y = {coordinate_dict["y"]:.2f}\n' +
+                                           f'z = {coordinate_dict["z"]:.2f}\n' +
+                                           f'th = {coordinate_dict["th"]:.2f}\n' +
+                                           'Are you sure?')
+                if ret:
+                    for axis, position in coordinate_dict.items():
+                        plan = 'move_motor_plan'
+                        motor = getattr(self.sample_stage, axis)
+                        plan_kwargs = {'motor_attr': motor.name, 'based_on': 'object_name', 'position': position}
+                        self.plan_processor.add_plan_and_run_if_idle(plan, plan_kwargs)
+
+            else:
+                message_box('Warning', 'Please select sample point')
+        elif len(selection) > 1:
+            message_box('Warning', 'Cannot move to multiple sample positions. Select one sample!')
+
+    def set_as_exposed_selected_samples(self, exposed=True):
+        index_dict = {}
+
+        index_list = self.treeWidget_samples.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                point_index_list = [item.child(i).index for i in range(item.childCount())]
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                point_index_list = [item.index]
+            if sample_index in index_dict.keys():
+                index_dict[sample_index].extend(point_index_list)
+            else:
+                index_dict[sample_index] = point_index_list
+        self.sample_manager.set_as_exposed_with_index_dict(index_dict, exposed=exposed)
+
+
+    # sample visualization methods
+
+    def visualize_beam(self):
+        exposure = self.doubleSpinBox_exposure_beam.value()
+        self.camera1.exp_time.set(exposure)
+        self.camera2.exp_time.set(exposure)
+
+    def visualize_sample(self):
+        exposure = self.doubleSpinBox_exposure_sample.value()
+        self.camera1.exp_time.set(exposure)
+        self.camera2.exp_time.set(exposure)
+
+    def update_image_limits(self):
+        vmin = self.spinBox_image_min.value()
+        vmax = self.spinBox_image_max.value()
+        print(vmin, vmax)
 
     def set_to_calibration_mode(self, state):
         if state:
@@ -306,17 +721,7 @@ class UISampleView(*uic.loadUiType(ui_path)):
     def process_calibration_data(self):
         pass
 
-    # def update_sample_stage_lineEdits_sp(self, value, old_value, atol=5e-3, suffix='sp', **kwargs):
-        # self.update_sample_stage_lineEdits(self, value, old_value, atol=atol, suffix=suffix, **kwargs)
 
-    # def update_sample_stage_lineEdits(self, value, old_value, atol=5e-3, suffix='rb', **kwargs):
-        # obj_name = kwargs['obj'].name
-        # print(f'{value=}, {old_value=}, {kwargs=}')
-        # if not np.isclose(value, old_value, atol=atol):
-        #
-        #
-        #     widget = getattr(self, stage_lineEdit_widget_dict[obj_name]['widget_' + suffix])
-        #     widget.setText(f'{value:0.3f}')
 
 
 

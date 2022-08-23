@@ -198,7 +198,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         # self.layout_camera.addWidget(self.widget_camera)
 
         self.widget_camera = widget_sample_view.UISampleView(sample_stage=sample_stage,
-                                                             camera_dict=camera_dict)
+                                                             camera_dict=camera_dict,
+                                                             sample_manager=sample_manager)
         self.layout_camera.addWidget(self.widget_camera)
 
 
