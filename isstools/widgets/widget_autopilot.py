@@ -8,7 +8,7 @@ from PyQt5.Qt import QObject
 from bluesky.plan_stubs import mv
 # from isstools.batch.table_batch import XASBatchExperiment
 # from xas.trajectory import trajectory_manager
-from isstools.widgets import widget_batch_manual
+from isstools.widgets import widget_batch_manual_legacy
 from isscloudtools import gdrive, initialize
 import numpy as np
 from isstools.dialogs.BasicDialogs import message_box, question_message_box

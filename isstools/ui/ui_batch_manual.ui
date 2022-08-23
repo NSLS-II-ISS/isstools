@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1601</width>
-    <height>854</height>
+    <width>1638</width>
+    <height>918</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -258,8 +258,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>291</width>
-         <height>231</height>
+         <width>451</width>
+         <height>332</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -527,8 +527,8 @@ Autopilot</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>281</width>
-         <height>231</height>
+         <width>530</width>
+         <height>366</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
@@ -1677,11 +1677,62 @@ scan</string>
     </item>
    </layout>
   </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>890</y>
+     <width>971</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_7">
+    <item>
+     <widget class="QLabel" name="label_25">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Current Batch Step:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_batch_step">
+      <property name="text">
+       <string>Idle</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPushButton" name="push_parse_batch">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>880</y>
+     <width>196</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="text">
+    <string>Parse batch into queue</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

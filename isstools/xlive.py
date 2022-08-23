@@ -319,7 +319,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
-        self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.widget_batch_manual.update_scan_defs)
+        self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
 
         print('widget loading done', ttime.ctime())
 
