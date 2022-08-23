@@ -5,6 +5,7 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
+from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import QObject
 from PyQt5.QtCore import QThread, QSettings
 from isstools.elements.qmicroscope import Microscope
@@ -13,8 +14,10 @@ from isstools.elements.qmicroscope import Microscope
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_view.ui')
+coordinate_system_file = pkg_resources.resource_filename('isstools', 'icons/Coordinate system.png')
 
 stage_button_widget_dict = {
+            # pushbuttons
             'pushButton_move_right':
                 {'axis': 'x',
                  'direction': 1,
@@ -31,6 +34,23 @@ stage_button_widget_dict = {
                 {'axis': 'y',
                  'direction': 1,
                  'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            'pushButton_move_downstream':
+                {'axis': 'z',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_move_upstream':
+                {'axis': 'z',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_move_clockwise':
+                {'axis': 'th',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
+            'pushButton_move_counterclockwise':
+                {'axis': 'th',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            # tweak pushbuttons
             'pushButton_sample_stage_x_tweak_neg':
                 {'axis': 'x',
                  'direction': -1,
@@ -92,7 +112,17 @@ slider_widget_dict = {
                                       'math_params' : {'min_step' : 0.1,
                                                        'max_step' : 50,
                                                        'logarithmic' : True}
-                                      }
+                                      },
+            'verticalSlider_z_step' : {'widget' : 'doubleSpinBox_sample_stage_z_step',
+                                                  'math_params' : {'min_step' : 0.1,
+                                                                   'max_step' : 50,
+                                                                   'logarithmic' : True}
+                                      },
+            'verticalSlider_th_step' : {'widget' : 'doubleSpinBox_sample_stage_th_step',
+                                                  'math_params' : {'min_step' : 0.1,
+                                                                   'max_step' : 50,
+                                                                   'logarithmic' : True}
+                                      },
                       }
 
 class UISampleView(*uic.loadUiType(ui_path)):
@@ -129,6 +159,16 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.pushButton_move_down.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_move_left.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_move_right.clicked.connect(self.move_sample_stage_rel)
+        self.pushButton_move_downstream.clicked.connect(self.move_sample_stage_rel)
+        self.pushButton_move_upstream.clicked.connect(self.move_sample_stage_rel)
+        self.pushButton_move_counterclockwise.clicked.connect(self.move_sample_stage_rel)
+        self.pushButton_move_clockwise.clicked.connect(self.move_sample_stage_rel)
+
+        self.verticalSlider_x_step.valueChanged.connect(self.update_sample_stage_step)
+        self.verticalSlider_y_step.valueChanged.connect(self.update_sample_stage_step)
+        self.verticalSlider_z_step.valueChanged.connect(self.update_sample_stage_step)
+        self.verticalSlider_th_step.valueChanged.connect(self.update_sample_stage_step)
+
         self.pushButton_sample_stage_x_tweak_neg.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_sample_stage_x_tweak_pos.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_sample_stage_y_tweak_neg.clicked.connect(self.move_sample_stage_rel)
@@ -137,11 +177,6 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.pushButton_sample_stage_z_tweak_pos.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_sample_stage_th_tweak_neg.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_sample_stage_th_tweak_pos.clicked.connect(self.move_sample_stage_rel)
-
-        self.verticalSlider_x_step.valueChanged.connect(self.update_sample_stage_step)
-        self.verticalSlider_y_step.valueChanged.connect(self.update_sample_stage_step)
-
-        # self.update_lineEdit_sample_stage_x_position_rb(self.sample_stage.x.position, -1e4)
 
         for k, v in stage_lineEdit_widget_dict.items():
             pv = v['pv']
@@ -160,6 +195,8 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_stage_y_position_sp.returnPressed.connect(self.move_sample_stage_abs)
         self.lineEdit_sample_stage_z_position_sp.returnPressed.connect(self.move_sample_stage_abs)
         self.lineEdit_sample_stage_th_position_sp.returnPressed.connect(self.move_sample_stage_abs)
+
+
 
         self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
         self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
@@ -184,7 +221,12 @@ class UISampleView(*uic.loadUiType(ui_path)):
         self.sample_cam2.polygonDrawingSignal.connect(self.sample_cam1.calibration_polygon.append)
 
         self.calibration_data = []
+        pixmap = QPixmap(coordinate_system_file)
+        self.label_coordinate_system.setPixmap(pixmap)
 
+
+    def test_func(self):
+        print('BLA BLA')
 
     def visualize_beam(self):
         exposure = self.doubleSpinBox_exposure_beam.value()
@@ -317,3 +359,14 @@ class CamCalibration:
 # dx = self.A_xy2px @ [1, 0]
 # self.A_xy2px = np.array([-7.91148978e+00,  8.63858905e-04])
 # self.A_xy2py = np.array([ -1.7081848 , -12.94478738])
+
+
+# x = np.linspace(0, 99, 100)
+# y_steps = [0.1, 1, 10, 50]
+#
+#
+
+
+
+
+
