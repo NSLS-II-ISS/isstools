@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
@@ -129,7 +129,7 @@
     </widget>
     <widget class="QWidget" name="tab_camera">
      <attribute name="title">
-      <string>Sample Positioner</string>
+      <string>Sample Manager</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_11">
       <property name="geometry">
@@ -140,7 +140,7 @@
         <height>931</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="layout_camera">
+      <layout class="QHBoxLayout" name="layout_sample_manager">
        <property name="sizeConstraint">
         <enum>QLayout::SetNoConstraint</enum>
        </property>
@@ -167,26 +167,6 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_3">
-     <attribute name="title">
-      <string>Autopilot</string>
-     </attribute>
-     <widget class="QWidget" name="verticalLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>1606</width>
-        <height>781</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="layout_autopilot">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetNoConstraint</enum>
-       </property>
-      </layout>
-     </widget>
-    </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
       <string>Batch</string>
@@ -205,7 +185,7 @@
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
-      <string>Processing</string>
+      <string>Re-processing</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_7">
       <property name="geometry">
@@ -217,6 +197,26 @@
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_processing">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetNoConstraint</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Sample registry</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>1606</width>
+        <height>781</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="layout_sample_registry">
        <property name="sizeConstraint">
         <enum>QLayout::SetNoConstraint</enum>
        </property>

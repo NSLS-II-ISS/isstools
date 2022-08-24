@@ -8,12 +8,13 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
+from PyQt5.QtWidgets import QMenu
 from isstools.elements.qmicroscope import Microscope
 from ..elements.elements import remove_special_characters
 
 
 
-ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_view.ui')
+ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_manager.ui')
 coordinate_system_file = pkg_resources.resource_filename('isstools', 'icons/Coordinate system.png')
 
 stage_button_widget_dict = {
@@ -146,7 +147,7 @@ sample_position_widget_dict = {
         }
 
 
-class UISampleView(*uic.loadUiType(ui_path)):
+class UISampleManager(*uic.loadUiType(ui_path)):
     sample_list_changed_signal = QtCore.pyqtSignal()
 
     def __init__(self,
@@ -229,6 +230,7 @@ class UISampleView(*uic.loadUiType(ui_path)):
 
         self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
         self.push_create_sample.clicked.connect(self.create_new_sample)
+        self.push_define_sample_points.clicked.connect(self.define_sample_points)
 
         self.push_delete_sample.clicked.connect(self.delete_sample)
         self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
@@ -476,10 +478,10 @@ class UISampleView(*uic.loadUiType(ui_path)):
     #                            checkable=checkable)
 
     def _make_sample_item(self, sample_str, sample_index):
-        return self._make_item(self.treeWidget_samples, sample_str, sample_index, kind='sample', force_unchecked=False)
+        return self._make_item(self.treeWidget_samples, sample_str, sample_index, kind='sample', force_unchecked=False, checkable=False)
 
     def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
-        point_item = self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True)
+        point_item = self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True, checkable=False)
         point_item.is_exposed = is_exposed
         if is_exposed:
             point_item.setForeground(0, QtGui.QColor('red'))
@@ -530,9 +532,22 @@ class UISampleView(*uic.loadUiType(ui_path)):
             return
         sample_name = remove_special_characters(sample_name)
         sample_comment = self.lineEdit_sample_comment.text()
-        positions = self._create_list_of_positions()
+        # positions = self._create_list_of_positions()
+        self.sample_manager.add_new_sample(sample_name, sample_comment, [])
 
-        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+
+    def define_sample_points(self):
+        index_list = self.treeWidget_samples.selectedIndexes()
+        if len(index_list) == 1:
+            index = index_list[0]
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                positions = self._create_list_of_positions()
+                self.sample_manager.add_points_to_sample_at_index(sample_index, positions)
+
+
+
 
     def get_sample_info_from_autopilot(self):
         try:

@@ -73,27 +73,27 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
         # samples
         self.update_sample_tree()
-        self.parent_gui.widget_camera.sample_list_changed_signal.connect(self.update_sample_tree)
+        self.parent_gui.widget_sample_manager.sample_list_changed_signal.connect(self.update_sample_tree)
         # self.sample_list_changed_signal.connect(self.update_sample_tree)
 
-        self.push_create_sample.clicked.connect(self.create_new_sample)
+        # self.push_create_sample.clicked.connect(self.create_new_sample)
 
         self.push_delete_sample.clicked.connect(self.delete_sample)
         self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
-        self.push_save_samples.clicked.connect(self.save_samples)
-        self.push_load_samples.clicked.connect(self.load_samples)
+        # self.push_save_samples.clicked.connect(self.save_samples)
+        # self.push_load_samples.clicked.connect(self.load_samples)
         self.push_check_all.clicked.connect(self.check_all_samples)
         self.push_uncheck_all.clicked.connect(self.uncheck_all_samples)
 
-        self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
-        self.push_get_sample_position.clicked.connect(self.get_sample_position)
-        self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
-        self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
-        self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
-        self.radioButton_sample_map_1D.toggled.connect(self.enable_map_spinboxes)
-        self.radioButton_map_steps.toggled.connect(self.enable_map_spinboxes)
-        self.enable_user_position_input()
-        self.enable_map_spinboxes()
+       # self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
+       #  self.push_get_sample_position.clicked.connect(self.get_sample_position)
+       #  self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
+       #  self.push_get_sample_position_map_end.clicked.connect(self.get_sample_position)
+       #  self.checkBox_auto_position.toggled.connect(self.enable_user_position_input)
+       #  self.radioButton_sample_map_1D.toggled.connect(self.enable_map_spinboxes)
+       #  self.radioButton_map_steps.toggled.connect(self.enable_map_spinboxes)
+       # self.enable_user_position_input()
+       #  self.enable_map_spinboxes()
 
         self.treeWidget_samples.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget_samples.customContextMenuRequested.connect(self.sample_context_menu)
@@ -136,43 +136,43 @@ class UIBatch(*uic.loadUiType(ui_path)):
     '''
     General methods used more than once
     '''
-    def get_sample_position(self):
-        sample_position_widget_dict = {
-            'push_get_sample_position':
-                {'x_widget': 'spinBox_sample_x',
-                 'y_widget': 'spinBox_sample_y',
-                 'z_widget': 'spinBox_sample_z',
-                 'th_widget': 'spinBox_sample_th',
-                },
-            'push_get_sample_position_map_start':
-                {'x_widget': 'spinBox_sample_x_map_start',
-                 'y_widget': 'spinBox_sample_y_map_start',
-                 'z_widget': 'spinBox_sample_z_map_start',
-                 'th_widget': 'spinBox_sample_th_map_start',
-                 },
-            'push_get_sample_position_map_end':
-                {'x_widget': 'spinBox_sample_x_map_end',
-                 'y_widget': 'spinBox_sample_y_map_end',
-                 'z_widget': 'spinBox_sample_z_map_end',
-                 'th_widget': 'spinBox_sample_th_map_end'},
-        }
-
-        sender_object = QObject().sender().objectName()
-        x_value = self.sample_stage.x.position
-        x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
-        x_widget.setValue(x_value)
-
-        y_value = self.sample_stage.y.position
-        y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
-        y_widget.setValue(y_value)
-
-        z_value = self.sample_stage.z.position
-        z_widget = getattr(self, sample_position_widget_dict[sender_object]['z_widget'])
-        z_widget.setValue(z_value)
-
-        th_value = self.sample_stage.th.position
-        th_widget = getattr(self, sample_position_widget_dict[sender_object]['th_widget'])
-        th_widget.setValue(th_value)
+    # def get_sample_position(self):
+    #     sample_position_widget_dict = {
+    #         'push_get_sample_position':
+    #             {'x_widget': 'spinBox_sample_x',
+    #              'y_widget': 'spinBox_sample_y',
+    #              'z_widget': 'spinBox_sample_z',
+    #              'th_widget': 'spinBox_sample_th',
+    #             },
+    #         'push_get_sample_position_map_start':
+    #             {'x_widget': 'spinBox_sample_x_map_start',
+    #              'y_widget': 'spinBox_sample_y_map_start',
+    #              'z_widget': 'spinBox_sample_z_map_start',
+    #              'th_widget': 'spinBox_sample_th_map_start',
+    #              },
+    #         'push_get_sample_position_map_end':
+    #             {'x_widget': 'spinBox_sample_x_map_end',
+    #              'y_widget': 'spinBox_sample_y_map_end',
+    #              'z_widget': 'spinBox_sample_z_map_end',
+    #              'th_widget': 'spinBox_sample_th_map_end'},
+    #     }
+    #
+    #     sender_object = QObject().sender().objectName()
+    #     x_value = self.sample_stage.x.position
+    #     x_widget = getattr(self, sample_position_widget_dict[sender_object]['x_widget'])
+    #     x_widget.setValue(x_value)
+    #
+    #     y_value = self.sample_stage.y.position
+    #     y_widget = getattr(self,sample_position_widget_dict[sender_object]['y_widget'])
+    #     y_widget.setValue(y_value)
+    #
+    #     z_value = self.sample_stage.z.position
+    #     z_widget = getattr(self, sample_position_widget_dict[sender_object]['z_widget'])
+    #     z_widget.setValue(z_value)
+    #
+    #     th_value = self.sample_stage.th.position
+    #     th_widget = getattr(self, sample_position_widget_dict[sender_object]['th_widget'])
+    #     th_widget.setValue(th_value)
 
     def modify_item(self):
         sender_object = QObject().sender()
@@ -272,97 +272,97 @@ class UIBatch(*uic.loadUiType(ui_path)):
     Dealing with sample positioning and definition
     '''
 
-    def _create_list_of_positions(self):
-        tab_text = self.tabWidget_sample.tabText(self.tabWidget_sample.currentIndex())
-        if tab_text == 'Grid':
-            return self._create_grid_of_positions()
-        elif tab_text == 'Map':
-             return self._create_map_of_positions()
-        return
-
-    def _get_stage_coordinates(self, tolerance=0.005):
-        self.spinBox_sample_x.setValue(self.sample_stage.x.position)
-        self.spinBox_sample_y.setValue(self.sample_stage.y.position)
-        self.spinBox_sample_z.setValue(self.sample_stage.z.position)
-        # print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
-        self.spinBox_sample_th.setValue(self.sample_stage.th.position)
-
-
-    def _create_grid_of_positions(self):
-        step_size = self.spinBox_grid_spacing.value()
-        n_x = self.spinBox_grid_x_points.value()
-        n_y = self.spinBox_grid_y_points.value()
-        x_array = np.arange(n_x, dtype=float)
-        x_array -= np.median(x_array)
-        y_array = np.arange(n_y, dtype=float)
-        y_array -= np.median(y_array)
-        x_mesh, y_mesh = np.meshgrid(x_array * step_size, y_array * step_size)
-        x_mesh = x_mesh.ravel()
-        y_mesh = y_mesh.ravel()
-
-        radius = self.spinBox_sample_radius.value()
-        if radius > 0:
-            r_mesh = np.sqrt(x_mesh ** 2 + y_mesh ** 2)
-            x_mesh = x_mesh[r_mesh <= radius]
-            y_mesh = y_mesh[r_mesh <= radius]
-
-        if self.checkBox_auto_position.isChecked():
-            self._get_stage_coordinates()
-
-        xs = self.spinBox_sample_x.value() + x_mesh
-        ys = self.spinBox_sample_y.value() + y_mesh
-        z = self.spinBox_sample_z.value()
-        th = self.spinBox_sample_th.value()
-        npt = xs.size
-        positions = []
-        for i in range(npt):
-            _d = {'x' : xs[i],
-                  'y' : ys[i],
-                  'z' : z,
-                  'th' : th }
-            positions.append(_d)
-        return positions
-
-    def _create_map_of_positions(self):
-        x_1 = self.spinBox_sample_x_map_start.value()
-        y_1 = self.spinBox_sample_y_map_start.value()
-        z_1 = self.spinBox_sample_z_map_start.value()
-        th_1 = self.spinBox_sample_th_map_start.value()
-
-        x_2 = self.spinBox_sample_x_map_end.value()
-        y_2 = self.spinBox_sample_y_map_end.value()
-        z_2 = self.spinBox_sample_z_map_end.value()
-        th_2 = self.spinBox_sample_th_map_end.value()
-
-        if self.radioButton_map_steps.isChecked():
-            n_x = self.spinBox_sample_x_map_steps.value()
-            n_y = self.spinBox_sample_y_map_steps.value()
-        elif self.radioButton_map_spacing.isChecked():
-            x_spacing = self.spinBox_sample_x_map_spacing.value() / np.cos(np.pi/4)
-            y_spacing = self.spinBox_sample_y_map_spacing.value()
-            n_x = int(np.floor(np.abs(x_1 - x_2) / x_spacing))
-            n_y = int(np.floor(np.abs(y_1 - y_2) / y_spacing))
-
-        if self.radioButton_sample_map_1D.isChecked():
-            xs = np.linspace(x_1, x_2, n_x)
-            ys = np.linspace(y_1, y_2, n_x)
-        elif self.radioButton_sample_map_2D.isChecked():
-            _x = np.linspace(x_1, x_2, n_x)
-            _y = np.linspace(y_1, y_2, n_y)
-            xs, ys = np.meshgrid(np.linspace(x_1, x_2, n_x),
-                                 np.linspace(y_1, y_2, n_y))
-            xs = xs.ravel()
-            ys = ys.ravel()
-
-        npt = xs.size
-        positions = []#
-        for i in range(npt):
-            _d = {'x': xs[i],
-                  'y': ys[i],
-                  'z': np.interp(xs[i], [x_1, x_2], [z_1, z_2]),
-                  'th': np.interp(xs[i], [x_1, x_2], [th_1, th_2])}
-            positions.append(_d)
-        return positions
+    # def _create_list_of_positions(self):
+    #     tab_text = self.tabWidget_sample.tabText(self.tabWidget_sample.currentIndex())
+    #     if tab_text == 'Grid':
+    #         return self._create_grid_of_positions()
+    #     elif tab_text == 'Map':
+    #          return self._create_map_of_positions()
+    #     return
+    #
+    # def _get_stage_coordinates(self, tolerance=0.005):
+    #     self.spinBox_sample_x.setValue(self.sample_stage.x.position)
+    #     self.spinBox_sample_y.setValue(self.sample_stage.y.position)
+    #     self.spinBox_sample_z.setValue(self.sample_stage.z.position)
+    #     # print('!!!!!! WARNING TTH MOTOR WAS DISABLED IN GUI')
+    #     self.spinBox_sample_th.setValue(self.sample_stage.th.position)
+    #
+    #
+    # def _create_grid_of_positions(self):
+    #     step_size = self.spinBox_grid_spacing.value()
+    #     n_x = self.spinBox_grid_x_points.value()
+    #     n_y = self.spinBox_grid_y_points.value()
+    #     x_array = np.arange(n_x, dtype=float)
+    #     x_array -= np.median(x_array)
+    #     y_array = np.arange(n_y, dtype=float)
+    #     y_array -= np.median(y_array)
+    #     x_mesh, y_mesh = np.meshgrid(x_array * step_size, y_array * step_size)
+    #     x_mesh = x_mesh.ravel()
+    #     y_mesh = y_mesh.ravel()
+    #
+    #     radius = self.spinBox_sample_radius.value()
+    #     if radius > 0:
+    #         r_mesh = np.sqrt(x_mesh ** 2 + y_mesh ** 2)
+    #         x_mesh = x_mesh[r_mesh <= radius]
+    #         y_mesh = y_mesh[r_mesh <= radius]
+    #
+    #     if self.checkBox_auto_position.isChecked():
+    #         self._get_stage_coordinates()
+    #
+    #     xs = self.spinBox_sample_x.value() + x_mesh
+    #     ys = self.spinBox_sample_y.value() + y_mesh
+    #     z = self.spinBox_sample_z.value()
+    #     th = self.spinBox_sample_th.value()
+    #     npt = xs.size
+    #     positions = []
+    #     for i in range(npt):
+    #         _d = {'x' : xs[i],
+    #               'y' : ys[i],
+    #               'z' : z,
+    #               'th' : th }
+    #         positions.append(_d)
+    #     return positions
+    #
+    # def _create_map_of_positions(self):
+    #     x_1 = self.spinBox_sample_x_map_start.value()
+    #     y_1 = self.spinBox_sample_y_map_start.value()
+    #     z_1 = self.spinBox_sample_z_map_start.value()
+    #     th_1 = self.spinBox_sample_th_map_start.value()
+    #
+    #     x_2 = self.spinBox_sample_x_map_end.value()
+    #     y_2 = self.spinBox_sample_y_map_end.value()
+    #     z_2 = self.spinBox_sample_z_map_end.value()
+    #     th_2 = self.spinBox_sample_th_map_end.value()
+    #
+    #     if self.radioButton_map_steps.isChecked():
+    #         n_x = self.spinBox_sample_x_map_steps.value()
+    #         n_y = self.spinBox_sample_y_map_steps.value()
+    #     elif self.radioButton_map_spacing.isChecked():
+    #         x_spacing = self.spinBox_sample_x_map_spacing.value() / np.cos(np.pi/4)
+    #         y_spacing = self.spinBox_sample_y_map_spacing.value()
+    #         n_x = int(np.floor(np.abs(x_1 - x_2) / x_spacing))
+    #         n_y = int(np.floor(np.abs(y_1 - y_2) / y_spacing))
+    #
+    #     if self.radioButton_sample_map_1D.isChecked():
+    #         xs = np.linspace(x_1, x_2, n_x)
+    #         ys = np.linspace(y_1, y_2, n_x)
+    #     elif self.radioButton_sample_map_2D.isChecked():
+    #         _x = np.linspace(x_1, x_2, n_x)
+    #         _y = np.linspace(y_1, y_2, n_y)
+    #         xs, ys = np.meshgrid(np.linspace(x_1, x_2, n_x),
+    #                              np.linspace(y_1, y_2, n_y))
+    #         xs = xs.ravel()
+    #         ys = ys.ravel()
+    #
+    #     npt = xs.size
+    #     positions = []#
+    #     for i in range(npt):
+    #         _d = {'x': xs[i],
+    #               'y': ys[i],
+    #               'z': np.interp(xs[i], [x_1, x_2], [z_1, z_2]),
+    #               'th': np.interp(xs[i], [x_1, x_2], [th_1, th_2])}
+    #         positions.append(_d)
+    #     return positions
 
 
     '''
@@ -438,16 +438,15 @@ class UIBatch(*uic.loadUiType(ui_path)):
                 point_str = f'{j+1:3d} - {point_str}'
                 self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
 
-    def create_new_sample(self):
-        sample_name = self.lineEdit_sample_name.text()
-        if sample_name == '':
-            message_box('Warning', 'Sample name is empty')
-            return
-        sample_name = remove_special_characters(sample_name)
-        sample_comment = self.lineEdit_sample_comment.text()
-        positions = self._create_list_of_positions()
-
-        self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
+    # def create_new_sample(self):
+    #     sample_name = self.lineEdit_sample_name.text()
+    #     if sample_name == '':
+    #         message_box('Warning', 'Sample name is empty')
+    #         return
+    #     sample_name = remove_special_characters(sample_name)
+    #     sample_comment = self.lineEdit_sample_comment.text()
+    #     positions = self._create_list_of_positions()
+    #       self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
 
     def delete_sample(self):
         index_dict = {}
@@ -473,25 +472,25 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.sample_manager.reset()
 
 
-    def save_samples(self):
-        default_fpath = self.sample_manager.local_file_default_path
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', default_fpath, '*.smpl',
-                                                         options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
-        # print(filename)
-        if not filename.endswith('.smpl'):
-            filename = filename + '.smpl'
-
-        self.sample_manager.save_to_file(filename)
-
-        # with open(filename, 'w') as f:
-        #     f.write(json.dumps(samples))
-
-
-    def load_samples(self):
-        default_fpath = self.sample_manager.local_file_default_path
-        filename = QtWidgets.QFileDialog.getOpenFileName(directory=default_fpath,
-                                                         filter='*.smpl', parent=self)[0]
-        self.sample_manager.add_samples_from_file(filename)
+    # def save_samples(self):
+    #     default_fpath = self.sample_manager.local_file_default_path
+    #     filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save samples...', default_fpath, '*.smpl',
+    #                                                      options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
+    #     # print(filename)
+    #     if not filename.endswith('.smpl'):
+    #         filename = filename + '.smpl'
+    #
+    #     self.sample_manager.save_to_file(filename)
+    #
+    #     # with open(filename, 'w') as f:
+    #     #     f.write(json.dumps(samples))
+    #
+    #
+    # def load_samples(self):
+    #     default_fpath = self.sample_manager.local_file_default_path
+    #     filename = QtWidgets.QFileDialog.getOpenFileName(directory=default_fpath,
+    #                                                      filter='*.smpl', parent=self)[0]
+    #     self.sample_manager.add_samples_from_file(filename)
 
 
     @property
@@ -517,27 +516,27 @@ class UIBatch(*uic.loadUiType(ui_path)):
         for item in self._sample_item_iterator():
             item.setCheckState(0, 0)
 
-    def get_sample_info_from_autopilot(self):
-        try:
-            df = self.parent_gui.widget_autopilot.sample_df
-            str_to_parse = self.lineEdit_sample_name.text()
-            if '_' in str_to_parse:
-                try:
-                    n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
-                    select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
-                    select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
-                    line_number = np.where(select_holders & select_sample_n)[0][0]
-                except:
-                    pass
-            else:
-                line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
-            name = df.iloc[line_number]['Name']
-            comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
-            name = name.replace('/', '_')
-            self.lineEdit_sample_name.setText(name)
-            self.lineEdit_sample_comment.setText(comment)
-        except:
-            message_box('Error', 'Autopilot table is not defined')
+    # def get_sample_info_from_autopilot(self):
+    #     try:
+    #         df = self.parent_gui.widget_autopilot.sample_df
+    #         str_to_parse = self.lineEdit_sample_name.text()
+    #         if '_' in str_to_parse:
+    #             try:
+    #                 n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
+    #                 select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
+    #                 select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
+    #                 line_number = np.where(select_holders & select_sample_n)[0][0]
+    #             except:
+    #                 pass
+    #         else:
+    #             line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
+    #         name = df.iloc[line_number]['Name']
+    #         comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
+    #         name = name.replace('/', '_')
+    #         self.lineEdit_sample_name.setText(name)
+    #         self.lineEdit_sample_comment.setText(comment)
+    #     except:
+    #         message_box('Error', 'Autopilot table is not defined')
 
 
     def check_selected_samples(self, checkstate=2):
@@ -874,15 +873,15 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
 
 
-    def enable_map_spinboxes(self):
-        is_1d = self.radioButton_sample_map_1D.isChecked()
-        is_steps = self.radioButton_map_steps.isChecked()
-
-        self.spinBox_sample_x_map_steps.setEnabled(is_steps)
-        self.spinBox_sample_x_map_spacing.setEnabled((not is_steps))
-
-        self.spinBox_sample_y_map_steps.setEnabled((is_steps) and (not is_1d))
-        self.spinBox_sample_y_map_spacing.setEnabled(((not is_steps) and (not is_1d)))
+    # def enable_map_spinboxes(self):
+    #     is_1d = self.radioButton_sample_map_1D.isChecked()
+    #     is_steps = self.radioButton_map_steps.isChecked()
+    #
+    #     self.spinBox_sample_x_map_steps.setEnabled(is_steps)
+    #     self.spinBox_sample_x_map_spacing.setEnabled((not is_steps))
+    #
+    #     self.spinBox_sample_y_map_steps.setEnabled((is_steps) and (not is_1d))
+    #     self.spinBox_sample_y_map_spacing.setEnabled(((not is_steps) and (not is_1d)))
 
 
 
@@ -907,142 +906,142 @@ class UIBatch(*uic.loadUiType(ui_path)):
     #     return delta_x, delta_y
 
 
-    def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict, testing=False):
-        #sample_stage = None
-        sys.stdout = self.parent_gui.emitstream_out
-        # tm = trajectory_manager(hhm)
-        traj_stack = TrajectoryStack(self.hhm, self.trajectory_manager)
-        for ii in range(batch.rowCount()): # go through all experiments
-            experiment = batch.item(ii)
-            repeat = experiment.repeat
-            for indx in range(repeat): # repeat as needed
-                if repeat > 1:
-                    exper_index = f'{(indx + 1):04d}'
-                else:
-                    exper_index = ''
-                for jj in range(experiment.rowCount()): # go inside expeirmrnt and go through its contents
-                    step = experiment.child(jj)
-                    if step.item_type == 'sample':
-                        sample = step
-                        #randomization
-                        delta_x, delta_y = self.randomize_position()
-                        if testing:
-                            print('would have moved there', sample.x + delta_x, sample.y + delta_y)
-                        else:
-                            yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y,
-                                          sample_stage.z, sample.z, sample_stage.th, sample.th )
-
-                        for kk in range(sample.rowCount()):
-                            child_item = sample.child(kk)
-                            if child_item.item_type == 'scan':
-                                scan=child_item
-
-
-                                plan = plans_dict[scan.scan_type]
-                                sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                                self.label_batch_step.setText(sample_name)
-                                kwargs = {'name': sample_name,
-                                          'comment': '',
-                                          'delay': scan.delay,
-                                          'n_cycles': scan.repeat,
-                                          'stdout': self.parent_gui.emitstream_out}
-                                          # 'autofoil' : scan.autofoil}
-                                if testing:
-                                    print('would have changed traj', scan.trajectory)
-
-                                else:
-                                    traj_stack.set_traj(scan.trajectory)
-
-                                # check if there are child services
-                                if scan.rowCount() != 0:
-                                    for i in range(scan.rowCount()):
-                                        child_service = scan.child(i)
-                                        child_kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                        if testing:
-                                            print('would have done service', child_service.name)
-                                        else:
-                                            yield from child_service.service_plan(**child_service.service_params, **child_kwargs)
-                                # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
-                                # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
-                                #     if traj_index:
-                                #         traj_stack.set_traj(traj_index)
-                                #     else:
-                                if testing:
-                                    print('would have done the plan', scan.name)
-                                else:
-                                    yield from plan(**kwargs)
-
-
-                            elif child_item.item_type == 'service':
-                                service = child_item
-                                kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                if testing:
-                                    print('would have done service', service.name)
-                                else:
-                                    yield from service.service_plan(**service.service_params, **kwargs)
-
-                    elif step.item_type == 'scan':
-                        scan = step
-                        # traj_index = scan.trajectory
-                        # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
-                        #     tm.init(traj_index + 1)
-                        if testing:
-                            print('would have set the traj', scan.trajectory)
-                        else:
-                            traj_stack.set_traj(scan.trajectory)
-
-                        for kk in range(step.rowCount()):
-                            child_item = scan.child(kk)
-                            if child_item.item_type == 'sample':
-                                sample=child_item
-                                # randomization
-                                delta_x, delta_y = self.randomize_position()
-
-                                if testing:
-                                    print('would have moved there', sample.x + delta_x, sample.y + delta_y)
-                                else:
-                                    yield from mv(sample_stage.x, sample.x + delta_x,
-                                                  sample_stage.y, sample.y + delta_y,
-                                                  sample_stage.z, sample.z,
-                                                  sample_stage.th, sample.th)
-
-                                # see if there is child service
-                                if sample.rowCount() != 0:
-                                    for i in range(sample.rowCount()):
-                                        child_service = sample.child(i)
-                                        kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                        if testing:
-                                            print('would have done service', child_service.name)
-                                        else:
-                                            yield from child_service.service_plan(**child_service.service_params, **kwargs)
-
-                                plan = plans_dict[scan.scan_type]
-
-                                sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
-                                self.label_batch_step.setText(sample_name)
-                                kwargs = {'name': sample_name,
-                                          'comment': '',
-                                          'delay': scan.delay,
-                                          'n_cycles': scan.repeat,
-                                          'stdout': self.parent_gui.emitstream_out}
-                                if testing:
-                                    print('would have done the scan', sample.name)
-                                else:
-                                    yield from plan(**kwargs)
-
-                            elif child_item.item_type == 'service':
-                                service = child_item
-                                kwargs = {'stdout': self.parent_gui.emitstream_out}
-                                if testing:
-                                    print('would have done service', child_item.name)
-                                else:
-                                    yield from service.service_plan(**service.service_params, **kwargs)
-
-                    elif step.item_type == 'service':
-                        kwargs = {'stdout': self.parent_gui.emitstream_out}
-                        if testing:
-                            print('would have done service', step.name)
-                        else:
-                            yield from step.service_plan(**step.service_params, **kwargs)
-
-        self.label_batch_step.setText('idle')
+    # def batch_parse_and_run(self, hhm, sample_stage, batch, plans_dict, testing=False):
+    #     #sample_stage = None
+    #     sys.stdout = self.parent_gui.emitstream_out
+    #     # tm = trajectory_manager(hhm)
+    #     traj_stack = TrajectoryStack(self.hhm, self.trajectory_manager)
+    #     for ii in range(batch.rowCount()): # go through all experiments
+    #         experiment = batch.item(ii)
+    #         repeat = experiment.repeat
+    #         for indx in range(repeat): # repeat as needed
+    #             if repeat > 1:
+    #                 exper_index = f'{(indx + 1):04d}'
+    #             else:
+    #                 exper_index = ''
+    #             for jj in range(experiment.rowCount()): # go inside expeirmrnt and go through its contents
+    #                 step = experiment.child(jj)
+    #                 if step.item_type == 'sample':
+    #                     sample = step
+    #                     # #randomization
+    #                     # delta_x, delta_y = self.randomize_position()
+    #                     if testing:
+    #                         print('would have moved there', sample.x + delta_x, sample.y + delta_y)
+    #                     else:
+    #                         yield from mv(sample_stage.x, sample.x + delta_x, sample_stage.y, sample.y + delta_y,
+    #                                       sample_stage.z, sample.z, sample_stage.th, sample.th )
+    #
+    #                     for kk in range(sample.rowCount()):
+    #                         child_item = sample.child(kk)
+    #                         if child_item.item_type == 'scan':
+    #                             scan=child_item
+    #
+    #
+    #                             plan = plans_dict[scan.scan_type]
+    #                             sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+    #                             self.label_batch_step.setText(sample_name)
+    #                             kwargs = {'name': sample_name,
+    #                                       'comment': '',
+    #                                       'delay': scan.delay,
+    #                                       'n_cycles': scan.repeat,
+    #                                       'stdout': self.parent_gui.emitstream_out}
+    #                                       # 'autofoil' : scan.autofoil}
+    #                             if testing:
+    #                                 print('would have changed traj', scan.trajectory)
+    #
+    #                             else:
+    #                                 traj_stack.set_traj(scan.trajectory)
+    #
+    #                             # check if there are child services
+    #                             if scan.rowCount() != 0:
+    #                                 for i in range(scan.rowCount()):
+    #                                     child_service = scan.child(i)
+    #                                     child_kwargs = {'stdout': self.parent_gui.emitstream_out}
+    #                                     if testing:
+    #                                         print('would have done service', child_service.name)
+    #                                     else:
+    #                                         yield from child_service.service_plan(**child_service.service_params, **child_kwargs)
+    #                             # traj_index = traj_stack.which_slot_for_traj(scan.trajectory)
+    #                             # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index:
+    #                             #     if traj_index:
+    #                             #         traj_stack.set_traj(traj_index)
+    #                             #     else:
+    #                             if testing:
+    #                                 print('would have done the plan', scan.name)
+    #                             else:
+    #                                 yield from plan(**kwargs)
+    #
+    #
+    #                         elif child_item.item_type == 'service':
+    #                             service = child_item
+    #                             kwargs = {'stdout': self.parent_gui.emitstream_out}
+    #                             if testing:
+    #                                 print('would have done service', service.name)
+    #                             else:
+    #                                 yield from service.service_plan(**service.service_params, **kwargs)
+    #
+    #                 elif step.item_type == 'scan':
+    #                     scan = step
+    #                     # traj_index = scan.trajectory
+    #                     # if self.hhm.lut_number_rbv.read()['hhm_lut_number_rbv']['value'] != traj_index + 1:
+    #                     #     tm.init(traj_index + 1)
+    #                     if testing:
+    #                         print('would have set the traj', scan.trajectory)
+    #                     else:
+    #                         traj_stack.set_traj(scan.trajectory)
+    #
+    #                     for kk in range(step.rowCount()):
+    #                         child_item = scan.child(kk)
+    #                         if child_item.item_type == 'sample':
+    #                             sample=child_item
+    #                             # randomization
+    #                             delta_x, delta_y = self.randomize_position()
+    #
+    #                             if testing:
+    #                                 print('would have moved there', sample.x + delta_x, sample.y + delta_y)
+    #                             else:
+    #                                 yield from mv(sample_stage.x, sample.x + delta_x,
+    #                                               sample_stage.y, sample.y + delta_y,
+    #                                               sample_stage.z, sample.z,
+    #                                               sample_stage.th, sample.th)
+    #
+    #                             # see if there is child service
+    #                             if sample.rowCount() != 0:
+    #                                 for i in range(sample.rowCount()):
+    #                                     child_service = sample.child(i)
+    #                                     kwargs = {'stdout': self.parent_gui.emitstream_out}
+    #                                     if testing:
+    #                                         print('would have done service', child_service.name)
+    #                                     else:
+    #                                         yield from child_service.service_plan(**child_service.service_params, **kwargs)
+    #
+    #                             plan = plans_dict[scan.scan_type]
+    #
+    #                             sample_name = '{} {} {}'.format(sample.name, scan.name, exper_index)
+    #                             self.label_batch_step.setText(sample_name)
+    #                             kwargs = {'name': sample_name,
+    #                                       'comment': '',
+    #                                       'delay': scan.delay,
+    #                                       'n_cycles': scan.repeat,
+    #                                       'stdout': self.parent_gui.emitstream_out}
+    #                             if testing:
+    #                                 print('would have done the scan', sample.name)
+    #                             else:
+    #                                 yield from plan(**kwargs)
+    #
+    #                         elif child_item.item_type == 'service':
+    #                             service = child_item
+    #                             kwargs = {'stdout': self.parent_gui.emitstream_out}
+    #                             if testing:
+    #                                 print('would have done service', child_item.name)
+    #                             else:
+    #                                 yield from service.service_plan(**service.service_params, **kwargs)
+    #
+    #                 elif step.item_type == 'service':
+    #                     kwargs = {'stdout': self.parent_gui.emitstream_out}
+    #                     if testing:
+    #                         print('would have done service', step.name)
+    #                     else:
+    #                         yield from step.service_plan(**step.service_params, **kwargs)
+    #
+    #     self.label_batch_step.setText('idle')

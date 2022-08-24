@@ -222,7 +222,7 @@
      <x>120</x>
      <y>670</y>
      <width>51</width>
-     <height>31</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -237,8 +237,8 @@
     <rect>
      <x>120</x>
      <y>790</y>
-     <width>51</width>
-     <height>31</height>
+     <width>71</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
@@ -253,8 +253,8 @@
     <rect>
      <x>30</x>
      <y>730</y>
-     <width>41</width>
-     <height>41</height>
+     <width>71</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -267,9 +267,9 @@
   <widget class="QPushButton" name="pushButton_move_right">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>730</y>
-     <width>41</width>
+     <x>180</x>
+     <y>740</y>
+     <width>71</width>
      <height>41</height>
     </rect>
    </property>
@@ -286,8 +286,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>590</y>
+     <x>770</x>
+     <y>610</y>
      <width>151</width>
      <height>36</height>
     </rect>
@@ -324,7 +324,7 @@
    <property name="geometry">
     <rect>
      <x>980</x>
-     <y>580</y>
+     <y>560</y>
      <width>171</width>
      <height>26</height>
     </rect>
@@ -336,8 +336,8 @@
   <widget class="QPushButton" name="pushButton_process_calibration">
    <property name="geometry">
     <rect>
-     <x>950</x>
-     <y>600</y>
+     <x>960</x>
+     <y>620</y>
      <width>151</width>
      <height>36</height>
     </rect>
@@ -554,7 +554,7 @@
        </size>
       </property>
       <property name="text">
-       <string>Goniometer</string>
+       <string>Sample Theta</string>
       </property>
      </widget>
     </item>
@@ -718,6 +718,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="pixmap">
+    <pixmap>../icons/Coordinate system.png</pixmap>
+   </property>
    <property name="scaledContents">
     <bool>true</bool>
    </property>
@@ -725,10 +728,10 @@
   <widget class="QPushButton" name="pushButton_move_downstream">
    <property name="geometry">
     <rect>
-     <x>200</x>
-     <y>690</y>
-     <width>41</width>
-     <height>41</height>
+     <x>190</x>
+     <y>670</y>
+     <width>61</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -742,9 +745,9 @@ stream</string>
   <widget class="QPushButton" name="pushButton_move_upstream">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>780</y>
-     <width>41</width>
+     <x>30</x>
+     <y>800</y>
+     <width>71</width>
      <height>41</height>
     </rect>
    </property>
@@ -759,9 +762,9 @@ stream</string>
   <widget class="QPushButton" name="pushButton_move_clockwise">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>150</x>
      <y>860</y>
-     <width>41</width>
+     <width>61</width>
      <height>41</height>
     </rect>
    </property>
@@ -777,8 +780,8 @@ stream</string>
     <rect>
      <x>90</x>
      <y>860</y>
-     <width>41</width>
-     <height>41</height>
+     <width>51</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -841,8 +844,8 @@ clockwise</string>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -943,8 +946,8 @@ clockwise</string>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -960,8 +963,8 @@ clockwise</string>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -1014,8 +1017,8 @@ clockwise</string>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -1197,11 +1200,16 @@ clockwise</string>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>1220</x>
+     <x>1230</x>
      <y>10</y>
-     <width>401</width>
-     <height>891</height>
+     <width>411</width>
+     <height>901</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <kerning>true</kerning>
+    </font>
    </property>
    <property name="title">
     <string>Sample manager</string>
@@ -1210,7 +1218,7 @@ clockwise</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
+      <y>30</y>
       <width>381</width>
       <height>311</height>
      </rect>
@@ -1240,7 +1248,7 @@ clockwise</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>340</y>
+      <y>350</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -1259,7 +1267,7 @@ clockwise</string>
     <property name="geometry">
      <rect>
       <x>290</x>
-      <y>340</y>
+      <y>350</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -1278,10 +1286,16 @@ clockwise</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>370</y>
+      <y>380</y>
       <width>391</width>
-      <height>501</height>
+      <height>511</height>
      </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>60</height>
+     </size>
     </property>
     <property name="title">
      <string>Sample definition</string>
@@ -1289,7 +1303,7 @@ clockwise</string>
     <widget class="QLabel" name="label_118">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>30</y>
        <width>66</width>
        <height>23</height>
@@ -1302,7 +1316,7 @@ clockwise</string>
     <widget class="QLabel" name="label_135">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>50</y>
        <width>66</width>
        <height>36</height>
@@ -1315,9 +1329,9 @@ clockwise</string>
     <widget class="QLineEdit" name="lineEdit_sample_name">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>80</x>
        <y>30</y>
-       <width>201</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -1328,9 +1342,9 @@ clockwise</string>
     <widget class="QLineEdit" name="lineEdit_sample_comment">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>80</x>
        <y>60</y>
-       <width>201</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -1356,12 +1370,12 @@ clockwise</string>
       <rect>
        <x>10</x>
        <y>130</y>
-       <width>371</width>
+       <width>381</width>
        <height>311</height>
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -1779,51 +1793,61 @@ clockwise</string>
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>341</width>
-         <height>244</height>
+         <width>345</width>
+         <height>256</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_7">
-        <item row="3" column="3">
-         <widget class="QLabel" name="label_159">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
+        <item row="7" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_162">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>X</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_spacing">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="4" column="3">
-         <widget class="QLabel" name="label_160">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>deg</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_z_map_start">
+        <item row="4" column="2">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_th_map_end">
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -1850,10 +1874,10 @@ clockwise</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout">
+        <item row="6" column="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="label_163">
+           <widget class="QLabel" name="label_164">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -1867,12 +1891,12 @@ clockwise</string>
              </size>
             </property>
             <property name="text">
-             <string>X</string>
+             <string>Y</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_sample_x_map_steps">
+           <widget class="QSpinBox" name="spinBox_sample_y_map_steps">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -1891,190 +1915,6 @@ clockwise</string>
            </widget>
           </item>
          </layout>
-        </item>
-        <item row="2" column="2">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_end">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_z_map_end">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLabel" name="label_157">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0" colspan="4">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_sample_map_1D">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>1D map</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_sample_map_2D">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>4D map</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_156">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Th</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_th_map_start">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
         </item>
         <item row="0" column="2">
          <layout class="QGridLayout" name="gridLayout_8">
@@ -2144,6 +1984,310 @@ clockwise</string>
           </item>
          </layout>
         </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_158">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>mm</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="3">
+         <widget class="QLabel" name="label_161">
+          <property name="text">
+           <string>mm</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="3">
+         <widget class="QLabel" name="label_160">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>deg</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_end">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_141">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_z_map_start">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_156">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Th</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_165">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Y</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_spacing">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="2">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_z_map_end">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_start">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label_163">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>X</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBox_sample_x_map_steps">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_142">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>X</string>
+          </property>
+         </widget>
+        </item>
         <item row="3" column="0">
          <widget class="QLabel" name="label_155">
           <property name="minimumSize">
@@ -2162,6 +2306,162 @@ clockwise</string>
            <string>Z</string>
           </property>
          </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_th_map_start">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLabel" name="label_159">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>mm</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_157">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>mm</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_end">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-100000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>100000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="4">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_sample_map_1D">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>1D map</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_sample_map_2D">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>4D map</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
         <item row="0" column="1">
          <layout class="QGridLayout" name="gridLayout_9">
@@ -2231,53 +2531,6 @@ clockwise</string>
           </item>
          </layout>
         </item>
-        <item row="1" column="2">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_end">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_141">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Y</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_start">
           <property name="minimumSize">
@@ -2306,286 +2559,74 @@ clockwise</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="2">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_th_map_end">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_start">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-100000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="label_164">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spinBox_sample_y_map_steps">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="value">
-             <number>10</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="3">
-         <widget class="QLabel" name="label_158">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_142">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>X</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_162">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>X</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="spinBox_sample_x_map_spacing">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="decimals">
-             <number>2</number>
-            </property>
-            <property name="minimum">
-             <double>0.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>100000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.200000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="7" column="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_165">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="spinBox_sample_y_map_spacing">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="decimals">
-             <number>2</number>
-            </property>
-            <property name="minimum">
-             <double>0.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>100000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.200000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="7" column="3">
-         <widget class="QLabel" name="label_161">
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
         <item row="6" column="0" rowspan="2">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QRadioButton" name="radioButton_map_steps">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Steps</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-            <property name="autoExclusive">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_map_spacing">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Spacing</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <property name="autoExclusive">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QRadioButton" name="radioButton_map_steps">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Steps</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_map_spacing">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Spacing</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -2605,7 +2646,7 @@ clockwise</string>
 sample</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_create_sample_2">
+    <widget class="QPushButton" name="push_define_sample_points">
      <property name="geometry">
       <rect>
        <x>280</x>

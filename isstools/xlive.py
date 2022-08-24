@@ -17,11 +17,10 @@ from .widgets import (widget_info_general,
                       widget_sdd_manager,
                       widget_info_shutters,
                       widget_info_beamline,
-                      widget_camera,
-                      widget_autopilot,
+                      widget_sample_registry,
                       widget_spectrometer,
                       widget_plan_queue,
-                      widget_sample_view)
+                      widget_sample_manager)
 
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
@@ -187,20 +186,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         print('widget camera loading', ttime.ctime())
-
-        # self.widget_camera = widget_camera.UICamera(camera_dict,
-        #                                             sample_stage,
-        #                                             self.sample_positioner,
-        #                                             RE,
-        #                                             parent_gui=self,
-        #                                             sample_registry=None
-        #                                             )
-        # self.layout_camera.addWidget(self.widget_camera)
-
-        self.widget_camera = widget_sample_view.UISampleView(sample_stage=sample_stage,
-                                                             camera_dict=camera_dict,
-                                                             sample_manager=sample_manager)
-        self.layout_camera.addWidget(self.widget_camera)
+        self.widget_sample_manager = widget_sample_manager.UISampleManager(sample_stage=sample_stage,
+                                                                            camera_dict=camera_dict,
+                                                                            sample_manager=sample_manager)
+        self.layout_sample_manager.addWidget(self.widget_sample_manager)
 
 
 
@@ -288,19 +277,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       RE)
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
-        print('widget autopilot loading', ttime.ctime())
-        self.widget_autopilot = widget_autopilot.UIAutopilot(motor_dict,
-                                                             camera_dict,
-                                                             hhm,
-                                                             trajectory_manager,
-                                                             RE,
-                                                             # db,
-                                                             sample_stage,
-                                                             self,
-                                                             service_plan_funcs,
-                                                             {} # plan funcs
-                                                             )
-        self.layout_autopilot.addWidget(self.widget_autopilot)
+        print('widget sample registry loading', ttime.ctime())
+        self.widget_sample_registry = widget_sample_registry.UISampleRegistry(motor_dict,
+                                                                            camera_dict,
+                                                                            hhm,
+                                                                            trajectory_manager,
+                                                                            RE,
+                                                                            # db,
+                                                                            sample_stage,
+                                                                            self,
+                                                                            service_plan_funcs,
+                                                                            {}  # plan funcs
+                                                                            )
+        self.layout_sample_registry.addWidget(self.widget_sample_registry)
 
 
         print('widget spectrometer loading', ttime.ctime())
