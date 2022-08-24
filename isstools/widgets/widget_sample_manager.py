@@ -9,9 +9,12 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
 from PyQt5.QtWidgets import QMenu
-from isstools.elements.qmicroscope import Microscope
+
 from ..elements.elements import remove_special_characters
 
+from isstools.elements.qmicroscope import Microscope
+from isstools.dialogs import UpdateSampleInfo
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_manager.ui')
@@ -471,41 +474,14 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         item.index = index
         return item
 
-    # def _make_scan_item(self, scan_str, scan_index, parent=None, force_unchecked=True, checkable=True):
-    #     if parent is None:
-    #         parent = self.treeWidget_scans
-    #     return self._make_item(parent, scan_str, scan_index, kind='scan', force_unchecked=force_unchecked,
-    #                            checkable=checkable)
-
     def _make_sample_item(self, sample_str, sample_index):
         return self._make_item(self.treeWidget_samples, sample_str, sample_index, kind='sample', force_unchecked=False, checkable=False)
 
     def _make_sample_point_item(self, sample_item, point_str, point_index, is_exposed):
-        point_item = self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=True, checkable=False)
+        point_item = self._make_item(sample_item, point_str, point_index, kind='sample_point', force_unchecked=False, checkable=False)
         point_item.is_exposed = is_exposed
         if is_exposed:
             point_item.setForeground(0, QtGui.QColor('red'))
-
-    # def _make_batch_item(self, parent, item_str, index, kind=''):
-    #     return self._make_item(parent, item_str, index, kind=kind, force_unchecked=False, checkable=False)
-
-    # def _make_batch_element_children(self, parent, element_list):
-    #     for i, element in enumerate(element_list):
-    #         if element['type'] == 'experiment':
-    #             item_str = f"{element['name']} x{element['repeat']} times"
-    #             item = self._make_batch_item(parent, item_str, i, kind='batch_experiment')
-    #         elif element['type'] == 'sample':
-    #             item_str = self.batch_manager.sample_str_from_element(element)
-    #             item = self._make_batch_item(parent, item_str, i, kind='batch_sample')
-    #         elif element['type'] == 'scan':
-    #             item_str = self.batch_manager.scan_str_from_element(element)
-    #             item = self._make_batch_item(parent, item_str, i, kind='batch_scan')
-    #         elif element['type'] == 'service':
-    #             item_str = self.batch_manager.service_str_from_element(element)
-    #             item = self._make_batch_item(parent, item_str, i, kind='batch_service')
-    #
-    #         if 'element_list' in element.keys():
-    #             self._make_batch_element_children(item, element['element_list'])
 
     '''
     Dealing with samples
@@ -600,13 +576,10 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
     def sample_context_menu(self, QPos):
         menu = QMenu()
-        check_selected_samples = menu.addAction("&Check selected samples")
-        uncheck_selected_samples = menu.addAction("&Uncheck selected samples")
         modify = menu.addAction("&Modify")
         move_to_sample = menu.addAction("Mo&ve to sample")
         set_as_exposed = menu.addAction("Set as exposed")
         set_as_unexposed = menu.addAction("Set as unexposed")
-        check_n_unexposed_samples = menu.addAction("&Check N unexposed samples")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition + QPos)
         action = menu.exec_()
@@ -614,16 +587,10 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             self.modify_item()
         elif action == move_to_sample:
             self.move_to_sample()
-        elif action == check_selected_samples:
-            self.check_selected_samples(checkstate=2)
-        elif action == uncheck_selected_samples:
-            self.check_selected_samples(checkstate=0)
         elif action == set_as_exposed:
             self.set_as_exposed_selected_samples()
         elif action == set_as_unexposed:
             self.set_as_exposed_selected_samples(exposed=False)
-        elif action == check_n_unexposed_samples:
-            self.check_n_unexposed_samples()
 
     def modify_item(self):
         sender_object = QObject().sender()
