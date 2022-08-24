@@ -29,6 +29,7 @@ class UIRun(*uic.loadUiType(ui_path)):
                  scan_manager = None,
                  sample_manager=None,
                  plan_processor=None,
+                 sample_env_dict=None,
                  hhm=None,
                  johann_spectrometer_motor=None,
                  parent=None,
@@ -40,6 +41,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.scan_manager = scan_manager
         self.sample_manager = sample_manager
         self.plan_processor = plan_processor
+        self.sample_env_dict = sample_env_dict
         self.hhm = hhm
         self.johann_spectrometer_motor = johann_spectrometer_motor
         self.push_run_scan.clicked.connect(self.run_scan)
@@ -48,6 +50,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.plan_processor.status_update_signal.connect(self.handle_execution_buttons)
         self.update_scan_defs()
         self.update_sample_defs()
+        # self.update_conditions()
 
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
         self.figure.ax1 = self.figure.add_subplot(111)
@@ -64,18 +67,34 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.comboBox_sample_defs.clear()
         self.comboBox_sample_defs.addItems(sample_defs)
 
+    # def update_conditions(self):
+    #     cond_tuples = [(k, v['shortcut']) for k, v in self.sample_env_dict.items()]
+    #     conds_keys = [i[0] for i in cond_tuples]
+    #     conds_shortcuts = [i[1] for i in cond_tuples]
+    #     self.comboBox_condition.clear()
+    #     self.comboBox_condition.addItems(conds_shortcuts)
+
     def make_plans(self):
+        sample_idx = self.comboBox_sample_defs.currentIndex()
         scan_idx = self.comboBox_scan_defs.currentIndex()
 
         # name = self.lineEdit_exp_name.text()
-        sample_idx = self.comboBox_sample_defs.currentIndex()
-        # sample_name = self.sample_manager.sample_name_at_index(sample_idx)
-        # sample_uid = self.sample_manager.sample_uid_at_index(sample_idx)
+
+        sample_name = self.sample_manager.sample_name_at_index(sample_idx)
+        sample_uid = self.sample_manager.sample_uid_at_index(sample_idx)
+        metadata = {'sample_uid' : sample_uid}
+
+        suffix = self.lineEdit_suffix.text()
+        if (suffix == '') or (suffix.isspace()):
+            name = sample_name
+        else:
+            name = f'{sample_name} {suffix}'
+
         # name = remove_special_characters(name)
         comment = self.lineEdit_exp_comment.text()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
-        return self.scan_manager.generate_plan_list(sample_idx, scan_idx, comment=comment, repeat=repeat, delay=delay)
+        return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
         # if name:
         #
         # else:
