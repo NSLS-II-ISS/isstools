@@ -160,12 +160,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget run loading', ttime.ctime())
         self.widget_run = widget_run.UIRun(scan_manager=scan_manager,
+                                           sample_manager=sample_manager,
                                            plan_processor=plan_processor,
                                            hhm=hhm,
                                            johann_spectrometer_motor=johann_emission,
                                            parent=None,
                                            )
         self.layout_run.addWidget(self.widget_run)
+
 
 
         print('widget scan manager loading', ttime.ctime())
@@ -310,6 +312,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
 
+
         print('widget loading done', ttime.ctime())
 
         print('widget plan queue loading', ttime.ctime())
@@ -346,11 +349,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.setWindowTitle(window_title)
         #self.processing_thread.start()
 
-        self.plan_processor.append_liveplot_maker(self.make_liveplot_func)
+        sample_manager.list_update_signal.connect(self.widget_run.update_sample_defs)
 
+        self.plan_processor.append_liveplot_maker(self.make_liveplot_func)
         self.define_gui_services_dict()
         self.plan_processor.append_gui_services_dict(self.gui_services_dict)
-
         self.plan_processor.append_add_plans_question_box_func(self.add_plans_question_box)
 
     def make_liveplot_func(self, plan_name, plan_kwargs):

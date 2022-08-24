@@ -27,6 +27,7 @@ class UIRun(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  scan_manager = None,
+                 sample_manager=None,
                  plan_processor=None,
                  hhm=None,
                  johann_spectrometer_motor=None,
@@ -37,6 +38,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.scan_manager = scan_manager
+        self.sample_manager = sample_manager
         self.plan_processor = plan_processor
         self.hhm = hhm
         self.johann_spectrometer_motor = johann_spectrometer_motor
@@ -45,6 +47,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.push_queue_scan.clicked.connect(self.queue_scan)
         self.plan_processor.status_update_signal.connect(self.handle_execution_buttons)
         self.update_scan_defs()
+        self.update_sample_defs()
 
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
         self.figure.ax1 = self.figure.add_subplot(111)
@@ -56,17 +59,27 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.comboBox_scan_defs.clear()
         self.comboBox_scan_defs.addItems(scan_defs)
 
+    def update_sample_defs(self):
+        sample_defs = [s.name for s in self.sample_manager.samples]
+        self.comboBox_sample_defs.clear()
+        self.comboBox_sample_defs.addItems(sample_defs)
+
     def make_plans(self):
         scan_idx = self.comboBox_scan_defs.currentIndex()
-        name = self.lineEdit_exp_name.text()
-        name = remove_special_characters(name)
+
+        # name = self.lineEdit_exp_name.text()
+        sample_idx = self.comboBox_sample_defs.currentIndex()
+        # sample_name = self.sample_manager.sample_name_at_index(sample_idx)
+        # sample_uid = self.sample_manager.sample_uid_at_index(sample_idx)
+        # name = remove_special_characters(name)
         comment = self.lineEdit_exp_comment.text()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
-        if name:
-            return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
-        else:
-            message_box('Error', 'Please provide the name for the scan')
+        return self.scan_manager.generate_plan_list(sample_idx, scan_idx, comment=comment, repeat=repeat, delay=delay)
+        # if name:
+        #
+        # else:
+        #     message_box('Error', 'Please provide the name for the sample')
 
     def _queue_scan(self, add_at='tail'):
         plans = self.make_plans()
