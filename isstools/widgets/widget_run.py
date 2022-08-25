@@ -95,7 +95,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         comment = self.lineEdit_exp_comment.text()
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
-        return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx)
+        return self.scan_manager.generate_plan_list(name, comment, repeat, delay, scan_idx, metadata=metadata)
         # if name:
         #
         # else:

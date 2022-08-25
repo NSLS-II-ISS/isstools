@@ -78,8 +78,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
         # self.push_create_sample.clicked.connect(self.create_new_sample)
 
-        self.push_delete_sample.clicked.connect(self.delete_sample)
-        self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
+        # self.push_delete_sample.clicked.connect(self.delete_sample)
+        # self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
         # self.push_save_samples.clicked.connect(self.save_samples)
         # self.push_load_samples.clicked.connect(self.load_samples)
         self.push_check_all.clicked.connect(self.check_all_samples)
@@ -433,10 +433,12 @@ class UIBatch(*uic.loadUiType(ui_path)):
             sample_item = self._make_sample_item(sample_str, i)
             # self.treeWidget_samples.addItem(sample_item)
             for j in range(npts):
-                coord_dict = sample.index_coordinate_dict(j)
-                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                point_str = f'{j+1:3d} - {point_str}'
-                self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
+                point_idx = sample.index_position_index(j)
+                point_str = sample.index_coordinate_str(j)
+                point_exposed = sample.index_exposed(j)
+                # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                point_str = f'{point_idx+1:3d} - {point_str}'
+                self._make_sample_point_item(sample_item, point_str, j, point_exposed)
 
     # def create_new_sample(self):
     #     sample_name = self.lineEdit_sample_name.text()
@@ -448,28 +450,28 @@ class UIBatch(*uic.loadUiType(ui_path)):
     #     positions = self._create_list_of_positions()
     #       self.sample_manager.add_new_sample(sample_name, sample_comment, positions)
 
-    def delete_sample(self):
-        index_dict = {}
-
-        index_list = self.treeWidget_samples.selectedIndexes()
-        for index in index_list:
-            item = self.treeWidget_samples.itemFromIndex(index)
-            if item.kind == 'sample':
-                sample_index = item.index
-                point_index_list = [item.child(i).index for i in range(item.childCount())]
-            elif item.kind == 'sample_point':
-                sample_index = item.parent().index
-                point_index_list = [item.index]
-            if sample_index in index_dict.keys():
-                index_dict[sample_index].extend(point_index_list)
-            else:
-                index_dict[sample_index] = point_index_list
-        self.sample_manager.delete_samples_with_index_dict(index_dict)
-
-
-
-    def delete_all_samples(self):
-        self.sample_manager.reset()
+    # def delete_sample(self):
+    #     index_dict = {}
+    #
+    #     index_list = self.treeWidget_samples.selectedIndexes()
+    #     for index in index_list:
+    #         item = self.treeWidget_samples.itemFromIndex(index)
+    #         if item.kind == 'sample':
+    #             sample_index = item.index
+    #             point_index_list = [item.child(i).index for i in range(item.childCount())]
+    #         elif item.kind == 'sample_point':
+    #             sample_index = item.parent().index
+    #             point_index_list = [item.index]
+    #         if sample_index in index_dict.keys():
+    #             index_dict[sample_index].extend(point_index_list)
+    #         else:
+    #             index_dict[sample_index] = point_index_list
+    #     self.sample_manager.delete_samples_with_index_dict(index_dict)
+    #
+    #
+    #
+    # def delete_all_samples(self):
+    #     self.sample_manager.reset()
 
 
     # def save_samples(self):
@@ -752,8 +754,14 @@ class UIBatch(*uic.loadUiType(ui_path)):
             message_box('Warning', 'Must select at least one scan!')
             return
 
+        suffix = self.lineEdit_suffix.text()
+        if (suffix == '') or (suffix.isspace()):
+            suffix = None
+        comment = self.lineEdit_comment.text()
         priority = self.measurement_priority
-        self.batch_manager.add_measurement_to_experiment(experiment_index, sample_index_dict, scan_index_list, priority=priority)
+
+        self.batch_manager.add_measurement_to_experiment(experiment_index, sample_index_dict, scan_index_list,
+                                                         priority=priority, suffix=suffix, comment=comment)
 
 
     def get_selected_batch_item_index_list(self):

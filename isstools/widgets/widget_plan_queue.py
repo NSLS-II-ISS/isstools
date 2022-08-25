@@ -146,7 +146,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
 
     def plan_queue_context_menu(self, QPos):
         menu = QMenu()
-        delete_selected_plans = menu.addAction("&Delete selected samples")
+        delete_selected_plans = menu.addAction("&Delete selected plans")
         pause_after_selected_index = menu.addAction("&Pause after selected index")
         unpause_all = menu.addAction("&Unpause all")
         parentPosition = self.listWidget_plan_queue.mapToGlobal(QtCore.QPoint(0, 0))

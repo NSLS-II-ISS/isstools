@@ -365,10 +365,12 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             sample_item = self._make_sample_item(sample_str, i)
             # self.treeWidget_samples.addItem(sample_item)
             for j in range(npts):
-                coord_dict = sample.index_coordinate_dict(j)
-                point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                point_str = f'{j+1:3d} - {point_str}'
-                self._make_sample_point_item(sample_item, point_str, j, sample.index_exposed(j))
+                point_idx = sample.index_position_index(j)
+                point_str = sample.index_coordinate_str(j)
+                point_exposed = sample.index_exposed(j)
+                # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                point_str = f'{point_idx + 1:3d} - {point_str}'
+                self._make_sample_point_item(sample_item, point_str, j, point_exposed)
 
     def create_new_sample(self):
         sample_name = self.lineEdit_sample_name.text()
