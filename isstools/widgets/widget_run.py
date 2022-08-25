@@ -81,8 +81,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         # name = self.lineEdit_exp_name.text()
 
         sample_name = self.sample_manager.sample_name_at_index(sample_idx)
+        sample_comment = self.sample_manager.sample_comment_at_index(sample_idx)
         sample_uid = self.sample_manager.sample_uid_at_index(sample_idx)
-        metadata = {'sample_uid' : sample_uid}
+        metadata = {'sample_uid' : sample_uid, 'sample_name' : sample_name, 'sample_comment' : sample_comment}
 
         suffix = self.lineEdit_suffix.text()
         if (suffix == '') or (suffix.isspace()):
@@ -113,9 +114,9 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.plan_processor.run()
 
     def run_test_scan(self):
-        name = self.lineEdit_exp_name.text()
+        suffix = self.lineEdit_suffix.text()
         repeat = self.spinBox_scan_repeat.value()
-        self.lineEdit_exp_name.setText(f'test {name}')
+        self.lineEdit_suffix.setText(f'{suffix} test')
         self.spinBox_scan_repeat.setValue(1)
         self._queue_scan(add_at='head')
         self.lineEdit_exp_name.setText(name)

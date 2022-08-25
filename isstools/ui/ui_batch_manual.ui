@@ -144,7 +144,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>790</y>
+      <y>700</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -163,7 +163,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>820</y>
+      <y>730</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -176,7 +176,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>820</y>
+      <y>730</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -195,7 +195,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>790</y>
+      <y>700</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -210,7 +210,7 @@
       <x>10</x>
       <y>30</y>
       <width>311</width>
-      <height>751</height>
+      <height>661</height>
      </rect>
     </property>
     <property name="selectionMode">
@@ -233,6 +233,85 @@
       <string notr="true">1</string>
      </property>
     </column>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_exp_comment">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>800</y>
+      <width>231</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_135">
+    <property name="geometry">
+     <rect>
+      <x>18</x>
+      <y>800</y>
+      <width>66</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Comment</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_138">
+    <property name="geometry">
+     <rect>
+      <x>18</x>
+      <y>770</y>
+      <width>66</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Suffix</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_suffix">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>770</y>
+      <width>231</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_10">
@@ -746,7 +825,7 @@ scan</string>
     <rect>
      <x>10</x>
      <y>890</y>
-     <width>971</width>
+     <width>351</width>
      <height>22</height>
     </rect>
    </property>
@@ -795,8 +874,4 @@ scan</string>
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>
