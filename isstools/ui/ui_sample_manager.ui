@@ -226,7 +226,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Down</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -242,7 +242,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Up</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -258,7 +258,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Right</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -274,7 +274,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Left</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -735,8 +735,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>down
-stream</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -752,8 +751,7 @@ stream</string>
     </rect>
    </property>
    <property name="text">
-    <string>up
-stream</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -769,7 +767,7 @@ stream</string>
     </rect>
    </property>
    <property name="text">
-    <string>clockwise</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -785,8 +783,7 @@ stream</string>
     </rect>
    </property>
    <property name="text">
-    <string>conuter
-clockwise</string>
+    <string/>
    </property>
    <property name="flat">
     <bool>true</bool>
