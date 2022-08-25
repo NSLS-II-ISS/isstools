@@ -20,135 +20,6 @@ from isstools.dialogs.BasicDialogs import message_box, question_message_box
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_manager.ui')
 coordinate_system_file = pkg_resources.resource_filename('isstools', 'icons/Coordinate system.png')
 
-stage_button_widget_dict = {
-            # pushbuttons
-            'pushButton_move_right':
-                {'axis': 'x',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
-            'pushButton_move_left':
-                {'axis': 'x',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
-            'pushButton_move_up':
-                {'axis': 'y',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
-            'pushButton_move_down':
-                {'axis': 'y',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
-            'pushButton_move_downstream':
-                {'axis': 'z',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
-            'pushButton_move_upstream':
-                {'axis': 'z',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
-            'pushButton_move_clockwise':
-                {'axis': 'th',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
-            'pushButton_move_counterclockwise':
-                {'axis': 'th',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
-            # tweak pushbuttons
-            'pushButton_sample_stage_x_tweak_neg':
-                {'axis': 'x',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
-            'pushButton_sample_stage_x_tweak_pos':
-                {'axis': 'x',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
-            'pushButton_sample_stage_y_tweak_neg':
-                {'axis': 'y',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
-            'pushButton_sample_stage_y_tweak_pos':
-                {'axis': 'y',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
-            'pushButton_sample_stage_z_tweak_neg':
-                {'axis': 'z',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
-            'pushButton_sample_stage_z_tweak_pos':
-                {'axis': 'z',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
-            'pushButton_sample_stage_th_tweak_neg':
-                {'axis': 'th',
-                 'direction': -1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
-            'pushButton_sample_stage_th_tweak_pos':
-                {'axis': 'th',
-                 'direction': 1,
-                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
-            'lineEdit_sample_stage_x_position_sp':
-                {'axis': 'x'},
-            'lineEdit_sample_stage_y_position_sp':
-                {'axis': 'y'},
-            'lineEdit_sample_stage_z_position_sp':
-                {'axis': 'z'},
-            'lineEdit_sample_stage_th_position_sp':
-                {'axis': 'th'},
-            }
-
-stage_lineEdit_widget_dict = {'sample_stage_x' :                {'widget' : 'lineEdit_sample_stage_x_position_rb', 'pv' : 'x.user_readback'},
-                              'sample_stage_x_user_setpoint' :  {'widget' : 'lineEdit_sample_stage_x_position_sp', 'pv' : 'x.user_setpoint'},
-                              'sample_stage_y':                 {'widget' : 'lineEdit_sample_stage_y_position_rb', 'pv' : 'y.user_readback'},
-                              'sample_stage_y_user_setpoint':   {'widget' : 'lineEdit_sample_stage_y_position_sp', 'pv' : 'y.user_setpoint'},
-                              'sample_stage_z':                 {'widget' : 'lineEdit_sample_stage_z_position_rb', 'pv' : 'z.user_readback'},
-                              'sample_stage_z_user_setpoint':   {'widget' : 'lineEdit_sample_stage_z_position_sp', 'pv' : 'z.user_setpoint'},
-                              'sample_stage_th':                {'widget' : 'lineEdit_sample_stage_th_position_rb', 'pv' : 'th.user_readback'},
-                              'sample_stage_th_user_setpoint':  {'widget' : 'lineEdit_sample_stage_th_position_sp', 'pv' : 'th.user_setpoint'}}
-
-slider_widget_dict = {
-            'verticalSlider_x_step' : {'widget' : 'doubleSpinBox_sample_stage_x_step',
-                                      'math_params' : {'min_step' : 0.1,
-                                                       'max_step' : 50,
-                                                       'logarithmic' : True}
-                                      },
-            'verticalSlider_y_step' : {'widget' : 'doubleSpinBox_sample_stage_y_step',
-                                      'math_params' : {'min_step' : 0.1,
-                                                       'max_step' : 50,
-                                                       'logarithmic' : True}
-                                      },
-            'verticalSlider_z_step' : {'widget' : 'doubleSpinBox_sample_stage_z_step',
-                                                  'math_params' : {'min_step' : 0.1,
-                                                                   'max_step' : 50,
-                                                                   'logarithmic' : True}
-                                      },
-            'verticalSlider_th_step' : {'widget' : 'doubleSpinBox_sample_stage_th_step',
-                                                  'math_params' : {'min_step' : 0.1,
-                                                                   'max_step' : 50,
-                                                                   'logarithmic' : True}
-                                      },
-                      }
-
-sample_position_widget_dict = {
-            'push_get_sample_position':
-                {'x_widget': 'spinBox_sample_x',
-                 'y_widget': 'spinBox_sample_y',
-                 'z_widget': 'spinBox_sample_z',
-                 'th_widget': 'spinBox_sample_th',
-                 },
-            'push_get_sample_position_map_start':
-                {'x_widget': 'spinBox_sample_x_map_start',
-                 'y_widget': 'spinBox_sample_y_map_start',
-                 'z_widget': 'spinBox_sample_z_map_start',
-                 'th_widget': 'spinBox_sample_th_map_start',
-                 },
-            'push_get_sample_position_map_end':
-                {'x_widget': 'spinBox_sample_x_map_end',
-                 'y_widget': 'spinBox_sample_y_map_end',
-                 'z_widget': 'spinBox_sample_z_map_end',
-                 'th_widget': 'spinBox_sample_th_map_end'},
-        }
-
 
 class UISampleManager(*uic.loadUiType(ui_path)):
     sample_list_changed_signal = QtCore.pyqtSignal()
@@ -323,8 +194,6 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             widget.setText(f'{value:0.3f}')
 
     # sample/sample coordinates management methods
-
-
 
     def enable_user_position_input(self):
         manual_positoioning_flag = not self.checkBox_auto_position.isChecked()
@@ -503,7 +372,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
     def create_new_sample(self):
         sample_name = self.lineEdit_sample_name.text()
-        if sample_name == '':
+        if (sample_name == '') or (sample_name.isspace()):
             message_box('Warning', 'Sample name is empty')
             return
         sample_name = remove_special_characters(sample_name)
@@ -706,6 +575,135 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
 
 
+
+stage_button_widget_dict = {
+            # pushbuttons
+            'pushButton_move_right':
+                {'axis': 'x',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
+            'pushButton_move_left':
+                {'axis': 'x',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
+            'pushButton_move_up':
+                {'axis': 'y',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            'pushButton_move_down':
+                {'axis': 'y',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            'pushButton_move_downstream':
+                {'axis': 'z',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_move_upstream':
+                {'axis': 'z',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_move_clockwise':
+                {'axis': 'th',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
+            'pushButton_move_counterclockwise':
+                {'axis': 'th',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            # tweak pushbuttons
+            'pushButton_sample_stage_x_tweak_neg':
+                {'axis': 'x',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
+            'pushButton_sample_stage_x_tweak_pos':
+                {'axis': 'x',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_x_step'},
+            'pushButton_sample_stage_y_tweak_neg':
+                {'axis': 'y',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            'pushButton_sample_stage_y_tweak_pos':
+                {'axis': 'y',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_y_step'},
+            'pushButton_sample_stage_z_tweak_neg':
+                {'axis': 'z',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_sample_stage_z_tweak_pos':
+                {'axis': 'z',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_z_step'},
+            'pushButton_sample_stage_th_tweak_neg':
+                {'axis': 'th',
+                 'direction': -1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
+            'pushButton_sample_stage_th_tweak_pos':
+                {'axis': 'th',
+                 'direction': 1,
+                 'step_size_widget': 'doubleSpinBox_sample_stage_th_step'},
+            'lineEdit_sample_stage_x_position_sp':
+                {'axis': 'x'},
+            'lineEdit_sample_stage_y_position_sp':
+                {'axis': 'y'},
+            'lineEdit_sample_stage_z_position_sp':
+                {'axis': 'z'},
+            'lineEdit_sample_stage_th_position_sp':
+                {'axis': 'th'},
+            }
+
+stage_lineEdit_widget_dict = {'sample_stage_x' :                {'widget' : 'lineEdit_sample_stage_x_position_rb', 'pv' : 'x.user_readback'},
+                              'sample_stage_x_user_setpoint' :  {'widget' : 'lineEdit_sample_stage_x_position_sp', 'pv' : 'x.user_setpoint'},
+                              'sample_stage_y':                 {'widget' : 'lineEdit_sample_stage_y_position_rb', 'pv' : 'y.user_readback'},
+                              'sample_stage_y_user_setpoint':   {'widget' : 'lineEdit_sample_stage_y_position_sp', 'pv' : 'y.user_setpoint'},
+                              'sample_stage_z':                 {'widget' : 'lineEdit_sample_stage_z_position_rb', 'pv' : 'z.user_readback'},
+                              'sample_stage_z_user_setpoint':   {'widget' : 'lineEdit_sample_stage_z_position_sp', 'pv' : 'z.user_setpoint'},
+                              'sample_stage_th':                {'widget' : 'lineEdit_sample_stage_th_position_rb', 'pv' : 'th.user_readback'},
+                              'sample_stage_th_user_setpoint':  {'widget' : 'lineEdit_sample_stage_th_position_sp', 'pv' : 'th.user_setpoint'}}
+
+slider_widget_dict = {
+            'verticalSlider_x_step' : {'widget' : 'doubleSpinBox_sample_stage_x_step',
+                                      'math_params' : {'min_step' : 0.1,
+                                                       'max_step' : 50,
+                                                       'logarithmic' : True}
+                                      },
+            'verticalSlider_y_step' : {'widget' : 'doubleSpinBox_sample_stage_y_step',
+                                      'math_params' : {'min_step' : 0.1,
+                                                       'max_step' : 50,
+                                                       'logarithmic' : True}
+                                      },
+            'verticalSlider_z_step' : {'widget' : 'doubleSpinBox_sample_stage_z_step',
+                                                  'math_params' : {'min_step' : 0.1,
+                                                                   'max_step' : 50,
+                                                                   'logarithmic' : True}
+                                      },
+            'verticalSlider_th_step' : {'widget' : 'doubleSpinBox_sample_stage_th_step',
+                                                  'math_params' : {'min_step' : 0.1,
+                                                                   'max_step' : 50,
+                                                                   'logarithmic' : True}
+                                      },
+                      }
+
+sample_position_widget_dict = {
+            'push_get_sample_position':
+                {'x_widget': 'spinBox_sample_x',
+                 'y_widget': 'spinBox_sample_y',
+                 'z_widget': 'spinBox_sample_z',
+                 'th_widget': 'spinBox_sample_th',
+                 },
+            'push_get_sample_position_map_start':
+                {'x_widget': 'spinBox_sample_x_map_start',
+                 'y_widget': 'spinBox_sample_y_map_start',
+                 'z_widget': 'spinBox_sample_z_map_start',
+                 'th_widget': 'spinBox_sample_th_map_start',
+                 },
+            'push_get_sample_position_map_end':
+                {'x_widget': 'spinBox_sample_x_map_end',
+                 'y_widget': 'spinBox_sample_y_map_end',
+                 'z_widget': 'spinBox_sample_z_map_end',
+                 'th_widget': 'spinBox_sample_th_map_end'},
+        }
 
 
 
