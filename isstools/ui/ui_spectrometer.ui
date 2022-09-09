@@ -569,557 +569,11 @@
     <attribute name="title">
      <string>Johann</string>
     </attribute>
-    <widget class="QWidget" name="gridLayoutWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>491</width>
-       <height>151</height>
-      </rect>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="3">
-       <widget class="QRadioButton" name="radioButton_3">
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>1</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QRadioButton" name="radioButton_4">
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="4">
-       <widget class="QDoubleSpinBox" name="spinBox_park_roll_crystal_2">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="QDoubleSpinBox" name="spinBox_park_x_crystal_2">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="radioButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>5</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_park_x_crystal_1">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_park_y_crystal_1">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QDoubleSpinBox" name="spinBox_park_roll_crystal_3">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QDoubleSpinBox" name="spinBox_park_y_crystal_3">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_park_roll_crystal_1">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_qrcode_8">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>X</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="4">
-       <widget class="QDoubleSpinBox" name="spinBox_park_y_crystal_2">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QRadioButton" name="radioButton_2">
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>3</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QRadioButton" name="radioButton_5">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>4</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QDoubleSpinBox" name="spinBox_park_x_crystal_3">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QDoubleSpinBox" name="spinBox_park_yaw_crystal_3">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_park_yaw_crystal_1">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="4">
-       <widget class="QDoubleSpinBox" name="spinBox_park_yaw_crystal_2">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_qrcode_7">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Y</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_qrcode_9">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Roll</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_qrcode_10">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Yaw</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_qrcode_14">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Crystal</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_park_x_crystal_4">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_park_y_crystal_4">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_park_roll_crystal_4">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_park_yaw_crystal_4">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_park_x_crystal_5">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_park_y_crystal_5">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_park_roll_crystal_5">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_park_yaw_crystal_5">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
     <widget class="QWidget" name="gridLayoutWidget_5">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>230</y>
+       <y>200</y>
        <width>491</width>
        <height>97</height>
       </rect>
@@ -1155,7 +609,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="comboBox_element">
+       <widget class="QComboBox" name="comboBox_johann_element">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1165,7 +619,7 @@
        </widget>
       </item>
       <item row="0" column="5">
-       <widget class="QComboBox" name="comboBox_crystal_kind_5">
+       <widget class="QComboBox" name="comboBox_johann_crystal_kind">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1190,7 +644,7 @@
        </widget>
       </item>
       <item row="2" column="5">
-       <widget class="QLineEdit" name="edit_crystal_R_2">
+       <widget class="QLineEdit" name="edit_johann_crystal_R">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1203,7 +657,7 @@
        </widget>
       </item>
       <item row="1" column="5">
-       <widget class="QLineEdit" name="lineEdit_reflection_5">
+       <widget class="QLineEdit" name="lineEdit_johann_hkl">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1226,7 +680,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_reflection_4">
+       <widget class="QLineEdit" name="lineEdit_johann_energy">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1268,7 +722,7 @@
        </spacer>
       </item>
       <item row="0" column="9">
-       <widget class="QComboBox" name="comboBox_element_2">
+       <widget class="QComboBox" name="comboBox_johann_bragg_offset">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1278,7 +732,7 @@
        </widget>
       </item>
       <item row="1" column="9">
-       <widget class="QLineEdit" name="lineEdit_reflection_7">
+       <widget class="QLineEdit" name="lineEdit_johann_bragg">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1314,7 +768,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="comboBox_line">
+       <widget class="QComboBox" name="comboBox_johann_line">
         <property name="maximumSize">
          <size>
           <width>70</width>
@@ -1434,14 +888,14 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>370</y>
+       <y>350</y>
        <width>582</width>
        <height>172</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_tweak_motor_step">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_tweak_motor_step">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1457,7 +911,7 @@ offset</string>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_tweak_motor_pos">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_tweak_motor_pos">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1482,7 +936,7 @@ offset</string>
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_range_energy">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_energy_scan_range">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1498,7 +952,7 @@ offset</string>
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_crystal_y">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_motor_scan_step">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1514,7 +968,7 @@ offset</string>
        </widget>
       </item>
       <item row="1" column="4">
-       <widget class="QPushButton" name="push_tweak_up">
+       <widget class="QPushButton" name="push_johann_tweak_up">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1527,7 +981,7 @@ offset</string>
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QPushButton" name="push_tweak_down">
+       <widget class="QPushButton" name="push_johann_tweak_down">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1540,7 +994,7 @@ offset</string>
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_step_energy">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_energy_scan_step">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1556,7 +1010,7 @@ offset</string>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QComboBox" name="comboBox_johann_tweak_motor_2">
+       <widget class="QComboBox" name="comboBox_johann_scan_motor">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1588,6 +1042,9 @@ offset</string>
           <height>24</height>
          </size>
         </property>
+        <property name="currentText">
+         <string>Crystal X</string>
+        </property>
         <item>
          <property name="text">
           <string>Crystal X</string>
@@ -1606,7 +1063,7 @@ offset</string>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_range_crystal_y">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_motor_scan_range">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -1622,7 +1079,7 @@ offset</string>
        </widget>
       </item>
       <item row="5" column="1" colspan="2">
-       <widget class="QComboBox" name="comboBox_pilatus_channels">
+       <widget class="QComboBox" name="comboBox_johann_pilatus_channels">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1645,7 +1102,7 @@ offset</string>
        </widget>
       </item>
       <item row="3" column="3" colspan="2">
-       <widget class="QPushButton" name="push_scan_crystal_y">
+       <widget class="QPushButton" name="push_johann_motor_scan">
         <property name="maximumSize">
          <size>
           <width>300</width>
@@ -1658,7 +1115,7 @@ offset</string>
        </widget>
       </item>
       <item row="4" column="3" colspan="2">
-       <widget class="QPushButton" name="push_scan_energy">
+       <widget class="QPushButton" name="push_johann_energy_scan">
         <property name="maximumSize">
          <size>
           <width>300</width>
@@ -1802,7 +1259,7 @@ offset</string>
       </item>
      </layout>
     </widget>
-    <widget class="QTreeWidget" name="treeWidget_batch">
+    <widget class="QTreeWidget" name="treeWidget_johann_config">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1832,7 +1289,7 @@ offset</string>
       </property>
      </column>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_reflection_6">
+    <widget class="QLineEdit" name="lineEdit_johann_config_name">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1851,7 +1308,7 @@ offset</string>
       <string>Config name</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_scan_crystal_y_2">
+    <widget class="QPushButton" name="push_johann_create_config">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -1870,7 +1327,7 @@ offset</string>
       <string>Create</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_scan_crystal_y_4">
+    <widget class="QPushButton" name="push_johann_delete_config">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1889,7 +1346,7 @@ offset</string>
       <string>Delete</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_scan_crystal_y_5">
+    <widget class="QPushButton" name="push_johann_set_current_config">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -1912,7 +1369,7 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>200</y>
+       <y>170</y>
        <width>451</width>
        <height>20</height>
       </rect>
@@ -1938,7 +1395,7 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>340</y>
+       <y>320</y>
        <width>481</width>
        <height>20</height>
       </rect>
@@ -1971,7 +1428,7 @@ offset</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_10">
       <item row="1" column="1">
-       <widget class="QLineEdit" name="edit_reg_E_lo_2">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_init">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2074,7 +1531,7 @@ offset</string>
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QLineEdit" name="edit_reg_E_hi">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_lim_hi">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2116,7 +1573,7 @@ offset</string>
        </widget>
       </item>
       <item row="8" column="1">
-       <widget class="QLineEdit" name="edit_E_calib_min">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_calib_lo">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2129,7 +1586,7 @@ offset</string>
        </widget>
       </item>
       <item row="10" column="1">
-       <widget class="QLineEdit" name="edit_E_calib_max">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_calib_hi">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2158,7 +1615,7 @@ offset</string>
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QPushButton" name="push_scan_crystal_y_3">
+       <widget class="QPushButton" name="push_johann_register_energy">
         <property name="maximumSize">
          <size>
           <width>150</width>
@@ -2171,7 +1628,7 @@ offset</string>
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QLineEdit" name="edit_reg_E_lo">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_lim_lo">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2184,7 +1641,7 @@ offset</string>
        </widget>
       </item>
       <item row="9" column="1">
-       <widget class="QLineEdit" name="edit_E_calib_step">
+       <widget class="QLineEdit" name="lineEdit_johann_energy_calib_step">
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -2197,7 +1654,7 @@ offset</string>
        </widget>
       </item>
       <item row="9" column="3">
-       <widget class="QPushButton" name="push_calibrate_energy">
+       <widget class="QPushButton" name="push_johann_calibrate_energy">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -2331,7 +1788,7 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>280</y>
+       <y>250</y>
        <width>80</width>
        <height>41</height>
       </rect>
@@ -2345,7 +1802,7 @@ Motors</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>230</y>
+       <y>200</y>
        <width>81</width>
        <height>41</height>
       </rect>
@@ -2358,16 +1815,15 @@ Geometry</string>
     <widget class="QPushButton" name="push_update_crystal_parking">
      <property name="geometry">
       <rect>
-       <x>510</x>
-       <y>80</y>
-       <width>80</width>
-       <height>74</height>
+       <x>449</x>
+       <y>40</y>
+       <width>141</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
       <string>Update
-crystal
-parking</string>
+crystal parking</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_qrcode_15">
@@ -2402,7 +1858,7 @@ parking</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>200</y>
+       <y>170</y>
        <width>120</width>
        <height>24</height>
       </rect>
@@ -2430,7 +1886,7 @@ parking</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>340</y>
+       <y>320</y>
        <width>120</width>
        <height>24</height>
       </rect>
@@ -2480,6 +1936,332 @@ parking</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget_7">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>421</width>
+       <height>114</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_7">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_qrcode_22">
+        <property name="maximumSize">
+         <size>
+          <width>55</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Crystal</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_x_crystal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_qrcode_19">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label_qrcode_21">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Roll</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_qrcode_20">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Y</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLabel" name="label_qrcode_25">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Gon 1</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_y_crystal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_roll_crystal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_yaw_crystal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="label_qrcode_13">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Yaw</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_qrcode_24">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QLabel" name="label_qrcode_26">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Gon 2</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QComboBox" name="comboBox_johann_crystal">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_x_detector">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_th1_detector">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_park_th2_detector">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" rowspan="2">
+       <widget class="QLabel" name="label_qrcode_23">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Detector</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QPushButton" name="push_update_crystal_parking_2">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>100</y>
+       <width>141</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Update
+detector parking</string>
      </property>
     </widget>
    </widget>
