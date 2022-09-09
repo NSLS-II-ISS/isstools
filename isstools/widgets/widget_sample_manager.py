@@ -28,6 +28,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                  sample_stage=None,
                  camera_dict=None,
                  sample_manager=None,
+                 parent=None,
                  cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
                  cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',
                  *args, **kwargs):
@@ -37,6 +38,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.sample_stage = sample_stage
         self.camera_dict = camera_dict
+        self.settings = parent.settings
 
         self.camera1 = self.camera_dict['camera_sample1']
         self.camera2 = self.camera_dict['camera_sample2']

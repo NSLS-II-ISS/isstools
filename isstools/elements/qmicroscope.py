@@ -152,7 +152,7 @@ class Microscope(QWidget):
     def __init__(self, parent=None, mark_direction = 1):
         #mark_direction = 0 for horizontal, 1 for vertical
         super(Microscope, self).__init__(parent)
-
+        self.parent_gui = parent
         self.setMinimumWidth(300)
         self.setMinimumHeight(300)
         self.image = QImage('image.jpg')
@@ -162,11 +162,13 @@ class Microscope(QWidget):
             self.image.size().width() / 2, self.image.size().height() / 2
         )
         self.mark_direction = mark_direction
-        self.mark_location = None
-        self.mark_location_set = False
+        self.mark_location = QPoint(self.parent_gui.settings.value('beam_position_x', defaultValue=600, type=float),
+                                    self.parent_gui.settings.value('beam_position_y', defaultValue=450, type=float))
+        self.mark_location_set = True
         self.color = False
         self.fps = 5
         self.scaleBar = False
+
 
         self.url = 'http://localhost:9998/jpg/image.jpg'
 
@@ -180,6 +182,7 @@ class Microscope(QWidget):
 
         self.A_xy2px = None
         self.A_xy2py = None
+        self.beam_position = 0
 
 
 
@@ -277,6 +280,11 @@ class Microscope(QWidget):
         self.roiClicked.emit(pos.x(), pos.y())
         self.mark_location = pos
         self.mark_location_set = True
+
+        if self.mark_direction == 1:
+            self.parent_gui.settings.setValue('beam_position_x', self.mark_location.x())
+        elif self.mark_direction == 0:
+            self.parent_gui.settings.setValue('beam_position_y', self.mark_location.x())
 
     def mouseMoveEvent(self, event):
         pos = event.pos()

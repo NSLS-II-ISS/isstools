@@ -192,7 +192,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget camera loading', ttime.ctime())
         self.widget_sample_manager = widget_sample_manager.UISampleManager(sample_stage=sample_stage,
                                                                             camera_dict=camera_dict,
-                                                                            sample_manager=sample_manager)
+                                                                            sample_manager=sample_manager,
+                                                                           parent=self)
         self.layout_sample_manager.addWidget(self.widget_sample_manager)
 
 
