@@ -119,7 +119,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.lineEdit_suffix.setText(f'{suffix} test')
         self.spinBox_scan_repeat.setValue(1)
         self._queue_scan(add_at='head')
-        self.lineEdit_exp_name.setText(name)
+        self.lineEdit_suffix.setText(suffix)
         self.spinBox_scan_repeat.setValue(repeat)
         self.plan_processor.run()
 

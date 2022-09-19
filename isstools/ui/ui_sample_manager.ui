@@ -201,6 +201,9 @@
    </layout>
   </widget>
   <widget class="QPushButton" name="pushButton_calibration_mode">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>790</x>
@@ -286,8 +289,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>770</x>
-     <y>610</y>
+     <x>790</x>
+     <y>590</y>
      <width>151</width>
      <height>36</height>
     </rect>
@@ -321,10 +324,13 @@
    </property>
   </widget>
   <widget class="QCheckBox" name="checkBox_draw_calibration">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>980</x>
-     <y>560</y>
+     <x>960</x>
+     <y>550</y>
      <width>171</width>
      <height>26</height>
     </rect>
@@ -334,10 +340,13 @@
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_process_calibration">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>960</x>
-     <y>620</y>
+     <y>590</y>
      <width>151</width>
      <height>36</height>
     </rect>
