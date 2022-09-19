@@ -1253,7 +1253,7 @@
    <widget class="QPushButton" name="push_delete_sample">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>290</x>
       <y>350</y>
       <width>101</width>
       <height>21</height>
@@ -1272,7 +1272,7 @@
    <widget class="QPushButton" name="push_delete_all_samples">
     <property name="geometry">
      <rect>
-      <x>290</x>
+      <x>10</x>
       <y>350</y>
       <width>101</width>
       <height>21</height>
