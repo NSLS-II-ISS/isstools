@@ -284,7 +284,7 @@ class Microscope(QWidget):
         if self.mark_direction == 1:
             self.parent_gui.settings.setValue('beam_position_x', self.mark_location.x())
         elif self.mark_direction == 0:
-            self.parent_gui.settings.setValue('beam_position_y', self.mark_location.x())
+            self.parent_gui.settings.setValue('beam_position_y', self.mark_location.y())
 
     def mouseMoveEvent(self, event):
         pos = event.pos()
