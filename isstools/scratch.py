@@ -1301,7 +1301,7 @@ import matplotlib.pyplot as plt
 
 
 #x_coordinates = [95, 100, 105]
-y_coordinates = [30, 35, 40]
+y_coordinates = [3, 8, 13]
 sift = cv2.xfeatures2d.SIFT_create()
 imgs = []
 img_keypoints = []
@@ -1317,13 +1317,13 @@ for _y in y_coordinates:
 
 img_matches = []
 bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=False)
-for i in range(len(x_coordinates)-1):
+for i in range(len(y_coordinates)-1):
     match = bf.match(img_descriptors[i], img_descriptors[i+1])
     img_matches.append(match)
 
 
 
-for i in range(len(x_coordinates)-1):
+for i in range(len(y_coordinates)-1):
     plt.figure(i + 1, clear=True)
     img_match = cv2.drawMatches(imgs[i], img_keypoints[i], imgs[i+1], img_keypoints[i+1], img_matches[i][:50], imgs[i+1], flags=2)
     plt.imshow(img_match)
@@ -1335,8 +1335,8 @@ def show_similar_points_for_two_images(img_1, keypoints_1, img_2, keypoints_2, m
 
     dx, dy = (img_2_pt - img_1_pt).T
 
-    tol = 10
-    dist_target = 85
+    tol = 15
+    dist_target = 90
 
     dist = np.sqrt(dx**2 + dy**2)
 
@@ -1351,7 +1351,7 @@ def show_similar_points_for_two_images(img_1, keypoints_1, img_2, keypoints_2, m
     plt.figure(4, clear=True)
     plt.imshow(img_2)
 
-
+    print(len(match_idxs))
     for match_idx in match_idxs:
         plt.figure(3)
         plt.scatter(*keypoints_1[matches[match_idx].queryIdx].pt)
@@ -1359,13 +1359,123 @@ def show_similar_points_for_two_images(img_1, keypoints_1, img_2, keypoints_2, m
         plt.figure(4)
         plt.scatter(*keypoints_2[matches[match_idx].trainIdx].pt)
 
+    xy1 = [keypoints_1[matches[match_idx].queryIdx].pt for match_idx in match_idxs]
+    xy2 = [keypoints_2[matches[match_idx].trainIdx].pt for match_idx in match_idxs]
+
+    return np.array(xy1), np.array(xy2)
+
+
+
+
 
 i = 1
-show_similar_points_for_two_images(imgs[i], img_keypoints[i], imgs[i+1], img_keypoints[i+1], img_matches[i])
+xy1, xy2 = show_similar_points_for_two_images(imgs[i], img_keypoints[i], imgs[i+1], img_keypoints[i+1], img_matches[i])
+
+plt.figure(3, clear=True)
+plt.subplot(221)
+plt.plot(xy1[:, 0] , xy2[:, 0], 'k.')
+
+plt.subplot(222)
+plt.plot(xy1[:, 1], xy2[:, 1], 'k.')
+
+plt.subplot(223)
+plt.plot(xy2[:, 0] - xy1[:, 0], stage_xys[:, 1], 'k.')
+
+plt.subplot(224)
+plt.plot(xy2[:, 1] - xy1[:, 1], stage_xys[:, 0], 'k.')
+
+# plt.subplot(224)
+# plt.plot(xy1[:, 1], xy2[:, 0], 'k.')
+
+npts = xy1.shape[0]
+
+basis_T = np.hstack((xy1, np.ones((npts, 1)) * (y_coordinates[i+1] - y_coordinates[i])))
+AxyT, _, _, _ = np.linalg.lstsq(basis_T, xy2, rcond=-1)
+Axy = AxyT.T
+
+
+our_point = [935, 600]
+stage_shift = 5
+
+new_point = Axy @ (our_point + [stage_shift])
+
+plt.figure(10, clear=True)
+plt.subplot(211)
+plt.imshow(imgs[1])
+plt.scatter(*our_point, color='r')
+
+plt.subplot(212)
+plt.imshow(imgs[2])
+plt.scatter(*new_point, color='r')
+# Ax
 
 plt.figure(1, clear=True)
 img_match = cv2.drawMatches(img_1_8bit, keypoints_1, img_2_8bit, keypoints_2, matches[:50], img_2_8bit, flags=2)
 plt.imshow(img_match)
+
+
+
+
+colors_before = []
+colors_after = []
+bla = cam1.image
+for i in range(bla.size().width()):
+    for j in range(bla.size().height()):
+        _c = bla.pixelColor(i, j).value()
+        colors_before.append(_c)
+        if _c > 50:
+            bla.setPixelColor(i, j, QtGui.QColor(50))
+        _c = bla.pixelColor(i, j).value()
+        colors_after.append(_c)
+
+
+colors_before = []
+bla = bla1
+for i in range(bla.size().width()):
+    for j in range(bla.size().height()):
+        _c = bla.pixelColor(i, j).value()
+        colors_before.append(_c)
+
+plt.figure(); plt.hist(colors_before, 128)
+
+bragg = 75
+motor_pos_dict = rowland_circle.compute_motor_position(johann_main_crystal.real_keys, 85, nom2act=False)
+x = motor_pos_dict['motor_cr_assy_x'] + np.linspace(-10, 10, 101)
+dy = 1
+dbragg = np.rad2deg(np.arctan(dy/x))
+
+energy = rowland_circle.bragg2e(bragg+dbragg)
+denergy = energy - np.mean(energy)
+
+plt.figure(1, clear=True)
+plt.plot(x, denergy)
+
+
+CAMERA_KEY = 'camera_sp2'
+
+# A_pix_motor_2_pix, A_pix_pix_2_motor = generate_sample_camera_calibration(dxs, dys, OUTPUT[CAMERA_KEY])
+
+our_point = [765, 590]
+stage_shift = [-5, 5]
+
+new_point = A_pix_motor_2_pix @ (our_point + stage_shift)
+
+plt.figure(10, clear=True)
+plt.subplot(211)
+plt.imshow(OUTPUT[CAMERA_KEY][0], cmap='gray')
+
+plt.scatter(*our_point, color='r')
+
+plt.subplot(212)
+plt.imshow(OUTPUT[CAMERA_KEY][2], cmap='gray')
+
+plt.scatter(*new_point, color='r')
+
+# A_pix_pix_2_motor
+
+
+
+
 
 
 
