@@ -458,7 +458,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
         uids = np.arange(-energies.size, 0)
 
         energy_converter, energies_act, resolutions, I_fit_raws = analyze_many_elastic_scans(self.db, uids, energies, short_output=False)
-        self.johann_emission.append_energy_converter(energy_converter)
+        # self.johann_emission.append_energy_converter(energy_converter)
+        self.johann_emission.set_spectrometer_calibration(energies, energies_act)
 
         for each_energy_nom, each_energy_act, each_resolution, each_uid in zip(energies, energies_act, resolutions, uids):
             data_dict = {'energy_nom' : each_energy_nom,

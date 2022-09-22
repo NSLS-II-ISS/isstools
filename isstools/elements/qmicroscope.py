@@ -213,7 +213,7 @@ class Microscope(QWidget):
         painter = QPainter(self)
         rect = event.rect()
         # self.image = self.image.scaledToWidth(200)
-        painter.drawImage(rect, self.image, rect)
+        painter.drawImage(rect, self.image, rect, flags=Qt.ThresholdDither)
 
         painter.setPen(QColor.fromRgb(0, 255, 0))
         if self.mark_location:
@@ -319,6 +319,14 @@ class Microscope(QWidget):
         """ Triggered when the new image is ready, update the view. """
         self.image.loadFromData(image, 'JPG')
         self.image = self.image.scaledToWidth(600)
+
+
+        # for i in range(self.image.size().width()):
+        #     for j in range(self.image.size().height()):
+        #         _c = self.image.pixelColor(i, j).value()
+        #         if _c > 50:
+        #             self.image.setPixelColor(i, j, QColor(50))
+
 
         self.updatedImageSize()
         self.update()
