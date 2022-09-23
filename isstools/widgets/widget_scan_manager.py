@@ -57,7 +57,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.push_delete_scan.clicked.connect(self.delete_scan)
         self.listWidget_local_manager.doubleClicked.connect(self.local_list_clicked)
 
-        self.figure_trajectory, self.canvas_trajectory, self.toolbar_trajectory  = setup_figure(self, self.layout_trajectory)
+        self.figure_trajectory, self.canvas_trajectory, self.toolbar_trajectory  = \
+            setup_figure(self, self.layout_trajectory)
         self.figure_trajectory.ax1 = self.figure_trajectory.ax
         self.figure_trajectory.ax2 = self.figure_trajectory.ax.twinx()
         self.update_local_manager_list()
@@ -447,11 +448,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             message_box('Warning', 'Scan name is empty')
 
     def plot_trajectory_func(self, x, y):
-        if self.counter == 0:
-            update_figure([self.figure_trajectory.ax1,self.figure_trajectory.ax2 ],
+
+        update_figure([self.figure_trajectory.ax1,self.figure_trajectory.ax2 ],
                           self.toolbar_trajectory,
                           self.canvas_trajectory)
-            self.counter=1
         self.figure_trajectory.ax1.plot(x, y)
         self.figure_trajectory.ax1.set_xlabel('Time, s')
         self.figure_trajectory.ax1.set_ylabel('Energy, eV')
