@@ -125,7 +125,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         # cameras and visualization
         self.cam1_url = cam1_url
-        self.sample_cam1 = Microscope(parent = self, mark_direction=1,)
+        self.sample_cam1 = Microscope(parent = self, mark_direction=1, camera=self.camera1, sample_stage=sample_stage)
         self.sample_cam1.url = self.cam1_url
         self.sample_cam1.fps = 10
 
@@ -133,7 +133,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.sample_cam1.acquire(True)
 
         self.cam2_url = cam2_url
-        self.sample_cam2 = Microscope(parent=self, mark_direction=0, )
+        self.sample_cam2 = Microscope(parent=self, mark_direction=0, camera=self.camera2, sample_stage=sample_stage)
         self.sample_cam2.url = self.cam2_url
         self.sample_cam2.fps = 10
 

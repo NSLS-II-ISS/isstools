@@ -149,10 +149,12 @@ class Microscope(QWidget):
     roiClicked = Signal(int, int)
     polygonDrawingSignal = Signal(QPoint)
 
-    def __init__(self, parent=None, mark_direction = 1):
+    def __init__(self, parent=None, mark_direction = 1, camera=None, sample_stage=None):
         #mark_direction = 0 for horizontal, 1 for vertical
         super(Microscope, self).__init__(parent)
         self.parent_gui = parent
+        self.camera = camera
+        self.sample_stage = sample_stage
         self.setMinimumWidth(300)
         self.setMinimumHeight(300)
         self.image = QImage('image.jpg')
@@ -162,11 +164,14 @@ class Microscope(QWidget):
             self.image.size().width() / 2, self.image.size().height() / 2
         )
         self.mark_direction = mark_direction
-        self.mark_location = QPoint(self.parent_gui.settings.value('beam_position_x', defaultValue=600, type=float),
-                                    self.parent_gui.settings.value('beam_position_y', defaultValue=450, type=float))
+        self.mark_location = QPoint(self.camera.beam_pos_x,
+                                    self.camera.beam_pos_y)
+        # self.mark_location = QPoint(self.parent_gui.settings.value('beam_position_x', defaultValue=600, type=float),
+        #                             self.parent_gui.settings.value('beam_position_y', defaultValue=450, type=float))
         self.mark_location_set = True
         self.color = False
         self.fps = 5
+        self.scale_width = 600
         self.scaleBar = False
 
 
@@ -180,11 +185,16 @@ class Microscope(QWidget):
 
         self.calibration_polygon = CustomQPolygon()
 
-        self.A_xy2px = None
-        self.A_xy2py = None
+        # self.A_xy2px = None
+        # self.A_xy2py = None
         self.beam_position = 0
 
+        self.draw_calibration_grid = False
 
+        def _func(image):
+            return image
+
+        self.external_func = _func
 
     @property
     def mode(self):
@@ -218,39 +228,40 @@ class Microscope(QWidget):
         painter.setPen(QColor.fromRgb(0, 255, 0))
         if self.mark_location:
             #print(f' Mark location {self.mark_location.x()} -  {self.mark_location.y()}')
+            beam_pos_x, beam_pos_y = self.convertxy_act2nom(self.camera.beam_pos_x, self.camera.beam_pos_y)
             if self.mark_direction == 1:
-                painter.drawLine(self.mark_location.x(),self.center.y()-200, self.mark_location.x(), self.center.y()+200)
+                painter.drawLine(beam_pos_x - 25, beam_pos_y,
+                                 beam_pos_x + 25, beam_pos_y)
+                painter.drawLine(beam_pos_x,      beam_pos_y - 200,
+                                 beam_pos_x,      beam_pos_y + 200)
+
             elif self.mark_direction == 0:
-                painter.drawLine(self.center.x()-200, self.mark_location.y(), self.center.x() + 200, self.mark_location.y())
+                painter.drawLine(beam_pos_x,       beam_pos_y - 25,
+                                 beam_pos_x,       beam_pos_y + 25)
+                painter.drawLine(beam_pos_x - 200, beam_pos_y,
+                                 beam_pos_x + 200, beam_pos_y)
 
         painter.drawPolygon(self.calibration_polygon)
 
         # #Draw the center mark
-        painter.setPen(QColor.fromRgb(255, 0, 0))
-        painter.drawLine(
-             self.center.x() - 20, self.center.y(), self.center.x() + 20, self.center.y()
-        )
-        painter.drawLine(
-             self.center.x(), self.center.y() - 20, self.center.x(), self.center.y() + 20
-        )
+        # painter.setPen(QColor.fromRgb(255, 0, 0))
+        # painter.drawLine(
+        #      self.center.x() - 20, self.center.y(), self.center.x() + 20, self.center.y()
+        # )
+        # painter.drawLine(
+        #      self.center.x(), self.center.y() - 20, self.center.x(), self.center.y() + 20
+        # )
 
         # draw calibration
-        if (self.A_xy2px is not None) and (self.A_xy2py is not None):
-            if self.draw_calibration_isChecked:
+        if self.draw_calibration_grid:
+            painter.setPen(QColor.fromRgb(0, 0, 255))
+            if self.camera.grid_lines is not None:
+                for line in self.camera.grid_lines:
+                    for i in range(len(line) - 1):
+                        x1, y1 = self.convertxy_act2nom(*line[i])
+                        x2, y2 = self.convertxy_act2nom(*line[i+1])
+                        painter.drawLine(x1, y1, x2, y2)
 
-                painter.setPen(QColor.fromRgb(0, 0, 255))
-
-                dx = self.A_xy2px @ [1, 0]
-                dy = self.A_xy2py @ [1, 0]
-
-                for y in range(0, 1000, 100):
-                    painter.drawLine(1000, y, 1000+dx*150, y+dy*150)
-
-                dx = self.A_xy2px @ [0, 1]
-                dy = self.A_xy2py @ [0, 1]
-
-                for x in range(0, 1000, 100):
-                    painter.drawLine(x, 1000, x + dx * 150, 1000 + dy * 150)
 
 
     def mousePressEvent(self, event):
@@ -272,6 +283,14 @@ class Microscope(QWidget):
                 self.calibration_polygon.start_drag(pos)
 
 
+    def convertxy_nom2act(self, x, y):
+        return (x / self.scale_width * self.camera.image_width,
+                y / self.scale_width * self.camera.image_width)
+
+    def convertxy_act2nom(self, x, y):
+        return (x * self.scale_width / self.camera.image_width,
+                y * self.scale_width / self.camera.image_width)
+
     def mark_beam_location(self, pos):
         if self.mark_location_set:
             ret = question_message_box(self, 'Warning', 'Do you want to redefine beam location mark')
@@ -280,11 +299,12 @@ class Microscope(QWidget):
         self.roiClicked.emit(pos.x(), pos.y())
         self.mark_location = pos
         self.mark_location_set = True
+        self.camera.set_beam_coordinates(*self.convertxy_nom2act(self.mark_location.x(), self.mark_location.y()))
 
-        if self.mark_direction == 1:
-            self.parent_gui.settings.setValue('beam_position_x', self.mark_location.x())
-        elif self.mark_direction == 0:
-            self.parent_gui.settings.setValue('beam_position_y', self.mark_location.y())
+        # if self.mark_direction == 1:
+            # self.parent_gui.settings.setValue('beam_position_x', self.mark_location.x())
+        # elif self.mark_direction == 0:
+            # self.parent_gui.settings.setValue('beam_position_y', self.mark_location.y())
 
     def mouseMoveEvent(self, event):
         pos = event.pos()
@@ -303,9 +323,16 @@ class Microscope(QWidget):
     def mouseDoubleClickEvent(self, event):
         print(event, event.button())
         pos = event.pos()
-        if event.button() == Qt.LeftButton:
-            if self.mode == 'calibration':
-                self.calibration_polygon.remove_point(pos)
+        print(pos)
+        print(f'nominal coordinates: {pos.x(), pos.y()}')
+        x, y = self.convertxy_nom2act(pos.x(), pos.y())
+        print(f'actual coordinates: {x, y}')
+        motx, moty = self.camera.compute_stage_motion_to_beam(x, y).squeeze()
+        print(f'stage shifts: {motx, moty}')
+        self.sample_stage.mvr({'x' : motx, 'y' : moty})
+        # if event.button() == Qt.LeftButton:
+        #     if self.mode == 'calibration':
+        #         self.calibration_polygon.remove_point(pos)
 
 
     def sizeHint(self):
@@ -317,8 +344,10 @@ class Microscope(QWidget):
 
     def updateImageData(self, image):
         """ Triggered when the new image is ready, update the view. """
+        # print(type(image))
+        # self.image_qbytearray = image
         self.image.loadFromData(image, 'JPG')
-        self.image = self.image.scaledToWidth(600)
+        self.image = self.image.scaledToWidth(self.scale_width)
 
 
         # for i in range(self.image.size().width()):
@@ -329,6 +358,7 @@ class Microscope(QWidget):
 
 
         self.updatedImageSize()
+        self.image = self.external_func(self.image)
         self.update()
 
     def readFromDict(self, settings):

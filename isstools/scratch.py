@@ -1472,10 +1472,32 @@ plt.imshow(OUTPUT[CAMERA_KEY][2], cmap='gray')
 plt.scatter(*new_point, color='r')
 
 # A_pix_pix_2_motor
+###################
+
+x = xlive_gui.widget_sample_manager.sample_cam1
+
+def _func(image):
+    # print_to_gui('here!')
+    # image.setColorCount(5)
+    # image.setColorTable(list(range(80)))
+    # for i in range(200, 300):
+    #     for j in range(200,300):
+    #         image.setPixelColor(i, j, QtGui.QColor('white'))
+    # image.setPixelColor(200, 200, QtGui.QColor('white'))
+    # image.convertToFormat(3)
+    # image.setColorCount(2)
+    # image.setColor(0, 0)
+    # image.setColor(1, 1)
+    # color_table = [1]*256
+    # image.setColorTable(color_table)
+    # image.fill(345340)
+    # image.setPixel(100, 100, 345340)
+    return image
+
+x.external_func = _func
 
 
-
-
+image = x.image
 
 
 
