@@ -28,6 +28,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                  sample_stage=None,
                  camera_dict=None,
                  sample_manager=None,
+                 plan_processor=None,
                  parent=None,
                  cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
                  cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',
@@ -45,19 +46,12 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         self.sample_manager = sample_manager
         self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
+        self.plan_processor = plan_processor
 
         # motion controls and stages
 
         pixmap = QPixmap(coordinate_system_file)
         self.label_coordinate_system.setPixmap(pixmap)
-
-        self.pushButton_visualize_sample.clicked.connect(self.visualize_sample)
-        self.pushButton_visualize_beam.clicked.connect(self.visualize_beam)
-
-        self.spinBox_image_min.valueChanged.connect(self.update_image_limits)
-        self.spinBox_image_max.valueChanged.connect(self.update_image_limits)
-
-        self.pushButton_calibration_mode.clicked.connect(self.set_to_calibration_mode)
 
         self.pushButton_move_up.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_move_down.clicked.connect(self.move_sample_stage_rel)
@@ -124,6 +118,13 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.treeWidget_samples.customContextMenuRequested.connect(self.sample_context_menu)
 
         # cameras and visualization
+
+        self.pushButton_visualize_sample.clicked.connect(self.visualize_sample)
+        self.pushButton_visualize_beam.clicked.connect(self.visualize_beam)
+
+        self.spinBox_image_min.valueChanged.connect(self.update_image_limits)
+        self.spinBox_image_max.valueChanged.connect(self.update_image_limits)
+
         self.cam1_url = cam1_url
         self.sample_cam1 = Microscope(parent = self, mark_direction=1, camera=self.camera1, sample_stage=sample_stage)
         self.sample_cam1.url = self.cam1_url
@@ -144,9 +145,15 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.sample_cam2.polygonDrawingSignal.connect(self.sample_cam1.calibration_polygon.append)
 
         self.interaction_mode = 'default'
-        self.calibration_data = []
-        self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
-        self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
+        self.pushButton_calibrate_cameras.clicked.connect(self.calibrate_cameras)
+        self.checkBox_show_calibration_grid.toggled.connect(self.show_calibration_grid)
+
+
+        # self.pushButton_calibration_mode.clicked.connect(self.set_to_calibration_mode)
+
+        # self.calibration_data = []
+        # self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
+        # self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
 
 
     # motion control methods
@@ -559,22 +566,37 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         vmax = self.spinBox_image_max.value()
         print(vmin, vmax)
 
-    def set_to_calibration_mode(self, state):
+    def calibrate_cameras(self):
+        plan_name = 'calibrate_sample_cameras_plan'
+        plan_kwargs = {}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+    def show_calibration_grid(self, state):
         if state:
-            self.interaction_mode = 'calibration'
-            self.pushButton_register_calibration_point.setEnabled(True)
+            self.camera1.compute_calibration_grid_lines()
+            self.camera2.compute_calibration_grid_lines()
+            self.sample_cam1.draw_calibration_grid = True
+            self.sample_cam2.draw_calibration_grid = True
         else:
-            self.interaction_mode = 'default'
-            self.pushButton_register_calibration_point.setEnabled(False)
+            self.sample_cam1.draw_calibration_grid = False
+            self.sample_cam2.draw_calibration_grid = False
 
-    def register_calibration_point(self):
-        output_dict = self.sample_stage.positions('x', 'y', prefix='sample_stage')
-        output_dict['cam1'] = self.sample_cam1.calibration_polygon.coordinate_list
-        output_dict['cam2'] = self.sample_cam2.calibration_polygon.coordinate_list
-        self.calibration_data.append(output_dict)
+    # def set_to_calibration_mode(self, state):
+    #     if state:
+    #         self.interaction_mode = 'calibration'
+    #         self.pushButton_register_calibration_point.setEnabled(True)
+    #     else:
+    #         self.interaction_mode = 'default'
+    #         self.pushButton_register_calibration_point.setEnabled(False)
 
-    def process_calibration_data(self):
-        pass
+    # def register_calibration_point(self):
+    #     output_dict = self.sample_stage.positions('x', 'y', prefix='sample_stage')
+    #     output_dict['cam1'] = self.sample_cam1.calibration_polygon.coordinate_list
+    #     output_dict['cam2'] = self.sample_cam2.calibration_polygon.coordinate_list
+    #     self.calibration_data.append(output_dict)
+
+    # def process_calibration_data(self):
+    #     pass
 
 
 

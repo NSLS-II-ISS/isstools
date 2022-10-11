@@ -19,7 +19,7 @@
      <x>10</x>
      <y>10</y>
      <width>601</width>
-     <height>481</height>
+     <height>461</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_sample_cam1"/>
@@ -30,7 +30,7 @@
      <x>620</x>
      <y>10</y>
      <width>601</width>
-     <height>481</height>
+     <height>461</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_sample_cam2"/>
@@ -124,7 +124,7 @@
   <widget class="QWidget" name="gridLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>440</x>
+     <x>280</x>
      <y>560</y>
      <width>231</width>
      <height>31</height>
@@ -200,23 +200,23 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="pushButton_calibration_mode">
+  <widget class="QPushButton" name="pushButton_calibrate_cameras">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>550</y>
+     <x>860</x>
+     <y>530</y>
      <width>151</width>
-     <height>36</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Calibration mode</string>
+    <string>Calibrate cameras</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_move_up">
@@ -283,25 +283,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_register_calibration_point">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>590</y>
-     <width>151</width>
-     <height>36</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Register point</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
@@ -323,39 +304,20 @@
     <pixmap>../icons/Coordinate system.png</pixmap>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_draw_calibration">
+  <widget class="QCheckBox" name="checkBox_show_calibration_grid">
    <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>960</x>
-     <y>550</y>
-     <width>171</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Draw Calibration</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_process_calibration">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>960</x>
-     <y>590</y>
-     <width>151</width>
-     <height>36</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Process calibration</string>
-   </property>
-   <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1060</x>
+     <y>530</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show grid</string>
    </property>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget_3">
@@ -1381,7 +1343,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -2668,20 +2630,37 @@ points</string>
     </widget>
    </widget>
   </widget>
+  <widget class="QPushButton" name="pushButton_calibrate_cameras_advanced">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1020</x>
+     <y>530</y>
+     <width>31</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </widget>
   <zorder>label_coordinate_system</zorder>
   <zorder>verticalLayoutWidget_2</zorder>
   <zorder>verticalLayoutWidget_3</zorder>
   <zorder>gridLayoutWidget</zorder>
   <zorder>gridLayoutWidget_2</zorder>
-  <zorder>pushButton_calibration_mode</zorder>
+  <zorder>pushButton_calibrate_cameras</zorder>
   <zorder>pushButton_move_up</zorder>
   <zorder>pushButton_move_down</zorder>
   <zorder>pushButton_move_left</zorder>
   <zorder>pushButton_move_right</zorder>
-  <zorder>pushButton_register_calibration_point</zorder>
   <zorder>label_4</zorder>
-  <zorder>checkBox_draw_calibration</zorder>
-  <zorder>pushButton_process_calibration</zorder>
+  <zorder>checkBox_show_calibration_grid</zorder>
   <zorder>gridLayoutWidget_3</zorder>
   <zorder>pushButton_move_downstream</zorder>
   <zorder>pushButton_move_upstream</zorder>
@@ -2689,6 +2668,7 @@ points</string>
   <zorder>pushButton_move_counterclockwise</zorder>
   <zorder>gridLayoutWidget_4</zorder>
   <zorder>groupBox</zorder>
+  <zorder>pushButton_calibrate_cameras_advanced</zorder>
  </widget>
  <resources/>
  <connections/>
