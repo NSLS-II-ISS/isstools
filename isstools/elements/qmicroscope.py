@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 from qtpy.QtCore import Signal, QByteArray, QPoint, QPointF, QRect, QSize, QTimer, Qt, QObject, QUrl
-from qtpy.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPolygon
+from qtpy.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPolygon, QPen
 from qtpy.QtWidgets import QWidget
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
@@ -187,6 +187,7 @@ class Microscope(QWidget):
         self.sample_polygon = CustomQPolygon()
 
         self.draw_calibration_grid = False
+        self.draw_sample_points = False
 
         def _func(image):
             return image
@@ -248,7 +249,21 @@ class Microscope(QWidget):
                 painter.drawLine(beam_pos_x - 200, beam_pos_y,
                                  beam_pos_x + 200, beam_pos_y)
 
+        painter.setPen(QColor.fromRgb(255, 0, 0))
         painter.drawPolygon(self.sample_polygon)
+
+        # draw sample_points
+        if self.draw_sample_points:
+            xy = self.compute_sample_xy_coords()
+            if xy is not None:
+                pen = QPen(QColor.fromRgb(0, 255, 0))
+                pen.setWidth(3)
+                painter.setPen(pen)
+                for _x, _y in xy:
+                    x, y = self.convertxy_act2nom(_x, _y)
+                    painter.drawPoint(x, y)
+                pen.setWidth(1)
+
 
         # draw calibration
         if self.draw_calibration_grid:
@@ -259,6 +274,14 @@ class Microscope(QWidget):
                         x1, y1 = self.convertxy_act2nom(*line[i])
                         x2, y2 = self.convertxy_act2nom(*line[i+1])
                         painter.drawLine(x1, y1, x2, y2)
+
+    def compute_sample_xy_coords(self):
+        motxy = self.parent_gui.sample_manager_xy_coords
+        if motxy is not None:
+            xy = self.camera.compute_point_from_stage(*motxy)
+            return xy
+        return None
+
 
     def mark_beam_location(self, pos):
         if self.mark_location_set:
@@ -274,7 +297,6 @@ class Microscope(QWidget):
             # self.parent_gui.settings.setValue('beam_position_x', self.mark_location.x())
         # elif self.mark_direction == 0:
             # self.parent_gui.settings.setValue('beam_position_y', self.mark_location.y())
-
 
     def mousePressEvent(self, event):
         print('MOUSE PRESS EVENT')

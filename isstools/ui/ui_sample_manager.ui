@@ -2679,6 +2679,22 @@
         <string>mm</string>
        </property>
       </widget>
+      <widget class="QCheckBox" name="checkBox_show_samples">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>120</y>
+         <width>151</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Show samples</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QPushButton" name="push_create_sample">

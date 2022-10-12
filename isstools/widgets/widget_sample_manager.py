@@ -150,7 +150,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.checkBox_show_calibration_grid.toggled.connect(self.show_calibration_grid)
 
         self.pushButton_draw_sample_polygon.toggled.connect(self.draw_sample_polygon)
-
+        self.checkBox_show_samples.toggled.connect(self.show_samples)
         # self.pushButton_calibration_mode.clicked.connect(self.set_to_calibration_mode)
 
         # self.calibration_data = []
@@ -629,18 +629,18 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         if state:
             self.camera1.compute_calibration_grid_lines()
             self.camera2.compute_calibration_grid_lines()
-            self.widget_camera1.draw_calibration_grid = True
-            self.widget_camera2.draw_calibration_grid = True
-        else:
-            self.widget_camera1.draw_calibration_grid = False
-            self.widget_camera2.draw_calibration_grid = False
+
+        self.widget_camera1.draw_calibration_grid = state
+        self.widget_camera2.draw_calibration_grid = state
+
+    def show_samples(self, state):
+        self.widget_camera1.draw_sample_points = state
+        self.widget_camera2.draw_sample_points = state
 
     def handle_camera_double_click(self, input_list):
-
         if self.interaction_mode == 'default':
             motx, moty = input_list
             self.sample_stage.mvr({'x': motx, 'y': moty})
-
 
 
     def draw_sample_polygon(self, state):
@@ -652,16 +652,26 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             # self.widget_camera1.reset_sample_polygon()
             # self.widget_camera2.reset_sample_polygon()
 
+    @property
+    def sample_manager_xy_coords(self):
+        index_list = self.treeWidget_samples.selectedIndexes()
+        if len(index_list) == 1:
+            index = index_list[0]
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+            else:
+                return
+            sample = self.sample_manager.sample_at_index(sample_index)
+            motx = self.sample_stage.x.position - sample.position_data['x'].values
+            moty = self.sample_stage.y.position - sample.position_data['y'].values
+            if motx.size == 0:
+                return
+            return motx, moty
 
 
-            # kill the polygon
-        # print(f'nominal coordinates: {pos.x(), pos.y()}')
-        # asfasfdg
-        # x, y = self.convertxy_nom2act(pos.x(), pos.y())
-        # print(f'actual coordinates: {x, y}')
-        #
-        # print(f'stage shifts: {motx, moty}')
-        #
 
     # def set_to_calibration_mode(self, state):
     #     if state:
