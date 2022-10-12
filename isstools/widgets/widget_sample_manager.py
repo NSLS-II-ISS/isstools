@@ -16,6 +16,7 @@ from isstools.elements.qmicroscope import Microscope
 from isstools.dialogs import UpdateSampleInfo
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
+import matplotlib.path as mpltPath
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_manager.ui')
 coordinate_system_file = pkg_resources.resource_filename('isstools', 'icons/Coordinate system.png')
@@ -119,41 +120,45 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         # cameras and visualization
 
+        self.interaction_mode = 'default'
+        self._sample_stage_polygon = None
+
         self.pushButton_visualize_sample.clicked.connect(self.visualize_sample)
         self.pushButton_visualize_beam.clicked.connect(self.visualize_beam)
 
         self.spinBox_image_min.valueChanged.connect(self.update_image_limits)
         self.spinBox_image_max.valueChanged.connect(self.update_image_limits)
 
-        self.cam1_url = cam1_url
-        self.sample_cam1 = Microscope(parent = self, mark_direction=1, camera=self.camera1, sample_stage=sample_stage)
-        self.sample_cam1.url = self.cam1_url
-        self.sample_cam1.fps = 10
+        self.widget_camera1 = Microscope(parent = self, mark_direction=1, camera=self.camera1,
+                                         fps=10, url=cam1_url)
 
-        self.layout_sample_cam1.addWidget(self.sample_cam1)
-        self.sample_cam1.acquire(True)
+        self.layout_sample_cam1.addWidget(self.widget_camera1)
+        self.widget_camera1.acquire(True)
 
-        self.cam2_url = cam2_url
-        self.sample_cam2 = Microscope(parent=self, mark_direction=0, camera=self.camera2, sample_stage=sample_stage)
-        self.sample_cam2.url = self.cam2_url
-        self.sample_cam2.fps = 10
+        self.widget_camera2 = Microscope(parent=self, mark_direction=0, camera=self.camera2,
+                                         fps=10, url=cam2_url)
+        self.layout_sample_cam2.addWidget(self.widget_camera2)
+        self.widget_camera2.acquire(True)
 
-        self.layout_sample_cam2.addWidget(self.sample_cam2)
-        self.sample_cam2.acquire(True)
+        self.widget_camera1.doubleClickSignal.connect(self.handle_camera_double_click)
+        self.widget_camera2.doubleClickSignal.connect(self.handle_camera_double_click)
 
-        self.sample_cam1.polygonDrawingSignal.connect(self.sample_cam2.calibration_polygon.append)
-        self.sample_cam2.polygonDrawingSignal.connect(self.sample_cam1.calibration_polygon.append)
+        # self.widget_camera1.polygonDrawingSignal.connect(self.widget_camera2.calibration_polygon.append)
+        # self.widget_camera2.polygonDrawingSignal.connect(self.widget_camera1.calibration_polygon.append)
 
-        self.interaction_mode = 'default'
         self.pushButton_calibrate_cameras.clicked.connect(self.calibrate_cameras)
         self.checkBox_show_calibration_grid.toggled.connect(self.show_calibration_grid)
 
+        self.pushButton_draw_sample_polygon.toggled.connect(self.draw_sample_polygon)
 
         # self.pushButton_calibration_mode.clicked.connect(self.set_to_calibration_mode)
 
         # self.calibration_data = []
         # self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
         # self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
+
+
+    # def mouseDoubleClickEvent(self, event):
 
 
     # motion control methods
@@ -251,6 +256,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             return self._create_grid_of_positions()
         elif tab_text == 'Map':
             return self._create_map_of_positions()
+        elif tab_text == 'Draw':
+            return self._create_polygon_of_positions()
         return
 
     def _get_stage_coordinates(self, tolerance=0.005):
@@ -336,6 +343,51 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             positions.append(_d)
         return positions
 
+    def _get_polygon_from_cameras(self):
+        if self.widget_camera1.sample_polygon.count():
+            output = self.widget_camera1.sample_polygon_motor
+        elif self.widget_camera2.sample_polygon.count():
+            output = self.widget_camera2.sample_polygon_motor
+        else:
+            output = None
+        return output
+
+    def _create_polygon_of_positions(self):
+        polygon = self._get_polygon_from_cameras()
+        if polygon is None:
+            return
+
+        pos0_dict = self.sample_stage.positions()
+
+        xmin = polygon[:, 0].min()
+        xmax = polygon[:, 0].max()
+        ymin = polygon[:, 1].min()
+        ymax = polygon[:, 1].max()
+
+        dy = float(self.spinBox_draw_spacing.value())
+        dx = dy * np.sqrt(2)
+        xgrid, ygrid = np.meshgrid(np.arange(xmin, xmax + dx, dx), np.arange(ymin, ymax + dy, dy))
+        xgrid = xgrid.ravel()
+        ygrid = ygrid.ravel()
+        path = mpltPath.Path(polygon)
+        is_inside_polygon = path.contains_points([(x, y) for (x, y) in zip(xgrid, ygrid)])
+
+        xs = xgrid[is_inside_polygon] + pos0_dict['x']
+        ys = ygrid[is_inside_polygon] + pos0_dict['y']
+        z = pos0_dict['z']
+        th = pos0_dict['th']
+
+        npt = xs.size
+        positions = []
+
+        for i in range(npt):
+            _d = {'x':  xs[i],
+                  'y':  ys[i],
+                  'z':  z,
+                  'th': th}
+            positions.append(_d)
+        return positions
+
     '''
     Dealing with making qt items of all sorts
     '''
@@ -391,7 +443,6 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # positions = self._create_list_of_positions()
         self.sample_manager.add_new_sample(sample_name, sample_comment, [])
 
-
     def define_sample_points(self):
         index_list = self.treeWidget_samples.selectedIndexes()
         if len(index_list) == 1:
@@ -402,7 +453,10 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                 positions = self._create_list_of_positions()
                 self.sample_manager.add_points_to_sample_at_index(sample_index, positions)
 
-
+                if self.interaction_mode == 'draw':
+                    self.pushButton_draw_sample_polygon.setChecked(False)
+        else:
+            message_box('Error', 'Please select one sample')
 
 
     def get_sample_info_from_autopilot(self):
@@ -575,11 +629,39 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         if state:
             self.camera1.compute_calibration_grid_lines()
             self.camera2.compute_calibration_grid_lines()
-            self.sample_cam1.draw_calibration_grid = True
-            self.sample_cam2.draw_calibration_grid = True
+            self.widget_camera1.draw_calibration_grid = True
+            self.widget_camera2.draw_calibration_grid = True
         else:
-            self.sample_cam1.draw_calibration_grid = False
-            self.sample_cam2.draw_calibration_grid = False
+            self.widget_camera1.draw_calibration_grid = False
+            self.widget_camera2.draw_calibration_grid = False
+
+    def handle_camera_double_click(self, input_list):
+
+        if self.interaction_mode == 'default':
+            motx, moty = input_list
+            self.sample_stage.mvr({'x': motx, 'y': moty})
+
+
+
+    def draw_sample_polygon(self, state):
+        if state:
+            self.interaction_mode = 'draw'
+        else:
+            self.interaction_mode = 'default'
+            # commented out for testing
+            # self.widget_camera1.reset_sample_polygon()
+            # self.widget_camera2.reset_sample_polygon()
+
+
+
+            # kill the polygon
+        # print(f'nominal coordinates: {pos.x(), pos.y()}')
+        # asfasfdg
+        # x, y = self.convertxy_nom2act(pos.x(), pos.y())
+        # print(f'actual coordinates: {x, y}')
+        #
+        # print(f'stage shifts: {motx, moty}')
+        #
 
     # def set_to_calibration_mode(self, state):
     #     if state:

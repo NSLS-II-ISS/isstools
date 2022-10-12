@@ -1474,7 +1474,7 @@ plt.scatter(*new_point, color='r')
 # A_pix_pix_2_motor
 ###################
 
-x = xlive_gui.widget_sample_manager.sample_cam1
+x = xlive_gui.widget_sample_manager.widget_camera1
 
 def _func(image):
     # print_to_gui('here!')

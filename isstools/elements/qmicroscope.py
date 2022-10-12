@@ -147,19 +147,19 @@ class CustomQPolygon(QPolygon):
 
 class Microscope(QWidget):
     roiClicked = Signal(int, int)
-    polygonDrawingSignal = Signal(QPoint)
+    # polygonDrawingSignal = Signal(QPoint)
+    doubleClickSignal = Signal(list)
 
-    def __init__(self, parent=None, mark_direction = 1, camera=None, sample_stage=None):
+    def __init__(self, parent=None, mark_direction = 1, camera=None, url=None, fps=10, scale_width=600):
         #mark_direction = 0 for horizontal, 1 for vertical
         super(Microscope, self).__init__(parent)
         self.parent_gui = parent
         self.camera = camera
-        self.sample_stage = sample_stage
         self.setMinimumWidth(300)
         self.setMinimumHeight(300)
         self.image = QImage('image.jpg')
 
-        self.clicks = []
+        # self.clicks = []
         self.center = QPoint(
             self.image.size().width() / 2, self.image.size().height() / 2
         )
@@ -170,12 +170,13 @@ class Microscope(QWidget):
         #                             self.parent_gui.settings.value('beam_position_y', defaultValue=450, type=float))
         self.mark_location_set = True
         self.color = False
-        self.fps = 5
-        self.scale_width = 600
-        self.scaleBar = False
 
 
-        self.url = 'http://localhost:9998/jpg/image.jpg'
+        # self.scaleBar = False
+
+        self.scale_width = scale_width
+        self.url = url
+        self.fps = fps
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateImage)
@@ -183,11 +184,7 @@ class Microscope(QWidget):
         self.downloader = Downloader(self)
         self.downloader.imageReady.connect(self.updateImageData)
 
-        self.calibration_polygon = CustomQPolygon()
-
-        # self.A_xy2px = None
-        # self.A_xy2py = None
-        self.beam_position = 0
+        self.sample_polygon = CustomQPolygon()
 
         self.draw_calibration_grid = False
 
@@ -198,11 +195,21 @@ class Microscope(QWidget):
 
     @property
     def mode(self):
-        return self.parent().parent().interaction_mode
+        # return self.parent().parent().interaction_mode
+        return self.parent_gui.interaction_mode
 
-    @property
-    def draw_calibration_isChecked(self):
-        return self.parent().parent().checkBox_draw_calibration.isChecked()
+    def reset_sample_polygon(self):
+        r = self.sample_polygon
+        self.sample_polygon = CustomQPolygon()
+        del r
+
+    def convertxy_nom2act(self, x, y):
+        return (x / self.scale_width * self.camera.image_width,
+                y / self.scale_width * self.camera.image_width)
+
+    def convertxy_act2nom(self, x, y):
+        return (x * self.scale_width / self.camera.image_width,
+                y * self.scale_width / self.camera.image_width)
 
     def updatedImageSize(self):
         if self.image.size() != self.minimumSize():
@@ -241,16 +248,7 @@ class Microscope(QWidget):
                 painter.drawLine(beam_pos_x - 200, beam_pos_y,
                                  beam_pos_x + 200, beam_pos_y)
 
-        painter.drawPolygon(self.calibration_polygon)
-
-        # #Draw the center mark
-        # painter.setPen(QColor.fromRgb(255, 0, 0))
-        # painter.drawLine(
-        #      self.center.x() - 20, self.center.y(), self.center.x() + 20, self.center.y()
-        # )
-        # painter.drawLine(
-        #      self.center.x(), self.center.y() - 20, self.center.x(), self.center.y() + 20
-        # )
+        painter.drawPolygon(self.sample_polygon)
 
         # draw calibration
         if self.draw_calibration_grid:
@@ -261,35 +259,6 @@ class Microscope(QWidget):
                         x1, y1 = self.convertxy_act2nom(*line[i])
                         x2, y2 = self.convertxy_act2nom(*line[i+1])
                         painter.drawLine(x1, y1, x2, y2)
-
-
-
-    def mousePressEvent(self, event):
-
-        pos = event.pos()
-        # print(pos, type(pos))
-
-        if event.button() == Qt.RightButton:
-
-            if self.mode == 'calibration':
-                self.polygonDrawingSignal.emit(pos)
-                self.calibration_polygon.append(pos)
-
-            elif self.mode == 'default':
-                self.mark_beam_location(pos)
-
-        elif event.button() == Qt.LeftButton:
-            if self.mode == 'calibration':
-                self.calibration_polygon.start_drag(pos)
-
-
-    def convertxy_nom2act(self, x, y):
-        return (x / self.scale_width * self.camera.image_width,
-                y / self.scale_width * self.camera.image_width)
-
-    def convertxy_act2nom(self, x, y):
-        return (x * self.scale_width / self.camera.image_width,
-                y * self.scale_width / self.camera.image_width)
 
     def mark_beam_location(self, pos):
         if self.mark_location_set:
@@ -306,30 +275,55 @@ class Microscope(QWidget):
         # elif self.mark_direction == 0:
             # self.parent_gui.settings.setValue('beam_position_y', self.mark_location.y())
 
+
+    def mousePressEvent(self, event):
+        print('MOUSE PRESS EVENT')
+        pos = event.pos()
+
+        if event.button() == Qt.LeftButton:
+            if self.mode == 'draw':
+                self.sample_polygon.append(pos)
+
+        elif event.button() == Qt.RightButton:
+            if self.mode == 'default':
+                self.mark_beam_location(pos)
+            elif self.mode == 'draw':
+                self.sample_polygon.start_drag(pos)
+
     def mouseMoveEvent(self, event):
         pos = event.pos()
-        if self.mode == 'calibration':
-            self.calibration_polygon.drag(pos)
-
-
+        if self.mode == 'draw':
+            self.sample_polygon.drag(pos)
 
     def mouseReleaseEvent(self, event):
         pos = event.pos()
-        if event.button() == Qt.LeftButton:
-            if self.mode == 'calibration':
-                self.calibration_polygon.stop_drag()
-
+        if event.button() == Qt.RightButton:
+            if self.mode == 'draw':
+                self.sample_polygon.stop_drag()
 
     def mouseDoubleClickEvent(self, event):
-        print(event, event.button())
+        print('MOUSE DOUBLE CKICK EVENT')
         pos = event.pos()
-        print(pos)
-        print(f'nominal coordinates: {pos.x(), pos.y()}')
         x, y = self.convertxy_nom2act(pos.x(), pos.y())
-        print(f'actual coordinates: {x, y}')
-        motx, moty = self.camera.compute_stage_motion_to_beam(x, y).squeeze()
-        print(f'stage shifts: {motx, moty}')
-        self.sample_stage.mvr({'x' : motx, 'y' : moty})
+
+        if event.button() == Qt.LeftButton:
+            if self.mode == 'default':
+                motx, moty = self.camera.compute_stage_motion_to_beam(x, y).squeeze()
+                self.doubleClickSignal.emit([motx, moty])
+
+
+    @property
+    def sample_polygon_motor(self):
+        coords = np.array([list(self.convertxy_nom2act(*coord)) for coord in self.sample_polygon.coordinate_list])
+        polygon_motor = self.camera.compute_stage_motion_to_beam(coords[:, 0], coords[:, 1]).squeeze()
+        return polygon_motor
+
+    #     # print(event, event.button())
+    #
+    #     print(f'actual coordinates: {x, y}')
+    #     motx, moty = self.camera.compute_stage_motion_to_beam(x, y).squeeze()
+    #     print(f'stage shifts: {motx, moty}')
+    #     self.sample_stage.mvr({'x' : motx, 'y' : moty})
         # if event.button() == Qt.LeftButton:
         #     if self.mode == 'calibration':
         #         self.calibration_polygon.remove_point(pos)
