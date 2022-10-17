@@ -11,7 +11,7 @@ import json
 
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
 from timeit import default_timer as timer
-from isstools.dialogs.BasicDialogs import message_box
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
 import bluesky.plan_stubs as bps
 
 
@@ -288,7 +288,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         # self.RE(bps.mv(self.hhm.pitch, pitch+0.025))
         if not self.hhm.pitch.moving:
             pitch = self.hhm.pitch.read()['hhm_pitch']['value']
-            self.hhm.pitch.move(pitch + 0.025)
+            self.hhm.pitch.move(pitch + 0.03, wait=False)
 
     def tweak_pitch_neg(self):
         self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
@@ -296,10 +296,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
         if not self.hhm.pitch.moving:
             pitch = self.hhm.pitch.read()['hhm_pitch']['value']
-            self.hhm.pitch.move(pitch - 0.025)
+            self.hhm.pitch.move(pitch - 0.03, wait=False)
 
     def auto_pitch(self):
-        self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', {})
+        kwargs = {}
+        if self.hhm_feedback.status_msg == 'empty image':
+            ret = question_message_box('Warning', 'The beam appears to have drifted. Press OK to perform a broad pitch scan. Press cancel if you wish to adjust the pitch manually.')
+            if not ret:
+                return
+            kwargs = {'pitch_range' : 10}
+        self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', kwargs)
 
     # def update_daq_rate(self):
     #     daq_rate = self.spinBox_daq_rate.value()

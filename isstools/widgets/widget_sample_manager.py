@@ -649,8 +649,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         else:
             self.interaction_mode = 'default'
             # commented out for testing
-            # self.widget_camera1.reset_sample_polygon()
-            # self.widget_camera2.reset_sample_polygon()
+            self.widget_camera1.reset_sample_polygon()
+            self.widget_camera2.reset_sample_polygon()
 
     @property
     def sample_manager_xy_coords(self):
