@@ -301,7 +301,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
     def auto_pitch(self):
         kwargs = {}
         if self.hhm_feedback.status_msg == 'empty image':
-            ret = question_message_box('Warning', 'The beam appears to have drifted. Press OK to perform a broad pitch scan. Press cancel if you wish to adjust the pitch manually.')
+            ret = question_message_box(self, 'Warning', 'The beam appears to have drifted.\nPress YES to perform a broad pitch scan.\nPress NO if you wish to adjust the pitch manually.')
             if not ret:
                 return
             kwargs = {'pitch_range' : 10}
