@@ -233,7 +233,9 @@ class Microscope(QWidget):
         # self.image = self.image.scaledToWidth(200)
         painter.drawImage(rect, self.image, rect, flags=Qt.ThresholdDither)
 
-        painter.setPen(QColor.fromRgb(0, 255, 0))
+        # painter.setPen(QColor.fromRgb(0, 255, 0))
+        painter.setPen(QColor('yellow'))
+
         if self.mark_location:
             #print(f' Mark location {self.mark_location.x()} -  {self.mark_location.y()}')
             beam_pos_x, beam_pos_y = self.convertxy_act2nom(self.camera.beam_pos_x, self.camera.beam_pos_y)
@@ -249,7 +251,7 @@ class Microscope(QWidget):
                 painter.drawLine(beam_pos_x - 200, beam_pos_y,
                                  beam_pos_x + 200, beam_pos_y)
 
-        painter.setPen(QColor.fromRgb(255, 0, 0))
+        painter.setPen(QColor.fromRgb(0, 255, 0))
         painter.drawPolygon(self.sample_polygon)
 
         # draw sample_points
