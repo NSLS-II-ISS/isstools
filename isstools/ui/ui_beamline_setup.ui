@@ -16,9 +16,9 @@
   <widget class="QGroupBox" name="groupBox_7">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>240</y>
-     <width>971</width>
+     <x>470</x>
+     <y>250</y>
+     <width>1111</width>
      <height>681</height>
     </rect>
    </property>
@@ -271,7 +271,7 @@
      <rect>
       <x>0</x>
       <y>190</y>
-      <width>941</width>
+      <width>1101</width>
       <height>481</height>
      </rect>
     </property>
@@ -699,7 +699,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Define beam position</string>
+     <string>Store beam position</string>
     </property>
    </widget>
   </widget>

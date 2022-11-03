@@ -128,7 +128,7 @@
      <x>0</x>
      <y>10</y>
      <width>341</width>
-     <height>851</height>
+     <height>871</height>
     </rect>
    </property>
    <property name="title">
@@ -143,8 +143,8 @@
    <widget class="QPushButton" name="push_uncheck_all">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>700</y>
+      <x>210</x>
+      <y>840</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -156,8 +156,8 @@
    <widget class="QPushButton" name="push_check_all">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>700</y>
+      <x>20</x>
+      <y>840</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -172,7 +172,7 @@
       <x>10</x>
       <y>30</y>
       <width>311</width>
-      <height>661</height>
+      <height>801</height>
      </rect>
     </property>
     <property name="selectionMode">
@@ -203,7 +203,7 @@
      <x>350</x>
      <y>10</y>
      <width>341</width>
-     <height>591</height>
+     <height>631</height>
     </rect>
    </property>
    <property name="title">
@@ -387,7 +387,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>140</y>
+       <y>130</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -405,6 +405,12 @@ scan</string>
        <width>121</width>
        <height>26</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string>n_eff=</string>
@@ -483,8 +489,8 @@ scan</string>
   <widget class="QPushButton" name="push_create_measurement">
    <property name="geometry">
     <rect>
-     <x>860</x>
-     <y>760</y>
+     <x>882</x>
+     <y>740</y>
      <width>101</width>
      <height>56</height>
     </rect>
@@ -581,8 +587,8 @@ scan</string>
   <widget class="QPushButton" name="push_create_service">
    <property name="geometry">
     <rect>
-     <x>890</x>
-     <y>340</y>
+     <x>900</x>
+     <y>310</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -656,8 +662,8 @@ scan</string>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>660</x>
-     <y>740</y>
+     <x>682</x>
+     <y>720</y>
      <width>185</width>
      <height>94</height>
     </rect>
@@ -757,8 +763,8 @@ scan</string>
   <widget class="QLineEdit" name="lineEdit_comment">
    <property name="geometry">
     <rect>
-     <x>730</x>
-     <y>700</y>
+     <x>752</x>
+     <y>680</y>
      <width>231</width>
      <height>24</height>
     </rect>
@@ -779,8 +785,8 @@ scan</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>730</x>
-     <y>670</y>
+     <x>752</x>
+     <y>650</y>
      <width>231</width>
      <height>24</height>
     </rect>
@@ -798,8 +804,8 @@ scan</string>
   <widget class="QLabel" name="label_138">
    <property name="geometry">
     <rect>
-     <x>658</x>
-     <y>670</y>
+     <x>680</x>
+     <y>650</y>
      <width>66</width>
      <height>24</height>
     </rect>
@@ -817,8 +823,8 @@ scan</string>
   <widget class="QLabel" name="label_135">
    <property name="geometry">
     <rect>
-     <x>658</x>
-     <y>700</y>
+     <x>680</x>
+     <y>680</y>
      <width>66</width>
      <height>24</height>
     </rect>
