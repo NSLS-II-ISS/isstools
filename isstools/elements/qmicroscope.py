@@ -240,14 +240,14 @@ class Microscope(QWidget):
             #print(f' Mark location {self.mark_location.x()} -  {self.mark_location.y()}')
             beam_pos_x, beam_pos_y = self.convertxy_act2nom(self.camera.beam_pos_x, self.camera.beam_pos_y)
             if self.mark_direction == 1:
-                painter.drawLine(beam_pos_x - 25, beam_pos_y,
-                                 beam_pos_x + 25, beam_pos_y)
+                #painter.drawLine(beam_pos_x - 25, beam_pos_y,
+                #                 beam_pos_x + 25, beam_pos_y)
                 painter.drawLine(beam_pos_x,      beam_pos_y - 200,
                                  beam_pos_x,      beam_pos_y + 200)
 
             elif self.mark_direction == 0:
-                painter.drawLine(beam_pos_x,       beam_pos_y - 25,
-                                 beam_pos_x,       beam_pos_y + 25)
+                #painter.drawLine(beam_pos_x,       beam_pos_y - 25,
+                #                 beam_pos_x,       beam_pos_y + 25)
                 painter.drawLine(beam_pos_x - 200, beam_pos_y,
                                  beam_pos_x + 200, beam_pos_y)
 
