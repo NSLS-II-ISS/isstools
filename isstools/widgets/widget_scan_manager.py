@@ -353,6 +353,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                        'offset' : float(self.label_angle_offset.text())}
         if not self.radioButton_spectrometer_none.isChecked():
             return_dict['spectrometer'] = self._spectrometer_parameters
+        return_dict['scan_for_calibration_purpose'] = self.checkBox_calibration_purpose.isChecked()
         return return_dict
 
     @property
