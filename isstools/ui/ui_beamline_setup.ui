@@ -323,8 +323,8 @@
    <widget class="QLabel" name="label_61">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>40</y>
+      <x>100</x>
+      <y>20</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -338,49 +338,6 @@
     </property>
     <property name="text">
      <string>Select energy</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit_energy">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>60</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>8333</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_38">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>60</y>
-      <width>31</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>eV</string>
     </property>
    </widget>
    <widget class="QPushButton" name="push_prepare_beamline">
@@ -701,6 +658,17 @@
     <property name="text">
      <string>Store beam position</string>
     </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>40</y>
+      <width>181</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="layout_energy_selector_prepare"/>
    </widget>
   </widget>
   <widget class="QLabel" name="label_gains_3">
@@ -1035,7 +1003,7 @@
       <height>101</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="layout_energy_selector"/>
+    <layout class="QHBoxLayout" name="layout_energy_selector_foil"/>
    </widget>
   </widget>
  </widget>

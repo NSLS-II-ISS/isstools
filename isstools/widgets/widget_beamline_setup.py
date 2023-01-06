@@ -142,20 +142,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.spinBox_trigger_xs_freq.setValue(trigger_xs_freq)
         self.spinBox_trigger_xs_freq.valueChanged.connect(self.update_trigger_xs_freq)
 
-        self.widget_energy_selector = widget_energy_selector.UIEnergySelectorFoil()
-        self.layout_energy_selector.addWidget(self.widget_energy_selector)
-
-        # with open('/nsls2/xf08id/settings/json/foil_wheel.json') as fp:
-        #     foil_info = json.load(fp)
-        #     reference_foils = [item['element'] for item in foil_info]
-        #     edges = [item['edge'] for item in foil_info]
-        #     self.edge_dict={}
-        #     for foil, edge in zip(reference_foils, edges):
-        #         self.edge_dict[foil]= edge
-        #     reference_foils.append('--')
-        # for foil in reference_foils:
-        #     self.comboBox_reference_foils.addItem(foil)
-
+        self.widget_energy_selector_foil = widget_energy_selector.UIEnergySelectorFoil()
+        self.layout_energy_selector_foil.addWidget(self.widget_energy_selector_foil)
+        self.widget_energy_selector_prepare = widget_energy_selector.UIEnergySelector()
+        self.layout_energy_selector_prepare.addWidget(self.widget_energy_selector_prepare)
         self.liveplot_kwargs = {}
 
     def handle_gui_elements(self):
@@ -299,30 +289,27 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                 if dlg.exec_():
                     pass
 
-
     def read_energy_label(self):
-        label_text = self.lineEdit_energy.text()
+        label_text = self.widget_energy_selector_prepare.edit_E0.text()
+
         try:
             energy = float(label_text)
-        except ValueError:
-            element, edge = label_text.split('-')
-            energy = xraydb.xray_edge(element, edge).energy
-            self.lineEdit_energy.setText(str(int(energy)))
+        except:
+            error_message_box('Energy setting is invalid')
+            energy = None
         return energy
-
 
     def prepare_beamline(self, energy_setting=None):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
         # energy = float(self.lineEdit_energy.text())
         energy = self.read_energy_label()
-        move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
+        if energy:
+            move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
 
-        plan_name = 'prepare_beamline_plan'
-        plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-        # self.RE(self.service_plan_funcs['prepare_beamline_plan'](energy=float(self.lineEdit_energy.text()),
-        #                                                         stdout = self.parent_gui.emitstream_out))
+            plan_name = 'prepare_beamline_plan'
+            plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
+            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def tune_beamline(self):
         plan_name = 'tune_beamline_plan_bundle'
@@ -378,7 +365,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if ret:
             # element = self.comboBox_reference_foils.currentText()
             # edge = self.edge_dict[element]
-            element, edge = self.widget_energy_selector.element_edge
+            element, edge = self.widget_energy_selector_foil.element_edge
 
             # message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
             plan_name = 'bender_scan_plan_bundle'
@@ -397,7 +384,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if ret:
             # element = self.comboBox_reference_foils.currentText()
             # edge = self.edge_dict[element]
-            element, edge = self.widget_energy_selector.element_edge
+            element, edge = self.widget_energy_selector_foil.element_edge
             # plan_name = 'calibrate_mono_energy_plan'
             # plan_kwargs = {'element' : element, 'edge' : edge}
             # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']

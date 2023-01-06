@@ -89,7 +89,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             try:
                 current_weather = requests.get(
                     'http://api.openweathermap.org/data/2.5/weather?zip=11973&APPID=a3be6bc4eaf889b154327fadfd9d6532').json()
-                string_current_weather  = current_weather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.0f} °F outside,\
+                string_current_weather  = current_weather['weather'][0]['main'] + ' in Upton, NY,  it is {0:.2f} °F outside,\
                     humidity is {1:.0f}%'\
                     .format(((current_weather['main']['temp']-273)*1.8+32), current_weather['main']['humidity'])
                 icon_url = 'http://openweathermap.org/img/w/' + current_weather['weather'][0]['icon'] + '.png'

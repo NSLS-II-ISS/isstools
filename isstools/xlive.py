@@ -336,7 +336,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
-        print(' >>>>>>>>>>> cloud dispatcher done', ttime.ctime())
+        print(' Cloud dispatcher initialization is complete`q', ttime.ctime())
         pc = ScanProcessingCallback(db=self.db, draw_func_interp=self.widget_run.draw_interpolated_data,
                                     draw_func_bin=None,
                                     cloud_dispatcher=self.cloud_dispatcher, thread=self.processing_thread, print_func=print_to_gui)

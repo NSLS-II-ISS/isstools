@@ -59,6 +59,8 @@ elements_lines_dict = {
     'Cu' : ['Ka1', 'Kb1', 'Kb5'],
     'Zn' : ['Ka1', 'Kb1', 'Kb5'],
     # misc
+    'As' : ['Ka1', 'Kb1'],
+    'Se' : ['Ka1', 'Kb1'],
     'Br' : ['Ka1', 'Kb1'],
     'Kr' : ['Ka1', 'Kb1'],
     # 4d
