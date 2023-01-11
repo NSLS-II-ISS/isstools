@@ -17,6 +17,7 @@ from isstools.widgets import widget_energy_selector
 from isstools.elements.figure_update import update_figure, setup_figure
 # from xas.energy_calibration import validate_calibration, process_calibration
 import xraydb
+from xas.energy_calibration import find_correct_foil
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_beamline_setup.ui')
 
@@ -116,6 +117,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
         self.push_update_feedback_center.clicked.connect(self.update_piezo_center)
         self.push_calibration_scan.clicked.connect(self.energy_calibration)
+        self.push_smart_calibration_scan.clicked.connect(self.smart_energy_calibration)
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
@@ -146,6 +148,9 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.layout_energy_selector_foil.addWidget(self.widget_energy_selector_foil)
         self.widget_energy_selector_prepare = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector_prepare.addWidget(self.widget_energy_selector_prepare)
+        self.widget_energy_selector_calibration = widget_energy_selector.UIEnergySelector()
+        self.layout_energy_selector_calibration.addWidget(self.widget_energy_selector_calibration)
+
         self.liveplot_kwargs = {}
 
     def handle_gui_elements(self):
@@ -396,6 +401,22 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
             #                                                         plot_func=self._update_figure_with_calibration_data,
             #                                                         error_message_func=error_message_box)
+    def smart_energy_calibration(self):
+        energy = float(self.widget_energy_selector_calibration.edit_E0.text())
+        element, edge, energy = find_correct_foil(energy=energy)
+        if element:
+            if element != self.widget_energy_selector_calibration.comboBox_element.currentText():
+                ret = question_message_box(self, 'Warning', f"Element is not available as a calibration foil. {element} "
+                                                             f"foil, {edge} edge will be used. Proceed?")
+                if ret:
+                    ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
+                    if ret:
+                        plan_name = 'calibrate_mono_energy_plan_bundle'
+                        plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+                        plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : plan_gui_services}
+                        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
+        else:
+            error_message_box('Calibration standard could not be found within -200 - +600 eV from the edge position' )
 
     def update_daq_rate(self):
         daq_rate = self.spinBox_daq_rate.value()
