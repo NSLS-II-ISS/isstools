@@ -161,11 +161,11 @@ class Microscope(QWidget):
 
         # self.clicks = []
         self.center = QPoint(
-            self.image.size().width() / 2, self.image.size().height() / 2
+            int(self.image.size().width() / 2), int(self.image.size().height() / 2)
         )
         self.mark_direction = mark_direction
-        self.mark_location = QPoint(self.camera.beam_pos_x,
-                                    self.camera.beam_pos_y)
+        self.mark_location = QPoint(int(self.camera.beam_pos_x),
+                                    int(self.camera.beam_pos_y))
         # self.mark_location = QPoint(self.parent_gui.settings.value('beam_position_x', defaultValue=600, type=float),
         #                             self.parent_gui.settings.value('beam_position_y', defaultValue=450, type=float))
         self.mark_location_set = True
@@ -209,20 +209,20 @@ class Microscope(QWidget):
                 y / self.scale_width * self.camera.image_width)
 
     def convertxy_act2nom(self, x, y):
-        return (x * self.scale_width / self.camera.image_width,
-                y * self.scale_width / self.camera.image_width)
+        return (int(x * self.scale_width / self.camera.image_width),
+                int(y * self.scale_width / self.camera.image_width))
 
     def updatedImageSize(self):
         if self.image.size() != self.minimumSize():
             self.setMinimumSize(self.image.size())
             self.center = QPoint(
-                self.image.size().width() / 2, self.image.size().height() / 2
+                int(self.image.size().width() / 2), int(self.image.size().height() / 2)
             )
 
     def acquire(self, start=True):
         self.downloader.setUrl(self.url)
         if start:
-            self.timer.start(1000.0 / self.fps)
+            self.timer.start(int(1000.0 / self.fps))
         else:
             self.timer.stop()
 
@@ -242,8 +242,8 @@ class Microscope(QWidget):
             if self.mark_direction == 1:
                 #painter.drawLine(beam_pos_x - 25, beam_pos_y,
                 #                 beam_pos_x + 25, beam_pos_y)
-                painter.drawLine(beam_pos_x,      beam_pos_y - 200,
-                                 beam_pos_x,      beam_pos_y + 200)
+                painter.drawLine(beam_pos_x, beam_pos_y - 200,
+                                 beam_pos_x, beam_pos_y + 200)
 
             elif self.mark_direction == 0:
                 #painter.drawLine(beam_pos_x,       beam_pos_y - 25,

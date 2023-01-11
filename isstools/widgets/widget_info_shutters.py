@@ -36,14 +36,14 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
             label.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
 
             button = QtWidgets.QPushButton('')
-            button.setFixedSize(self.height() * 0.4, self.height() * 0.4)
+            button.setFixedSize(int(self.height() * 0.4), int(self.height() * 0.4))
             self.shutter_layout.addWidget(button)
             # button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
 
             self.horizontalLayout_shutters.addLayout(self.shutter_layout)
 
             self.shutters_buttons.append(button)
-            button.setFixedWidth(button.height() * 1.2)
+            button.setFixedWidth(int(button.height() * 1.2))
             QtCore.QCoreApplication.processEvents()
 
             if hasattr(item[1].state, 'subscribe'):
