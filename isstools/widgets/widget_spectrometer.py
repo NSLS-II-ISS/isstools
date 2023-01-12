@@ -45,8 +45,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
 
         self.db = db
-        self.vmax = None
-        self.pil_image = None
+
+        self.johann_emission = johann_emission
+
         self.detector_dictionary = detector_dictionary
         self.pilatus = detector_dictionary['Pilatus 100k']['device']
         self.parent = parent
@@ -110,24 +111,17 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
 
-    # def _run_any_scan(self, detector, channel, motor, scan_range, scan_step):
-    #     self.canvas_scan.mpl_disconnect(self.cid_scan)
-    #     update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
-    #     self.figure_scan.ax.set_aspect('auto')
-    #
-    #     rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
-    #
-    #     uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
-    #                                                            motor,
-    #                                                            rel_start,
-    #                                                            rel_stop,
-    #                                                            num_steps, ),
-    #                        LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
-    #     self.figure_scan.tight_layout()
-    #     self.canvas_scan.draw_idle()
-    #     self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-    #     self.last_motor_used = motor
-    #     return uid_list
+        # johann functions/subscriptions
+        self._prepare_johann_elements()
+
+        self.push_johann_update_crystal_parking.clicked.connect(self.johann_update_crystal_parking)
+        self.push_update_detector_parking.clicked.connect(self.johann_update_detector_parking)
+
+        self.comboBox_johann_crystal.currentIndexChanged.connect(self.johann_populate_crystal_parking)
+
+
+# general handling of gui elements, plotting, and scanning
+
 
     def handle_gui_elements(self):
         if self.plan_processor.status == 'idle':
@@ -164,9 +158,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _run_any_scan(self, detectors, liveplot_det_kwargs, motor, liveplot_mot_kwargs,
                       scan_range, scan_step):
-        # self.canvas_scan.mpl_disconnect(self.cid_scan)
-        # update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
-        # self.figure_scan.ax.set_aspect('auto')
 
         rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
 
@@ -177,21 +168,25 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                        'rel_stop': rel_stop,
                        'num_steps': num_steps,
                        'liveplot_kwargs': {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab' : 'spectrometer'}}
-        # return plan_name, plan_kwargs
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-        # self.plan_processor.run_if_idle()
-        # uid_list = self.RE(self.aux_plan_funcs['general_scan']([detector],
-        #                                                        motor,
-        #                                                        rel_start,
-        #                                                        rel_stop,
-        #                                                        num_steps, ),
-        #                    LivePlot(channel,  motor.name, ax=self.figure_scan.ax))
-        # self.figure_scan.tight_layout()
-        # self.canvas_scan.draw_idle()
-        # self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        # self.last_motor_used = motor
-        # return uid_list
 
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+
+    def getX_scan(self, event):
+        print(f'Event {event.button}')
+        if event.button == 3:
+            if self.canvas_scan.motor != '':
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_scan.motor,
+                                                          parent=self.canvas_scan)
+                if dlg.exec_():
+                    pass
+
+    def _detector_selected(self, cb_det, cb_chan):
+        cb_chan.clear()
+        detector_name = cb_det.currentText()
+        cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
+
+# General / PCL scans
 
     def run_pcl_scan(self, **kwargs):
 
@@ -300,70 +295,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
         self.last_motor_used = None
 
-
-
-
-
-
-
-    # def single_shot(self):
-    #     plan = self.service_plan_funcs['pil_count']
-    #     self.pilatus.cam.acquire_time.set(self.doubleSpinBox_exposure.value())
-    #     uid = self.RE(plan())
-    #     self.pil_image = np.array(list(self.db[uid][0].data(field='pil100k_image')))[0]
-    #     self.pil_image = self.pil_image[::-1, :]
-    #     max_image = self.pil_image.max()
-    #     min_image = self.pil_image.min()
-    #     self.label_max_count.setText(f'Max counts: {max_image}')
-    #     if self.vmax is None:
-    #         self.vmax = max_image
-    #         self.vmax = min_image
-    #         self.spinBox_image_max.setValue(max_image)
-    #         self.spinBox_image_min.setValue(min_image)
-    #     self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax, origin='bottom')
-    #     self.canvas_scan.draw_idle()
-    #
-    # def rescale_image(self):
-    #     if self.pil_image is not None:
-    #         self.vmax = self.spinBox_image_max.value()
-    #         self.vmin = self.spinBox_image_min.value()
-    #         self.figure_scan.ax.imshow(self.pil_image, cmap ='nipy_spectral', vmin = self.vmin, vmax=self.vmax, origin='bottom')
-    #         self.canvas_scan.draw_idle()
-
-
-    def getX_scan(self, event):
-        print(f'Event {event.button}')
-        if event.button == 3:
-            if self.canvas_scan.motor != '':
-                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_scan.motor,
-                                                          parent=self.canvas_scan)
-                if dlg.exec_():
-                    pass
-            # if self.last_motor_used:
-            #     if type(self.last_motor_used) == list:
-            #         motor1, motor2 = self.last_motor_used
-            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=motor1,
-            #                                               parent=self.canvas_scan)
-            #         if dlg.exec_():
-            #             pass
-            #
-            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.ydata, motor=motor2,
-            #                                               parent=self.canvas_scan)
-            #         if dlg.exec_():
-            #             pass
-            #
-            #     else:
-            #         dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.last_motor_used,
-            #                                               parent=self.canvas_scan)
-            #         if dlg.exec_():
-            #             pass
-
-
-    def _detector_selected(self, cb_det, cb_chan):
-        cb_chan.clear()
-        detector_name = cb_det.currentText()
-        cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
-
     def pcl_detector_selected(self):
         self._detector_selected(self.comboBox_pcl_detectors, self.comboBox_pcl_channels)
 
@@ -432,4 +363,54 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.canvas_proc.draw_idle()
         self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
 
+
+# handling Johann spectrometer elements
+
+    def _prepare_johann_elements(self):
+        self.johann_crystals_dict = {'Main': {'set_crystal_parking_func': self.johann_emission.set_main_crystal_parking,
+                                              'read_crystal_parking_func': self.johann_emission.read_main_crystal_parking},
+                                     'Aux2': {'set_crystal_parking_func': self.johann_emission.set_aux2_crystal_parking,
+                                              'read_crystal_parking_func': self.johann_emission.read_aux2_crystal_parking},
+                                     'Aux3': {'set_crystal_parking_func': self.johann_emission.set_aux3_crystal_parking,
+                                              'read_crystal_parking_func': self.johann_emission.read_aux3_crystal_parking}}
+
+        self.comboBox_johann_crystal.addItems(self.johann_crystals_dict.keys())
+        self.johann_populate_crystal_parking()
+        self.johann_populate_detector_parking()
+
+
+
+    def johann_populate_crystal_parking(self):
+        crystal_key = self.comboBox_johann_crystal.currentText()
+        read_parking_func = self.johann_crystals_dict[crystal_key]['read_crystal_parking_func']
+        x, y, roll, yaw = read_parking_func()
+        self.spinBox_johann_park_x_crystal.setValue(x)
+        self.spinBox_johann_park_y_crystal.setValue(y)
+        self.spinBox_johann_park_roll_crystal.setValue(roll)
+        self.spinBox_johann_park_yaw_crystal.setValue(yaw)
+
+    def johann_populate_detector_parking(self):
+        x, th1, th2 = self.johann_emission.read_det_arm_parking()
+        self.spinBox_johann_park_x_detector.setValue(x)
+        self.spinBox_johann_park_th1_detector.setValue(th1)
+        self.spinBox_johann_park_th2_detector.setValue(th2)
+
+    def johann_update_crystal_parking(self):
+        ret = question_message_box(self, 'Warning',
+                                   'Crystal parking update must be done at bragg angle set to 90 degrees!\n' \
+                                   'Are you sure you want to proceed?')
+        if ret:
+            crystal_key = self.comboBox_johann_crystal.currentText()
+            set_parking_func = self.johann_crystals_dict[crystal_key]['set_crystal_parking_func']
+            set_parking_func()
+            self.johann_populate_crystal_parking()
+
+    def johann_update_detector_parking(self):
+        ret = question_message_box(self, 'Warning',
+                                   'Detector parking update must be done with great care!' \
+                                   'Detector parking update must be done with detector at bragg angle set to 90 degrees!\n' \
+                                   'Are you sure you want to proceed?')
+        if ret:
+            self.johann_emission.set_det_arm_parking()
+            self.johann_populate_detector_parking()
 

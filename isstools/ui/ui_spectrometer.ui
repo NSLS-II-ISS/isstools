@@ -1812,7 +1812,7 @@ Motors</string>
 Geometry</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_update_crystal_parking">
+    <widget class="QPushButton" name="push_johann_update_crystal_parking">
      <property name="geometry">
       <rect>
        <x>449</x>
@@ -2250,7 +2250,7 @@ crystal parking</string>
       </item>
      </layout>
     </widget>
-    <widget class="QPushButton" name="push_update_crystal_parking_2">
+    <widget class="QPushButton" name="push_update_detector_parking">
      <property name="geometry">
       <rect>
        <x>450</x>
