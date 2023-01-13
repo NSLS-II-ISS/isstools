@@ -116,6 +116,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.push_johann_update_crystal_parking.clicked.connect(self.johann_update_crystal_parking)
         self.push_update_detector_parking.clicked.connect(self.johann_update_detector_parking)
+        self.push_johann_home_crystals.clicked.connect(self.johann_home_crystals)
 
         self.comboBox_johann_crystal.currentIndexChanged.connect(self.johann_populate_crystal_parking)
 
@@ -414,3 +415,5 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.johann_emission.set_det_arm_parking()
             self.johann_populate_detector_parking()
 
+    def johann_home_crystals(self):
+        self.johann_emission.home_crystal_piezos()
