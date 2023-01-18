@@ -378,6 +378,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.gui_services_dict = {'beamline_setup_plot_energy_calibration_data' :
                                          {'kwarg_name' : 'plot_func',
                                           'kwarg_value' : self.widget_beamline_setup._update_figure_with_calibration_data},
+                                  'beamline_setup_plot_quick_tune_data':
+                                      {'kwarg_name': 'plot_func',
+                                       'kwarg_value': self.widget_beamline_setup._update_figure_with_tuning_data},
                                   'error_message_box' : {'kwarg_name' : 'error_message_func',
                                                          'kwarg_value' : error_message_box},
                                   'question_message_box': {'kwarg_name': 'question_message_func',

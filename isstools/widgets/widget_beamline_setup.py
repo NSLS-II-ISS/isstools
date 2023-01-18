@@ -316,15 +316,22 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
             self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
+    # def tune_beamline(self):
+    #     plan_name = 'tune_beamline_plan_bundle'
+    #     plan_kwargs = {'extended_tuning' : False,
+    #                    'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+    #                    'do_liveplot' : True}
+    #     # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+    #     self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
     def tune_beamline(self):
-        plan_name = 'tune_beamline_plan_bundle'
-        plan_kwargs = {'extended_tuning' : False,
-                       'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
-                       'do_liveplot' : True}
+        plan_name = 'quick_tune_beamline_plan_bundle'
+        plan_gui_services = ['beamline_setup_plot_quick_tune_data']
+        plan_kwargs = {'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+                       'plan_gui_services' : plan_gui_services}
+
         # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-
-
 
     def update_hhm_feedback_settings(self):
         pars = self.hhm_feedback.current_fb_parameters()
@@ -461,5 +468,15 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.figure_gen_scan.ax.set_ylabel('mu')
         self.figure_gen_scan.ax.set_xlim(en_ref[0], en_ref[-1])
         self.figure_gen_scan.legend(loc='upper left')
+        self.stop_gen_scan_figure()
+        self.canvas_gen_scan.motor = None
+
+    def _update_figure_with_tuning_data(self, positions, values, optimum_position, positions_axis_label='', values_axis_label=''):
+        self.start_gen_scan_figure()
+        self.figure_gen_scan.ax.plot(positions, values)
+        self.figure_gen_scan.ax.vlines([optimum_position], values.min(), values.max(), colors='k')
+        self.figure_gen_scan.ax.set_xlabel(positions_axis_label)
+        self.figure_gen_scan.ax.set_ylabel(values_axis_label)
+        self.figure_gen_scan.ax.set_xlim(positions[0], positions[-1])
         self.stop_gen_scan_figure()
         self.canvas_gen_scan.motor = None
