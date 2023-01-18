@@ -472,11 +472,16 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.motor = None
 
     def _update_figure_with_tuning_data(self, positions, values, optimum_position, positions_axis_label='', values_axis_label=''):
-        self.start_gen_scan_figure()
-        self.figure_gen_scan.ax.plot(positions, values)
-        self.figure_gen_scan.ax.vlines([optimum_position], values.min(), values.max(), colors='k')
-        self.figure_gen_scan.ax.set_xlabel(positions_axis_label)
-        self.figure_gen_scan.ax.set_ylabel(values_axis_label)
-        self.figure_gen_scan.ax.set_xlim(positions[0], positions[-1])
-        self.stop_gen_scan_figure()
-        self.canvas_gen_scan.motor = None
+        # print(positions, values, optimum_position)
+        try:
+            print('', end='')
+            self.start_gen_scan_figure()
+            self.figure_gen_scan.ax.plot(positions, values)
+            self.figure_gen_scan.ax.vlines([optimum_position], values.min(), values.max(), colors='k')
+            self.figure_gen_scan.ax.set_xlabel(positions_axis_label)
+            self.figure_gen_scan.ax.set_ylabel(values_axis_label)
+            self.figure_gen_scan.ax.set_xlim(positions.min(), positions.max())
+            self.stop_gen_scan_figure()
+            self.canvas_gen_scan.motor = None
+        except Exception as e:
+            print(e)
