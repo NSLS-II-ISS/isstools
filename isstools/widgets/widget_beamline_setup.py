@@ -121,10 +121,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
-
-        self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
-        self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
-        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+        self.setup_figure_in_the_gui()
 
         self.checkBox_user_motors.toggled.connect(self.add_motors)
         self.add_motors()
@@ -152,6 +149,12 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.layout_energy_selector_calibration.addWidget(self.widget_energy_selector_calibration)
 
         self.liveplot_kwargs = {}
+
+    def setup_figure_in_the_gui(self):
+        self.figure_gen_scan, self.canvas_gen_scan, self.toolbar_gen_scan = setup_figure(self, self.plot_gen_scan)
+        self.cursor_gen_scan = Cursor(self.figure_gen_scan.ax, useblit=True, color='green', linewidth=0.75)
+        self.cid_gen_scan = self.canvas_gen_scan.mpl_connect('button_press_event', self.getX_gen_scan)
+
 
     def handle_gui_elements(self):
         if self.plan_processor.status == 'idle':
@@ -321,16 +324,19 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     #     plan_kwargs = {'extended_tuning' : False,
     #                    'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
     #                    'do_liveplot' : True}
-    #     # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
     #     self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def tune_beamline(self):
-        plan_name = 'quick_tune_beamline_plan_bundle'
-        plan_gui_services = ['beamline_setup_plot_quick_tune_data']
-        plan_kwargs = {'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
-                       'plan_gui_services' : plan_gui_services}
-
-        # self.plan_processor.add_plans([{'plan_name' : plan_name, 'plan_kwargs' : plan_kwargs}])
+        if self.checkBox_quick_tune_scanning.isChecked():
+            plan_name = 'quick_tune_beamline_plan_bundle'
+            plan_gui_services = ['beamline_setup_plot_quick_tune_data']
+            plan_kwargs = {'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+                           'plan_gui_services' : plan_gui_services}
+        else:
+            plan_name = 'tune_beamline_plan_bundle'
+            plan_kwargs = {'extended_tuning' : False,
+                           'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
+                           'do_liveplot' : True}
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def update_hhm_feedback_settings(self):
@@ -474,7 +480,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def _update_figure_with_tuning_data(self, positions, values, optimum_position, positions_axis_label='', values_axis_label=''):
         # print(positions, values, optimum_position)
         try:
-            print('', end='')
+            print('plotting - ', end='')
             self.start_gen_scan_figure()
             self.figure_gen_scan.ax.plot(positions, values)
             self.figure_gen_scan.ax.vlines([optimum_position], values.min(), values.max(), colors='k')
@@ -483,5 +489,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             self.figure_gen_scan.ax.set_xlim(positions.min(), positions.max())
             self.stop_gen_scan_figure()
             self.canvas_gen_scan.motor = None
+            print('done plotting', end='\n')
         except Exception as e:
             print(e)

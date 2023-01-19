@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1612</width>
-    <height>944</height>
+    <height>946</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -611,7 +611,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>140</y>
+      <y>160</y>
       <width>221</width>
       <height>61</height>
      </rect>
@@ -643,7 +643,7 @@
      <string>Move CM mirror?</string>
     </property>
     <property name="checked">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="push_update_feedback_center">
@@ -669,6 +669,22 @@
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_energy_selector_prepare"/>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_quick_tune_scanning">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>140</y>
+      <width>171</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Quick scanning</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
    </widget>
   </widget>
   <widget class="QLabel" name="label_gains_3">
