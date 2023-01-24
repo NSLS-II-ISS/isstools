@@ -1501,3 +1501,37 @@ image = x.image
 
 
 
+
+def cm_tandem_pitch_scan(pitch_rel_pos_list):
+    yield from bp.rel_list_scan([bpm_cm],
+                                cm1.pitch, pitch_rel_pos_list,
+                                cm2.pitch, pitch_rel_pos_list)
+
+delta_ = 0.01
+range_ = 0.3
+_pitch_rel_pos_list = np.arange(-range_/2, range_/2 + delta_, delta_)
+RE(cm_tandem_pitch_scan(_pitch_rel_pos_list))
+
+
+plt.figure(1, clear=True)
+t = db[-1].table()
+# plt.plot(t.cm1_pitch, t.cm2_pitch)
+plt.plot(t.cm2_pitch, t.bpm_cm_stats1_total)
+
+
+
+def cm_tandem_y_scan(y_rel_pos_list):
+    yield from bp.rel_list_scan([bpm_cm],
+                                cm1.y, y_rel_pos_list,
+                                cm2.y, y_rel_pos_list)
+
+delta_ = 0.01
+range_ = 0.4
+_y_rel_pos_list = np.arange(-range_/2, range_/2 + delta_, delta_)
+RE(cm_tandem_y_scan(_y_rel_pos_list))
+
+
+plt.figure(2, clear=True)
+t = db[-1].table()
+# plt.plot(t.cm1_y, t.cm2_y)
+plt.plot(t.cm2_y, t.bpm_cm_stats1_total)

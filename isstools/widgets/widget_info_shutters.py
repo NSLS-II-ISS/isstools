@@ -18,8 +18,8 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.plan_processor = plan_processor
 
-        self.check_vacuum_and_shutters(self.checkBox_check_vacuum_and_shutters.isChecked())
-        self.checkBox_check_vacuum_and_shutters.clicked.connect(self.check_vacuum_and_shutters)
+        self.check_beamline_readiness(self.checkBox_check_vacuum_and_shutters.isChecked())
+        self.checkBox_check_vacuum_and_shutters.clicked.connect(self.check_beamline_readiness)
 
         # Initialize Ophyd elements
         self.shutters_sig.connect(self.change_shutter_color)
@@ -104,6 +104,7 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
     def change_shutter_color(self):
         self.current_button.setStyleSheet("background-color: " + self.current_button_color)
 
-    def check_vacuum_and_shutters(self, state):
-        self.plan_processor.check_valves = state
-        self.plan_processor.check_shutters = state
+    def check_beamline_readiness(self, state):
+        # self.plan_processor.check_valves = state
+        # self.plan_processor.check_shutters = state
+        self.plan_processor.beamline_readiness = state
