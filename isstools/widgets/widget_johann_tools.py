@@ -129,8 +129,8 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
         self._update_crystal_info()
 
-        if self.johann_emission._initialized:
-            self.parent.parent.widget_info_beamline.push_set_emission_energy.setEnabled(1)
+        # if self.johann_emission._initialized:
+        #     self.parent.parent.widget_info_beamline.push_set_emission_energy.setEnabled(1)
 
 
 

@@ -120,6 +120,14 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.comboBox_johann_crystal.currentIndexChanged.connect(self.johann_populate_crystal_parking)
 
+        self.update_enabled_crystals_checkboxes()
+
+        self.checkBox_enable_main.toggled.connect(self.enable_crystal)
+        self.checkBox_enable_aux2.toggled.connect(self.enable_crystal)
+        self.checkBox_enable_aux3.toggled.connect(self.enable_crystal)
+        self.checkBox_enable_aux4.toggled.connect(self.enable_crystal)
+        self.checkBox_enable_aux5.toggled.connect(self.enable_crystal)
+
 
 # general handling of gui elements, plotting, and scanning
 
@@ -417,3 +425,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def johann_home_crystals(self):
         self.johann_emission.home_crystal_piezos()
+
+    def update_enabled_crystals_checkboxes(self):
+        for crystal_key, enable in self.johann_emission.enabled_crystals.items():
+            checkBox_widget = getattr(self, f'checkBox_enable_{crystal_key}') # oh boy
+            checkBox_widget.setChecked(enable)
+
+    def enable_crystal(self, enable):
+        sender_object = QObject().sender()
+        crystal_key = sender_object.text()
+        self.johann_emission.enable_crystal(crystal_key, enable)

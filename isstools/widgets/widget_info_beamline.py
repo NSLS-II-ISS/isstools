@@ -78,6 +78,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
         self.push_auto_gains.clicked.connect(parent.widget_beamline_setup.adjust_gains)
         self.push_set_energy.clicked.connect(self.set_energy)
+        self.push_set_emission_energy.setEnabled(self.motor_emission.initialized)
         self.push_set_emission_energy.clicked.connect(self.set_emission_energy)
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
@@ -109,7 +110,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             energy = self.hhm.energy.read()['hhm_energy']['value']
             self.label_energy.setText('Energy is {:.1f} eV'.format(energy))
 
-            if self.motor_emission._initialized:
+            if self.motor_emission.initialized:
                 emission_energy = self.motor_emission.energy.position
                 self.label_emission_energy.setText('Emission Energy is {:.1f} eV'.format(emission_energy))
             else:

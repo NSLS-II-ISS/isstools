@@ -16,9 +16,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_10">
    <property name="geometry">
     <rect>
-     <x>660</x>
+     <x>970</x>
      <y>10</y>
-     <width>921</width>
+     <width>611</width>
      <height>441</height>
     </rect>
    </property>
@@ -573,9 +573,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>200</y>
+       <y>226</y>
        <width>491</width>
-       <height>97</height>
+       <height>91</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3" rowminimumheight="0,0,0">
@@ -1369,7 +1369,7 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>170</y>
+       <y>160</y>
        <width>451</width>
        <height>20</height>
       </rect>
@@ -1788,7 +1788,7 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>250</y>
+       <y>280</y>
        <width>80</width>
        <height>41</height>
       </rect>
@@ -1802,8 +1802,8 @@ Motors</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>200</y>
-       <width>81</width>
+       <y>230</y>
+       <width>80</width>
        <height>41</height>
       </rect>
      </property>
@@ -1844,7 +1844,7 @@ Geometry</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>160</y>
        <width>120</width>
        <height>24</height>
       </rect>
@@ -1929,8 +1929,8 @@ Geometry</string>
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>571</width>
-       <height>124</height>
+       <width>581</width>
+       <height>101</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
@@ -2367,6 +2367,84 @@ crystal</string>
         <property name="text">
          <string>Home
 piezos</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>457</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label_qrcode_34">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Enabled crystals:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_aux5">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>aux5</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_aux3">
+        <property name="text">
+         <string>aux3</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_main">
+        <property name="text">
+         <string>main</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_aux2">
+        <property name="text">
+         <string>aux2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_aux4">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>aux4</string>
         </property>
        </widget>
       </item>
