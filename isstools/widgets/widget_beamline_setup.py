@@ -167,6 +167,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.comboBox_channels.clear()
         detector = self.comboBox_detectors.currentText()
         self.comboBox_channels.addItems(self.detector_dictionary[detector]['channels'])
+        detector_device = self.detector_dictionary[detector]['device']
+        self.edit_gen_exp_time.setText(str(detector_device.read_exposure_time()))
 
     def detector_selected_den(self):
         self.comboBox_channels_den.clear()
@@ -251,6 +253,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         rel_start = -float(self.edit_gen_range.text()) / 2
         rel_stop = float(self.edit_gen_range.text()) / 2
         num_steps = int(round(float(self.edit_gen_range.text()) / float(self.edit_gen_step.text()))) + 1
+        try:
+            exposure_time = float(self.edit_gen_exp_time.text())
+        except ValueError:
+            exposure_time = 1
 
         update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
 
@@ -260,6 +266,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                        'rel_start' : rel_start,
                        'rel_stop' : rel_stop,
                        'num_steps' : num_steps,
+                       'exposure_time': exposure_time,
                        'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs}}
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
