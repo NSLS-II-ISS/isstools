@@ -75,8 +75,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.comboBox_set_it_gain.currentIndexChanged.connect(self.set_it_gain)
         self.comboBox_set_ir_gain.currentIndexChanged.connect(self.set_ir_gain)
         self.comboBox_set_if_gain.currentIndexChanged.connect(self.set_if_gain)
-        self.push_get_offsets.clicked.connect(parent.widget_beamline_setup.get_offsets)
-        self.push_auto_gains.clicked.connect(parent.widget_beamline_setup.adjust_gains)
+        self.push_get_offsets.clicked.connect(self.get_offsets)
+        self.push_auto_gains.clicked.connect(self.adjust_gains)
         self.push_set_energy.clicked.connect(self.set_energy)
         self.push_set_emission_energy.setEnabled(self.motor_emission.initialized)
         self.push_set_emission_energy.clicked.connect(self.set_emission_energy)
@@ -184,7 +184,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                                {'ch':self.apb.ch3.value, 'label':self.label_ir_saturation },
                                {'ch':self.apb.ch4.value, 'label':self.label_iff_saturation }]
             for element in saturation_list:
-                if element['ch'] > -3500:
+                if element['ch'] > -3200:
                     element['label'].setStyleSheet('background-color: rgb(95,249,95)')
                     element['label'].setText('In range')
                 else:
@@ -307,6 +307,18 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 return
             kwargs = {'pitch_range' : 10}
         self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', kwargs)
+
+    def adjust_gains(self):
+        plan_name = 'optimize_gains'
+        plan_kwargs = {'n_tries' : 3}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+
+    def get_offsets(self):
+        plan_name = 'get_offsets'
+        plan_kwargs = {'time': 2}
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        # self.RE(self.service_plan_funcs['get_offsets']())
 
     # def update_daq_rate(self):
     #     daq_rate = self.spinBox_daq_rate.value()

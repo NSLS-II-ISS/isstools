@@ -1535,3 +1535,43 @@ plt.figure(2, clear=True)
 t = db[-1].table()
 # plt.plot(t.cm1_y, t.cm2_y)
 plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
+
+
+
+#####
+
+# z = [20] + list(range(22, 94))
+lines = ['Ka1', 'Ka2', 'Kb1', 'Kb2', 'Kb3', 'Kb5', 'La1', 'Lb1', 'Lb3', 'Lb4','Lg1','Lg2','Lg3', 'Ma', 'Mb']
+
+edges = ['K', 'L1', 'L2', 'L3']
+
+line_dict = {}
+
+for _z in range(20, 95):
+    for line in lines:
+        line_info = xraydb.xray_line(_z, line)
+        if line_info is None:
+            continue
+        energy = line_info.energy
+        z = xraydb.atomic_symbol(_z)
+        if 2500 < energy < 30000:
+
+            if (_z, z) not in line_dict.keys():
+                line_dict[(_z, z)] = {}
+            print(_z, z, line, energy)
+            line_dict[(_z, z)][line] = ('line', energy)
+
+    for edge in edges:
+        edge_info = xraydb.xray_edge(_z, edge)
+        if edge_info is None:
+            continue
+        energy = xraydb.xray_edge(_z, edge).energy
+        if 2500 < energy < 30000:
+            if (_z, z) not in line_dict.keys():
+                line_dict[(_z, z)] = {}
+            print(_z, z, edge, energy)
+            line_dict[(_z, z)][edge] = ('edge', energy)
+
+line_dict
+
+

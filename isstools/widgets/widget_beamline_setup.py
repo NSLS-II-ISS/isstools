@@ -54,7 +54,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.hhm = hhm
         self.hhm_encoder = hhm_encoder
         self.hhm_feedback = hhm_feedback
-        # self.trajectory_manager = self.parent_gui.widget_trajectory_manager.traj_manager
         self.apb = apb
         self.apb_trigger_xs = apb_trigger_xs
         self.apb_trigger_pil100k = apb_trigger_pil100k
@@ -73,7 +72,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.tune_elements = tune_elements
 
-        #self.motor_list = self.motor_dictionary.keys()
         self.motor_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary]
         self.motor_sorted_list = list(self.motor_list)
         self.motor_sorted_list.sort()
@@ -85,9 +83,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.user_motor_sorted_list.sort()
 
         self.push_prepare_beamline.clicked.connect(self.prepare_beamline)
-        self.push_get_offsets.clicked.connect(self.get_offsets)
 
-        self.push_adjust_gains.clicked.connect(self.adjust_gains)
         self.push_bender_scan.clicked.connect(self.bender_scan)
 
         self.push_gen_scan.clicked.connect(self.run_gen_scan)
@@ -113,11 +109,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.hhm.fb_status.subscribe(self.update_pushEnableHHMFeedback_status)
 
         self.push_update_feedback_settings.clicked.connect(self.update_hhm_feedback_settings)
-        self.push_increase_fb_center.clicked.connect(self.feedback_center_increase)
-        self.push_decrease_fb_enter.clicked.connect(self.feedback_center_decrease)
         self.push_update_feedback_center.clicked.connect(self.update_piezo_center)
         self.push_calibration_scan.clicked.connect(self.energy_calibration)
-        self.push_smart_calibration_scan.clicked.connect(self.smart_energy_calibration)
 
         if 'Endstation BPM' in self.detector_dictionary:
             self.bpm_es = self.detector_dictionary['Endstation BPM']['device']
@@ -141,8 +134,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.spinBox_trigger_xs_freq.setValue(trigger_xs_freq)
         self.spinBox_trigger_xs_freq.valueChanged.connect(self.update_trigger_xs_freq)
 
-        self.widget_energy_selector_foil = widget_energy_selector.UIEnergySelectorFoil()
-        self.layout_energy_selector_foil.addWidget(self.widget_energy_selector_foil)
         self.widget_energy_selector_prepare = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector_prepare.addWidget(self.widget_energy_selector_prepare)
         self.widget_energy_selector_calibration = widget_energy_selector.UIEnergySelector()
@@ -224,20 +215,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         curr_det = ''
 
         detectors = []
-        # detector_name = self.comboBox_detectors.currentText()
-        # detector = self.detector_dictionary[detector_name]['device']
         detector = self.comboBox_detectors.currentText()
         detectors.append(detector)
         channels = self.detector_dictionary[detector]['channels']
         channel = channels[self.comboBox_channels.currentIndex()]
         result_name = channel
 
-        # detector_name_den = self.comboBox_detectors_den.currentText()
         detector_den = self.comboBox_detectors_den.currentText()
-        # if detector_name_den != '1':
         if detector_den != '1':
-            # detector_den = self.detector_dictionary[detector_name_den]['device']
-            # detector_den = detector_name_den
             channels_den = self.detector_dictionary[detector]['channels']
             channel_den = channels_den[self.comboBox_channels_den.currentIndex()]
             detectors.append(detector_den)
@@ -249,8 +234,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         return detectors, liveplot_det_kwargs
 
     def _get_motor_for_gen_scan(self):
-        # curr_mot = self.motor_dictionary[self.comboBox_gen_mot.currentText()]['object']
-        #
         curr_mot = self.comboBox_motors.currentText()
         for motor_key, motor_dict in self.motor_dictionary.items():
             if curr_mot == motor_dict['description']:
@@ -281,13 +264,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-        # self.push_gen_scan.setEnabled(False)
-        # self.plan_processor.run_if_idle()
-
-        # self.push_gen_scan.setEnabled(True)
-        # self.last_gen_scan_uid = self.db[-1]['start']['uid']
-        # self.push_gen_scan_save.setEnabled(True)
-
     def getX_gen_scan(self, event):
 
         if event.button == 3:
@@ -310,7 +286,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
     def prepare_beamline(self, energy_setting=None):
         if energy_setting:
             self.lineEdit_energy.setText(str(energy_setting))
-        # energy = float(self.lineEdit_energy.text())
         energy = self.read_energy_label()
         if energy:
             move_cm_mirror = self.checkBox_move_cm_miirror.isChecked()
@@ -318,13 +293,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             plan_name = 'prepare_beamline_plan'
             plan_kwargs = {'energy' : energy, 'move_cm_mirror' : move_cm_mirror}
             self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-
-    # def tune_beamline(self):
-    #     plan_name = 'tune_beamline_plan_bundle'
-    #     plan_kwargs = {'extended_tuning' : False,
-    #                    'enable_fb_in_the_end' : self.checkBox_autoEnableFeedback.isChecked(),
-    #                    'do_liveplot' : True}
-    #     self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def tune_beamline(self):
         if self.checkBox_quick_tune_scanning.isChecked():
@@ -347,12 +315,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
             new_pars = dlg.getValues()
             self.hhm_feedback.set_fb_parameters(*new_pars)
 
-    def feedback_center_increase(self):
-        self.hhm_feedback.tweak_fb_center(1)
-
-    def feedback_center_decrease(self):
-        self.hhm_feedback.tweak_fb_center(-1)
-
     def update_piezo_center(self):
         self.hhm_feedback.update_center()
 
@@ -362,72 +324,45 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.pushEnableHHMFeedback.setChecked(value)
 
     def update_pushEnableHHMFeedback_status(self, value, **kwargs):
-        # self.pushEnableHHMFeedback.toggled.disconnect(self.enable_fb)
         self.pushEnableHHMFeedback.setChecked(value)
         # self.pushEnableHHMFeedback.toggled.connect(self.enable_fb)
 
-    def adjust_gains(self):
-        plan_name = 'optimize_gains'
-        plan_kwargs = {'n_tries' : 3}
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-
-    def get_offsets(self):
-        plan_name = 'get_offsets'
-        plan_kwargs = {'time': 2}
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-        # self.RE(self.service_plan_funcs['get_offsets']())
 
     def bender_scan(self):
-        ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
-        if ret:
-            # element = self.comboBox_reference_foils.currentText()
-            # edge = self.edge_dict[element]
-            element, edge = self.widget_energy_selector_foil.element_edge
+        energy = float(self.widget_energy_selector_calibration.edit_E0.text())
+        element, edge, energy = find_correct_foil(energy=energy)
+        if element:
+            if element != self.widget_energy_selector_calibration.comboBox_element.currentText():
+                ret = question_message_box(self, 'Warning',
+                                           f"Element is not available as a calibration foil. {element} "
+                                           f"foil, {edge} edge will be used. Proceed?")
+                if not ret:
+                    return
 
-            # message_box('Select relevant foil', 'Scans will be performed on the foil that is currently in the beam')
-            plan_name = 'bender_scan_plan_bundle'
-            plan_kwargs = {'element' : element, 'edge' : edge}
-            plan_gui_services = ['error_message_box']
-            # self.plan_processor.add_plans([{'plan_name' : plan_name,
-            #                                 'plan_kwargs' : plan_kwargs,
-            #                                 'plan_gui_services' : plan_gui_services}])
-            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services)
-            # print(f'[Bender scan] Starting...', file=self.parent_gui.emitstream_out, flush=True)
-            # self.RE(self.aux_plan_funcs['bender_scan']())
-            # print(f'[Bender scan] Complete...', file=self.parent_gui.emitstream_out, flush=True)
+            ret = question_message_box(self, 'Warning',
+                                       'For best results make sure that there is no sample in the beam')
+            if ret:
+                plan_name = 'bender_scan_plan_bundle'
+                plan_kwargs = {'element' : element, 'edge' : edge}
+                plan_gui_services = ['error_message_box']
+                self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services)
 
     def energy_calibration(self):
-        ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
-        if ret:
-            # element = self.comboBox_reference_foils.currentText()
-            # edge = self.edge_dict[element]
-            element, edge = self.widget_energy_selector_foil.element_edge
-            # plan_name = 'calibrate_mono_energy_plan'
-            # plan_kwargs = {'element' : element, 'edge' : edge}
-            # plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-            # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
-            plan_name = 'calibrate_mono_energy_plan_bundle'
-            some_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-            plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : some_gui_services}
-            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
-            # plan = self.service_plan_funcs['calibrate_energy_plan'](element, edge,
-            #                                                         plot_func=self._update_figure_with_calibration_data,
-            #                                                         error_message_func=error_message_box)
-    def smart_energy_calibration(self):
         energy = float(self.widget_energy_selector_calibration.edit_E0.text())
         element, edge, energy = find_correct_foil(energy=energy)
         if element:
             if element != self.widget_energy_selector_calibration.comboBox_element.currentText():
                 ret = question_message_box(self, 'Warning', f"Element is not available as a calibration foil. {element} "
                                                              f"foil, {edge} edge will be used. Proceed?")
-                if ret:
-                    ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
-                    if ret:
-                        plan_name = 'calibrate_mono_energy_plan_bundle'
-                        plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-                        plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : plan_gui_services}
-                        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
+                if not ret:
+                    return
+            ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
+            if ret:
+                plan_name = 'calibrate_mono_energy_plan_bundle'
+                plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
+                plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : plan_gui_services}
+                self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
         else:
             error_message_box('Calibration standard could not be found within -200 - +600 eV from the edge position' )
 
@@ -452,22 +387,17 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         trigger_xs_freq = self.spinBox_trigger_xs_freq.value()
         self.apb_trigger_xs.freq.put(trigger_xs_freq)
 
-
-        self.RE(plan)
-
-    # def _show_error_message_box(self, msg):
-    #     message_box('Error', msg)
-
     def start_gen_scan_figure(self):
-        update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
+        for i in reversed(range(self.plot_gen_scan.count())):
+            self.plot_gen_scan.itemAt(i).widget().deleteLater()
+            self.plot_gen_scan.removeWidget(self.plot_gen_scan.itemAt(i).widget())
+        self.setup_figure_in_the_gui()
 
     def stop_gen_scan_figure(self):
         self.figure_gen_scan.tight_layout()
         self.canvas_gen_scan.draw_idle()
 
     def _update_figure_with_calibration_data(self, en_ref, mu_ref, mu):
-        self.start_gen_scan_figure()
-        # update_figure([self.figure_gen_scan.ax], self.toolbar_gen_scan, self.canvas_gen_scan)
         self.figure_gen_scan.ax.plot(en_ref, mu_ref, label='Reference')
         self.figure_gen_scan.ax.plot(en_ref, mu, label='New spectrum')
         self.figure_gen_scan.ax.set_xlabel('Energy')
@@ -478,15 +408,14 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.canvas_gen_scan.motor = None
 
     def _update_figure_with_tuning_data(self, positions, values, optimum_position, positions_axis_label='', values_axis_label=''):
-        # print(positions, values, optimum_position)
         try:
             print('plotting - ', end='')
-            self.start_gen_scan_figure()
             self.figure_gen_scan.ax.plot(positions, values)
             self.figure_gen_scan.ax.vlines([optimum_position], values.min(), values.max(), colors='k')
             self.figure_gen_scan.ax.set_xlabel(positions_axis_label)
             self.figure_gen_scan.ax.set_ylabel(values_axis_label)
             self.figure_gen_scan.ax.set_xlim(positions.min(), positions.max())
+            self.figure_gen_scan.ax.set_ylim(values.min(), values.max())
             self.stop_gen_scan_figure()
             self.canvas_gen_scan.motor = None
             print('done plotting', end='\n')

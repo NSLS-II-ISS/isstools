@@ -131,6 +131,9 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.parent.widget_scan_manager.scansChanged.emit()
         self.parent.widget_scan_manager.update_local_manager_list()
 
+        self.parent.johann_emission.initialized = False
+        self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(0)
+
 
     def send_results(self):
         dlg = GetEmailAddress.GetEmailAddress('', parent=self)

@@ -101,6 +101,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.token = None
         self.window_title = window_title
         self.scan_manager = scan_manager
+        self.johann_emission = johann_emission
         self.plan_processor = plan_processor
         # self.plan_processor.append_gui_plan_list_update_signal(self.plans_changed_signal)
         self.plan_processor.append_list_update_signal(self.plans_changed_signal)
@@ -363,7 +364,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
-        elif plan_name in ['general_scan', 'tuning_scan']:
+        elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan', 'obtain_hhm_calibration_plan']:
             if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
                 if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
                     liveplot_list = self.widget_spectrometer.make_liveplot_func(plan_name, plan_kwargs)

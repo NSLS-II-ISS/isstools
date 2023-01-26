@@ -271,7 +271,7 @@
      <rect>
       <x>0</x>
       <y>190</y>
-      <width>1101</width>
+      <width>961</width>
       <height>481</height>
      </rect>
     </property>
@@ -488,32 +488,6 @@
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_increase_fb_center">
-    <property name="geometry">
-     <rect>
-      <x>810</x>
-      <y>110</y>
-      <width>21</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>+</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_decrease_fb_enter">
-    <property name="geometry">
-     <rect>
-      <x>980</x>
-      <y>110</y>
-      <width>21</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>-</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="checkBox_autoEnableFeedback">
@@ -933,71 +907,24 @@
     <double>50.000000000000000</double>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_adjust_gains">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>360</y>
-     <width>141</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Adjust Gains</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_get_offsets">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>410</y>
-     <width>141</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Get Offsets</string>
-   </property>
-  </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>480</y>
+     <x>30</x>
+     <y>260</y>
      <width>401</width>
      <height>171</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
    <property name="title">
     <string>Foil scans</string>
    </property>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>111</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Reference foil</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="push_bender_scan">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>60</y>
-      <width>181</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CM Bender Scan</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="push_calibration_scan">
     <property name="geometry">
      <rect>
       <x>210</x>
@@ -1006,45 +933,64 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>Energy Calibration</string>
+     <string>CM Bender Scan</string>
     </property>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_2">
+   <widget class="QWidget" name="horizontalLayoutWidget_4">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>60</y>
       <width>181</width>
       <height>101</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="layout_energy_selector_foil"/>
+    <layout class="QHBoxLayout" name="layout_energy_selector_calibration"/>
    </widget>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_4">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>320</y>
-     <width>181</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="layout_energy_selector_calibration"/>
-  </widget>
-  <widget class="QPushButton" name="push_smart_calibration_scan">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>450</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Smart Energy Calibration</string>
-   </property>
+   <widget class="QLabel" name="label_62">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>40</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select energy</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_calibration_scan">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>60</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Energy Calibration</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

@@ -16,9 +16,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_10">
    <property name="geometry">
     <rect>
-     <x>970</x>
+     <x>660</x>
      <y>10</y>
-     <width>611</width>
+     <width>921</width>
      <height>441</height>
     </rect>
    </property>
@@ -2306,14 +2306,6 @@ detector</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="9" rowspan="2">
-       <widget class="QPushButton" name="push_johann_update_crystal_parking">
-        <property name="text">
-         <string>Park
-crystal</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="3">
        <widget class="QLabel" name="label_qrcode_20">
         <property name="maximumSize">
@@ -2367,6 +2359,14 @@ crystal</string>
         <property name="text">
          <string>Home
 piezos</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="9" rowspan="2">
+       <widget class="QPushButton" name="push_johann_update_crystal_parking">
+        <property name="text">
+         <string>Park
+crystal</string>
         </property>
        </widget>
       </item>
