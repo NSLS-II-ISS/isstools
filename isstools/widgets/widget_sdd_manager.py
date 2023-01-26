@@ -71,17 +71,29 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.lo_hi_def = {'lo':'low', 'hi':'high'}
         self.spinbox_roi = 'spinBox_ch{}_roi{}_{}'
         self.label_roi_rbk = 'label_ch{}_roi{}_{}_rbk'
+        self.label_roi_counts = 'label_ch{}_roi{}_roi_counts'
 
 
-        self.checkbox_fix_rois = 'checkBox_ch{}_fix_roi'
-        for indx in range(1,self.num_channels):
-            checkbox_name = self.checkbox_fix_rois.format(indx+1)
-            checkbox_object = getattr(self, checkbox_name)
-            checkbox_object.stateChanged.connect(self.fix_rois)
+        # self.checkbox_fix_rois = 'checkBox_ch{}_fix_roi'
+        # for indx in range(1,self.num_channels):
+        #     checkbox_name = self.checkbox_fix_rois.format(indx+1)
+        #     checkbox_object = getattr(self, checkbox_name)
+        #     checkbox_object.stateChanged.connect(self.fix_rois)
 
 
         self.update_spinboxes()
 
+        self.connect_roi_spinboxes()
+
+
+        self.comboBox_roi_index.addItems([str(i+1) for i in range(self.num_rois)])
+        self.pushButton_set_roi_hilo.clicked.connect(self.set_roi_hilo)
+
+        self.checkBox_roi_window_auto.toggled.connect(self.enable_doubleSpinBox_energy_window)
+
+    # def fixox_object.setEnabled(True)
+
+    def connect_roi_spinboxes(self):
         for indx_ch in range(self.num_channels):
             for indx_roi in range(self.num_rois):
                 for indx_lo_hi in range(2):
@@ -89,32 +101,13 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     spinbox_object = getattr(self, spinbox_name)
                     spinbox_object.editingFinished.connect(self.set_roi_value)
 
-
-
-    def fix_rois(self):
-        sender = QObject()
-        sender_object = sender.sender().objectName()
-        indx_ch = sender_object[11]
-
-        if sender.sender().isChecked():
-            for jj in range(2):
-                # repeat to make sure no values are forced
-                for indx_roi in range(self.num_rois):
-                    for indx_lo_hi in range(2):
-                        spinbox_name_ch1 = self.spinbox_roi.format(1, indx_roi + 1, self.lo_hi[indx_lo_hi])
-                        spinbox_object_ch1 = getattr(self, spinbox_name_ch1)
-                        value = spinbox_object_ch1.value()
-
-                        spinbox_name = self.spinbox_roi.format(indx_ch, indx_roi + 1, self.lo_hi[indx_lo_hi])
-                        spinbox_object = getattr(self, spinbox_name)
-                        spinbox_object.setValue(value)
-                        spinbox_object.setEnabled(False)
-        else:
+    def disconnect_roi_spinboxes(self):
+        for indx_ch in range(self.num_channels):
             for indx_roi in range(self.num_rois):
                 for indx_lo_hi in range(2):
-                    spinbox_name = self.spinbox_roi.format(indx_ch, indx_roi + 1, self.lo_hi[indx_lo_hi])
+                    spinbox_name = self.spinbox_roi.format(indx_ch + 1, indx_roi + 1, self.lo_hi[indx_lo_hi])
                     spinbox_object = getattr(self, spinbox_name)
-                    spinbox_object.setEnabled(True)
+                    spinbox_object.editingFinished.disconnect(self.set_roi_value)
 
     def set_roi_value(self):
         sender = QObject()
@@ -135,6 +128,12 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         signal = getattr(signal_roi, 'bin_{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]]))
         return signal
 
+    def get_roi_counts_signal(self, indx_ch, indx_roi):
+        signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
+        signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
+        signal = signal_roi.value_sum
+        return signal
+
 
     def update_roi_labels(self):
         for indx_ch in range(self.num_channels):
@@ -144,6 +143,17 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     label_object = getattr(self,label_name)
                     value = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
                     label_object.setText(str(value*10))
+
+                    label_count_name = self.label_roi_counts.format(indx_ch + 1, indx_roi + 1)
+                    label_count_object = getattr(self, label_count_name)
+                    counts = int(self.get_roi_counts_signal( indx_ch+1, indx_roi+1).get())
+                    label_count_object.setText(str(counts))
+                    if counts < 400e3:
+                        label_count_object.setStyleSheet("background-color: lime")
+                    elif 400e3 < counts < 450e3:
+                        label_count_object.setStyleSheet("background-color: yellow")
+                    else:
+                        label_count_object.setStyleSheet("background-color: red")
 
 
     def update_spinboxes(self):
@@ -205,3 +215,25 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
                     self.figure_mca.ax.legend(loc=1)
         self.update_roi_plot()
+
+    def set_roi_hilo(self):
+        self.disconnect_roi_spinboxes()
+        energy = float(self.widget_energy_selector.edit_E0.text())
+        _roi_index = int(self.comboBox_roi_index.currentText())
+        roi = f'roi{_roi_index:02}'
+        if self.doubleSpinBox_energy_window.isEnabled():
+            window = self.doubleSpinBox_energy_window.value()
+        else:
+            window = 'auto'
+        self.xs.set_limits_for_roi(energy, roi, window=window)
+        self.update_spinboxes()
+        self.connect_roi_spinboxes()
+
+        element = self.widget_energy_selector.comboBox_element.currentText()
+        line = self.widget_energy_selector.comboBox_edge.currentText()
+
+        lineEdit_roi = getattr(self, f'lineEdit_line_label_roi{_roi_index}')
+        lineEdit_roi.setText(f'{element} {line}')
+
+    def enable_doubleSpinBox_energy_window(self, state):
+        self.doubleSpinBox_energy_window.setEnabled(not state)
