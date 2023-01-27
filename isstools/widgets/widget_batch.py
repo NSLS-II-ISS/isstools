@@ -431,6 +431,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
             npts_fresh = sample.number_of_unexposed_points
             sample_str = f"{name} ({npts_fresh}/{npts})"
             sample_item = self._make_sample_item(sample_str, i)
+            sample_item.setExpanded(False)
             # self.treeWidget_samples.addItem(sample_item)
             for j in range(npts):
                 point_idx = sample.index_position_index(j)
@@ -594,7 +595,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
     def create_new_scan(self):
         scan_idx = self.comboBox_scans.currentIndex()
         scan_local_dict = self.scan_manager.scan_list_local[scan_idx]
-        name = self.comboBox_scans.currentText()
+        # name = self.comboBox_scans.currentText()
+        name = scan_local_dict['scan_name']
         repeat = self.spinBox_scan_repeat.value()
         delay = self.spinBox_scan_delay.value()
         scan_str = f'{name} x{repeat} times'

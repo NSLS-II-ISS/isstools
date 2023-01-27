@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1650</width>
-    <height>920</height>
+    <height>909</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1337,13 +1337,13 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>140</y>
        <width>381</width>
        <height>311</height>
       </rect>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -2714,8 +2714,8 @@ sample</string>
     <widget class="QPushButton" name="push_define_sample_points">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>450</y>
+       <x>290</x>
+       <y>460</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -2725,6 +2725,95 @@ sample</string>
 points</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget_7">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>910</y>
+      <width>295</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_10">
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="lineEdit">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>add</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_18">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Property</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" colspan="3">
+      <widget class="QListWidget" name="listWidget"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_21">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Value</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QLabel" name="label_24">
+       <property name="text">
+        <string>Current properties:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEdit_2">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="text">
+        <string>Delete all</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QPushButton" name="pushButton_3">
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QPushButton" name="pushButton_calibrate_cameras_advanced">

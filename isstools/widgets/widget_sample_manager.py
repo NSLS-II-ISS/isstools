@@ -96,6 +96,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.lineEdit_sample_stage_th_position_sp.returnPressed.connect(self.move_sample_stage_abs)
 
         # sample management
+        self._currently_selected_index = -1
         self.update_sample_tree()
         self.sample_list_changed_signal.connect(self.update_sample_tree)
 
@@ -416,7 +417,21 @@ class UISampleManager(*uic.loadUiType(ui_path)):
     '''
     Dealing with samples
     '''
+
+    # def _get_currently_selected_sample_index(self):
+    #     index_list = self.treeWidget_samples.selectedIndexes()
+    #     sample_index = None
+    #     if len(index_list) == 1:
+    #         index = index_list[0]
+    #         item = self.treeWidget_samples.itemFromIndex(index)
+    #         if item.kind == 'sample':
+    #             sample_index = item.index
+    #         elif item.kind == 'sample_point':
+    #             sample_index = item.parent().index
+    #     return sample_index
+
     def update_sample_tree(self):
+
         self.treeWidget_samples.clear()
         for i, sample in enumerate(self.sample_manager.samples):
             name = sample.name
@@ -425,6 +440,13 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             sample_str = f"{name} ({npts_fresh}/{npts})"
             sample_item = self._make_sample_item(sample_str, i)
             # self.treeWidget_samples.addItem(sample_item)
+
+            if (i == self._currently_selected_index) or ((i == len(self.sample_manager.samples)) and
+                                                         (self._currently_selected_index == -1)):
+                sample_item.setExpanded(True)
+            else:
+                sample_item.setExpanded(False)
+
             for j in range(npts):
                 point_idx = sample.index_position_index(j)
                 point_str = sample.index_coordinate_str(j)
@@ -441,7 +463,9 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         sample_name = remove_special_characters(sample_name)
         sample_comment = self.lineEdit_sample_comment.text()
         # positions = self._create_list_of_positions()
+        self._currently_selected_index = -1
         self.sample_manager.add_new_sample(sample_name, sample_comment, [])
+
 
     def define_sample_points(self):
         index_list = self.treeWidget_samples.selectedIndexes()
@@ -451,8 +475,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             if item.kind == 'sample':
                 sample_index = item.index
                 positions = self._create_list_of_positions()
+                self._currently_selected_index = sample_index
                 self.sample_manager.add_points_to_sample_at_index(sample_index, positions)
-
                 if self.interaction_mode == 'draw':
                     self.pushButton_draw_sample_polygon.setChecked(False)
         else:
@@ -498,11 +522,11 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             else:
                 index_dict[sample_index] = point_index_list
         self.sample_manager.delete_samples_with_index_dict(index_dict)
-
-
+        self._currently_selected_index = -1
 
     def delete_all_samples(self):
         self.sample_manager.reset()
+        self._currently_selected_index = -1
 
     '''
     Sample Context menu
