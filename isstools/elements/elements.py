@@ -2,7 +2,7 @@ import pkg_resources
 import json
 from PyQt5 import QtWidgets, QtCore, QtGui
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
-
+import pandas as pd
 
 def get_element_dict():
     json_data = open(pkg_resources.resource_filename('isstools', 'edges_lines.json')).read()
@@ -124,7 +124,49 @@ def clean_el_str(el):
     return el
 
 
+def compute_line_dictionary_for_spectrometer():
 
+    lines = ['Ka1', 'Ka2', 'Kb1', 'Kb2', 'Kb3', 'Kb5', 'La1', 'Lb1', 'Lb3', 'Lb4','Lg1','Lg2','Lg3', 'Ma', 'Mb']
+
+    edges = ['K', 'L1', 'L2', 'L3']
+
+    output = []
+
+    for _z in range(15, 95):
+        for line in lines:
+            line_info = xraydb.xray_line(_z, line)
+            if line_info is None:
+                continue
+            energy = line_info.energy
+            z = xraydb.atomic_symbol(_z)
+            if 2500 < energy < 30000:
+                output.append({'element': z, 'Z': _z, 'type': 'line', 'symbol': line, 'energy': energy})
+                # if (_z, z) not in line_dict.keys():
+                #     line_dict[(_z, z)] = {}
+                # # print(_z, z, line, energy)
+                # line_dict[(_z, z)][line] = ('line', energy)
+
+        for edge in edges:
+            edge_info = xraydb.xray_edge(_z, edge)
+            if edge_info is None:
+                continue
+            energy = xraydb.xray_edge(_z, edge).energy
+            # z = xraydb.atomic_symbol(_z)
+            if 2000 < energy < 30000:
+                output.append({'element': z, 'Z': _z, 'type': 'edge', 'symbol': edge, 'energy': energy})
+                # if (_z, z) not in line_dict.keys():
+                #     line_dict[(_z, z)] = {}
+                # # print(_z, z, edge, energy)
+                # line_dict[(_z, z)][edge] = ('edge', energy)
+
+    df = pd.DataFrame(output)
+
+    filepath = '../fluorescence_lines2.json'
+    df.to_json(filepath)
+
+def get_spectrometer_line_dict():
+    fname = pkg_resources.resource_filename('isstools', 'fluorescence_lines2.json')
+    return pd.read_json(fname)
 
 class TreeView(QtWidgets.QTreeView):
     def __init__(self, parent, accepted_type, unique_elements=True):

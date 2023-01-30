@@ -15,6 +15,7 @@ from isstools.elements.transformations import  range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
 from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
+from ..elements.elements import get_spectrometer_line_dict
 # from isstools.elements.liveplots import NormPlot
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
@@ -56,6 +57,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.motor_dictionary = motor_dictionary
         self.shutter_dictionary = shutter_dictionary
         self.service_plan_funcs = service_plan_funcs
+
+        self.element_data_spectroscopy = get_spectrometer_line_dict()
+
         # self.parent_gui = parent_gui
         self.last_motor_used = None
         self.push_1D_scan.clicked.connect(self.run_pcl_scan)
@@ -127,6 +131,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.checkBox_enable_aux3.toggled.connect(self.enable_crystal)
         self.checkBox_enable_aux4.toggled.connect(self.enable_crystal)
         self.checkBox_enable_aux5.toggled.connect(self.enable_crystal)
+
+        # self
+        self.populate_comboBox_johann_element()
+        self.populate_comboBox_johann_line()
+        self.update_johann_lineEdit_johann_energy()
+        self.comboBox_johann_element.currentIndexChanged.connect(self.populate_comboBox_johann_line)
+        self.comboBox_johann_line.currentIndexChanged.connect(self.update_johann_lineEdit_johann_energy)
 
 
 # general handling of gui elements, plotting, and scanning
@@ -435,3 +446,22 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         sender_object = QObject().sender()
         crystal_key = sender_object.text()
         self.johann_emission.enable_crystal(crystal_key, enable)
+
+    def populate_comboBox_johann_element(self):
+        df = self.element_data_spectroscopy
+        els = df[df.energy > 4500].element.unique().tolist()
+        self.comboBox_johann_element.addItems(els)
+
+    def populate_comboBox_johann_line(self):
+        current_element = self.comboBox_johann_element.currentText()
+        df = self.element_data_spectroscopy
+        lines = df[df.element == current_element].symbol.tolist()
+        self.comboBox_johann_line.clear()
+        self.comboBox_johann_line.addItems(lines)
+
+    def update_johann_lineEdit_johann_energy(self):
+        current_element = self.comboBox_johann_element.currentText()
+        current_line = self.comboBox_johann_line.currentText()
+        df = self.element_data_spectroscopy
+        energy = float(df[(df.element == current_element) & (df.symbol == current_line)].energy.values)
+        self.lineEdit_johann_energy.setText(f'{energy : .1f}')

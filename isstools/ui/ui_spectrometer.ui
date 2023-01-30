@@ -2284,6 +2284,12 @@ Geometry</string>
       </item>
       <item row="3" column="9" rowspan="2">
        <widget class="QPushButton" name="push_update_detector_parking">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Park
 detector</string>
@@ -2356,6 +2362,12 @@ detector</string>
       </item>
       <item row="0" column="10" rowspan="2">
        <widget class="QPushButton" name="push_johann_home_crystals">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Home
 piezos</string>
@@ -2364,6 +2376,12 @@ piezos</string>
       </item>
       <item row="0" column="9" rowspan="2">
        <widget class="QPushButton" name="push_johann_update_crystal_parking">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Park
 crystal</string>
