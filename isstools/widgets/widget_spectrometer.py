@@ -462,8 +462,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         energy = float(self.widget_johann_line_selector.edit_E.text())
         bragg = self.johann_emission.e2bragg(energy)
         roll_offset = self.johann_emission.suggest_roll_offset(bragg)
+        reflectivity = self.johann_emission.e2reflectivity(energy)
 
         self.lineEdit_johann_bragg.setText(f'{bragg:0.2f}')
+        self.lineEdit_johann_reflectivity.setText(f'{reflectivity:0.2f}')
 
         for i in range(self.comboBox_johann_roll_offset.count()):
             if roll_offset == float(self.comboBox_johann_roll_offset.itemText(i)):
