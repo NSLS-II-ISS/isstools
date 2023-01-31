@@ -305,7 +305,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             ret = question_message_box(self, 'Warning', 'The beam appears to have drifted.\nPress YES to perform a broad pitch scan.\nPress NO if you wish to adjust the pitch manually.')
             if not ret:
                 return
-            kwargs = {'pitch_range' : 10}
+            kwargs = {'scan_range' : 10}
         self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', kwargs)
 
     def adjust_gains(self):

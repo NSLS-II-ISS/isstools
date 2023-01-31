@@ -17,7 +17,7 @@ from xas.spectrometer import analyze_elastic_scan
 from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
 from ..elements.elements import get_spectrometer_line_dict
 # from isstools.elements.liveplots import NormPlot
-
+from isstools.widgets import widget_emission_energy_selector
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
 class UISpectrometer(*uic.loadUiType(ui_path)):
@@ -58,7 +58,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.shutter_dictionary = shutter_dictionary
         self.service_plan_funcs = service_plan_funcs
 
-        self.element_data_spectroscopy = get_spectrometer_line_dict()
+        # self.element_data_spectroscopy = get_spectrometer_line_dict()
 
         # self.parent_gui = parent_gui
         self.last_motor_used = None
@@ -132,12 +132,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.checkBox_enable_aux4.toggled.connect(self.enable_crystal)
         self.checkBox_enable_aux5.toggled.connect(self.enable_crystal)
 
-        # self
-        self.populate_comboBox_johann_element()
-        self.populate_comboBox_johann_line()
-        self.update_johann_lineEdit_johann_energy()
-        self.comboBox_johann_element.currentIndexChanged.connect(self.populate_comboBox_johann_line)
-        self.comboBox_johann_line.currentIndexChanged.connect(self.update_johann_lineEdit_johann_energy)
+        self.widget_johann_line_selector = widget_emission_energy_selector.UIEmissionLineSelectorEnergyOnly(parent=self, emin=4500)
+        self.layout_johann_emission_line_selector.addWidget(self.widget_johann_line_selector)
+        self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
+        self.comboBox_johann_roll_offset.addItems([str(i) for i in self.johann_emission.allowed_roll_offsets])
+        # self.populate_comboBox_johann_element()
+        # self.populate_comboBox_johann_line()
+        # self.update_johann_lineEdit_johann_energy()
+        # self.comboBox_johann_element.currentIndexChanged.connect(self.populate_comboBox_johann_line)
+        # self.comboBox_johann_line.currentIndexChanged.connect(self.update_johann_lineEdit_johann_energy)
 
 
 # general handling of gui elements, plotting, and scanning
@@ -447,21 +450,66 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         crystal_key = sender_object.text()
         self.johann_emission.enable_crystal(crystal_key, enable)
 
-    def populate_comboBox_johann_element(self):
-        df = self.element_data_spectroscopy
-        els = df[df.energy > 4500].element.unique().tolist()
-        self.comboBox_johann_element.addItems(els)
 
-    def populate_comboBox_johann_line(self):
-        current_element = self.comboBox_johann_element.currentText()
-        df = self.element_data_spectroscopy
-        lines = df[df.element == current_element].symbol.tolist()
-        self.comboBox_johann_line.clear()
-        self.comboBox_johann_line.addItems(lines)
+    def _johann_update_crystal_config(self):
+        crystal = self.comboBox_johann_crystal_kind.currentText()
+        R = float(self.edit_johann_crystal_R.text())
+        hkl = self.lineEdit_johann_hkl.text()
+        hkl = hkl.replace(')', '').replace('(', '').replace(']', '').replace('[', '')
+        hkl = [int(i) for i in hkl.split(',')]
+        self.johann_emission.set_crystal(crystal)
+        self.johann_emission.set_hkl(hkl)
+        self.johann_emission.set_R(R)
 
-    def update_johann_lineEdit_johann_energy(self):
-        current_element = self.comboBox_johann_element.currentText()
-        current_line = self.comboBox_johann_line.currentText()
-        df = self.element_data_spectroscopy
-        energy = float(df[(df.element == current_element) & (df.symbol == current_line)].energy.values)
-        self.lineEdit_johann_energy.setText(f'{energy : .1f}')
+    def johann_compute_geometry(self):
+        self._johann_update_crystal_config()
+        energy = float(self.widget_johann_line_selector.edit_E.text())
+        bragg = self.johann_emission.e2bragg(energy)
+        roll_offset = self.johann_emission.suggest_roll_offset(bragg)
+
+        self.lineEdit_johann_bragg.setText(f'{bragg:0.2f}')
+
+        for i in range(self.comboBox_johann_roll_offset.count()):
+            if roll_offset == float(self.comboBox_johann_roll_offset.itemText(i)):
+                self.comboBox_johann_roll_offset.setCurrentIndex(i)
+                break
+
+
+
+
+        # R = float(self.widget_emission_energy.edit_crystal_R.text())
+        # cr = Crystal(R, 100, self._hkl, self._kind)
+        # cr.place_E(energy)
+        # bragg_angle = cr.ba_deg
+        # cr_x = cr.x
+        # cr_y = cr.y
+        # det_y = cr.d_y
+        # cr_x_stage = self.spinBox_crystal_park_x.value() + (R - cr_x)
+        # cr_y_stage = self.spinBox_crystal_park_y.value() + cr_y
+        #
+        # self.spinBox_bragg_angle_nom.setValue(bragg_angle)
+        # self.spinBox_crystal_nom_x.setValue(cr_x)
+        # self.spinBox_crystal_nom_y.setValue(cr_y)
+        # self.spinBox_det_nom_y.setValue(det_y)
+        #
+        # self.spinBox_crystal_stage_nom_x.setValue(cr_x_stage)
+        # self.spinBox_crystal_stage_nom_y.setValue(cr_y_stage)
+
+    # def populate_comboBox_johann_element(self):
+    #     df = self.element_data_spectroscopy
+    #     els = df[df.energy > 4500].element.unique().tolist()
+    #     self.comboBox_johann_element.addItems(els)
+    #
+    # def populate_comboBox_johann_line(self):
+    #     current_element = self.comboBox_johann_element.currentText()
+    #     df = self.element_data_spectroscopy
+    #     lines = df[df.element == current_element].symbol.tolist()
+    #     self.comboBox_johann_line.clear()
+    #     self.comboBox_johann_line.addItems(lines)
+    #
+    # def update_johann_lineEdit_johann_energy(self):
+    #     current_element = self.comboBox_johann_element.currentText()
+    #     current_line = self.comboBox_johann_line.currentText()
+    #     df = self.element_data_spectroscopy
+    #     energy = float(df[(df.element == current_element) & (df.symbol == current_line)].energy.values)
+    #     self.lineEdit_johann_energy.setText(f'{energy : .1f}')
