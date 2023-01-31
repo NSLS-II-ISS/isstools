@@ -1472,9 +1472,9 @@
     <widget class="QPushButton" name="push_johann_move_motors">
      <property name="geometry">
       <rect>
-       <x>510</x>
+       <x>519</x>
        <y>260</y>
-       <width>80</width>
+       <width>71</width>
        <height>40</height>
       </rect>
      </property>
@@ -1492,9 +1492,9 @@ Motors</string>
     <widget class="QPushButton" name="push_johann_compute_geometry">
      <property name="geometry">
       <rect>
-       <x>510</x>
+       <x>519</x>
        <y>200</y>
-       <width>80</width>
+       <width>71</width>
        <height>40</height>
       </rect>
      </property>
@@ -2092,7 +2092,7 @@ crystal</string>
       <rect>
        <x>10</x>
        <y>190</y>
-       <width>471</width>
+       <width>491</width>
        <height>31</height>
       </rect>
      </property>
@@ -2168,9 +2168,9 @@ crystal</string>
     <widget class="QWidget" name="gridLayoutWidget_5">
      <property name="geometry">
       <rect>
-       <x>192</x>
+       <x>178</x>
        <y>230</y>
-       <width>307</width>
+       <width>327</width>
        <height>81</height>
       </rect>
      </property>
@@ -2182,7 +2182,7 @@ crystal</string>
        <widget class="QLabel" name="label_140">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
@@ -2202,7 +2202,7 @@ crystal</string>
        <widget class="QLabel" name="label_17">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>24</height>
          </size>
         </property>
@@ -2215,7 +2215,7 @@ crystal</string>
        <widget class="QLabel" name="label_qrcode_12">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
@@ -2228,7 +2228,7 @@ crystal</string>
        <widget class="QLabel" name="label_qrcode_11">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
@@ -2321,7 +2321,7 @@ crystal</string>
        <widget class="QLabel" name="label_16">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>24</height>
          </size>
         </property>
@@ -2334,7 +2334,7 @@ crystal</string>
        <widget class="QLabel" name="label_18">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>24</height>
          </size>
         </property>
@@ -2347,7 +2347,7 @@ crystal</string>
        <widget class="QLabel" name="label_13">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
@@ -2360,7 +2360,7 @@ crystal</string>
        <widget class="QLabel" name="label_14">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
@@ -2384,7 +2384,7 @@ offset</string>
        <widget class="QLabel" name="label_15">
         <property name="maximumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>24</height>
          </size>
         </property>
