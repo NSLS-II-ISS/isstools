@@ -134,13 +134,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.widget_johann_line_selector = widget_emission_energy_selector.UIEmissionLineSelectorEnergyOnly(parent=self, emin=4500)
         self.layout_johann_emission_line_selector.addWidget(self.widget_johann_line_selector)
-        self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
         self.comboBox_johann_roll_offset.addItems([str(i) for i in self.johann_emission.allowed_roll_offsets])
-        # self.populate_comboBox_johann_element()
-        # self.populate_comboBox_johann_line()
-        # self.update_johann_lineEdit_johann_energy()
-        # self.comboBox_johann_element.currentIndexChanged.connect(self.populate_comboBox_johann_line)
-        # self.comboBox_johann_line.currentIndexChanged.connect(self.update_johann_lineEdit_johann_energy)
+        self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
+        self.push_johann_move_motors.clicked.connect(self.johann_move_motors)
+
 
 
 # general handling of gui elements, plotting, and scanning
@@ -459,7 +456,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         hkl = [int(i) for i in hkl.split(',')]
         self.johann_emission.set_crystal(crystal)
         self.johann_emission.set_hkl(hkl)
-        self.johann_emission.set_R(R)
 
     def johann_compute_geometry(self):
         self._johann_update_crystal_config()
@@ -474,42 +470,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 self.comboBox_johann_roll_offset.setCurrentIndex(i)
                 break
 
+    def johann_move_motors(self):
+        roll_offset = float(self.comboBox_johann_roll_offset.currentText())
+        self.johann_emission.set_R(R)
+        self.johann_emission.set_roll_offset(roll_offset) # this will compute all the motor positions and will save the config to settings
 
-
-
-        # R = float(self.widget_emission_energy.edit_crystal_R.text())
-        # cr = Crystal(R, 100, self._hkl, self._kind)
-        # cr.place_E(energy)
-        # bragg_angle = cr.ba_deg
-        # cr_x = cr.x
-        # cr_y = cr.y
-        # det_y = cr.d_y
-        # cr_x_stage = self.spinBox_crystal_park_x.value() + (R - cr_x)
-        # cr_y_stage = self.spinBox_crystal_park_y.value() + cr_y
-        #
-        # self.spinBox_bragg_angle_nom.setValue(bragg_angle)
-        # self.spinBox_crystal_nom_x.setValue(cr_x)
-        # self.spinBox_crystal_nom_y.setValue(cr_y)
-        # self.spinBox_det_nom_y.setValue(det_y)
-        #
-        # self.spinBox_crystal_stage_nom_x.setValue(cr_x_stage)
-        # self.spinBox_crystal_stage_nom_y.setValue(cr_y_stage)
-
-    # def populate_comboBox_johann_element(self):
-    #     df = self.element_data_spectroscopy
-    #     els = df[df.energy > 4500].element.unique().tolist()
-    #     self.comboBox_johann_element.addItems(els)
-    #
-    # def populate_comboBox_johann_line(self):
-    #     current_element = self.comboBox_johann_element.currentText()
-    #     df = self.element_data_spectroscopy
-    #     lines = df[df.element == current_element].symbol.tolist()
-    #     self.comboBox_johann_line.clear()
-    #     self.comboBox_johann_line.addItems(lines)
-    #
-    # def update_johann_lineEdit_johann_energy(self):
-    #     current_element = self.comboBox_johann_element.currentText()
-    #     current_line = self.comboBox_johann_line.currentText()
-    #     df = self.element_data_spectroscopy
-    #     energy = float(df[(df.element == current_element) & (df.symbol == current_line)].energy.values)
-    #     self.lineEdit_johann_energy.setText(f'{energy : .1f}')
+        #energy = float(self.widget_johann_line_selector.edit_E.text())
+        # self.johann_emission.move(emission=energy)
