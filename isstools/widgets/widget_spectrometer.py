@@ -138,6 +138,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
         self.push_johann_move_motors.clicked.connect(self.johann_move_motors)
 
+        self.johann_motor_list = [motor_dictionary[motor]['description'] for motor in motor_dictionary
+                                    if ('group' in self.motor_dictionary[motor].keys()) and
+                                        (self.motor_dictionary[motor]['group'] == 'spectrometer') and
+                                        ('spectrometer_kind' in self.motor_dictionary[motor].keys()) and
+                                        (self.motor_dictionary[motor]['spectrometer_kind'] == 'johann')]
+
+        self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
+        self.johann_update_tweak_motor()
+        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
+
+        self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
+        # self.comboBox_johann_pilatus_channels.addItems(self.detector_dictionary['Pilatus 100k']['channels'])
+
+        self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
+        self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
 
 # general handling of gui elements, plotting, and scanning
@@ -477,5 +492,32 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_emission.set_R(R)
         self.johann_emission.set_roll_offset(roll_offset) # this will compute all the motor positions and will save the config to settings
 
-        #energy = float(self.widget_johann_line_selector.edit_E.text())
+        # energy = float(self.widget_johann_line_selector.edit_E.text())
         # self.johann_emission.move(emission=energy)
+
+    def johann_update_tweak_motor(self):
+        motor_description = self.comboBox_johann_tweak_motor.currentText()
+
+        for key, motor_dict in self.motor_dictionary.items():
+            if motor_description == motor_dict['description']:
+                motor_object = motor_dict['object']
+                motor_step = motor_dict['typical_step']
+                break
+
+        self.doubleSpinBox_johann_tweak_motor_step.setValue(motor_step)
+        pos = motor_object.user_readback.get()
+        self.doubleSpinBox_johann_tweak_motor_pos.setValue(pos)
+        self._cur_alignment_motor = motor_object
+
+    def johann_tweak_up(self):
+        self._johann_tweak(1)
+
+    def johann_tweak_down(self):
+        self._johann_tweak(-1)
+
+    def _johann_tweak(self, direction):
+        motor = self._cur_alignment_motor
+        step = self.doubleSpinBox_johann_tweak_motor_pos.value()
+        motor.move(motor.pos + direction * step, wait=True)
+        pos = motor.user_readback.get()
+        self.doubleSpinBox_johann_tweak_motor_pos.setValue(pos)
