@@ -50,7 +50,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_emission = johann_emission
 
         self.detector_dictionary = detector_dictionary
-        self.pilatus = detector_dictionary['Pilatus 100k']['device']
+        # self.pilatus = detector_dictionary['Pilatus 100k']['device']
         self.parent = parent
 
         self.aux_plan_funcs = aux_plan_funcs
@@ -62,10 +62,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         # self.parent_gui = parent_gui
         self.last_motor_used = None
-        self.push_1D_scan.clicked.connect(self.run_pcl_scan)
-        self.push_xy_scan.clicked.connect(self.run_2d_pcl_scan)
-        self.push_py_scan.clicked.connect(self.run_2d_pcl_scan)
-        self.push_gen_scan.clicked.connect(self.run_gen_scan)
+        self.push_pcl_1D_scan.clicked.connect(self.run_pcl_scan)
+        # self.push_xy_scan.clicked.connect(self.run_2d_pcl_scan)
+        # self.push_py_scan.clicked.connect(self.run_2d_pcl_scan)
+        # self.push_gen_scan.clicked.connect(self.run_gen_scan)
         # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
 
@@ -75,10 +75,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_pcl_detectors.currentIndexChanged.connect(self.pcl_detector_selected)
         self.pcl_detector_selected()
 
-        self.comboBox_gen_detectors.addItems(self.det_list)
-        self.comboBox_gen_detectors.setCurrentIndex(7) # make it Pilatus by default!
-        self.comboBox_gen_detectors.currentIndexChanged.connect(self.gen_detector_selected)
-        self.gen_detector_selected()
+        # self.comboBox_gen_detectors.addItems(self.det_list)
+        # self.comboBox_gen_detectors.setCurrentIndex(7) # make it Pilatus by default!
+        # self.comboBox_gen_detectors.currentIndexChanged.connect(self.gen_detector_selected)
+        # self.gen_detector_selected()
 
         self.comboBox_pcl_detectors.addItems(self.det_list)
 
@@ -86,7 +86,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                          if ('group' in  self.motor_dictionary[motor].keys())
                          and (self.motor_dictionary[motor]['group']=='spectrometer')]
 
-        self.comboBox_gen_motors.addItems(self.motor_list)
+        # self.comboBox_gen_motors.addItems(self.motor_list)
 
         self.figure_scan, self.canvas_scan, self.toolbar_scan = setup_figure(self, self.layout_plot_scan)
         self.figure_proc, self.canvas_proc, self.toolbar_proc = setup_figure(self, self.layout_plot_processed)
@@ -191,18 +191,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def start_gen_scan_figure(self):
         update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
 
-    def _run_any_scan(self, detectors, liveplot_det_kwargs, motor, liveplot_mot_kwargs,
-                      scan_range, scan_step):
+    def _run_any_scan(self, detectors, liveplot_det_kwargs,
+                      motor, liveplot_mot_kwargs,
+                      scan_range, scan_step, exposure_time=1):
 
         rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
 
         plan_name = 'general_scan'
-        plan_kwargs = {'detectors': detectors,
-                       'motor': motor,
-                       'rel_start': rel_start,
-                       'rel_stop': rel_stop,
-                       'num_steps': num_steps,
-                       'liveplot_kwargs': {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab' : 'spectrometer'}}
+        plan_kwargs = {'detectors' : detectors,
+                       'motor' : motor,
+                       'rel_start' : rel_start,
+                       'rel_stop' : rel_stop,
+                       'num_steps' : num_steps,
+                       'exposure_time': exposure_time,
+                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs},
+                       'tab' : 'spectrometer'}
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
@@ -224,117 +227,121 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 # General / PCL scans
 
     def run_pcl_scan(self, **kwargs):
-
-        detector_name = self.comboBox_pcl_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
-        channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_pcl_channels.currentIndex()]
+        detector = self.comboBox_pcl_detectors.currentText()
+        channel = self.comboBox_pcl_channels.currentText()
+        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
 
         motor_suffix = self.comboBox_pcl_motors.currentText().split(' ')[-1]
-        motor_name = f'six_axes_stage_{motor_suffix}'
-        motor = self.motor_dictionary[motor_name]['object']
-
-        scan_range = getattr(self, f'doubleSpinBox_range_{motor_suffix}').value()
-        scan_step = getattr(self, f'doubleSpinBox_step_{motor_suffix}').value()
-
-        uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
-
-    def run_2d_pcl_scan(self):
-        self.figure_scan.ax.set_aspect('auto')
-        sender = QObject()
-        sender_object = sender.sender().objectName()
-        if 'xy' in sender_object:
-            m1 = 'x'
-            m2 = 'y'
-        elif 'py' in sender_object:
-            m1 = 'pitch'
-            m2 = 'yaw'
-
-        self.canvas_scan.mpl_disconnect(self.cid_scan)
-        detector_name = self.comboBox_pcl_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
-        channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_pcl_channels.currentIndex()]
-
-        motor1 = self.motor_dictionary[f'six_axes_stage_{m1}']['object']
-        motor2 = self.motor_dictionary[f'six_axes_stage_{m2}']['object']
-        m1_pos = motor1.read()[motor1.name]['value']
-        m2_pos = motor2.read()[motor2.name]['value']
-
-        motor1_range = getattr(self, f'doubleSpinBox_range_{m1}').value()
-        motor2_range = getattr(self, f'doubleSpinBox_range_{m2}').value()
-
-        motor1_step = getattr(self, f'doubleSpinBox_step_{m1}').value()
-        motor2_step = getattr(self, f'doubleSpinBox_step_{m2}').value()
-
-        motor1_nsteps = int(round(motor1_range / float(motor1_step))) + 1
-        motor2_nsteps = int(round(motor2_range / float(motor2_step))) + 1
-
-        #self.figure_scan.clf()
-        update_figure_with_colorbar([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan,self.figure_scan)
-
-        plan = self.aux_plan_funcs['general_spiral_scan']([detector],
-                                                          motor1=motor1, motor2=motor2,
-                                                          motor1_range=motor1_range, motor2_range=motor2_range,
-                                                          motor1_nsteps=motor1_nsteps, motor2_nsteps=motor2_nsteps)
-
-        # xlim =
-
-        live_scatter = LiveScatter(motor1.name, motor2.name, channel, ax=self.figure_scan.ax,
-                                   xlim=(m1_pos - motor1_range / 2, m1_pos + motor1_range / 2),
-                                   ylim=(m2_pos - motor2_range / 2, m2_pos + motor2_range / 2),
-                                   **{'s' : 100, 'marker' : 's','cmap': 'nipy_spectral'})
-        # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
-
-        uid = self.RE(plan, live_scatter)
-        self.figure_scan.ax.set_aspect('auto')
-        self.figure_scan.tight_layout()
-        self.canvas_scan.draw_idle()
-        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.last_motor_used = [motor1, motor2]
+        motor = f'six_axes_stage_{motor_suffix}'
+        liveplot_mot_kwargs = {'curr_mot_name': motor_name}
 
 
-    def run_gen_scan(self):
+        scan_range = getattr(self, f'doubleSpinBox_range_pcl_{motor_suffix}').value()
+        scan_step = getattr(self, f'doubleSpinBox_step_pcl_{motor_suffix}').value()
+        exposure_time = self.doubleSpinBox_pcl_exposure_time.value()
 
-        detector_name = self.comboBox_gen_detectors.currentText()
-        detector = self.detector_dictionary[detector_name]['device']
-        channels = self.detector_dictionary[detector_name]['channels']
-        channel = channels[self.comboBox_gen_channels.currentIndex()]
+        self._run_any_scan(detector, liveplot_det_kwargs,
+                           motor, liveplot_mot_kwargs,
+                           scan_range, scan_step, exposure_time)
 
-        motor_name = self.comboBox_gen_motors.currentText()
-        for k in self.motor_dictionary.keys():
-            if self.motor_dictionary[k]['description'] == motor_name:
-                motor = self.motor_dictionary[k]['object']
-                break
+        # uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
 
-        scan_range = self.doubleSpinBox_gen_motor_range.value()
-        scan_step = self.doubleSpinBox_gen_motor_step.value()
+    # def run_2d_pcl_scan(self):
+    #     self.figure_scan.ax.set_aspect('auto')
+    #     sender = QObject()
+    #     sender_object = sender.sender().objectName()
+    #     if 'xy' in sender_object:
+    #         m1 = 'x'
+    #         m2 = 'y'
+    #     elif 'py' in sender_object:
+    #         m1 = 'pitch'
+    #         m2 = 'yaw'
+    #
+    #     self.canvas_scan.mpl_disconnect(self.cid_scan)
+    #     detector_name = self.comboBox_pcl_detectors.currentText()
+    #     detector = self.detector_dictionary[detector_name]['device']
+    #     channels = self.detector_dictionary[detector_name]['channels']
+    #     channel = channels[self.comboBox_pcl_channels.currentIndex()]
+    #
+    #     motor1 = self.motor_dictionary[f'six_axes_stage_{m1}']['object']
+    #     motor2 = self.motor_dictionary[f'six_axes_stage_{m2}']['object']
+    #     m1_pos = motor1.read()[motor1.name]['value']
+    #     m2_pos = motor2.read()[motor2.name]['value']
+    #
+    #     motor1_range = getattr(self, f'doubleSpinBox_range_{m1}').value()
+    #     motor2_range = getattr(self, f'doubleSpinBox_range_{m2}').value()
+    #
+    #     motor1_step = getattr(self, f'doubleSpinBox_step_{m1}').value()
+    #     motor2_step = getattr(self, f'doubleSpinBox_step_{m2}').value()
+    #
+    #     motor1_nsteps = int(round(motor1_range / float(motor1_step))) + 1
+    #     motor2_nsteps = int(round(motor2_range / float(motor2_step))) + 1
+    #
+    #     #self.figure_scan.clf()
+    #     update_figure_with_colorbar([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan,self.figure_scan)
+    #
+    #     plan = self.aux_plan_funcs['general_spiral_scan']([detector],
+    #                                                       motor1=motor1, motor2=motor2,
+    #                                                       motor1_range=motor1_range, motor2_range=motor2_range,
+    #                                                       motor1_nsteps=motor1_nsteps, motor2_nsteps=motor2_nsteps)
+    #
+    #     # xlim =
+    #
+    #     live_scatter = LiveScatter(motor1.name, motor2.name, channel, ax=self.figure_scan.ax,
+    #                                xlim=(m1_pos - motor1_range / 2, m1_pos + motor1_range / 2),
+    #                                ylim=(m2_pos - motor2_range / 2, m2_pos + motor2_range / 2),
+    #                                **{'s' : 100, 'marker' : 's','cmap': 'nipy_spectral'})
+    #     # live_scatter = LivePlot(channel, self.motor.name, ax=self.figure_scan.ax)
+    #
+    #     uid = self.RE(plan, live_scatter)
+    #     self.figure_scan.ax.set_aspect('auto')
+    #     self.figure_scan.tight_layout()
+    #     self.canvas_scan.draw_idle()
+    #     self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+    #     self.last_motor_used = [motor1, motor2]
 
-        uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
+
+    # def run_gen_scan(self):
+    #
+    #     detector_name = self.comboBox_gen_detectors.currentText()
+    #     detector = self.detector_dictionary[detector_name]['device']
+    #     channels = self.detector_dictionary[detector_name]['channels']
+    #     channel = channels[self.comboBox_gen_channels.currentIndex()]
+    #
+    #     motor_name = self.comboBox_gen_motors.currentText()
+    #     for k in self.motor_dictionary.keys():
+    #         if self.motor_dictionary[k]['description'] == motor_name:
+    #             motor = self.motor_dictionary[k]['object']
+    #             break
+    #
+    #     scan_range = self.doubleSpinBox_gen_motor_range.value()
+    #     scan_step = self.doubleSpinBox_gen_motor_step.value()
+    #
+    #     uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
 
 
-    def run_time_scan(self):
-        self.canvas_scan.mpl_disconnect(self.cid_scan)
-        update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
-        self.figure_scan.ax.set_aspect('auto')
-
-        nframes = int(self.doubleSpinBox_nframes.value())
-
-        lp = XASPlot('pil100k_stats1_total', 'apb_ave_ch1_mean', 'normalized I', 'time',
-                     log=False, ax=self.figure_scan.ax, color='k', legend_keys=['I'])
-        plan = self.service_plan_funcs['n_pil100k_exposures_plan'](nframes)
-        self.RE(plan, lp)
-
-        self.figure_scan.tight_layout()
-        self.canvas_scan.draw_idle()
-        self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-        self.last_motor_used = None
+    # def run_time_scan(self):
+    #     self.canvas_scan.mpl_disconnect(self.cid_scan)
+    #     update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
+    #     self.figure_scan.ax.set_aspect('auto')
+    #
+    #     nframes = int(self.doubleSpinBox_nframes.value())
+    #
+    #     lp = XASPlot('pil100k_stats1_total', 'apb_ave_ch1_mean', 'normalized I', 'time',
+    #                  log=False, ax=self.figure_scan.ax, color='k', legend_keys=['I'])
+    #     plan = self.service_plan_funcs['n_pil100k_exposures_plan'](nframes)
+    #     self.RE(plan, lp)
+    #
+    #     self.figure_scan.tight_layout()
+    #     self.canvas_scan.draw_idle()
+    #     self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
+    #     self.last_motor_used = None
 
     def pcl_detector_selected(self):
         self._detector_selected(self.comboBox_pcl_detectors, self.comboBox_pcl_channels)
 
-    def gen_detector_selected(self):
-        self._detector_selected(self.comboBox_gen_detectors, self.comboBox_gen_channels)
+    # def gen_detector_selected(self):
+    #     self._detector_selected(self.comboBox_gen_detectors, self.comboBox_gen_channels)
 
 
     def getX_proc(self, event):

@@ -45,185 +45,19 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_8">
     <attribute name="title">
      <string>General</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBox_8">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>400</y>
-       <width>251</width>
-       <height>311</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="title">
-      <string>General scanning</string>
-     </property>
-     <widget class="QWidget" name="gridLayoutWidget_4">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>226</width>
-        <height>260</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_125">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Channel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QComboBox" name="comboBox_gen_motors"/>
-       </item>
-       <item row="1" column="2">
-        <widget class="QComboBox" name="comboBox_gen_detectors">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_124">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Detector</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_116">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Step</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QComboBox" name="comboBox_gen_channels">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_gen_motor_range">
-         <property name="decimals">
-          <number>3</number>
-         </property>
-         <property name="value">
-          <double>0.300000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_118">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Range</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_gen_motor_step">
-         <property name="decimals">
-          <number>3</number>
-         </property>
-         <property name="value">
-          <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_123">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Motor</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="2">
-        <widget class="QPushButton" name="push_gen_scan">
-         <property name="text">
-          <string>Scan</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="groupBox_7">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>591</width>
-       <height>261</height>
+       <width>571</width>
+       <height>421</height>
       </rect>
      </property>
      <property name="font">
@@ -239,8 +73,8 @@
      <widget class="QWidget" name="gridLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>240</x>
-        <y>20</y>
+        <x>10</x>
+        <y>160</y>
         <width>332</width>
         <height>210</height>
        </rect>
@@ -261,12 +95,12 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_range_y">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_range_y">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.500000000000000</double>
+          <double>0.800000000000000</double>
          </property>
         </widget>
        </item>
@@ -341,72 +175,72 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_range_pitch">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_range_pitch">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.500000000000000</double>
+          <double>0.800000000000000</double>
          </property>
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_step_pitch">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_step_pitch">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.030000000000000</double>
+          <double>0.040000000000000</double>
          </property>
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_step_x">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_step_x">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.030000000000000</double>
+          <double>0.040000000000000</double>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_range_yaw">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_range_yaw">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.050000000000000</double>
+          <double>0.080000000000000</double>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_range_x">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_range_x">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.500000000000000</double>
+          <double>0.800000000000000</double>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_step_y">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_step_y">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.030000000000000</double>
+          <double>0.040000000000000</double>
          </property>
         </widget>
        </item>
        <item row="4" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_step_yaw">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_step_yaw">
          <property name="decimals">
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.001000000000000</double>
+          <double>0.004000000000000</double>
          </property>
         </widget>
        </item>
@@ -524,12 +358,12 @@
        </item>
       </layout>
      </widget>
-     <widget class="QPushButton" name="push_1D_scan">
+     <widget class="QPushButton" name="push_pcl_1D_scan">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>160</y>
-        <width>91</width>
+        <x>380</x>
+        <y>240</y>
+        <width>141</width>
         <height>31</height>
        </rect>
       </property>
@@ -537,30 +371,60 @@
        <string>1D scan</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="push_xy_scan">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_pcl_exposure_time">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>200</y>
-        <width>91</width>
-        <height>31</height>
+        <x>380</x>
+        <y>180</y>
+        <width>146</width>
+        <height>42</height>
        </rect>
       </property>
-      <property name="text">
-       <string>X-Y scan</string>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="value">
+       <double>0.250000000000000</double>
       </property>
      </widget>
-     <widget class="QPushButton" name="push_py_scan">
+     <widget class="QLabel" name="label_116">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>380</x>
         <y>160</y>
-        <width>91</width>
-        <height>31</height>
+        <width>146</width>
+        <height>16</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="text">
-       <string>Pitch-Yaw scan</string>
+       <string>Exposure time</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_118">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>180</y>
+        <width>26</width>
+        <height>42</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>s</string>
       </property>
      </widget>
     </widget>
