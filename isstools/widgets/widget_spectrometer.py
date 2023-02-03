@@ -154,6 +154,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
         self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
+        self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
+        self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
+
+
 
 # general handling of gui elements, plotting, and scanning
 
@@ -204,8 +208,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                        'rel_stop' : rel_stop,
                        'num_steps' : num_steps,
                        'exposure_time': exposure_time,
-                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs},
-                       'tab' : 'spectrometer'}
+                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab' : 'spectrometer'}}
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
@@ -226,22 +229,23 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
 # General / PCL scans
 
-    def run_pcl_scan(self, **kwargs):
+    def run_pcl_scan(self):
         detector = self.comboBox_pcl_detectors.currentText()
         channel = self.comboBox_pcl_channels.currentText()
         liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
 
         motor_suffix = self.comboBox_pcl_motors.currentText().split(' ')[-1]
         motor = f'six_axes_stage_{motor_suffix}'
-        liveplot_mot_kwargs = {'curr_mot_name': motor_name}
+        motor_description = self.motor_dictionary[motor]['description']
+        liveplot_mot_kwargs = {'curr_mot_name': motor}
 
 
-        scan_range = getattr(self, f'doubleSpinBox_range_pcl_{motor_suffix}').value()
-        scan_step = getattr(self, f'doubleSpinBox_step_pcl_{motor_suffix}').value()
+        scan_range = getattr(self, f'doubleSpinBox_pcl_range_{motor_suffix}').value()
+        scan_step = getattr(self, f'doubleSpinBox_pcl_step_{motor_suffix}').value()
         exposure_time = self.doubleSpinBox_pcl_exposure_time.value()
 
-        self._run_any_scan(detector, liveplot_det_kwargs,
-                           motor, liveplot_mot_kwargs,
+        self._run_any_scan([detector], liveplot_det_kwargs,
+                           motor_description, liveplot_mot_kwargs,
                            scan_range, scan_step, exposure_time)
 
         # uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
@@ -512,7 +516,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 break
 
         self.doubleSpinBox_johann_tweak_motor_step.setValue(motor_step)
-        pos = motor_object.user_readback.get()
+        pos = motor_object.position
         self.doubleSpinBox_johann_tweak_motor_pos.setValue(pos)
         self._cur_alignment_motor = motor_object
 
@@ -524,7 +528,45 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _johann_tweak(self, direction):
         motor = self._cur_alignment_motor
-        step = self.doubleSpinBox_johann_tweak_motor_pos.value()
-        motor.move(motor.pos + direction * step, wait=True)
-        pos = motor.user_readback.get()
-        self.doubleSpinBox_johann_tweak_motor_pos.setValue(pos)
+        step = self.doubleSpinBox_johann_tweak_motor_step.value()
+        motor.move(motor.position + direction * step, wait=True)
+        self.doubleSpinBox_johann_tweak_motor_pos.setValue(motor.position)
+
+    def _get_motor_for_johann_motor_scan(self):
+        curr_mot = self.comboBox_johann_scan_motor.currentText()
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if curr_mot == motor_dict['description']:
+                liveplot_mot_kwargs = {'curr_mot_name' : motor_dict['object'].name}
+                break
+        return curr_mot, liveplot_mot_kwargs
+
+
+    def run_johann_motor_scan(self):
+        detector = 'Pilatus 100k'
+        _ch = 'checkBox_johann_pilatus_roi'
+
+        channels = [f'pil100k_stats{i+1}_total' for i in range(4) if getattr(self, f'{_ch}{i+1}').isChecked()]
+        channel = channels[0]
+        liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
+
+        motor, liveplot_mot_kwargs = self._get_motor_for_johann_motor_scan()
+
+        scan_range = self.doubleSpinBox_johann_motor_scan_range.value()
+        scan_step = self.doubleSpinBox_johann_motor_scan_step.value()
+        exposure_time = self.doubleSpinBox_johann_motor_scan_exp_time.value()
+
+        self._run_any_scan([detector], liveplot_det_kwargs,
+                           motor, liveplot_mot_kwargs,
+                           scan_range, scan_step, exposure_time)
+
+    def run_johann_energy_scan(self):
+        e_cen = self.doubleSpinBox_johann_energy_scan_center.value()
+        e_width = self.doubleSpinBox_johann_energy_scan_range.value()
+        e_velocity = self.doubleSpinBox_johann_energy_scan_speed.value()
+
+        plan_name = 'johann_resolution_scan_plan_bundle'
+        plan_kwargs = {'e_cen': e_cen,
+                       'e_width': e_width,
+                       'e_velocity': e_velocity}
+
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
