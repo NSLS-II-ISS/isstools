@@ -32,7 +32,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     apb_trigger_xs,
                     apb_trigger_pil100k,
                     db,
-                    db_proc,
                     detector_dictionary,
                     ic_amplifiers,
                     plan_funcs,
@@ -58,7 +57,6 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         self.apb_trigger_xs = apb_trigger_xs
         self.apb_trigger_pil100k = apb_trigger_pil100k
         self.db = db
-        self.db_proc = db_proc
         self.detector_dictionary = detector_dictionary
         self.ic_amplifiers = ic_amplifiers
         self.plan_funcs = plan_funcs
