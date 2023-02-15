@@ -507,6 +507,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         energy = float(self.widget_johann_line_selector.edit_E.text())
         self.johann_emission.move(energy=energy)
 
+        self.johann_emission.initialized = True
+        self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(True)
+
     def johann_update_tweak_motor(self):
         motor_description = self.comboBox_johann_tweak_motor.currentText()
 
