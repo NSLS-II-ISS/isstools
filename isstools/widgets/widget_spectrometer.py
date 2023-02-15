@@ -500,11 +500,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def johann_move_motors(self):
         roll_offset = float(self.comboBox_johann_roll_offset.currentText())
+        R = float(self.edit_johann_crystal_R.text())
         self.johann_emission.set_R(R)
         self.johann_emission.set_roll_offset(roll_offset) # this will compute all the motor positions and will save the config to settings
 
-        # energy = float(self.widget_johann_line_selector.edit_E.text())
-        # self.johann_emission.move(emission=energy)
+        energy = float(self.widget_johann_line_selector.edit_E.text())
+        self.johann_emission.move(energy=energy)
 
     def johann_update_tweak_motor(self):
         motor_description = self.comboBox_johann_tweak_motor.currentText()
