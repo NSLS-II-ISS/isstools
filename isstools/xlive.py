@@ -361,7 +361,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
-        elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan', 'obtain_hhm_calibration_plan']:
+        elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan',
+                           'obtain_hhm_calibration_plan', 'obtain_spectrometer_resolution_plan']:
             if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
                 if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
                     liveplot_list = self.widget_spectrometer.make_liveplot_func(plan_name, plan_kwargs)
@@ -382,7 +383,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                   'error_message_box' : {'kwarg_name' : 'error_message_func',
                                                          'kwarg_value' : error_message_box},
                                   'question_message_box': {'kwarg_name': 'question_message_func',
-                                                           'kwarg_value': self.question_message_box_func}}
+                                                           'kwarg_value': self.question_message_box_func},
+                                  'spectrometer_plot_energy_resolution_data':
+                                      {'kwarg_name': 'plot_func',
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_resolution_data},
+                                  }
 
     def question_message_box_func(self, *args):
         return question_message_box(self, *args)

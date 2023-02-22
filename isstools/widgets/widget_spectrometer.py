@@ -48,6 +48,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.db = db
 
         self.johann_emission = johann_emission
+        self.hhm = hhm
 
         self.detector_dictionary = detector_dictionary
         # self.pilatus = detector_dictionary['Pilatus 100k']['device']
@@ -157,6 +158,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
         self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
 
+        self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
+        self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
 
 
 # general handling of gui elements, plotting, and scanning
@@ -563,14 +566,52 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                            motor, liveplot_mot_kwargs,
                            scan_range, scan_step, exposure_time)
 
+
+    def _get_checked_pilatus_rois(self):
+        rois = []
+        for i in range(4):
+            checkBox = getattr(self, f'checkBox_johann_pilatus_roi{i+1}')
+            if checkBox.isChecked():
+                rois.append(i+1)
+        if len(rois) == 0:
+            rois = [1]
+        return rois
+
+
     def run_johann_energy_scan(self):
         e_cen = self.doubleSpinBox_johann_energy_scan_center.value()
         e_width = self.doubleSpinBox_johann_energy_scan_range.value()
         e_velocity = self.doubleSpinBox_johann_energy_scan_speed.value()
-
+        rois = self._get_checked_pilatus_rois()
         plan_name = 'johann_resolution_scan_plan_bundle'
+        plan_gui_services = ['spectrometer_plot_energy_resolution_data']
         plan_kwargs = {'e_cen': e_cen,
                        'e_width': e_width,
-                       'e_velocity': e_velocity}
-
+                       'e_velocity': e_velocity,
+                       'rois': rois,
+                       'plan_gui_services': plan_gui_services,
+                       'liveplot_kwargs': {'tab' : 'spectrometer'}}
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+    def _update_figure_with_resolution_data(self, energy, intensity, intensity_fit, Ecen, fwhm, roi_label='roi1', roi_color='tab:blue'):
+        self.figure_scan.ax.plot(energy, intensity, '.', label=f'{roi_label}', color=roi_color, ms=15)
+        self.figure_scan.ax.plot(energy, intensity_fit, '-', color=roi_color)
+        self.figure_scan.ax.set_xlabel('Energy')
+        self.figure_scan.ax.set_ylabel('intensity')
+        self.figure_scan.ax.set_xlim(energy[0], energy[-1])
+        self.figure_scan.legend(loc='upper left')
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        self.canvas_scan.motor = self.hhm.energy
+        self.lineEdit_johann_energy_init.setText(f'{Ecen :0.3f}')
+
+
+    def johann_register_energy(self):
+        energy = float(self.lineEdit_johann_energy_init.text())
+        self.johann_emission.register_energy(energy)
+
+
+    def johann_set_energy_limits(self):
+        e_lo = float(self.lineEdit_johann_energy_lim_lo.text())
+        e_hi = float(self.lineEdit_johann_energy_lim_hi.text())
+        self.johann_emission.set_energy_limits(e_lo, e_hi)

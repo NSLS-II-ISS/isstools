@@ -136,25 +136,27 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
 
     def update_roi_labels(self):
-        for indx_ch in range(self.num_channels):
-            for indx_roi in range(self.num_rois):
-                for indx_lo_hi in range(2):
-                    label_name =self.label_roi_rbk.format(indx_ch+1, indx_roi+1, self.lo_hi[indx_lo_hi])
-                    label_object = getattr(self,label_name)
-                    value = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
-                    label_object.setText(str(value*10))
+        try:
+            for indx_ch in range(self.num_channels):
+                for indx_roi in range(self.num_rois):
+                    for indx_lo_hi in range(2):
+                        label_name =self.label_roi_rbk.format(indx_ch+1, indx_roi+1, self.lo_hi[indx_lo_hi])
+                        label_object = getattr(self,label_name)
+                        value = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
+                        label_object.setText(str(value*10))
 
-                    label_count_name = self.label_roi_counts.format(indx_ch + 1, indx_roi + 1)
-                    label_count_object = getattr(self, label_count_name)
-                    counts = int(self.get_roi_counts_signal( indx_ch+1, indx_roi+1).get())
-                    label_count_object.setText(str(counts))
-                    if counts < 400e3:
-                        label_count_object.setStyleSheet("background-color: lime")
-                    elif 400e3 < counts < 450e3:
-                        label_count_object.setStyleSheet("background-color: yellow")
-                    else:
-                        label_count_object.setStyleSheet("background-color: red")
-
+                        label_count_name = self.label_roi_counts.format(indx_ch + 1, indx_roi + 1)
+                        label_count_object = getattr(self, label_count_name)
+                        counts = int(self.get_roi_counts_signal( indx_ch+1, indx_roi+1).get())
+                        label_count_object.setText(str(counts))
+                        if counts < 400e3:
+                            label_count_object.setStyleSheet("background-color: lime")
+                        elif 400e3 < counts < 450e3:
+                            label_count_object.setStyleSheet("background-color: yellow")
+                        else:
+                            label_count_object.setStyleSheet("background-color: red")
+        except:
+            print('Failed to read ROI valuess')
 
     def update_spinboxes(self):
        # print('Updating spinboxes')

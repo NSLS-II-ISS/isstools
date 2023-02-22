@@ -1076,6 +1076,19 @@
         </property>
        </spacer>
       </item>
+      <item row="5" column="3">
+       <widget class="QPushButton" name="push_johann_set_limits">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Set limits</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
     <widget class="QPushButton" name="push_johann_move_motors">
@@ -2452,8 +2465,8 @@ scan</string>
       <rect>
        <x>10</x>
        <y>470</y>
-       <width>571</width>
-       <height>41</height>
+       <width>617</width>
+       <height>48</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_8">
@@ -2682,13 +2695,13 @@ scan</string>
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>520</y>
        <width>411</width>
-       <height>21</height>
+       <height>22</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
