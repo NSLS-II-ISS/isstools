@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMenu
 from isstools.elements.parameter_handler import parse_plan_parameters
 # from xas.trajectory import trajectory_manager
 from isstools.dialogs.BasicDialogs import message_box
+from isstools.dialogs import SelectNNeffPointsDialog
 from isstools.elements.batch_elements import *
 from isstools.elements.batch_elements import (_create_batch_experiment, _create_new_sample, _create_new_scan, _clone_scan_item, _clone_sample_item)
 import json
@@ -550,19 +551,25 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
 
     def check_n_unexposed_samples(self):
-        n_to_check = int(self.label_n_eff.text().split('=')[-1])
-        index_selected = self.treeWidget_samples.selectedIndexes()[0]
-        item = self.treeWidget_samples.itemFromIndex(index_selected)
-        if item.kind == 'sample_point':
-            item = item.parent()
-        n_checked = 0
-        for i in range(item.childCount()):
-            point = item.child(i)
-            if not point.is_exposed:
-                point.setCheckState(0, 2)
-                n_checked += 1
-            if n_checked == n_to_check:
-                break
+        dlg = SelectNNeffPointsDialog.SelectNNeffPointsDialog(parent=self)
+        if dlg.exec_():
+            try:
+                n_to_check = int(dlg.getValues())
+                # n_to_check = int(self.label_n_eff.text().split('=')[-1])
+                index_selected = self.treeWidget_samples.selectedIndexes()[0]
+                item = self.treeWidget_samples.itemFromIndex(index_selected)
+                if item.kind == 'sample_point':
+                    item = item.parent()
+                n_checked = 0
+                for i in range(item.childCount()):
+                    point = item.child(i)
+                    if not point.is_exposed:
+                        point.setCheckState(0, 2)
+                        n_checked += 1
+                    if n_checked == n_to_check:
+                        break
+            except:
+                pass
 
 
     def get_checked_sample_index_dict(self):
@@ -586,7 +593,12 @@ class UIBatch(*uic.loadUiType(ui_path)):
     def update_scan_tree(self):
         self.treeWidget_scans.clear()
         for i, scan in enumerate(self.scan_sequence_manager.scans):
-            scan_item = self._make_scan_item(scan['name'], i, force_unchecked=True, checkable=True)
+            n_eff = self._get_n_eff_for_scan(scan['scan_idx'])
+            if n_eff == 1:
+                scan_name = scan['name']
+            else:
+                scan_name = scan['name'] + f' (n_eff={n_eff})'
+            scan_item = self._make_scan_item(scan_name, i, force_unchecked=True, checkable=True)
             if scan['type'] == 'scan_sequence':
                 for j, scan_element in scan['scan_list']:
                     self._make_scan_item(scan_element['name'], j, parent=scan_item, force_unchecked=False, checkable=False)
@@ -642,7 +654,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
                 index_list.append(scan_item.index)
         return index_list
 
-    def update_n_eff_label(self, index):
+    def _get_n_eff_for_scan(self, index):
         try:
             local_scan_dict = self.scan_manager.scan_list_local[index]
             scan_key = local_scan_dict['aux_parameters']['scan_key']
@@ -653,6 +665,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
                 n_eff = 1
         except:
             n_eff = 1
+        return n_eff
+
+    def update_n_eff_label(self, index):
+        n_eff = self._get_n_eff_for_scan(index)
         self.label_n_eff.setText(f'n_eff={n_eff}')
 
     '''
@@ -828,7 +844,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         move_to_sample = menu.addAction("Mo&ve to sample")
         set_as_exposed = menu.addAction("Set as exposed")
         set_as_unexposed = menu.addAction("Set as unexposed")
-        check_n_unexposed_samples = menu.addAction("&Check N unexposed samples")
+        check_n_unexposed_samples = menu.addAction("&Check n x n_eff unexposed samples")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
         action = menu.exec_()
