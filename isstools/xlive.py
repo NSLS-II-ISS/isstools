@@ -20,7 +20,8 @@ from .widgets import (widget_info_general,
                       widget_sample_registry,
                       widget_spectrometer,
                       widget_plan_queue,
-                      widget_sample_manager)
+                      widget_sample_manager,
+                      widget_spectrometer_motors)
 
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
@@ -313,6 +314,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
+
+        print('widget spectrometer motors loading', ttime.ctime())
+        self.widget_spectrometer_motors = widget_spectrometer_motors.UISpectrometerMotors(RE,
+                                                                                          db,
+                                                                                          motor_dict,
+                                                                                          parent=self
+                                                                                          )
+        self.layout_spectrometer_motor_tab.addWidget(self.widget_spectrometer_motors)
 
 
         print('widget loading done', ttime.ctime())
