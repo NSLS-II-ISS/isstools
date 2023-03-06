@@ -21,10 +21,12 @@ from ..elements.elements import get_spectrometer_line_dict
 # from isstools.elements.liveplots import NormPlot
 from isstools.widgets import widget_emission_energy_selector
 from PyQt5.QtGui import QPixmap
+from isstools.widgets.widget_motors import UIWidgetMotors
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer_motors_tab.ui')
-spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spectrometer2.png')
+spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/unnamed.png')
+
 
 
 class UISpectrometerMotors(*uic.loadUiType(ui_path)):
@@ -62,6 +64,9 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
 
         self._huber_motors = ['huber_stage_y', 'huber_stage_z']
         self._huber_dict = {}
+
+        motor = UIWidgetMotors(self.RE, self.db, self.motor_dictonary, self.parent)
+        self.vertical_test_layout.addWidget(motor)
 
 
         for i, motor in enumerate(self._det_arm_motors):
@@ -216,10 +221,27 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         _step_text = f"{_desired_step:3.3f} mm"
         self._huber_dict[motor_key][motor_key + "_step"].setText(_step_text)
 
-    def update_readback(self):
-        pass
-
-
+    def update_readback(self, value, old_value):
+        print(f"{value = }, {old_value = }")
 
     def stop_motor(self, motor_key):
         self.motor_dictonary[motor_key]['object'].stop()
+
+
+
+
+
+# ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_motor_widget.ui')
+# class UIMotorWidget(*uic.loadUiType('/nsls2/data/iss/shared/config/repos/isstools/isstools/ui/ui_motor_widget.ui')):
+#     def __init__(self,
+#                  motor_dict=None,
+#                  parent=None,
+#                  *args, **kwargs
+#                  ):
+#         super().__init__(*args, **kwargs)
+#         self.setupUi(self)
+#
+#
+#
+# motor_widget = UIMotorWidget()
+# motor_widget.show()
