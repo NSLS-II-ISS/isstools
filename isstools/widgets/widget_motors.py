@@ -46,52 +46,53 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.db = db
         self.parent = parent
-        self.motor_dictonary = motor_dictionary
-
+        self.motor_dictionary = motor_dictionary
+        #
         motor ='huber_stage_y'
 
-        self.__motor = self.motor_dictonary[motor]['object']
+        self.__motor = self.motor_dictionary[motor]['object']
 
         self.motor_label = QLabel("")
 
+        self.motor_layout = self.horizontalLayout_motor
         self.motor_label.setText(motor)
-        self.motor_layout.addWidget(self.motor_label, 0, 0)
+        self.motor_layout.addWidget(self.motor_label)
 
         self.motor_mov_status = QLabel("      ")
         self.motor_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
-        self.motor_layout.addWidget(self.motor_mov_status, 1, 0)
+        self.motor_layout.addWidget(self.motor_mov_status)
 
         self.motor_set_point = QLineEdit("")
         _user_setpoint = f"{self.__motor.user_setpoint.get():3.3f} mm"
         self.motor_set_point.setText(_user_setpoint)
-        self.motor_layout.addWidget(self.motor_set_point, 2, 0)
+        self.motor_layout.addWidget(self.motor_set_point)
 
         self.motor_low_limit = QLabel("      ")
         self.motor_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        self.motor_layout.addWidget(self.motor_low_limit, 3, 0)
+        self.motor_layout.addWidget(self.motor_low_limit)
 
         self.motor_readback = QLineEdit("")
         self.motor_readback.setReadOnly(True)
         _user_readback = f"{self.__motor.user_readback.get():3.3f} mm"
         self.motor_readback.setText(_user_readback)
-        self.motor_layout.addWidget(self.motor_readback, 4, 0)
+        self.motor_layout.addWidget(self.motor_readback)
 
         self.motor_high_limit = QLabel("      ")
         self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        self.motor_layout.addWidget(self.motor_high_limit, 5, 0)
+        self.motor_layout.addWidget(self.motor_high_limit)
 
         self.motor_decrement = QPushButton("<")
-        self.motor_layout.addWidget(self.motor_decrement, 6, 0)
+        self.motor_layout.addWidget(self.motor_decrement)
 
         self.motor_step = QLineEdit("")
         self.motor_step.setText(str(1.00) + " mm")
-        self.motor_layout.addWidget(self.motor_step, 7, 0)
+        self.motor_layout.addWidget(self.motor_step)
 
         self.motor_increment = QPushButton(">")
-        self.motor_layout.addWidget(self.motor_increment, 8, 0)
+        self.motor_layout.addWidget(self.motor_increment)
 
         self.motor_stop = QPushButton("Stop")
-        self.motor_layout.addWidget(self.motor_stop, 9, 0)
+        self.motor_layout.addWidget(self.motor_stop)
 
 
 

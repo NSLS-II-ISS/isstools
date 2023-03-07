@@ -74,16 +74,16 @@
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
+  <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>340</y>
-     <width>661</width>
-     <height>201</height>
+     <y>380</y>
+     <width>741</width>
+     <height>211</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="vertical_test_layout"/>
+   <layout class="QGridLayout" name="gridLayout_test"/>
   </widget>
  </widget>
  <resources/>
