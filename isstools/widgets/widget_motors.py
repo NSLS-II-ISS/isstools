@@ -111,6 +111,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.motor_stop = QPushButton("Stop")
         self.motor_layout.addWidget(self.motor_stop)
+        self.motor_stop.clicked.connect(self.stop_the_motor)
 
 
     def update_readback(self):
@@ -201,3 +202,6 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
             self.motor_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
         else:
             self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
+
+    def stop_the_motor(self):
+        self.__motor.stop()
