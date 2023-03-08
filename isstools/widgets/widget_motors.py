@@ -32,6 +32,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
                  # johann_emission,
                  # detector_dictionary,
                  motor_dictionary,
+                 motor_name,
                  # shutter_dictionary,
                  # aux_plan_funcs,
                  # ic_amplifiers,
@@ -43,19 +44,20 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
                  ):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self.motor_name = motor_name
         self.RE = RE
         self.db = db
         self.parent = parent
         self.motor_dictionary = motor_dictionary
         #
-        motor ='huber_stage_y'
+        # motor ='huber_stage_y'
 
-        self.__motor = self.motor_dictionary[motor]['object']
+        self.__motor = self.motor_dictionary[self.motor_name]['object']
 
         self.motor_label = QLabel("")
 
         self.motor_layout = self.horizontalLayout_motor
-        self.motor_label.setText(motor)
+        self.motor_label.setText(self.motor_name)
         self.motor_layout.addWidget(self.motor_label)
 
         self.motor_mov_status = QLabel("      ")
