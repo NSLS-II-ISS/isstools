@@ -41,6 +41,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.sample_stage = sample_stage
         self.camera_dict = camera_dict
         self.settings = parent.settings
+        self.parent = parent
 
         self.camera1 = self.camera_dict['camera_sample1']
         self.camera2 = self.camera_dict['camera_sample2']
@@ -158,9 +159,20 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
         # self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
 
+        self.push_detach_tab.clicked.connect(self.detach_tab)
 
     # def mouseDoubleClickEvent(self, event):
 
+    def detach_tab(self):
+        self.detached_ui = UISampleManager(sample_stage=self.sample_stage,
+                 camera_dict=self.camera_dict,
+                 sample_manager=self.sample_manager,
+                 plan_processor=self.plan_processor,
+                 parent=self.parent,
+                 cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
+                 cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',)
+        self.detached_ui.show()
+        self.detached_ui.push_detach_tab.setEnabled(False)
 
     # motion control methods
 

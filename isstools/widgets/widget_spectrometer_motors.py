@@ -65,8 +65,8 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self._huber_motors = ['huber_stage_y', 'huber_stage_z']
         self._huber_dict = {}
 
-        motor = UIWidgetMotors(self.RE, self.db, self.motor_dictonary, self.parent)
-        self.gridLayout_test.addWidget(motor)
+        self._motor = UIWidgetMotors(self.RE, self.db, self.motor_dictonary, self.parent)
+        self.gridLayout_test.addWidget(self._motor)
 
 
         for i, motor in enumerate(self._det_arm_motors):

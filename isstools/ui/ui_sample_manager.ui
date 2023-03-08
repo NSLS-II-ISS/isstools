@@ -1338,8 +1338,8 @@
       <rect>
        <x>10</x>
        <y>140</y>
-       <width>381</width>
-       <height>311</height>
+       <width>371</width>
+       <height>321</height>
       </rect>
      </property>
      <property name="currentIndex">
@@ -1750,6 +1750,20 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="push_define_sample_points">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>220</y>
+         <width>101</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Define
+points</string>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
@@ -2711,18 +2725,17 @@
 sample</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="push_define_sample_points">
+    <widget class="QPushButton" name="push_detach_tab">
      <property name="geometry">
       <rect>
-       <x>290</x>
-       <y>460</y>
-       <width>101</width>
-       <height>51</height>
+       <x>230</x>
+       <y>480</y>
+       <width>141</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>Define
-points</string>
+      <string>Detach tab</string>
      </property>
     </widget>
    </widget>
@@ -2732,7 +2745,7 @@ points</string>
       <x>50</x>
       <y>910</y>
       <width>295</width>
-      <height>141</height>
+      <height>208</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_10">
