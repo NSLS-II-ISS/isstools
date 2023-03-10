@@ -20,190 +20,132 @@ from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
 from ..elements.elements import get_spectrometer_line_dict
 from isstools.widgets import widget_emission_energy_selector
 
+from isstools.dialogs.UpdateMotorLimit import UIUpdateMotorLimit
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_motor_widget.ui')
 
+
+
 class UIWidgetMotors(*uic.loadUiType(ui_path)):
     def __init__(self,
-                 RE,
-                 # plan_processor,
-                 # hhm,
-                 db,
-                 # johann_emission,
-                 # detector_dictionary,
-                 motor_dictionary,
-                 motor_name,
-                 # shutter_dictionary,
-                 # aux_plan_funcs,
-                 # ic_amplifiers,
-                 # service_plan_funcs,
-                 # tune_elements,
-                 # shutter_dictionary,
+                 this_motor_dictionary=None, # "this" is to emphasize that the dict is for a specific motor!
                  parent=None,
                  *args, **kwargs
                  ):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.motor_name = motor_name
-        self.RE = RE
-        self.db = db
         self.parent = parent
-        self.motor_dictionary = motor_dictionary
-        #
-        # motor ='huber_stage_y'
 
-        self.__motor = self.motor_dictionary[self.motor_name]['object']
+        self.motor_dict = this_motor_dictionary
+        self._motor_object = self.motor_dict['object']
 
-        self.motor_label = QLabel("")
+        self.label_motor_description = QLabel("")
 
-        self.motor_layout = self.horizontalLayout_motor
-        self.motor_label.setText(self.motor_name)
-        self.motor_layout.addWidget(self.motor_label)
+        self.layout_motor_widget = self.horizontalLayout_motor
+        self.label_motor_description.setText(self.motor_dict['description'])
+        self.layout_motor_widget.addWidget(self.label_motor_description)
 
-        self.motor_mov_status = QLabel("      ")
-        self.motor_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
-        self.motor_layout.addWidget(self.motor_mov_status)
+        self.label_mov_status = QLabel("      ")
+        self.label_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
+        self.layout_motor_widget.addWidget(self.label_mov_status)
 
-        self.motor_set_point = QLineEdit("")
-        _user_setpoint = f"{self.__motor.user_setpoint.get():3.3f} mm"
-        self.motor_set_point.setText(_user_setpoint)
-        self.motor_layout.addWidget(self.motor_set_point)
-        self.motor_set_point.returnPressed.connect(self.update_set_point)
+        self.lineEdit_setpoint = QLineEdit("")
+        _user_setpoint = f"{self._motor_object.user_setpoint.get():3.3f} { self._motor_object.egu}"
+        self.lineEdit_setpoint.setText(_user_setpoint)
+        self.layout_motor_widget.addWidget(self.lineEdit_setpoint)
+        self.lineEdit_setpoint.returnPressed.connect(self.update_set_point)
+        self._motor_object.user_setpoint.subscribe(self.update_set_point_value)
 
-        self.motor_low_limit = QLabel("      ")
-        self.motor_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        self.motor_layout.addWidget(self.motor_low_limit)
-        _current_high_limit = self.__motor.high_limit
-        _current_low_limit = self.__motor.low_limit
-        if _current_low_limit == 0.0 and _current_high_limit == 0.0:
-            pass
-        elif self.__motor.user_readback.get()-1 <= _current_low_limit:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
-        self.motor_layout.addWidget(self.motor_low_limit)
+        self.label_low_limit = QLabel("      ")
+        self.label_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
+        self._motor_object.low_limit_switch.subscribe(self.update_motor_llim_status)
+        self.layout_motor_widget.addWidget(self.label_low_limit)
 
-        self.motor_readback = QLineEdit("")
-        self.motor_readback.setReadOnly(True)
-        _user_readback = f"{self.__motor.user_readback.get():3.3f} mm"
-        self.motor_readback.setText(_user_readback)
-        self.__motor.user_readback.subscribe(self.update_readback)
-        self.motor_layout.addWidget(self.motor_readback)
+        self.label_motor_readback = QLineEdit("")
+        self._motor_object.user_readback.subscribe(self.update_readback)
+        self._motor_object.motor_is_moving.subscribe(self.update_moving_label)
+        self.layout_motor_widget.addWidget(self.label_motor_readback)
 
-        self.motor_high_limit = QLabel("      ")
-        self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        _current_high_limit = self.__motor.high_limit
-        _current_low_limit = self.__motor.low_limit
-        if _current_low_limit == 0.0 and _current_high_limit == 0.0:
-            pass
-        elif self.__motor.user_readback.get()+1 >= _current_high_limit:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
-        self.motor_layout.addWidget(self.motor_high_limit)
+        self.label_high_limit = QLabel("      ")
+        self.label_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
+        self._motor_object.high_limit_switch.subscribe(self.update_motor_hlim_status)
+        self.layout_motor_widget.addWidget(self.label_high_limit)
 
-        self.motor_decrement = QPushButton("<")
-        self.motor_layout.addWidget(self.motor_decrement)
-        self.motor_decrement.clicked.connect(self.update_decrement)
+        self.button_move_decrement = QPushButton("<")
+        self.layout_motor_widget.addWidget(self.button_move_decrement)
+        self.button_move_decrement.clicked.connect(self.update_decrement)
 
-        self.motor_step = QLineEdit("")
-        self.motor_step.setText(str(1.00) + " mm")
-        self.motor_layout.addWidget(self.motor_step)
-        self.motor_step.returnPressed.connect(self.update_step)
+        self.lineEdit_step = QLineEdit("")
+        self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
+        self.layout_motor_widget.addWidget(self.lineEdit_step)
+        self.lineEdit_step.returnPressed.connect(self.update_step)
 
-        self.motor_increment = QPushButton(">")
-        self.motor_layout.addWidget(self.motor_increment)
-        self.motor_increment.clicked.connect(self.update_increment)
+        self.button_move_increment = QPushButton(">")
+        self.layout_motor_widget.addWidget(self.button_move_increment)
+        self.button_move_increment.clicked.connect(self.update_increment)
 
-        self.motor_stop = QPushButton("Stop")
-        self.motor_layout.addWidget(self.motor_stop)
-        self.motor_stop.clicked.connect(self.stop_the_motor)
+        self.button_stop_motor = QPushButton("Stop")
+        self.layout_motor_widget.addWidget(self.button_stop_motor)
+        self.button_stop_motor.clicked.connect(self.stop_the_motor)
+
+        self.button_change_limts = QPushButton("Change limit")
+        self.layout_motor_widget.addWidget(self.button_change_limts)
+        self.button_change_limts.clicked.connect(self.update_lo_hi_limit)
 
 
-    def update_readback(self):
-        _current_readback = self.__motor.user_readback.get()
-        self.motor_readback.setText(f"{_current_readback:3.3f} mm")
 
-
-    def update_step(self):
-        _user_step_reading = self.motor_step.text()
-        _step_convert = float(_user_step_reading.split()[0])
-        _step_text = f"{_step_convert:3.3f} mm"
-        self.motor_step.setText(_step_text)
-
-    def update_decrement(self):
-        _current_step_reading = self.motor_step.text()
-        _step = float(_current_step_reading.split()[0])
-
-        _current_readback = self.__motor.user_readback.get()
-        _set_obj = self.__motor.set(_current_readback - _step)
-        while not _set_obj.done:
-            self.motor_mov_status.setStyleSheet('background-color: rgb(95,249,95)')
-        self.motor_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
-        _current_readback = self.__motor.user_readback.get()
-        self.motor_set_point.setText(f"{_current_readback:3.3f} mm")
-        self.motor_readback.setText(f"{_current_readback:3.3f} mm")
-
-        _current_high_limit = self.__motor.high_limit
-        _current_low_limit = self.__motor.low_limit
-        if _current_low_limit == 0.0 and _current_high_limit == 0.0:
-            pass
-        if self.__motor.user_readback.get()-1 <= _current_low_limit:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
+    def update_moving_label(self, value, **kwargs):
+        if value == 1:
+            self.label_mov_status.setStyleSheet('background-color: rgb(95,249,95)')
         else:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        if self.__motor.user_readback.get()+1 >= _current_high_limit:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
-        else:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
-
-    def update_increment(self):
-        _current_step_reading = self.motor_step.text()
-        _step = float(_current_step_reading.split()[0])
-
-        _current_readback = self.__motor.user_readback.get()
-        _set_obj = self.__motor.set(_current_readback + _step)
-        while not _set_obj.done:
-            self.motor_mov_status.setStyleSheet('background-color: rgb(95,249,95)')
-        self.motor_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
-        _current_readback = self.__motor.user_readback.get()
-        self.motor_set_point.setText(f"{_current_readback:3.3f} mm")
-        self.motor_readback.setText(f"{_current_readback:3.3f} mm")
-
-        _current_high_limit = self.__motor.high_limit
-        _current_low_limit = self.__motor.low_limit
-        if _current_low_limit == 0.0 and _current_high_limit == 0.0:
-            pass
-        if self.__motor.user_readback.get()-1 <= _current_low_limit:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
-        else:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        if self.__motor.user_readback.get()+1 >= _current_high_limit:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
-        else:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
-
-
+            self.label_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
 
     def update_set_point(self):
-        _read_desired_setpoint = self.motor_set_point.text()
+        _read_desired_setpoint = self.lineEdit_setpoint.text()
         _desired_setpoint = float(_read_desired_setpoint.split()[0])
-        _set_obj = self.__motor.set(_desired_setpoint)
-        while not _set_obj.done:
-            self.motor_mov_status.setStyleSheet('background-color: rgb(95,249,95)')
-        self.motor_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
-        _current_readback = self.__motor.user_readback.get()
-        self.motor_set_point.setText(f"{_current_readback:3.3f} mm")
-        self.motor_readback.setText(f"{_current_readback:3.3f} mm")
+        _set_obj = self._motor_object.set(_desired_setpoint)
 
-        _current_high_limit = self.__motor.high_limit
-        _current_low_limit = self.__motor.low_limit
-        if _current_low_limit == 0.0 and _current_high_limit == 0.0:
-            pass
-        if self.__motor.user_readback.get()-1 <= _current_low_limit:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
+    def update_set_point_value(self, value, **kwargs):
+        self.lineEdit_setpoint.setText(f"{value:3.3f} {self._motor_object.egu}")
+
+    def update_readback(self, value, **kwargs):
+        self.label_motor_readback.setText(f"{value:3.3f} {self._motor_object.egu}")
+
+    def update_motor_hlim_status(self, value, **kwargs):
+        if value == 1:
+            self.label_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
         else:
-            self.motor_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
-        if self.__motor.user_readback.get()+1 >= _current_high_limit:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
+            self.label_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
+
+    def update_motor_llim_status(self, value, **kwargs):
+        if value == 1:
+            self.label_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
         else:
-            self.motor_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
+            self.label_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
+
+    def update_decrement(self):
+        _current_step_reading = self.lineEdit_step.text()
+        _step = float(_current_step_reading.split()[0])
+
+        _current_readback = self._motor_object.position
+        _set_obj = self._motor_object.set(_current_readback - _step)
+
+    def update_step(self):
+        _user_step_reading = self.lineEdit_step.text()
+        _step_convert = float(_user_step_reading.split()[0])
+        _step_text = f"{_step_convert:3.3f} {self._motor_object.egu}"
+        self.lineEdit_step.setText(_step_text)
+
+    def update_increment(self):
+        _current_step_reading = self.lineEdit_step.text()
+        _step = float(_current_step_reading.split()[0])
+
+        _current_readback = self._motor_object.position
+        _set_obj = self._motor_object.set(_current_readback + _step)
 
     def stop_the_motor(self):
-        self.__motor.stop()
+        self._motor_object.stop()
+
+    def update_lo_hi_limit(self):
+        UIUpdateMotorLimit(self.parent, self._motor_object)
+

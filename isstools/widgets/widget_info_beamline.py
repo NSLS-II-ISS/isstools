@@ -203,9 +203,11 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
 
     def update_beam_current(self, **kwargs):
+        # return
         self.label_beam_current.setText('Beam current is {:.1f} mA'.format(kwargs['value']))
 
     def update_accelerator_status(self, **kwargs):
+        # return
         if kwargs['value'] == 0:
             self.label_accelerator_status.setText('Beam available')
             self.label_accelerator_status.setStyleSheet('color: rgb(19,139,67)')
