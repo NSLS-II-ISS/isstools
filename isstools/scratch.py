@@ -1547,8 +1547,3 @@ plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
 
 
 
-
-
-
-
-
