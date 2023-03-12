@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1604</width>
-    <height>996</height>
+    <height>643</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,8 +64,8 @@
   <widget class="QLabel" name="label_image">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>60</y>
+     <x>840</x>
+     <y>40</y>
      <width>861</width>
      <height>691</height>
     </rect>
@@ -79,8 +79,8 @@
     <rect>
      <x>20</x>
      <y>370</y>
-     <width>691</width>
-     <height>181</height>
+     <width>791</width>
+     <height>91</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_det_stage"/>

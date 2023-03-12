@@ -21,6 +21,7 @@ from ..elements.elements import get_spectrometer_line_dict
 from isstools.widgets import widget_emission_energy_selector
 
 from isstools.dialogs.UpdateMotorLimit import UIUpdateMotorLimit
+#
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_motor_widget.ui')
 
@@ -147,5 +148,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self._motor_object.stop()
 
     def update_lo_hi_limit(self):
-        UIUpdateMotorLimit(self.parent, self._motor_object)
+        dlg = UIUpdateMotorLimit("", self._motor_object, parent=self)
 
+        if dlg.exec_():
+            pass
