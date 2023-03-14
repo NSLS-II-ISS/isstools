@@ -1,50 +1,21 @@
 import pkg_resources
-from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QThread, QSettings
-from PyQt5.Qt import  QObject
-from bluesky.callbacks import LivePlot
-from bluesky.callbacks.mpl_plotting import LiveScatter
-import bluesky.plan_stubs as bps
-import bluesky.plans as bp
-import numpy as np
-from functools import partial
-from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit
-
-from isstools.dialogs import MoveMotorDialog
-from isstools.dialogs.BasicDialogs import question_message_box
-from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
-from isstools.elements.transformations import  range_step_2_start_stop_nsteps
-from isstools.widgets import widget_johann_tools
-from xas.spectrometer import analyze_elastic_scan
-from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
-from ..elements.elements import get_spectrometer_line_dict
-# from isstools.elements.liveplots import NormPlot
-from isstools.widgets import widget_emission_energy_selector
+from PyQt5 import uic, QtWidgets, QtGui, QtCore
 from PyQt5.QtGui import QPixmap
 from isstools.widgets.widget_motors import UIWidgetMotors
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer_motors_tab.ui')
-spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/unnamed.png')
+spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
+spectrometer_image2 = pkg_resources.resource_filename('isstools', 'Resources/spec_image2.png')
 
 
 
 class UISpectrometerMotors(*uic.loadUiType(ui_path)):
     def __init__(self,
                  RE,
-                 # plan_processor,
-                 # hhm,
                  db,
-                 # johann_emission,
-                 # detector_dictionary,
-                 motor_dictionary,
-                 # shutter_dictionary,
-                 # aux_plan_funcs,
-                 # ic_amplifiers,
-                 # service_plan_funcs,
-                 # tune_elements,
-                 # shutter_dictionary,
-                 parent=None,
+                              motor_dictionary,
+                parent=None,
                  *args, **kwargs
                  ):
         super().__init__(*args, **kwargs)
@@ -53,10 +24,16 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self.db = db
         self.parent = parent
         self.motor_dictonary = motor_dictionary
-        # pixmap = QPixmap(spectrometer_image1)
-        # self.label_image.setPixmap(pixmap)
-        # self.label_image.resize(pixmap.width(),
-        #                   pixmap.height())
+
+        pixmap = QPixmap(spectrometer_image1)
+        pixmap = pixmap.scaled(1000, 700, QtCore.Qt.KeepAspectRatio)
+        self.label_spectrometer_image_1.setPixmap(pixmap)
+
+
+        pixmap = QPixmap(spectrometer_image2)
+        pixmap = pixmap.scaled(900, 400, QtCore.Qt.KeepAspectRatio)
+        self.label_spectrometer_image_2.setPixmap(pixmap)
+        # self.label_spectrometer_image_2.resize(pixmap.width(), pixmap.height())
 
         self._det_arm_parent = self.motor_dictonary['johann_det_focus']['object'].parent
         self._det_arm_motors = ['motor_det_x', 'motor_det_th1', 'motor_det_th2']
@@ -65,9 +42,9 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self._huber_motors = ['huber_stage_y', 'huber_stage_z']
         self._huber_dict = {}
 
-        for motor in self._huber_motors:
-            self.verticalLayout_det_stage.addWidget(UIWidgetMotors(self.motor_dictonary[motor],
-                                                                   self.parent))
+        # for motor in self._huber_motors:
+        #     self.verticalLayout_det_stage.addWidget(UIWidgetMotors(self.motor_dictonary[motor],
+        #                                                            self.parent))
 
 
 

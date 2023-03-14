@@ -195,8 +195,11 @@
          <property name="decimals">
           <number>3</number>
          </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
          <property name="value">
-          <double>0.080000000000000</double>
+          <double>0.040000000000000</double>
          </property>
         </widget>
        </item>
@@ -284,7 +287,7 @@
           <number>3</number>
          </property>
          <property name="value">
-          <double>0.004000000000000</double>
+          <double>0.002000000000000</double>
          </property>
         </widget>
        </item>
@@ -2042,8 +2045,8 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>350</y>
-       <width>571</width>
+       <y>340</y>
+       <width>581</width>
        <height>51</height>
       </rect>
      </property>
@@ -2243,8 +2246,8 @@ offset</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>410</y>
-       <width>571</width>
+       <y>400</y>
+       <width>581</width>
        <height>51</height>
       </rect>
      </property>
@@ -2464,8 +2467,8 @@ scan</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>470</y>
-       <width>617</width>
+       <y>460</y>
+       <width>581</width>
        <height>48</height>
       </rect>
      </property>
@@ -2700,7 +2703,7 @@ scan</string>
       <rect>
        <x>10</x>
        <y>520</y>
-       <width>411</width>
+       <width>331</width>
        <height>22</height>
       </rect>
      </property>
@@ -2780,6 +2783,68 @@ scan</string>
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QPushButton" name="push_johann_plot_alignment_data">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>510</y>
+       <width>100</width>
+       <height>40</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>1000</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>plot
+alignement data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="push_johann_reset_alignment_data">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>510</y>
+       <width>100</width>
+       <height>40</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>1000</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>reset
+alignement data</string>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_6">

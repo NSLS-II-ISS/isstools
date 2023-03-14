@@ -6,84 +6,38 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1604</width>
-    <height>643</height>
+    <width>1611</width>
+    <height>858</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QGroupBox" name="groupBox_2">
+  <widget class="QLabel" name="label_spectrometer_image_1">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>761</width>
-     <height>171</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>HRS Goinometer</string>
-   </property>
-   <widget class="QWidget" name="gridLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>30</y>
-      <width>701</width>
-      <height>122</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout_hrs_goinometer"/>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_3">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>180</y>
-     <width>761</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Detector Stage 1</string>
-   </property>
-   <widget class="QWidget" name="gridLayoutWidget_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>30</y>
-      <width>701</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout_det_stage1"/>
-   </widget>
-  </widget>
-  <widget class="QLabel" name="label_image">
-   <property name="geometry">
-    <rect>
-     <x>840</x>
-     <y>40</y>
-     <width>861</width>
-     <height>691</height>
+     <width>711</width>
+     <height>671</height>
     </rect>
    </property>
    <property name="text">
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
+  <widget class="QLabel" name="label_spectrometer_image_2">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>370</y>
-     <width>791</width>
-     <height>91</height>
+     <x>720</x>
+     <y>20</y>
+     <width>891</width>
+     <height>411</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_det_stage"/>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
   </widget>
  </widget>
  <resources/>

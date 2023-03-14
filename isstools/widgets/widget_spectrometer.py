@@ -7,6 +7,7 @@ from bluesky.callbacks.mpl_plotting import LiveScatter
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
+import pandas as pd
 
 from isstools.dialogs import MoveMotorDialog
 from isstools.dialogs.BasicDialogs import question_message_box
@@ -161,6 +162,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
         self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
 
+        self.johann_alignment_data = []
+        self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
+        self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
 
 # general handling of gui elements, plotting, and scanning
 
@@ -194,6 +198,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         for motor_key, motor_dict in self.motor_dictionary.items():
             if motor_name == motor_dict['object'].name:
                 self.canvas_scan.motor = motor_dict['object']
+
+    def _set_canvas_proc_motor_from_description(self, motor_description):
+        for motor_key, motor_dict in self.motor_dictionary.items():
+            if motor_description == motor_dict['description']:
+                self.canvas_proc.motor = motor_dict['object']
 
     def start_gen_scan_figure(self):
         update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
@@ -350,27 +359,19 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     # def gen_detector_selected(self):
     #     self._detector_selected(self.comboBox_gen_detectors, self.comboBox_gen_channels)
 
-
     def getX_proc(self, event):
         print(f'Event {event.button}')
         if event.button == 3:
-            if self.widget_johann_tools._cur_alignment_motor:
-                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata,
-                                                      motor=self.widget_johann_tools._cur_alignment_motor,
-                                                      parent=self.canvas_proc)
+            if self.canvas_proc.motor != '':
+                dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_proc.motor,
+                                                          parent=self.canvas_proc)
                 if dlg.exec_():
                     pass
 
 
-
     def update_scan_figure_for_energy_scan(self, E, I_fit_raw):
-        # managing figures
         self.canvas_scan.mpl_disconnect(self.cid_scan)
-
         self.figure_scan.ax.plot(E, I_fit_raw, 'r-')
-
-        # managing figures
-
         self.figure_scan.tight_layout()
         self.canvas_scan.draw_idle()
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
@@ -579,6 +580,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
 
     def run_johann_energy_scan(self):
+        motor_name = self.comboBox_johann_tweak_motor.currentText()
+        motor_pos = self.doubleSpinBox_johann_tweak_motor_pos.value()
+        motor_info = f'{motor_name}={motor_pos}'
         e_cen = self.doubleSpinBox_johann_energy_scan_center.value()
         e_width = self.doubleSpinBox_johann_energy_scan_range.value()
         e_velocity = self.doubleSpinBox_johann_energy_scan_speed.value()
@@ -589,13 +593,20 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                        'e_width': e_width,
                        'e_velocity': e_velocity,
                        'rois': rois,
+                       'motor_info' : motor_info,
                        'plan_gui_services': plan_gui_services,
                        'liveplot_kwargs': {'tab' : 'spectrometer'}}
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-    def _update_figure_with_resolution_data(self, energy, intensity, intensity_fit, Ecen, fwhm, roi_label='roi1', roi_color='tab:blue'):
+    def _update_figure_with_resolution_data(self, energy, intensity, intensity_fit, ecen, fwhm, roi_label='roi1', roi_color='tab:blue'):
         self.figure_scan.ax.plot(energy, intensity, '.', label=f'{roi_label}', color=roi_color, ms=15)
         self.figure_scan.ax.plot(energy, intensity_fit, '-', color=roi_color)
+
+        e_lo = ecen - fwhm / 2
+        e_hi = ecen + fwhm / 2
+        self.figure_scan.ax.plot([e_lo, e_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
+        self.figure_scan.ax.text(ecen, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
+
         self.figure_scan.ax.set_xlabel('Energy')
         self.figure_scan.ax.set_ylabel('intensity')
         self.figure_scan.ax.set_xlim(energy[0], energy[-1])
@@ -603,7 +614,54 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.figure_scan.tight_layout()
         self.canvas_scan.draw_idle()
         self.canvas_scan.motor = self.hhm.energy
-        self.lineEdit_johann_energy_init.setText(f'{Ecen :0.3f}')
+        self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
+
+        self.update_johann_alignment_data(ecen, fwhm)
+        # self.plot_johann_alignment_data(purpose='alignment')
+
+    def update_johann_alignment_data(self, ecen, fwhm):
+        current_pos = {}
+        for motor_desc in self.johann_motor_list:
+            for motor_key, motor_dict in self.motor_dictionary.items():
+                if motor_desc == motor_dict['description']:
+                    current_pos[motor_desc] = motor_dict['object'].position
+        current_pos['fwhm'] = fwhm
+        current_pos['ecen'] = ecen
+        self.johann_alignment_data.append(current_pos)
+
+
+    def johann_reset_alignment_data(self):
+        self.johann_alignment_data = []
+
+    def johann_plot_alignment_data(self):
+        self.canvas_proc.mpl_disconnect(self.cid_proc)
+        update_figure([self.figure_proc.ax], self.toolbar_proc, self.canvas_proc)
+
+        df = pd.DataFrame(self.johann_alignment_data)
+        motor_key = self.comboBox_johann_tweak_motor.currentText()
+        fwhm = df['fwhm'].values
+        ecen = df['ecen'].values
+        res = np.sqrt(fwhm ** 2 - (1.3e-4 * ecen) ** 2)
+        x = df[motor_key].values
+        self.figure_proc.ax.plot(x, fwhm, 'o')
+        self.figure_proc.ax.plot(x, res, '+')
+        self.figure_proc.ax.set_ylabel('FWHM/resolution, eV')
+        self.figure_proc.ax.set_xlabel(motor_key)
+
+        self.figure_proc.tight_layout()
+        self.canvas_proc.draw_idle()
+
+        self._set_canvas_proc_motor_from_description(motor_key)
+
+        self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
+
+
+
+
+
+
+
+
 
 
     def johann_register_energy(self):

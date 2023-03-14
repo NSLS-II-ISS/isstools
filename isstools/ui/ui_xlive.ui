@@ -230,10 +230,10 @@
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>1606</width>
-        <height>781</height>
+        <x>5</x>
+        <y>10</y>
+        <width>1621</width>
+        <height>901</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_spectrometer_motor_tab">

@@ -1539,9 +1539,153 @@ plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
 
 
 #####
+{'R': 1000.0,
+ 'crystal': 'Si',
+ 'hkl': [4, 4, 4],
+ 'parking': {'motor_det_x': -77.000020062,
+  'motor_det_th1': 0.0,
+  'motor_det_th2': 0.0,
+  'motor_cr_assy_x': -2.00002624199999,
+  'motor_cr_assy_y': 7.181946,
+  'motor_cr_main_roll': 690.0,
+  'motor_cr_main_yaw': -530.0,
+  'motor_cr_aux2_x': 500.0,
+  'motor_cr_aux2_y': -8500.0,
+  'motor_cr_aux2_roll': 1419.5590000000002,
+  'motor_cr_aux2_yaw': -1500.0,
+  'motor_cr_aux3_x': 0.0,
+  'motor_cr_aux3_y': -8900.0,
+  'motor_cr_aux3_roll': 675.0,
+  'motor_cr_aux3_yaw': -669.0},
+ 'roll_offset': 11.5,
+ 'det_offsets': {'motor_det_th1': 68.99965625,
+  'motor_det_th2': -69.00037499999999},
+ 'det_focus': 0,
+ 'bragg_registration': {'pos_nom': {'motor_det_x': [334.4600322545085,
+    317.62099359656884],
+   'motor_det_th1': [13.096080690830279, 15.936569586645653],
+   'motor_det_th2': [-34.32499406664143, -35.616414404344425],
+   'motor_cr_assy_x': [980.8881028093502, 983.2884739323885],
+   'motor_cr_assy_y': [7.181946, 7.181946],
+   'motor_cr_main_roll': [1575.543312094427, 2350.0775911506107],
+   'motor_cr_main_yaw': [-530.0, -530.0],
+   'motor_cr_aux2_x': [326.25448957738524, 351.0094925460646],
+   'motor_cr_aux2_y': [-6634.989561109456, -6778.195096462492],
+   'motor_cr_aux2_roll': [2250.187478968526, 3029.0644857229718],
+   'motor_cr_aux2_yaw': [-767.8571823665584, -876.5198357122512],
+   'motor_cr_aux3_x': [-173.74551042261476, -148.99050745393538],
+   'motor_cr_aux3_y': [-7034.989561109456, -7178.195096462492],
+   'motor_cr_aux3_roll': [1505.628478968526, 2284.5054857229716],
+   'motor_cr_aux3_yaw': [-1401.1428176334416, -1292.4801642877487]},
+  'pos_act': {'motor_det_x': [332.37822977049996, 315.922167102],
+   'motor_det_th1': [13.0546875, 15.83125],
+   'motor_det_th2': [-34.306875, -35.56875],
+   'motor_cr_assy_x': [978.2943207475, 980.6431459785],
+   'motor_cr_assy_y': [7.181946, 7.181946],
+   'motor_cr_main_roll': [1495.003, 2264.01],
+   'motor_cr_main_yaw': [-605.001, -605.001],
+   'motor_cr_aux2_x': [-1221.211, -1196.987],
+   'motor_cr_aux2_y': [-6632.828, -6772.867],
+   'motor_cr_aux2_roll': [2080.518, 2834.822],
+   'motor_cr_aux2_yaw': [-1196.151, -1279.853],
+   'motor_cr_aux3_x': [-5189.861, -5165.637],
+   'motor_cr_aux3_y': [-7032.07, -7172.109],
+   'motor_cr_aux3_roll': [799.7520000000001, 1558.823],
+   'motor_cr_aux3_yaw': [-1267.838, -1168.337]}},
+ 'energy_calibration': {'x_nom': [], 'x_act': [], 'n_poly': 2},
+ 'enabled_crystals': {'main': True, 'aux2': True, 'aux3': True},
+ 'initialized': True}
+#######
+
+
+# johann_x = [-5, -2.329, 0.00, 2.5, 5]
+# uids = ['7dfc734d-f160-41f4-873b-d580997d494d',
+#         '7e7ff753-14b6-4cd0-bc32-e4e60f2cf2f1',
+#         'd22bf7eb-68e7-4879-bca5-f6f44c3c0b52',
+#         'abcd3a49-2b86-4088-99ff-e895e495bdb0',
+#         '22f37dfb-a49f-4f2b-8cab-63fa518aa9bb']
+
+def estimate_center_and_width_of_peak(E, I):
+    E_cen = E[np.argmax(np.abs(I))]
+    # E_cen = np.sum(E * I) / np.sum(I)
+    # x = np.abs(I - 0.5)
+    e_low = E < E_cen
+    e_high = E > E_cen
+    x1 = np.interp(0.5, I[e_low], E[e_low])
+    x2 = np.interp(0.5, I[e_high][np.argsort(I[e_high])], E[e_high][np.argsort(I[e_high])])
+    # x1 = E[e_low][np.argmin(x[e_low])]
+    # x2 = E[e_high][np.argmin(x[e_high])]
+    fwhm = np.abs(x1 - x2)
+    return E_cen, fwhm, x1, x2
+
+def smooth_any_peak(x, y, n=4):
+    # neglog_y = -np.log(y)
+    # p = np.polyfit(x, neglog_y, n)
+    # neglog_y_fit = np.polyval(p, x)
+    # neglog_y_fit = savgol_filter(neglog_y, 5, 3)
+    # y_fit = np.exp(-neglog_y_fit)
+    y_fit = savgol_filter(y, 5, 3)
+    return x, y, y_fit
+
+johann_x = [-7.5, -5, -2.5, 0.0, 2.5, 5.0]
+uids = ['6eb8993b-cd62-4e0a-8f31-7c8276ee4002',
+        'fcce2176-d988-4522-b437-aa3201bd94f9',
+        '031fc6a4-d640-44a9-a41b-b100b0928c1b',
+        '900e5986-c92a-48ee-99bc-6caa7065f722',
+        '640405f3-9daa-4fc9-9246-8268d41f3e5e',
+        '159ffcc2-c3ce-4244-98c4-e3791e950252']
+elastic_fwhm = [1.139, 1.170, 1.181, 1.282, 1.367, 1.425]
+elastic_ecen = [8046.325, 8046.195, 8046.091, 8045.986, 8045.914, 8045.850]
+
+e_cen = []
+e_fwhm = []
+int_max = []
+
+plt.figure(1, clear=True)
+plt.subplot(221)
+for uid in uids:
+    t = db[uid].table()
+    _roll = t.johann_main_crystal_motor_cr_main_roll.values
+    _intensity = t.pil100k_stats1_total.values
+
+    _intensity_smooth = savgol_filter(_intensity, 5, 3)
+    _e_cen, _e_fwhm, _e1, _e2 = estimate_center_and_width_of_peak(_roll, _intensity_smooth / _intensity_smooth.max())
+    e_cen.append(_e_cen)
+    e_fwhm.append(_e_fwhm)
+    # int_max.append(_intensity.max())
+    int_max.append(np.mean(np.sort(_intensity_smooth)[-3:]))
+
+    # plt.plot(_roll - _e_cen, _intensity)
+    # plt.plot([_e1 - _e_cen, _e1 - _e_cen], [0, 1], 'k-')
+    # plt.plot([_e2 - _e_cen, _e2 - _e_cen], [0, 1], 'k-')
+
+    plt.plot(_roll, _intensity, 'k.')
+    plt.plot(_roll, _intensity_smooth, '-')
+    plt.plot([_e1, _e1], [0, 1], 'k-')
+    plt.plot([_e2, _e2], [0, 1], 'k-')
+# plt.plot([-120, 120], [0.5, 0.5], 'k--')
+
+plt.subplot(222)
+plt.plot(johann_x, int_max, 'k.-')
+
+ax = plt.subplot(224)
+ax1 = ax.twinx()
+ax.plot(johann_x, e_fwhm, 'r-')
+ax1.plot(johann_x, elastic_fwhm, 'b-')
+
+plt.subplot(223)
+plt.plot(elastic_ecen, e_cen, 'k.-')
 
 
 
+##
+from scipy.signal import savgol_filter
+
+
+x, y, y_fit = fit_any_peak(_roll, _intensity, n=7)
+plt.figure(2, clear=True)
+plt.plot(x, y)
+plt.plot(x, y_fit)
 
 
 
