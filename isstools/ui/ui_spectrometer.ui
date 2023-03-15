@@ -16,9 +16,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_10">
    <property name="geometry">
     <rect>
-     <x>660</x>
+     <x>930</x>
      <y>10</y>
-     <width>921</width>
+     <width>651</width>
      <height>441</height>
     </rect>
    </property>
@@ -27,9 +27,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_11">
    <property name="geometry">
     <rect>
-     <x>660</x>
+     <x>950</x>
      <y>480</y>
-     <width>921</width>
+     <width>631</width>
      <height>451</height>
     </rect>
    </property>
@@ -678,9 +678,9 @@
     <widget class="Line" name="line_8">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>220</x>
        <y>10</y>
-       <width>501</width>
+       <width>371</width>
        <height>20</height>
       </rect>
      </property>
@@ -1139,13 +1139,13 @@ Geometry</string>
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>55</width>
+       <width>201</width>
        <height>24</height>
       </rect>
      </property>
      <property name="maximumSize">
       <size>
-       <width>55</width>
+       <width>10000</width>
        <height>24</height>
       </size>
      </property>
@@ -1156,7 +1156,7 @@ Geometry</string>
       </font>
      </property>
      <property name="text">
-      <string>Parking</string>
+      <string>Optical prealignment / Setup</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1250,151 +1250,14 @@ Geometry</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
+       <y>90</y>
        <width>581</width>
-       <height>114</height>
+       <height>62</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
-      <item row="1" column="6">
-       <widget class="QLabel" name="label_qrcode_30">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>deg</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_th1_detector">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_roll_crystal">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QLabel" name="label_qrcode_21">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Roll</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="7">
-       <widget class="QLabel" name="label_qrcode_13">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Yaw</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="6">
-       <widget class="QLabel" name="label_qrcode_33">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>deg</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="5">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_th2_detector">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="4">
-       <widget class="QLabel" name="label_qrcode_32">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>deg</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QLabel" name="label_qrcode_29">
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_johann_parking_element_unit_1">
         <property name="maximumSize">
          <size>
           <width>55</width>
@@ -1406,247 +1269,25 @@ Geometry</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="5">
-       <widget class="QLabel" name="label_qrcode_26">
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Gon 2</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" rowspan="2">
-       <widget class="QLabel" name="label_qrcode_23">
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Detector</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="7">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_yaw_crystal">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_x_detector">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
         </property>
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_y_crystal">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_parking_element_position_2">
         <property name="enabled">
          <bool>false</bool>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <double>-20000.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QComboBox" name="comboBox_johann_crystal">
         <property name="maximumSize">
          <size>
           <width>70</width>
           <height>24</height>
          </size>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_qrcode_27">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>mm</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="QLabel" name="label_qrcode_28">
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>mm</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="spinBox_johann_park_x_crystal">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>55</width>
-          <height>24</height>
-         </size>
-        </property>
         <property name="minimum">
          <double>-20000.000000000000000</double>
         </property>
         <property name="maximum">
          <double>20000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <spacer name="verticalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="3" column="3">
-       <widget class="QLabel" name="label_qrcode_25">
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Gon 1</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_qrcode_19">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>X</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="9" rowspan="2">
-       <widget class="QPushButton" name="push_update_detector_parking">
-        <property name="maximumSize">
-         <size>
-          <width>60</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Park
-detector</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="label_qrcode_24">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>X</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="label_qrcode_20">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Y</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -1659,15 +1300,35 @@ detector</string>
          </size>
         </property>
         <property name="text">
-         <string>Crystal</string>
+         <string>Element</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="1" column="8">
-       <widget class="QLabel" name="label_qrcode_31">
+      <item row="0" column="9" rowspan="2">
+       <widget class="QPushButton" name="push_johann_parking_element_update">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Record
+90 deg
+position</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="6">
+       <widget class="QLabel" name="label_johann_parking_element_unit_3">
         <property name="maximumSize">
          <size>
           <width>55</width>
@@ -1682,31 +1343,166 @@ detector</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="10" rowspan="2">
-       <widget class="QPushButton" name="push_johann_home_crystals">
+      <item row="1" column="8">
+       <widget class="QLabel" name="label_johann_parking_element_unit_4">
         <property name="maximumSize">
          <size>
-          <width>60</width>
-          <height>40</height>
+          <width>55</width>
+          <height>24</height>
          </size>
         </property>
         <property name="text">
-         <string>Home
-piezos</string>
+         <string>deg</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="9" rowspan="2">
-       <widget class="QPushButton" name="push_johann_update_crystal_parking">
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_parking_element_position_1">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="maximumSize">
          <size>
-          <width>60</width>
-          <height>40</height>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QLabel" name="label_johann_parking_element_unit_2">
+        <property name="maximumSize">
+         <size>
+          <width>55</width>
+          <height>24</height>
          </size>
         </property>
         <property name="text">
-         <string>Park
-crystal</string>
+         <string>mm</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_parking_element_position_3">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QComboBox" name="comboBox_johann_element_parking">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="7">
+       <widget class="QDoubleSpinBox" name="spinBox_johann_parking_element_position_4">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <double>-20000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>20000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="2">
+       <widget class="QLabel" name="label_johann_parking_element_name_1">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3" colspan="2">
+       <widget class="QLabel" name="label_johann_parking_element_name_2">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Y</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5" colspan="2">
+       <widget class="QLabel" name="label_johann_parking_element_name_3">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Roll</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7" colspan="2">
+       <widget class="QLabel" name="label_johann_parking_element_name_4">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Yaw</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -2703,7 +2499,7 @@ scan</string>
       <rect>
        <x>10</x>
        <y>520</y>
-       <width>331</width>
+       <width>361</width>
        <height>22</height>
       </rect>
      </property>
@@ -2712,7 +2508,7 @@ scan</string>
        <widget class="QLabel" name="label_142">
         <property name="minimumSize">
          <size>
-          <width>200</width>
+          <width>100</width>
           <height>0</height>
          </size>
         </property>
@@ -2844,6 +2640,64 @@ alignement data</string>
      <property name="text">
       <string>reset
 alignement data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="push_johann_home_crystals">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>130</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Home piezos</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="push_johann_reset_config">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>40</y>
+       <width>130</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Reset Config</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="push_johann_put_detector_to_safe_position">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>40</y>
+       <width>130</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Put detector
+to safe position</string>
      </property>
     </widget>
    </widget>

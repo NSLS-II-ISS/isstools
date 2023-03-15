@@ -120,11 +120,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # johann functions/subscriptions
         self._prepare_johann_elements()
 
-        self.push_johann_update_crystal_parking.clicked.connect(self.johann_update_crystal_parking)
-        self.push_update_detector_parking.clicked.connect(self.johann_update_detector_parking)
         self.push_johann_home_crystals.clicked.connect(self.johann_home_crystals)
+        self.push_johann_reset_config.clicked.connect(self.johann_reset_config)
+        self.push_johann_put_detector_to_safe_position.clicked.connect(self.johann_put_detector_to_safe_position)
+        self.push_johann_parking_element_update.clicked.connect(self.johann_parking_element_update)
 
-        self.comboBox_johann_crystal.currentIndexChanged.connect(self.johann_populate_crystal_parking)
+        self.comboBox_johann_element_parking.currentIndexChanged.connect(self.johann_populate_parking_element_widgets)
 
         self.update_enabled_crystals_checkboxes()
 
@@ -417,55 +418,81 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 # handling Johann spectrometer elements
 
     def _prepare_johann_elements(self):
-        self.johann_crystals_dict = {'Main': {'set_crystal_parking_func': self.johann_emission.set_main_crystal_parking,
-                                              'read_crystal_parking_func': self.johann_emission.read_main_crystal_parking},
-                                     'Aux2': {'set_crystal_parking_func': self.johann_emission.set_aux2_crystal_parking,
-                                              'read_crystal_parking_func': self.johann_emission.read_aux2_crystal_parking},
-                                     'Aux3': {'set_crystal_parking_func': self.johann_emission.set_aux3_crystal_parking,
-                                              'read_crystal_parking_func': self.johann_emission.read_aux3_crystal_parking}}
+        self.johann_parking_elements = { 'Main': {'set_parking_func': self.johann_emission.set_main_crystal_parking,
+                                              'read_parking_func': self.johann_emission.read_main_crystal_parking},
+                                         'Aux2': {'set_parking_func': self.johann_emission.set_aux2_crystal_parking,
+                                                  'read_parking_func': self.johann_emission.read_aux2_crystal_parking},
+                                         'Aux3': {'set_parking_func': self.johann_emission.set_aux3_crystal_parking,
+                                                  'read_parking_func': self.johann_emission.read_aux3_crystal_parking},
+                                         'Detector': {'set_parking_func': self.johann_emission.set_det_arm_parking,
+                                                  'read_parking_func': self.johann_emission.read_det_arm_parking}}
 
-        self.comboBox_johann_crystal.addItems(self.johann_crystals_dict.keys())
-        self.johann_populate_crystal_parking()
-        self.johann_populate_detector_parking()
+        self.comboBox_johann_element_parking.addItems(self.johann_parking_elements.keys())
+        self.johann_populate_parking_element_widgets()
+        # self.johann_populate_detector_parking()
+
+    def johann_populate_parking_element_widgets(self):
+        _key = self.comboBox_johann_element_parking.currentText()
+        read_parking_func = self.johann_parking_elements[_key]['read_parking_func']
+        if _key == 'Detector':
+            x, th1, th2 = read_parking_func()
+            positions = [x, th1, th2, 0.0]
+            names = ['X', 'Gon1', 'Gon2', 'NA']
+            units = ['mm', 'deg', 'deg', '']
+        else:
+            x, y, roll, yaw = read_parking_func()
+            positions = [x, y, roll, yaw]
+            units = ['mm', 'mm', 'deg', 'deg']
+            if _key == 'Main':
+                names = ['Assy X', 'Assy Y', 'Roll', 'Yaw']
+            else:
+                names = ['X', 'Y', 'Roll', 'Yaw']
+
+        self._johann_populate_parking_element_widgets(names, positions, units)
+
+    def _johann_populate_parking_element_widgets(self, names, positions, units):
+        for i, (name, position, unit) in enumerate(zip(names, positions, units)):
+            widget_label_name = getattr(self, f'label_johann_parking_element_name_{i+1}')
+            widget_spinbox_position = getattr(self, f'spinBox_johann_parking_element_position_{i + 1}')
+            widget_label_unit = getattr(self, f'label_johann_parking_element_unit_{i + 1}')
+            widget_label_name.setText(name)
+            widget_spinbox_position.setValue(position)
+            widget_label_unit.setText(unit)
 
 
+    # def johann_populate_detector_parking(self):
+    #     x, th1, th2 = self.johann_emission.read_det_arm_parking()
+    #     self.spinBox_johann_park_x_detector.setValue(x)
+    #     self.spinBox_johann_park_th1_detector.setValue(th1)
+    #     self.spinBox_johann_park_th2_detector.setValue(th2)
 
-    def johann_populate_crystal_parking(self):
-        crystal_key = self.comboBox_johann_crystal.currentText()
-        read_parking_func = self.johann_crystals_dict[crystal_key]['read_crystal_parking_func']
-        x, y, roll, yaw = read_parking_func()
-        self.spinBox_johann_park_x_crystal.setValue(x)
-        self.spinBox_johann_park_y_crystal.setValue(y)
-        self.spinBox_johann_park_roll_crystal.setValue(roll)
-        self.spinBox_johann_park_yaw_crystal.setValue(yaw)
-
-    def johann_populate_detector_parking(self):
-        x, th1, th2 = self.johann_emission.read_det_arm_parking()
-        self.spinBox_johann_park_x_detector.setValue(x)
-        self.spinBox_johann_park_th1_detector.setValue(th1)
-        self.spinBox_johann_park_th2_detector.setValue(th2)
-
-    def johann_update_crystal_parking(self):
+    def johann_parking_element_update(self):
         ret = question_message_box(self, 'Warning',
-                                   'Crystal parking update must be done at bragg angle set to 90 degrees!\n' \
+                                   'Parking update must be done at bragg angle set to 90 degrees!\n' \
                                    'Are you sure you want to proceed?')
         if ret:
-            crystal_key = self.comboBox_johann_crystal.currentText()
-            set_parking_func = self.johann_crystals_dict[crystal_key]['set_crystal_parking_func']
+            _key = self.comboBox_johann_element_parking.currentText()
+            set_parking_func = self.johann_parking_elements[_key]['set_parking_func']
             set_parking_func()
             self.johann_populate_crystal_parking()
 
-    def johann_update_detector_parking(self):
-        ret = question_message_box(self, 'Warning',
-                                   'Detector parking update must be done with great care!' \
-                                   'Detector parking update must be done with detector at bragg angle set to 90 degrees!\n' \
-                                   'Are you sure you want to proceed?')
-        if ret:
-            self.johann_emission.set_det_arm_parking()
-            self.johann_populate_detector_parking()
+    # def johann_update_detector_parking(self):
+    #     ret = question_message_box(self, 'Warning',
+    #                                'Detector parking update must be done with great care!' \
+    #                                'Detector parking update must be done with detector at bragg angle set to 90 degrees!\n' \
+    #                                'Are you sure you want to proceed?')
+    #     if ret:
+    #         self.johann_emission.set_det_arm_parking()
+    #         self.johann_populate_detector_parking()
 
     def johann_home_crystals(self):
         self.johann_emission.home_crystal_piezos()
+
+    def johann_reset_config(self):
+        self.johann_emission.reset_config()
+
+    def johann_put_detector_to_safe_position(self):
+        self.johann_emission.put_detector_to_safe_position()
 
     def update_enabled_crystals_checkboxes(self):
         for crystal_key, enable in self.johann_emission.enabled_crystals.items():
@@ -476,7 +503,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         sender_object = QObject().sender()
         crystal_key = sender_object.text()
         self.johann_emission.enable_crystal(crystal_key, enable)
-
 
     def _johann_update_crystal_config(self):
         crystal = self.comboBox_johann_crystal_kind.currentText()
