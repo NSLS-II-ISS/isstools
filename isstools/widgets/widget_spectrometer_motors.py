@@ -42,8 +42,8 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self._huber_motors = ['huber_stage_y', 'huber_stage_z']
         self._huber_dict = {}
 
-    #     self.pushButton_stack1.clicked.connect(self.launch_stack1_motors)
-    #
+        # self.pushButton_stack1.clicked.connect(self.launch_stack1_motors)
+
     # def launch_stack1_motors(self):
     #     self.layout_motors = QtWidgets.verticalLayout()
     #     pass

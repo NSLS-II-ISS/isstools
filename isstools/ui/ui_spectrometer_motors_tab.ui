@@ -51,7 +51,7 @@
    <property name="title">
     <string>Detector and crystal assembly motion</string>
    </property>
-   <widget class="QPushButton" name="pushButton_7">
+   <widget class="QPushButton" name="pushButton_detector_arm">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -70,7 +70,7 @@
      <string>Detector arm</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_8">
+   <widget class="QPushButton" name="pushButton_crystal_assembly">
     <property name="geometry">
      <rect>
       <x>250</x>
@@ -113,7 +113,7 @@
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pushButton_stack4">
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -126,7 +126,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="pushButton_stack2">
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -139,7 +139,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="pushButton_stack1">
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -152,7 +152,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_5">
+      <widget class="QPushButton" name="pushButton_stack3">
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -165,7 +165,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_6">
+      <widget class="QPushButton" name="pushButton_stack5">
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -173,7 +173,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Stack 4</string>
+        <string>Stack 5</string>
        </property>
       </widget>
      </item>
