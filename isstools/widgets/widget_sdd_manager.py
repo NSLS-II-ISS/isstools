@@ -28,6 +28,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                  service_plan_funcs,
                  xs,
                  RE,
+
                  *args,
                  **kwargs):
 
@@ -39,6 +40,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.RE = RE
         self.xs = xs
         self.roi_plots = []
+        #self.shutter_dict=shutter_dict
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
@@ -190,7 +192,11 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         # self.figure_mca.ax.set_ylim(ylims)
         self.canvas_mca.draw_idle()
 
+
+
     def xs3_acquire(self):
+
+       #TODO open shutter self.shutter_dict
         self.roi_plots = []
         print('Xspress3 acquisition starting...')
         # plan = self.service_plan_funcs['xs_count']
@@ -202,6 +208,8 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         # self.update_roi_plot()
         # self.canvas_mca.draw_idle()
         print('Xspress3 acquisition complete')
+
+    # TODO close shutter self.shutter_dict
 
     def plot_traces(self):
         #THis method plot the MCA signal

@@ -279,7 +279,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             print('widget sdd manager loading', ttime.ctime())
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs,
                                                                       sdd,
-                                                                      RE)
+                                                                      RE,
+                                                                      )
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
 
         print('widget sample registry loading', ttime.ctime())

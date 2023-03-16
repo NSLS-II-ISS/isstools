@@ -84,6 +84,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
         self.push_auto_pitch.clicked.connect(self.auto_pitch)
 
+
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
         self.set_autofoil(self.checkBox_autofoil.isChecked())
@@ -363,5 +364,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def take_pilatus_image(self):
         self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
+
+
 
 
