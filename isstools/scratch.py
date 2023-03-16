@@ -1688,6 +1688,50 @@ plt.plot(x, y)
 plt.plot(x, y_fit)
 
 
+##########################################
+
+all_scans = []
+
+for year, cycles in zip([2022, 2023], [[1, 2, 3], [1]]):
+    for cycle in cycles:
+        proposals = os.listdir(f"{ROOT_PATH}/{USER_PATH}/{year}/{cycle}")
+        for proposal in proposals:
+            fpath = f"{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}/scan_manager.json"
+            try:
+                with open(fpath, 'r') as f:
+                    _list_local = json.loads(f.read())
+            except Exception as e:
+                print(e)
+            all_scans.extend(_list_local)
+
+#################
+
+t_apb = hdr.table(stream_name='apb_stream', fill=True)['apb_stream'][1]
+apb_time = t_apb[:, 0]
+apb_sig = t_apb[:, 5]
+apb_sig -= apb_sig.min()
+apb_sig /= apb_sig.max()
+
+
+t_trig = hdr.table(stream_name='apb_trigger_xs', fill=True)['apb_trigger_xs'][1]
+trig_time = t_trig[:, 0]
+trig_sig = t_trig[:, 1]
+
+
+plt.figure(1, clear=True)
+plt.plot(apb_time, apb_sig)
+plt.plot(trig_time, trig_sig)
+
+# plt.plot(apb_time, t_apb[:, 6])
+
+
+
+
+
+
+
+
+
 
 
 
