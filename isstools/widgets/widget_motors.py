@@ -10,15 +10,15 @@ import numpy as np
 from functools import partial
 from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit
 
-from isstools.dialogs import MoveMotorDialog
-from isstools.dialogs.BasicDialogs import question_message_box
-from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
-from isstools.elements.transformations import  range_step_2_start_stop_nsteps
-from isstools.widgets import widget_johann_tools
-from xas.spectrometer import analyze_elastic_scan
-from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
-from ..elements.elements import get_spectrometer_line_dict
-from isstools.widgets import widget_emission_energy_selector
+# from isstools.dialogs import MoveMotorDialog
+# from isstools.dialogs.BasicDialogs import question_message_box
+# from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
+# from isstools.elements.transformations import  range_step_2_start_stop_nsteps
+# from isstools.widgets import widget_johann_tools
+# from xas.spectrometer import analyze_elastic_scan
+# from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
+# from ..elements.elements import get_spectrometer_line_dict
+# from isstools.widgets import widget_emission_energy_selector
 
 from isstools.dialogs.UpdateMotorLimit import UIUpdateMotorLimit
 #
@@ -36,6 +36,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.parent = parent
+        self.width = 800
 
         self.motor_dict = this_motor_dictionary
         self._motor_object = self.motor_dict['object']
@@ -44,6 +45,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.layout_motor_widget = self.horizontalLayout_motor
         self.label_motor_description.setText(self.motor_dict['description'])
+        self.label_motor_description.setFixedWidth(150)
         self.layout_motor_widget.addWidget(self.label_motor_description)
 
         self.label_mov_status = QLabel("      ")
@@ -53,6 +55,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.lineEdit_setpoint = QLineEdit("")
         _user_setpoint = f"{self._motor_object.user_setpoint.get():3.3f} { self._motor_object.egu}"
         self.lineEdit_setpoint.setText(_user_setpoint)
+        self.lineEdit_setpoint.setFixedWidth(100)
         self.layout_motor_widget.addWidget(self.lineEdit_setpoint)
         self.lineEdit_setpoint.returnPressed.connect(self.update_set_point)
         self._motor_object.user_setpoint.subscribe(self.update_set_point_value)
@@ -62,7 +65,8 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self._motor_object.low_limit_switch.subscribe(self.update_motor_llim_status)
         self.layout_motor_widget.addWidget(self.label_low_limit)
 
-        self.label_motor_readback = QLineEdit("")
+        self.label_motor_readback = QLabel("")
+        self.label_motor_readback.setFixedWidth(100)
         self._motor_object.user_readback.subscribe(self.update_readback)
         self._motor_object.motor_is_moving.subscribe(self.update_moving_label)
         self.layout_motor_widget.addWidget(self.label_motor_readback)
@@ -73,15 +77,18 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.layout_motor_widget.addWidget(self.label_high_limit)
 
         self.button_move_decrement = QPushButton("<")
+        self.button_move_decrement.setFixedWidth(30)
         self.layout_motor_widget.addWidget(self.button_move_decrement)
         self.button_move_decrement.clicked.connect(self.update_decrement)
 
         self.lineEdit_step = QLineEdit("")
+        self.lineEdit_step.setFixedWidth(100)
         self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
         self.layout_motor_widget.addWidget(self.lineEdit_step)
         self.lineEdit_step.returnPressed.connect(self.update_step)
 
         self.button_move_increment = QPushButton(">")
+        self.button_move_increment.setFixedWidth(30)
         self.layout_motor_widget.addWidget(self.button_move_increment)
         self.button_move_increment.clicked.connect(self.update_increment)
 

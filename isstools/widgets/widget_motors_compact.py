@@ -37,7 +37,7 @@ class UIWidgetMotorsCompact(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.parent = parent
-        # self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlag(Qt.FramelessWindowHint)
 
         self.motor_dict = this_motor_dictionary
         self._motor_object = self.motor_dict['object']

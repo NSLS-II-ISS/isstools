@@ -2,6 +2,7 @@ import pkg_resources
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 from PyQt5.QtGui import QPixmap
 from isstools.widgets.widget_motors import UIWidgetMotors
+from functools import partial
 
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer_motors_tab.ui')
@@ -33,205 +34,67 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         pixmap = QPixmap(spectrometer_image2)
         pixmap = pixmap.scaled(900, 400, QtCore.Qt.KeepAspectRatio)
         self.label_spectrometer_image_2.setPixmap(pixmap)
-        # self.label_spectrometer_image_2.resize(pixmap.width(), pixmap.height())
 
-        self._det_arm_parent = self.motor_dictonary['johann_det_focus']['object'].parent
-        self._det_arm_motors = ['motor_det_x', 'motor_det_th1', 'motor_det_th2']
-        self._det_arm_dict = {}
+        self.motor_list = []
 
-        self._huber_motors = ['huber_stage_y', 'huber_stage_z']
-        self._huber_dict = {}
+        self.pushButton_detector_arm.clicked.connect(self.launch_det_arm_motor_widget)
+        self.pushButton_crystal_assembly.clicked.connect(self.launch_cry_assy_widget)
 
-        # self.pushButton_stack1.clicked.connect(self.launch_stack1_motors)
+        for i in range(1,6):
+            __button = getattr(self, f'pushButton_stack{i}')
+            if i>3:
+                __button.setEnabled(False)
+            else:
+                __button.clicked.connect(partial(self.launch_stack_motors_widget, i))
 
-    # def launch_stack1_motors(self):
-    #     self.layout_motors = QtWidgets.verticalLayout()
-    #     pass
+    def launch_stack_motors_widget(self, stack_number=1):
+        _stack_motors = {1: ['johann_cr_main_roll', 'johann_cr_main_yaw'],
+                         2: ['johann_cr_aux2_roll', 'johann_cr_aux2_yaw', 'johann_cr_aux2_x', 'johann_cr_aux2_y'],
+                         3: ['johann_cr_aux3_roll', 'johann_cr_aux3_yaw', 'johann_cr_aux3_x', 'johann_cr_aux3_y']}
 
-        # self.verticalLayout_detector_arm.addWidget(UIWidgetMotors(self.motor_dictonary['huber_stage_y']))
-        # for motor in self._huber_motors:
-        #     self.verticalLayout_det_stage.addWidget(UIWidgetMotors(self.motor_dictonary[motor],
-        #                                                            self.parent))
-
-
-
-        # self._motor = UIWidgetMotors(self.RE, self.db, self.motor_dictonary, self._huber_motors[0], self.parent)
-        # self.gridLayout_test.addWidget(self._motor)
+        self.widget_stack_motors = QtWidgets.QWidget()
+        self.widget_stack_motors.setGeometry(1000, 1000, 900, 240)
+        self.widget_stack_motors.setWindowTitle(f"Stack {stack_number} Motors")
+        self.layout_stack = QtWidgets.QVBoxLayout(self.widget_stack_motors)
 
 
-    #     for i, motor in enumerate(self._det_arm_motors):
-    #         __motor = getattr(self._det_arm_parent, motor)
-    #
-    #         self._det_arm_dict[motor] = {}
-    #
-    #         self.gridLayout_hrs_goinometer.addWidget(QLabel(motor), i, 0)
-    #
-    #
-    #         self._det_arm_dict[motor][motor + "_mov_status"] = QLabel("      ")
-    #         self._det_arm_dict[motor][motor + "_mov_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "_mov_status"], i, 1)
-    #
-    #         self._det_arm_dict[motor][motor + "set_point"] =  QLineEdit()
-    #         _user_setpoint = f"{__motor.user_setpoint.get():3.3f}"
-    #         self._det_arm_dict[motor][motor + "set_point"].setText(_user_setpoint)
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "set_point"], i, 2)
-    #
-    #         self._det_arm_dict[motor][motor + "llim_status"] = QLabel("      ")
-    #         self._det_arm_dict[motor][motor + "llim_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "llim_status"], i, 3)
-    #
-    #
-    #         self._det_arm_dict[motor][motor + "readback"] = QLineEdit()
-    #         _user_readback = f"{__motor.user_readback.get():3.3f}"
-    #         self._det_arm_dict[motor][motor + "readback"].setText(_user_readback)
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "readback"], i, 4)
-    #
-    #
-    #         self._det_arm_dict[motor][motor + "hlim_status"] = QLabel("      ")
-    #         self._det_arm_dict[motor][motor + "hlim_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "hlim_status"], i, 5)
-    #
-    #         self._det_arm_dict[motor][motor + "_dec"] = QPushButton()
-    #         self._det_arm_dict[motor][motor + "_dec"].setText("<")
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + '_dec'], i, 6)
-    #         self._det_arm_dict[motor][motor + "_dec"].clicked.connect(partial(self.update_motor_decrement, motor))
-    #
-    #         self._det_arm_dict[motor][motor + "step"] = QLineEdit()
-    #         if motor == 'motor_det_x':
-    #             self._det_arm_dict[motor][motor + "step"].setText(str(1.00) + " mm")
-    #             self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "step"], i, 7)
-    #         else:
-    #             self._det_arm_dict[motor][motor + "step"].setText(str(1.00) + " deg")
-    #             self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "step"], i, 7)
-    #
-    #
-    #         self._det_arm_dict[motor][motor + "_inc"] = QPushButton()
-    #         self._det_arm_dict[motor][motor + "_inc"].setText(">")
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "_inc"], i, 8)
-    #
-    #
-    #         self._det_arm_dict[motor][motor + "stop"] = QPushButton()
-    #         self._det_arm_dict[motor][motor + "stop"].setText('Stop')
-    #         self.gridLayout_hrs_goinometer.addWidget(self._det_arm_dict[motor][motor + "stop"], i, 9)
-    #
-    #     for i, motor in enumerate(self._huber_motors):
-    #         __motor = self.motor_dictonary[motor]['object']
-    #
-    #
-    #
-    #         self._huber_dict[motor] = {}
-    #
-    #         self.gridLayout_det_stage1.addWidget(QLabel(motor), i, 0)
-    #
-    #         self._huber_dict[motor][motor + "_mov_status"] = QLabel("      ")
-    #         self._huber_dict[motor][motor + "_mov_status"].setStyleSheet('background-color: rgb(55,130,60)')
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_mov_status"], i, 1)
-    #
-    #         self._huber_dict[motor][motor + "_set_point"] = QLineEdit()
-    #         _user_setpoint = f"{__motor.user_setpoint.get():3.3f} mm"
-    #         self._huber_dict[motor][motor + "_set_point"].setText(_user_setpoint)
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_set_point"], i, 2)
-    #         self._huber_dict[motor][motor + "_set_point"].returnPressed.connect(partial(self.update_set_point, motor))
-    #
-    #         self._huber_dict[motor][motor + "_llim_status"] = QLabel("      ")
-    #         self._huber_dict[motor][motor + "_llim_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_llim_status"], i, 3)
-    #
-    #         self._huber_dict[motor][motor + "_readback"] = QLineEdit()
-    #         self._huber_dict[motor][motor + "_readback"].setReadOnly(True)
-    #         _user_readback = f"{__motor.user_readback.get():3.3f} mm"
-    #         self._huber_dict[motor][motor + "_readback"].setText(_user_readback)
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_readback"], i, 4)
-    #         __motor.user_readback.subscribe(self.update_readback)
-    #
-    #         self._huber_dict[motor][motor + "_hlim_status"] = QLabel("      ")
-    #         self._huber_dict[motor][motor + "_hlim_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_hlim_status"], i, 5)
-    #
-    #         self._huber_dict[motor][motor + "_dec"] = QPushButton()
-    #         self._huber_dict[motor][motor + "_dec"].setText("<")
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + '_dec'], i, 6)
-    #         self._huber_dict[motor][motor + "_dec"].clicked.connect(partial(self.update_motor_decrement, motor))
-    #
-    #         self._huber_dict[motor][motor + "_step"] = QLineEdit()
-    #         self._huber_dict[motor][motor + "_step"].setText(str(1.00) + " mm")
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_step"], i, 7)
-    #         self._huber_dict[motor][motor + "_step"].returnPressed.connect(partial(self.update_step, motor))
-    #
-    #
-    #         self._huber_dict[motor][motor + "_inc"] = QPushButton()
-    #         self._huber_dict[motor][motor + "_inc"].setText(">")
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_inc"], i, 8)
-    #         self._huber_dict[motor][motor + "_inc"].clicked.connect(partial(self.update_motor_increment, motor))
-    #
-    #         self._huber_dict[motor][motor + "_stop"] = QPushButton()
-    #         self._huber_dict[motor][motor + "_stop"].setText('Stop')
-    #         self.gridLayout_det_stage1.addWidget(self._huber_dict[motor][motor + "_stop"], i, 9)
-    #         self._huber_dict[motor][motor + "_dec"].clicked.connect(partial(self.stop_motor, motor))
-    #
-    # def update_motor_decrement(self, motor_key):
-    #     current_step_reading = self._huber_dict[motor_key][motor_key + '_step'].text()
-    #     step = float(current_step_reading.split()[0])
-    #
-    #     current_readback_reading = float(self.motor_dictonary[motor_key]['object'].get().user_readback)
-    #     self._huber_dict[motor_key][motor_key + "_set_point"].setText(f"{current_readback_reading - step:3.3f} mm")
-    #
-    #     obj = self.motor_dictonary[motor_key]['object'].set(current_readback_reading - step, wait=False)
-    #     while obj.done != True:
-    #         self._huber_dict[motor_key][motor_key + "_mov_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #     self._huber_dict[motor_key][motor_key + "_mov_status"].setStyleSheet('background-color: rgb(55,130,60)')
-    #     _user_readback = f"{self.motor_dictonary[motor_key]['object'].user_readback.get():3.3f} mm"
-    #     self._huber_dict[motor_key][motor_key + "_readback"].setText(_user_readback)
-    #
-    # def update_motor_increment(self, motor_key):
-    #     current_step_reading = self._huber_dict[motor_key][motor_key + '_step'].text()
-    #     step = float(current_step_reading.split()[0])
-    #
-    #     current_readback_reading = float(self.motor_dictonary[motor_key]['object'].get().user_readback)
-    #     self._huber_dict[motor_key][motor_key + "_set_point"].setText(f"{current_readback_reading + step:3.3f} mm")
-    #
-    #     obj = self.motor_dictonary[motor_key]['object'].set(current_readback_reading + step, wait=False)
-    #     while obj.done != True:
-    #         self._huber_dict[motor_key][motor_key + "_mov_status"].setStyleSheet('background-color: rgb(95,249,95)')
-    #     self._huber_dict[motor_key][motor_key + "_mov_status"].setStyleSheet('background-color: rgb(55,130,60)')
-    #     _user_readback = f"{self.motor_dictonary[motor_key]['object'].user_readback.get():3.3f} mm"
-    #     print(_user_readback)
-    #     self._huber_dict[motor_key][motor_key + "_readback"].setText(_user_readback)
-    #
-    # def update_set_point(self, motor_key):
-    #     _read_desired_setpoint = self._huber_dict[motor_key][motor_key + "_set_point"].text()
-    #     _desired_setpoint = float(_read_desired_setpoint.split()[0])
-    #     self.motor_dictonary[motor_key]['object'].set(_desired_setpoint)
-    #     _setpoint_text = f"{_desired_setpoint:3.3f} mm"
-    #     self._huber_dict[motor_key][motor_key + "_set_point"].setText(_setpoint_text)
-    #
-    # def update_step(self, motor_key):
-    #     _read_desired_step = self._huber_dict[motor_key][motor_key + "_step"].text()
-    #     _desired_step = float(_read_desired_step.split()[0])
-    #     _step_text = f"{_desired_step:3.3f} mm"
-    #     self._huber_dict[motor_key][motor_key + "_step"].setText(_step_text)
-    #
-    # def update_readback(self, value, old_value):
-    #     print(f"{value = }, {old_value = }")
-    #
-    # def stop_motor(self, motor_key):
-    #     self.motor_dictonary[motor_key]['object'].stop()
+        for motor_name in _stack_motors[stack_number]:
+            widget = UIWidgetMotors(self.motor_dictonary[motor_name])
+            widget.setFixedWidth(800)
+            self.layout_stack.addWidget(widget)
+        self.widget_stack_motors.show()
+        # self.motor_list.append(self.widget_stack_motors)
+
+    def launch_det_arm_motor_widget(self):
+        _det_arm_motors = ['motor_det_x', 'motor_det_th1', 'motor_det_th2']
+
+        self.widget_det_motors = QtWidgets.QWidget()
+        self.widget_det_motors.setGeometry(1100, 1100, 900, 140)
+        self.widget_det_motors.setWindowTitle(f"Detector arm Motors")
+        self.layout_det = QtWidgets.QVBoxLayout(self.widget_det_motors)
 
 
+        for motor_name in _det_arm_motors:
+            widget = UIWidgetMotors(self.motor_dictonary[motor_name])
+            widget.setFixedWidth(800)
+            self.layout_det.addWidget(widget)
+        self.motor_list.append(self.widget_det_motors)
+        self.widget_det_motors.show()
 
 
+    def launch_cry_assy_widget(self):
+        _cry_assy_motors = ['auxxy_x', 'auxxy_y']
+        # ['johann_bragg_angle', 'johann_energy']
 
-# ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_motor_widget.ui')
-# class UIMotorWidget(*uic.loadUiType('/nsls2/data/iss/shared/config/repos/isstools/isstools/ui/ui_motor_widget.ui')):
-#     def __init__(self,
-#                  motor_dict=None,
-#                  parent=None,
-#                  *args, **kwargs
-#                  ):
-#         super().__init__(*args, **kwargs)
-#         self.setupUi(self)
-#
-#
-#
-# motor_widget = UIMotorWidget()
-# motor_widget.show()
+        self.widget_cry_assy_motors = QtWidgets.QWidget()
+        self.widget_cry_assy_motors.setGeometry(1200, 1200, 900, 140)
+        self.widget_cry_assy_motors.setWindowTitle(f"Detector arm Motors")
+        self.layout_cry_assy = QtWidgets.QVBoxLayout(self.widget_cry_assy_motors)
+
+        for motor_name in _cry_assy_motors:
+            widget = UIWidgetMotors(self.motor_dictonary[motor_name])
+            widget.setFixedWidth(800)
+            self.layout_cry_assy.addWidget(widget)
+
+        self.motor_list.append(self.widget_cry_assy_motors)
+        self.widget_cry_assy_motors.show()
