@@ -45,7 +45,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.layout_motor_widget = self.horizontalLayout_motor
         self.label_motor_description.setText(self.motor_dict['description'])
-        self.label_motor_description.setFixedWidth(150)
+        self.label_motor_description.setFixedWidth(160)
         self.layout_motor_widget.addWidget(self.label_motor_description)
 
         self.label_mov_status = QLabel("      ")
