@@ -1539,62 +1539,110 @@ plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
 
 
 #####
-{'R': 1000.0,
- 'crystal': 'Si',
- 'hkl': [4, 4, 4],
- 'parking': {'motor_det_x': -77.000020062,
-  'motor_det_th1': 0.0,
-  'motor_det_th2': 0.0,
-  'motor_cr_assy_x': -2.00002624199999,
-  'motor_cr_assy_y': 7.181946,
-  'motor_cr_main_roll': 690.0,
-  'motor_cr_main_yaw': -530.0,
-  'motor_cr_aux2_x': 500.0,
-  'motor_cr_aux2_y': -8500.0,
-  'motor_cr_aux2_roll': 1419.5590000000002,
-  'motor_cr_aux2_yaw': -1500.0,
-  'motor_cr_aux3_x': 0.0,
-  'motor_cr_aux3_y': -8900.0,
-  'motor_cr_aux3_roll': 675.0,
-  'motor_cr_aux3_yaw': -669.0},
- 'roll_offset': 11.5,
- 'det_offsets': {'motor_det_th1': 68.99965625,
-  'motor_det_th2': -69.00037499999999},
- 'det_focus': 0,
- 'bragg_registration': {'pos_nom': {'motor_det_x': [334.4600322545085,
-    317.62099359656884],
-   'motor_det_th1': [13.096080690830279, 15.936569586645653],
-   'motor_det_th2': [-34.32499406664143, -35.616414404344425],
-   'motor_cr_assy_x': [980.8881028093502, 983.2884739323885],
-   'motor_cr_assy_y': [7.181946, 7.181946],
-   'motor_cr_main_roll': [1575.543312094427, 2350.0775911506107],
-   'motor_cr_main_yaw': [-530.0, -530.0],
-   'motor_cr_aux2_x': [326.25448957738524, 351.0094925460646],
-   'motor_cr_aux2_y': [-6634.989561109456, -6778.195096462492],
-   'motor_cr_aux2_roll': [2250.187478968526, 3029.0644857229718],
-   'motor_cr_aux2_yaw': [-767.8571823665584, -876.5198357122512],
-   'motor_cr_aux3_x': [-173.74551042261476, -148.99050745393538],
-   'motor_cr_aux3_y': [-7034.989561109456, -7178.195096462492],
-   'motor_cr_aux3_roll': [1505.628478968526, 2284.5054857229716],
-   'motor_cr_aux3_yaw': [-1401.1428176334416, -1292.4801642877487]},
-  'pos_act': {'motor_det_x': [332.37822977049996, 315.922167102],
-   'motor_det_th1': [13.0546875, 15.83125],
-   'motor_det_th2': [-34.306875, -35.56875],
-   'motor_cr_assy_x': [978.2943207475, 980.6431459785],
-   'motor_cr_assy_y': [7.181946, 7.181946],
-   'motor_cr_main_roll': [1495.003, 2264.01],
-   'motor_cr_main_yaw': [-605.001, -605.001],
-   'motor_cr_aux2_x': [-1221.211, -1196.987],
-   'motor_cr_aux2_y': [-6632.828, -6772.867],
-   'motor_cr_aux2_roll': [2080.518, 2834.822],
-   'motor_cr_aux2_yaw': [-1196.151, -1279.853],
-   'motor_cr_aux3_x': [-5189.861, -5165.637],
-   'motor_cr_aux3_y': [-7032.07, -7172.109],
-   'motor_cr_aux3_roll': [799.7520000000001, 1558.823],
-   'motor_cr_aux3_yaw': [-1267.838, -1168.337]}},
- 'energy_calibration': {'x_nom': [], 'x_act': [], 'n_poly': 2},
- 'enabled_crystals': {'main': True, 'aux2': True, 'aux3': True},
- 'initialized': True}
+{
+'bragg_registration': {
+   'pos_nom':
+       {'motor_det_x': [440.1284957158649, ],
+   'motor_det_th1': [-7.944093709601603, ],
+   'motor_det_th2': [-25.92960063557537, ],
+   'motor_cr_assy_x': [956.3239866570002, ],
+   'motor_cr_assy_y': [7.181946, ],
+   'motor_cr_main_roll': [4245.610827411514, ],
+   'motor_cr_main_yaw': [-190.0, ],
+   'motor_cr_aux2_x': [-6069.950489617168, ],
+   'motor_cr_aux2_y': [-5384.367583499954, ],
+   'motor_cr_aux2_roll': [4008.4002042120424, ],
+   'motor_cr_aux2_yaw': [210.0530576956662, ],
+   'motor_cr_aux3_x': [-8197.678489617168, ],
+   'motor_cr_aux3_y': [-5784.367583499954, ],
+   'motor_cr_aux3_roll': [4859.267204212042, ],
+   'motor_cr_aux3_yaw': [-2426.521057695666, ]},
+  'pos_act': {'motor_det_x': [445.027446107, ],
+   'motor_det_th1': [-8.12859375, ],
+   'motor_det_th2': [-25.8721875, ],
+   'motor_cr_assy_x': [957.4060535164999, ],
+   'motor_cr_assy_y': [7.181946, ],
+   'motor_cr_main_roll': [3691.876, ],
+   'motor_cr_main_yaw': [-290.00100000000003, ],
+   'motor_cr_aux2_x': [-8499.99, ],
+   'motor_cr_aux2_y': [-5383.835, ],
+   'motor_cr_aux2_roll': [2911.366, ],
+   'motor_cr_aux2_yaw': [-898.6560000000001, ],
+   'motor_cr_aux3_x': [-15699.942000000001, ],
+   'motor_cr_aux3_y': [-5783.783, ],
+   'motor_cr_aux3_roll': [4117.173,],
+   'motor_cr_aux3_yaw': [-912.8670000000001, ]}},
+ }
+
+#######
+
+from xas.file_io import write_df_to_file
+
+def test_plan(roll_swing = 1000, exp_time=20):
+    cur_roll_pos = johann_main_crystal.motor_cr_main_roll.position
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos - roll_swing / 2)
+
+    cur_velocity = johann_main_crystal.motor_cr_main_roll.velocity.get()
+    scan_velocity = roll_swing / exp_time * 1.6
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll.velocity, scan_velocity)
+
+    cur_exp_time = pil100k.cam.acquire_period.get()
+    pil100k.set_exposure_time(exp_time)
+
+    yield from bps.stage(pil100k)
+    # yield from bps.open_run()
+    # st_trigger = pil100k.trigger()
+    # yield from bps.create('primary')
+    yield from bps.trigger(pil100k)
+
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos + roll_swing)
+
+    # st_trigger.wait()
+
+    # ret = {}
+    # reading = (yield from bps.read(pil100k))
+    # ret.update(reading)
+    # yield from bps.save()
+    # return ret
+
+    # yield from bps.close_run()
+    yield from bps.unstage(pil100k)
+
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos)
+    pil100k.set_exposure_time(exp_time)
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll.velocity, cur_velocity)
+
+    image = pil100k.image.array_data.get().reshape((195, 487))
+
+    x = pil100k.roi4.min_xyz.min_x.get()
+    y = pil100k.roi4.min_xyz.min_y.get()
+    dx = pil100k.roi4.size.x.get()
+    dy = pil100k.roi4.size.y.get()
+
+    image_roi = image[y : (y + dy), x : (x + dx)]
+    spectrum = np.sum(image_roi, axis=0)
+    df = pd.DataFrame({'energy': np.arange(x, x + dx).tolist(), 'intesity': spectrum.tolist()})
+
+    write_df_to_file('/nsls2/data/iss/legacy/processed/2023/1/312089/test.dat', df, '')
+
+
+
+
+
+RE(test_plan())
+
+
+
+
+
+
+
+
+
+
+
+
+
 #######
 
 
@@ -1604,7 +1652,7 @@ plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
 #         'd22bf7eb-68e7-4879-bca5-f6f44c3c0b52',
 #         'abcd3a49-2b86-4088-99ff-e895e495bdb0',
 #         '22f37dfb-a49f-4f2b-8cab-63fa518aa9bb']
-
+from scipy.signal import savgol_filter
 def estimate_center_and_width_of_peak(E, I):
     E_cen = E[np.argmax(np.abs(I))]
     # E_cen = np.sum(E * I) / np.sum(I)
@@ -1627,15 +1675,44 @@ def smooth_any_peak(x, y, n=4):
     y_fit = savgol_filter(y, 5, 3)
     return x, y, y_fit
 
-johann_x = [-7.5, -5, -2.5, 0.0, 2.5, 5.0]
-uids = ['6eb8993b-cd62-4e0a-8f31-7c8276ee4002',
-        'fcce2176-d988-4522-b437-aa3201bd94f9',
-        '031fc6a4-d640-44a9-a41b-b100b0928c1b',
-        '900e5986-c92a-48ee-99bc-6caa7065f722',
-        '640405f3-9daa-4fc9-9246-8268d41f3e5e',
-        '159ffcc2-c3ce-4244-98c4-e3791e950252']
-elastic_fwhm = [1.139, 1.170, 1.181, 1.282, 1.367, 1.425]
-elastic_ecen = [8046.325, 8046.195, 8046.091, 8045.986, 8045.914, 8045.850]
+# main
+# 0 1.379
+roll_key = 'johann_main_crystal_motor_cr_main_roll'
+johann_x = [-7.5, -5.0, -2.5, 0, 2.5, 5.0, 7.5]
+uids = ['f35fe432-df36-4527-8076-bc39dd32f50c',
+        'ceec6052-d4aa-446e-bfa9-2e8aca6b1184',
+        'c4637f41-e799-4575-9e1c-b6e5d269c7ea',
+        '3de00f32-d2f4-4346-b901-adcd02a865c1',
+        '7fdd3b29-596f-44a9-99d0-e9b7cc7fc4a3',
+        '9f3e4a08-f20d-4ab7-adf8-140527802726',
+        '863f88a2-e638-43e9-a940-10b100dce4e2']
+#
+#
+roll_key = 'johann_aux2_crystal_motor_cr_aux2_roll'
+johann_x = [-13570, -11070, -8570, -6070, -3570, -1070, 1430]
+uids = ['6fc38e33-0629-4fdf-8951-42f0ede32240',
+        '528e034b-0bd1-4696-b20f-8e3d3e55207b',
+        'bd60cfde-71b1-402f-a131-4b2a4d629fcb',
+        '5fca9e2d-a32d-43cc-bb6c-b2bc622f9ff1',
+        'c4e97f52-17dc-43e5-ab8a-3af86c7a4f71',
+        '01f876fe-9708-416e-aa6a-60deb42595ad',
+        'ae86d1ce-5c70-4b44-8e37-97610ceca037'
+      ]
+
+roll_key = 'johann_aux3_crystal_motor_cr_aux3_roll'
+johann_x = [-15700, -13200, -10700, -8200, -5700, -3200, -700]
+uids = ['f32097cf-cd4a-44c7-85e7-cf18b79000d0',
+        '1c5c2f8c-998b-4608-a0ef-7432ba51bc56',
+        'd2cff6fe-2b51-4afe-90af-ae503949b660',
+        '089adb71-2968-4442-854e-b8dae0012a8e',
+        '3b7d6286-684e-4121-a3e1-c94f6133ef1f',
+        'b773a138-a438-4f77-a43d-220970847e97',
+        '9d145102-a11b-4a5d-b824-13485051f82d'
+
+       ]
+
+# elastic_fwhm = [1.139, 1.170, 1.181, 1.282, 1.367, 1.425]
+# elastic_ecen = [8046.325, 8046.195, 8046.091, 8045.986, 8045.914, 8045.850]
 
 e_cen = []
 e_fwhm = []
@@ -1645,21 +1722,24 @@ plt.figure(1, clear=True)
 plt.subplot(221)
 for uid in uids:
     t = db[uid].table()
-    _roll = t.johann_main_crystal_motor_cr_main_roll.values
+    _roll = t[roll_key].values
     _intensity = t.pil100k_stats1_total.values
 
     _intensity_smooth = savgol_filter(_intensity, 5, 3)
-    _e_cen, _e_fwhm, _e1, _e2 = estimate_center_and_width_of_peak(_roll, _intensity_smooth / _intensity_smooth.max())
+    _intensity_smooth = (_intensity_smooth - np.mean(_intensity_smooth[:3])) / (_intensity_smooth.max() - np.mean(_intensity_smooth[:3]))
+
+    _e_cen, _e_fwhm, _e1, _e2 = estimate_center_and_width_of_peak(_roll, _intensity_smooth)# / _intensity_smooth.max())
     e_cen.append(_e_cen)
     e_fwhm.append(_e_fwhm)
     # int_max.append(_intensity.max())
-    int_max.append(np.mean(np.sort(_intensity_smooth)[-3:]))
+    _int_max = np.mean(np.sort(_intensity)[-3:])
+    int_max.append(_int_max)
 
     # plt.plot(_roll - _e_cen, _intensity)
     # plt.plot([_e1 - _e_cen, _e1 - _e_cen], [0, 1], 'k-')
     # plt.plot([_e2 - _e_cen, _e2 - _e_cen], [0, 1], 'k-')
 
-    plt.plot(_roll, _intensity, 'k.')
+    # plt.plot(_roll, _intensity , 'k.')
     plt.plot(_roll, _intensity_smooth, '-')
     plt.plot([_e1, _e1], [0, 1], 'k-')
     plt.plot([_e2, _e2], [0, 1], 'k-')
@@ -1671,15 +1751,126 @@ plt.plot(johann_x, int_max, 'k.-')
 ax = plt.subplot(224)
 ax1 = ax.twinx()
 ax.plot(johann_x, e_fwhm, 'r-')
-ax1.plot(johann_x, elastic_fwhm, 'b-')
+# ax1.plot(johann_x, elastic_fwhm, 'b-')
 
 plt.subplot(223)
-plt.plot(elastic_ecen, e_cen, 'k.-')
+# plt.plot(elastic_ecen, e_cen, 'k.-')
+##
+
+# PCL in (~100 um fwhm)
+# main (Ge-660, Saint Gobain): fwhm=1.550
+# aux2 (Ge-660, Alpyx): fwhm=1.862
+# aux3 (Si-733, XRS): fwhm=1.686
+
+# PCL out (~200 um fwhm)
+# main (Ge-660, Saint Gobain):  fwhm=1.572
+# aux2 (Ge-660, Alpyx): fwhm=1.953
+# aux3 (Si-733, XRS): fwhm=1.698
+
+
+
+
+
+_config = {'R': 1000.0,
+ 'crystal': 'Si',
+ 'hkl': [4, 4, 4],
+ 'parking': {'motor_det_x': -77.000020062,
+  'motor_det_th1': 0.0,
+  'motor_det_th2': 0.0,
+  'motor_cr_assy_x': -2.00002624199999,
+  'motor_cr_assy_y': 7.181946,
+  'motor_cr_main_roll': 690.0,
+  'motor_cr_main_yaw': -530.0,
+  'motor_cr_aux2_x': 500.0,
+  'motor_cr_aux2_y': -8500.0,
+  'motor_cr_aux2_roll': 1419.5590000000002,
+  'motor_cr_aux2_yaw': -1500.0,
+  'motor_cr_aux3_x': 0.0,
+  'motor_cr_aux3_y': -8900.0,
+  'motor_cr_aux3_roll': 675.0,
+  'motor_cr_aux3_yaw': -669.0},
+ 'roll_offset': 11.5,
+ 'det_offsets': {'motor_det_th1': 68.99965625,
+  'motor_det_th2': -69.00037499999999},
+ 'det_focus': 0,
+ 'bragg_registration': {'pos_nom': {'motor_det_x': [334.70185507125404, 317.89533995746365],
+  'motor_det_th1': [13.05490586149521, 15.890696395387565],
+  'motor_det_th2': [-34.30660500426744, -35.59521858587816],
+  'motor_cr_assy_x': [980.8515088144756, 983.2515265275326],
+  'motor_cr_assy_y': [7.181946, 7.181946],
+  'motor_cr_main_roll': [1564.1504286138877, 2337.7389047547035],
+  'motor_cr_main_yaw': [-530.0, -530.0],
+  'motor_cr_aux2_x': [325.8761543546383, 350.6293395377225],
+  'motor_cr_aux2_y': [-6632.870595321352, -6775.926019273891],
+  'motor_cr_aux2_roll': [2238.7301205935255, 3016.6572011456146],
+  'motor_cr_aux2_yaw': [-766.185324134957, -874.8615507076067],
+  'motor_cr_aux3_x': [-174.12384564536174, -149.3706604622775],
+  'motor_cr_aux3_y': [-7032.870595321352, -7175.926019273891],
+  'motor_cr_aux3_roll': [1494.1711205935255, 2272.0982011456144],
+  'motor_cr_aux3_yaw': [-1402.814675865043, -1294.1384492923933]},
+ 'pos_act': {'motor_det_x': [332.7006863615, 315.8941862775],
+  'motor_det_th1': [13.0, 15.8359375],
+  'motor_det_th2': [-34.2825, -35.5715625],
+  'motor_cr_assy_x': [978.164640021, 980.564658526],
+  'motor_cr_assy_y': [7.181946, 7.181946],
+  'motor_cr_main_roll': [1460.491, 2239.2870000000003],
+  'motor_cr_main_yaw': [-530.0, -529.996],
+  'motor_cr_aux2_x': [-10000.0, -9975.216],
+  'motor_cr_aux2_y': [-7032.0, -7175.03],
+  'motor_cr_aux2_roll': [798.173, 1569.9470000000001],
+  'motor_cr_aux2_yaw': [-1043.593, -1070.273],
+  'motor_cr_aux3_x': [-5000.0, -4975.198],
+  'motor_cr_aux3_y': [-7032.0, -7175.084],
+  'motor_cr_aux3_roll': [1528.346, 2300.821],
+  'motor_cr_aux3_yaw': [-1206.981, -1158.1390000000001]}},
+ 'energy_calibration': {'x_nom': [], 'x_act': [], 'n_poly': 2},
+ 'enabled_crystals': {'main': True, 'aux2': True, 'aux3': True},
+ 'initialized': True}
+
+
+rowland_circle.set_spectrometer_config(_config)
+
+
+#####
+
+df = []
+
+for _energy in np.linspace(8005, 8065, 101):
+    _pos = johann_emission._forward({'energy' :_energy})
+    for k in _pos.keys():
+        _pos[k] = float(_pos[k])
+    _pos['bragg'] = rowland_circle.e2bragg(_energy)
+    _pos['energy'] = float(_energy)
+    df.append(_pos)
+
+
+df = pd.DataFrame(df)
+
+
+key = 'motor_cr_assy_x'
+
+
+plt.figure(1, clear=True)
+
+c = 'bragg'
+plt.plot(df['energy'], (df[c] - df[c].values[0]) / (df[c].values[-1] - df[c].values[0]))
+ax = plt.gca()
+for c in df.columns[:-2]:
+    _ax = ax.twinx()
+    plt.plot(df['energy'], (df[c] - df[c].values[0]) / (df[c].values[-1] - df[c].values[0]))
+    # _ax.plot([df['energy'].values[0], df['energy'].values[-1]], [df[c].values[0], df[c].values[-1]], 'k-')
+
+plt.plot([df['energy'].values[0], df['energy'].values[-1]], [0, 1], 'k-')
+
+# plt.plot
+# plt.plot()
+
+
 
 
 
 ##
-from scipy.signal import savgol_filter
+
 
 
 x, y, y_fit = fit_any_peak(_roll, _intensity, n=7)

@@ -1923,84 +1923,6 @@ offset</string>
       </item>
      </layout>
     </widget>
-    <widget class="QPushButton" name="push_johann_home_crystals">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>130</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>500</width>
-       <height>50</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Home piezos</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="push_johann_reset_config">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>40</y>
-       <width>130</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>500</width>
-       <height>50</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Reset Config</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="push_johann_put_detector_to_safe_position">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>40</y>
-       <width>130</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>500</width>
-       <height>50</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Put detector
-to safe position</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="push_johann_open_motors_widget">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>40</y>
-       <width>130</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>500</width>
-       <height>50</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Spectrometer
-motors</string>
-     </property>
-    </widget>
     <widget class="QWidget" name="gridLayoutWidget_9">
      <property name="geometry">
       <rect>
@@ -2713,6 +2635,85 @@ motors</string>
         </property>
         <property name="text">
          <string>reset</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>581</width>
+       <height>52</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPushButton" name="push_johann_home_crystals">
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Home piezos</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="push_johann_reset_config">
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Reset Config</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="push_pilatus_widget">
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Pilatus screen</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="push_johann_open_motors_widget">
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Spectrometer
+motors</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="push_johann_put_detector_to_safe_position">
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Put detector
+to safe position</string>
         </property>
        </widget>
       </item>

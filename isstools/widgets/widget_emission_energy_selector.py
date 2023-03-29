@@ -22,7 +22,7 @@ class UIEmissionEnergySelector(*uic.loadUiType(ui_path)):
         self.comboBox_element.addItems(elems)
         self.comboBox_element.setCurrentIndex(self.settings.value('johann_emission_element', defaultValue=0, type=int))
 
-        self.update_combo_line(None)
+        self.update_combo_line(1)
         self.comboBox_line.setCurrentIndex(self.settings.value('johann_emission_line', defaultValue=0, type=int)) #
 
         self.update_e_value(save_settings=False)
@@ -47,9 +47,11 @@ class UIEmissionEnergySelector(*uic.loadUiType(ui_path)):
 
     def update_combo_line(self, index):
         self.comboBox_line.clear()
-        lines = self.elements_data[str(self.comboBox_element.currentText())]
-        lines.sort()
-        self.comboBox_line.addItems(lines)
+        cur_element = str(self.comboBox_element.currentText())
+        if cur_element:
+            lines = self.elements_data[cur_element]
+            lines.sort()
+            self.comboBox_line.addItems(lines)
 
     def update_e_value(self, save_settings=True):
         if self.comboBox_line.count() > 0:
@@ -98,9 +100,11 @@ class UIEmissionEnergySelectorEnergyOnly(*uic.loadUiType(ui_path_no_optics)):
 
     def update_combo_line(self, index):
         self.comboBox_line.clear()
-        lines = self.elements_data[str(self.comboBox_element.currentText())]
-        lines.sort()
-        self.comboBox_line.addItems(lines)
+        cur_element = str(self.comboBox_element.currentText())
+        if cur_element:
+            lines = self.elements_data[cur_element]
+            lines.sort()
+            self.comboBox_line.addItems(lines)
 
     def update_e_value(self, save_settings=True):
         if self.comboBox_line.count() > 0:

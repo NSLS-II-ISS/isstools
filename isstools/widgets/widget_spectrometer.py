@@ -15,6 +15,8 @@ from isstools.elements.figure_update import update_figure_with_colorbar, update_
 from isstools.elements.transformations import  range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
+from .widget_spectrometer_motors import UISpectrometerMotors
+from .widget_pilatus import UIPilatusMonitor
 from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
 from ..elements.elements import get_spectrometer_line_dict
 # from isstools.elements.liveplots import NormPlot
@@ -70,6 +72,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.push_gen_scan.clicked.connect(self.run_gen_scan)
         # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
+        self.push_johann_open_motors_widget.clicked.connect(self.open_motor_widget)
+        self.push_pilatus_widget.clicked.connect(self.open_pilatus_widget)
+
 
         self.det_list = list(detector_dictionary.keys())
         self.comboBox_pcl_detectors.addItems(self.det_list)
@@ -140,6 +145,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_johann_roll_offset.addItems([str(i) for i in self.johann_emission.allowed_roll_offsets])
         self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
         self.push_johann_move_motors.clicked.connect(self.johann_move_motors)
+
 
         self.johann_motor_list = [motor_dictionary[motor]['description'] for motor in motor_dictionary
                                     if ('group' in self.motor_dictionary[motor].keys()) and
@@ -474,7 +480,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             _key = self.comboBox_johann_element_parking.currentText()
             set_parking_func = self.johann_parking_elements[_key]['set_parking_func']
             set_parking_func()
-            self.johann_populate_crystal_parking()
+            self.johann_populate_parking_element_widgets()
 
     # def johann_update_detector_parking(self):
     #     ret = question_message_box(self, 'Warning',
@@ -699,3 +705,36 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         e_lo = float(self.lineEdit_johann_energy_lim_lo.text())
         e_hi = float(self.lineEdit_johann_energy_lim_hi.text())
         self.johann_emission.set_energy_limits(e_lo, e_hi)
+
+
+    def open_motor_widget(self):
+        self.widget_motor_detachable = QtWidgets.QWidget()
+        self.widget_motor_detachable.setWindowTitle(f"Spectrometer Motors")
+        self.widget_motor_detachable.setGeometry(1100, 1100, 1600, 1000)
+        self.layout_spectrometer_motors = QtWidgets.QVBoxLayout(self.widget_motor_detachable)
+        self.widget_spectrometer_motors = UISpectrometerMotors(motor_dict=self.motor_dictionary, parent=self)
+        self.layout_spectrometer_motors.addWidget(self.widget_spectrometer_motors)
+        self.widget_motor_detachable.show()
+        print('Done')
+
+    def open_pilatus_widget(self):
+        self.widget_pilatus_monitor = UIPilatusMonitor(self.detector_dictionary, parent=self)
+        self.widget_pilatus_monitor.show()
+
+        # return None
+        # self.widget_pilatus_detachable = QtWidgets.QWidget()
+        # self.widget_pilatus_detachable.setWindowTitle(f"Pilatus detector")
+        # self.widget_pilatus_detachable.setGeometry(1100, 1100, 900, 900)
+        # self.layout_pilatus_monitor = QtWidgets.QVBoxLayout(self.widget_pilatus_detachable)
+        # self.widget_pilatus_detachable.setLayout(self.layout_pilatus_monitor)
+        # self.widget_pilatus_monitor = UIPilatusMonitor(parent=self)
+        # # self.layout_pilatus_monitor.addWidget(QtWidgets.QWidget.QPushButton('test'))
+        # self.layout_pilatus_monitor.addWidget(self.widget_pilatus_monitor)
+        # self.widget_pilatus_detachable.show()
+        print('Done')
+
+
+
+
+
+

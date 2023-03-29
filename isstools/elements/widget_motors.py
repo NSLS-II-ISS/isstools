@@ -45,7 +45,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.layout_motor_widget = self.horizontalLayout_motor
         self.label_motor_description.setText(self.motor_dict['description'])
-        self.label_motor_description.setFixedWidth(160)
+        self.label_motor_description.setFixedWidth(200)
         self.layout_motor_widget.addWidget(self.label_motor_description)
 
         self.label_mov_status = QLabel("      ")
@@ -86,6 +86,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
         self.layout_motor_widget.addWidget(self.lineEdit_step)
         self.lineEdit_step.returnPressed.connect(self.update_step)
+        # self._motor_object.tweak_value.subscribe(self.update_step_value)
 
         self.button_move_increment = QPushButton(">")
         self.button_move_increment.setFixedWidth(30)
@@ -115,6 +116,10 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
     def update_set_point_value(self, value, **kwargs):
         self.lineEdit_setpoint.setText(f"{value:3.3f} {self._motor_object.egu}")
+
+
+    # def update_step_value(self, value, **kwargs):
+    #     self.lineEdit_step.setText(f"{value:3.3f} {self._motor_object.egu}")
 
     def update_readback(self, value, **kwargs):
         self.label_motor_readback.setText(f"{value:3.3f} {self._motor_object.egu}")

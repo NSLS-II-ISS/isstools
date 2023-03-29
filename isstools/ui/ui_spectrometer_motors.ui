@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1611</width>
-    <height>922</height>
+    <width>1653</width>
+    <height>932</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QLabel" name="label_spectrometer_image_1">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
+     <x>30</x>
+     <y>40</y>
      <width>711</width>
      <height>671</height>
     </rect>
@@ -29,9 +29,9 @@
   <widget class="QLabel" name="label_spectrometer_image_2">
    <property name="geometry">
     <rect>
-     <x>700</x>
-     <y>20</y>
-     <width>891</width>
+     <x>720</x>
+     <y>50</y>
+     <width>921</width>
      <height>411</height>
     </rect>
    </property>
@@ -42,8 +42,8 @@
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>750</y>
+     <x>70</x>
+     <y>780</y>
      <width>431</width>
      <height>141</height>
     </rect>
@@ -93,9 +93,9 @@
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>740</x>
-     <y>400</y>
-     <width>841</width>
+     <x>760</x>
+     <y>430</y>
+     <width>871</width>
      <height>191</height>
     </rect>
    </property>
@@ -107,13 +107,16 @@
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>821</width>
+      <width>851</width>
       <height>151</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="pushButton_stack4">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -166,6 +169,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_stack5">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="minimumSize">
         <size>
          <width>40</width>
@@ -179,6 +185,34 @@
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>630</y>
+     <width>851</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_currentMotors"/>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
