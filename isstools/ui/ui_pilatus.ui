@@ -253,7 +253,7 @@
      </widget>
     </item>
     <item row="0" column="4">
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="pushButton_move_energy">
       <property name="text">
        <string>Start</string>
       </property>
@@ -298,7 +298,7 @@
      </widget>
     </item>
     <item row="3" column="4">
-     <widget class="QSpinBox" name="spinBox_spinBox_roi3_height">
+     <widget class="QSpinBox" name="spinBox_roi3_height">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -314,7 +314,7 @@
      </widget>
     </item>
     <item row="3" column="1">
-     <widget class="QSpinBox" name="spinBox_roi3_x">
+     <widget class="QSpinBox" name="spinBox_roi3_min_x">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -330,7 +330,7 @@
      </widget>
     </item>
     <item row="1" column="1">
-     <widget class="QSpinBox" name="spinBox_roi1_x">
+     <widget class="QSpinBox" name="spinBox_roi1_min_x">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -341,7 +341,7 @@
        <number>32000</number>
       </property>
       <property name="value">
-       <number>9000</number>
+       <number>20</number>
       </property>
      </widget>
     </item>
@@ -362,7 +362,7 @@
      </widget>
     </item>
     <item row="2" column="4">
-     <widget class="QSpinBox" name="spinBox_spinBox_roi2_height">
+     <widget class="QSpinBox" name="spinBox_roi2_height">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -378,7 +378,7 @@
      </widget>
     </item>
     <item row="2" column="1">
-     <widget class="QSpinBox" name="spinBox_roi2_x">
+     <widget class="QSpinBox" name="spinBox_roi2_min_x">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -407,7 +407,7 @@
      </widget>
     </item>
     <item row="3" column="2">
-     <widget class="QSpinBox" name="spinBox_roi3_y">
+     <widget class="QSpinBox" name="spinBox_roi3_min_y">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -469,7 +469,7 @@
      </widget>
     </item>
     <item row="4" column="4">
-     <widget class="QSpinBox" name="spinBox_spinBox_roi4_height">
+     <widget class="QSpinBox" name="spinBox_roi4_height">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -547,7 +547,7 @@
      </widget>
     </item>
     <item row="4" column="2">
-     <widget class="QSpinBox" name="spinBox_roi4_y">
+     <widget class="QSpinBox" name="spinBox_roi4_min_y">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -563,7 +563,7 @@
      </widget>
     </item>
     <item row="2" column="2">
-     <widget class="QSpinBox" name="spinBox_roi2_y">
+     <widget class="QSpinBox" name="spinBox_roi2_min_y">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -586,7 +586,7 @@
      </widget>
     </item>
     <item row="4" column="1">
-     <widget class="QSpinBox" name="spinBox_roi4_x">
+     <widget class="QSpinBox" name="spinBox_roi4_min_x">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -618,7 +618,7 @@
      </widget>
     </item>
     <item row="1" column="2">
-     <widget class="QSpinBox" name="spinBox_roi1_y">
+     <widget class="QSpinBox" name="spinBox_roi1_min_y">
       <property name="maximumSize">
        <size>
         <width>80</width>
@@ -629,7 +629,7 @@
        <number>32000</number>
       </property>
       <property name="value">
-       <number>9000</number>
+       <number>500</number>
       </property>
      </widget>
     </item>
@@ -829,7 +829,7 @@
      <item row="0" column="1">
       <widget class="QDoubleSpinBox" name="doubleSpinBox_set_energy">
        <property name="enabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="maximumSize">
         <size>
@@ -842,7 +842,7 @@
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="doubleSpinBox_cutoff_energy">
        <property name="enabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="maximumSize">
         <size>
@@ -853,6 +853,19 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_detector_settings">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>0</y>
+      <width>131</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Expert settings</string>
+    </property>
    </widget>
   </widget>
  </widget>

@@ -3,6 +3,7 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtGui import QPixmap
 from isstools.elements.widget_motors import UIWidgetMotors
 from functools import partial
+from time import sleep
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_pilatus.ui')
 spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
@@ -19,12 +20,14 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.detector_dict = detector_dict
 
+
         self.pilatus100k_dict = self.detector_dict['Pilatus 100k']
         self.pilatus100k_device = self.detector_dict['Pilatus 100k']['device']
+        self.addCanvas()
 
         self.subscription_dict = {'exposure': self.pilatus100k_device.cam.acquire_time,
                                   'num_of_images': self.pilatus100k_device.cam.num_images,
-                                  'set_energy' : self.pilatus100k_device.cam.threshold_energy,
+                                  'set_energy' : self.pilatus100k_device.cam.set_energy,
                                   'cutoff_energy': self.pilatus100k_device.cam.threshold_energy}
 
         self.gain_menu = {0: "7-30keV/Fast/LowG",
@@ -37,16 +40,81 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.comboBox_shapetime.currentIndexChanged.connect(self.change_pilatus_gain)
         self.pilatus100k_device.cam.gain_menu.subscribe(self.update_gain_combobox)
 
+        self.radioButton_single_exposure.toggled.connect(self.update_acquisition_mode)
+        self.radioButton_continuous_exposure.toggled.connect(self.update_acquisition_mode)
+
+        self.pushButton_start.clicked.connect(self.acquire_image)
+
+        for i in range(1,5):
+            def update_roix_parameters(value, **kwargs):
+                getattr(self, 'spinBox_roi' + str(i) + '_min_x').setValue(value)
+
+            def update_roiy_parameters(value, **kwargs):
+                getattr(self, 'spinBox_roi' + str(i) + '_min_y').setValue(value)
+
+            def update_roix_size_parameters(value, **kwargs):
+                getattr(self, 'spinBox_roi' + str(i) + '_width').setValue(value)
+
+            def update_roiy_size_parameters(value, **kwargs):
+                getattr(self, 'spinBox_roi' + str(i) + '_height').setValue(value)
+
+
+            getattr(self.pilatus100k_device, 'roi'+  str(i)).min_xyz.min_x.subscribe(update_roix_parameters)
+            getattr(self.pilatus100k_device, 'roi' + str(i)).min_xyz.min_y.subscribe(update_roiy_parameters)
+
+            getattr(self.pilatus100k_device, 'roi' + str(i)).size.x.subscribe(update_roix_size_parameters)
+            getattr(self.pilatus100k_device, 'roi' + str(i)).size.y.subscribe(update_roiy_size_parameters)
 
 
         for _keys in self.subscription_dict.keys():
             self.add_pilatus_attribute(_keys)
 
+
+
+    def addCanvas(self):
+        self.figure_pilatus_image = Figure()
+        self.figure_pilatus_image.set_facecolor(color='#FcF9F6')
+        self.canvas_pilatus_image = FigureCanvas(self.figure_pilatus_image)
+        self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
+        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
+        self.figure_pilatus_image.ax.imshow(_img.T)
+        self.figure_pilatus_image.ax.set_xticks([])
+        self.figure_pilatus_image.ax.set_yticks([])
+        self.toolbar_pilatus_image = NavigationToolbar(self.canvas_pilatus_image, self, coordinates=True)
+        self.verticalLayout_pilatus_image.addWidget(self.toolbar_pilatus_image)
+        self.verticalLayout_pilatus_image.addWidget(self.canvas_pilatus_image)
+        self.canvas_pilatus_image.draw_idle()
+        # self.figure_pilatus_image.ax.grid(alpha=0.4)
+        # self.figure_binned_scans = Figure()
+        # self.figure_binned_scans.set_facecolor(color='#FcF9F6')
+        # self.canvas_binned_scans = FigureCanvas(self.figure_binned_scans)
+        # self.figure_binned_scans.ax = self.figure_binned_scans.add_subplot(111)
+        # self.toolbar_binned_scans = NavigationToolbar(self.canvas_binned_scans, self, coordinates=True)
+        # self.plot_binned_scans.addWidget(self.toolbar_binned_scans)
+        # self.plot_binned_scans.addWidget(self.canvas_binned_scans)
+        # self.canvas_binned_scans.draw_idle()
+        # self.figure_binned_scans.ax.grid(alpha=0.4)
+
+
+
+
+    def acquire_image(self):
+        self.pilatus100k_device.cam.acquire.set(1).wait()
+
+    def update_acquisition_mode(self):
+        if self.radioButton_single_exposure.isChecked():
+
+            self.pilatus100k_device.cam.image_mode.set(0).wait()
+            self.pilatus100k_device.cam.trigger_mode.set(0).wait()
+        else:
+            self.pilatus100k_device.cam.image_mode.set(2).wait()
+            self.pilatus100k_device.cam.trigger_mode.set(4).wait()
+
     def add_pilatus_attribute(self, attribute_key):
 
         def update_item(_attr_key, _attr_signal):
             _current_value = getattr(self, "doubleSpinBox_"+_attr_key).value()
-            _st = _attr_signal.set(_current_value)
+            _attr_signal.set(_current_value).wait()
 
         def update_item_value(value ,**kwargs):
             if attribute_key == "exposure":
@@ -56,122 +124,14 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             else:
                 unit = "keV"
             getattr(self, "label_"+attribute_key).setText(f"{value:2.3f} {unit}")
+            getattr(self, "doubleSpinBox_"+attribute_key).setValue(value)
 
         getattr(self, "doubleSpinBox_"+attribute_key).valueChanged.connect(partial(update_item, attribute_key, self.subscription_dict[attribute_key]))
         self.subscription_dict[attribute_key].subscribe(update_item_value)
 
     def change_pilatus_gain(self):
         _current_indx = self.comboBox_shapetime.currentIndex()
-        _st = self.pilatus100k_device.cam.gain_menu.set(_current_indx)
+        self.pilatus100k_device.cam.gain_menu.set(_current_indx).wait()
 
     def update_gain_combobox(self, value, **kwargs):
         self.comboBox_shapetime.setCurrentIndex(value)
-
-
-
-
-
-
-        # if key == 'exposure':
-        #     getattr(self, 'label_' + key).setText(f"{value:1.3f} s")
-        # elif key == 'num_of_images':
-        #     getattr(self, 'label_' + key).setText(f"{value:1.0f}")
-        # else:
-        #     getattr(self, 'label_' + key).setText(f"{value:2.3f} keV")
-        # self.label_exposure.setText(f"{value:1.2f} s")
-
-
-
-
-
-        # self.motor_dict=motor_dict
-        # pixmap = QPixmap(spectrometer_image1)
-        # pixmap = pixmap.scaled(1000, 700, QtCore.Qt.KeepAspectRatio)
-        # self.label_spectrometer_image_1.setPixmap(pixmap)
-        #
-        # pixmap = QPixmap(spectrometer_image2)
-        # pixmap = pixmap.scaled(900, 400, QtCore.Qt.KeepAspectRatio)
-        # self.label_spectrometer_image_2.setPixmap(pixmap)
-        # self.widget_list=[]
-
-    #     self._motor_group_dict = {
-    #         'pushButton_detector_arm':  ['motor_det_x', 'motor_det_th1', 'motor_det_th2'],
-    #         'pushButton_crystal_assembly': ['auxxy_x', 'auxxy_y'],
-    #         'pushButton_stack1': ['johann_cr_main_roll', 'johann_cr_main_yaw'],
-    #         'pushButton_stack2': ['johann_cr_aux2_roll', 'johann_cr_aux2_yaw', 'johann_cr_aux2_x', 'johann_cr_aux2_y'],
-    #         'pushButton_stack3': ['johann_cr_aux3_roll', 'johann_cr_aux3_yaw', 'johann_cr_aux3_x', 'johann_cr_aux3_y'],
-    #         'pushButton_stack4': [],
-    #         'pushButton_stack5': [],
-    #         }
-    #     for button in self._motor_group_dict.keys():
-    #         getattr(self,button).clicked.connect(self.show_motors)
-    #
-    # def show_motors(self):
-    #     sender_object_name = self.sender().objectName()
-    #     for widget in self.widget_list:
-    #         self.verticalLayout_currentMotors.removeWidget(widget)
-    #         widget.deleteLater()
-    #     self.widget_list=[]
-    #
-    #     for motor in self._motor_group_dict[sender_object_name]:
-    #         widget = UIWidgetMotors(self.motor_dict[motor])
-    #         widget.setFixedWidth(900)
-    #         widget.setFixedHeight(24)
-    #         self.verticalLayout_currentMotors.addWidget(widget)
-    #         self.widget_list.append(widget)
-
-
-    #
-    #
-    # def launch_stack_motors_widget(self, stack_number=1):
-    #     _stack_motors = {1: ['johann_cr_main_roll', 'johann_cr_main_yaw'],
-    #                      2: ['johann_cr_aux2_roll', 'johann_cr_aux2_yaw', 'johann_cr_aux2_x', 'johann_cr_aux2_y'],
-    #                      3: ['johann_cr_aux3_roll', 'johann_cr_aux3_yaw', 'johann_cr_aux3_x', 'johann_cr_aux3_y']}
-    #
-    #
-    #     self.widget_stack_motors.setWindowTitle(f"Stack {stack_number} Motors")
-    #     self.layout_stack = QtWidgets.QVBoxLayout(self.widget_stack_motors)
-    #
-    #
-    #     for motor_name in _stack_motors[stack_number]:
-    #         widget = UIWidgetMotors(self.motor_dictonary[motor_name])
-    #         widget.setFixedWidth(800)
-    #         self.layout_stack.addWidget(widget)
-    #     self.widget_stack_motors.show()
-    #     # self.motor_list.append(self.widget_stack_motors)
-    #
-    # def launch_det_arm_motor_widget(self):
-    #     _det_arm_motors = ['motor_det_x', 'motor_det_th1', 'motor_det_th2']
-    #
-    #     self.widget_det_motors = QtWidgets.QWidget()
-    #     self.widget_det_motors.setGeometry(1100, 1100, 900, 140)
-    #     self.widget_det_motors.setWindowTitle(f"Detector arm Motors")
-    #     self.layout_det = QtWidgets.QVBoxLayout(self.widget_det_motors)
-    #
-    #
-    #     for motor_name in _det_arm_motors:
-    #         widget = UIWidgetMotors(self.motor_dictonary[motor_name])
-    #         widget.setFixedWidth(800)
-    #         self.layout_det.addWidget(widget)
-    #     self.motor_list.append(self.widget_det_motors)
-    #     self.widget_det_motors.show()
-    #
-    #
-    # def launch_cry_assy_widget(self):
-    #     _cry_assy_motors = ['auxxy_x', 'auxxy_y']
-    #     # ['johann_bragg_angle', 'johann_energy']
-    #
-    #     self.widget_cry_assy_motors = QtWidgets.QWidget()
-    #     self.widget_cry_assy_motors.setGeometry(1200, 1200, 900, 140)
-    #     self.widget_cry_assy_motors.setWindowTitle(f"Detector arm Motors")
-    #     self.layout_cry_assy = QtWidgets.QVBoxLayout(self.widget_cry_assy_motors)
-    #
-    #     for motor_name in _cry_assy_motors:
-    #         widget = UIWidgetMotors(self.motor_dictonary[motor_name])
-    #         widget.setFixedWidth(800)
-    #         self.layout_cry_assy.addWidget(widget)
-    #
-    #     self.motor_list.append(self.widget_cry_assy_motors)
-    #     self.widget_cry_assy_motors.show()
-    #
-    #
