@@ -450,9 +450,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         messageBox.setWindowTitle('Warning')
         messageBox.setText('Queue is not empty')
         messageBox.addButton(QtWidgets.QPushButton('Skip'), QtWidgets.QMessageBox.NoRole)
-        messageBox.addButton(QtWidgets.QPushButton('Add to head and pause after'), QtWidgets.QMessageBox.YesRole)
-        messageBox.addButton(QtWidgets.QPushButton('Add to head'), QtWidgets.QMessageBox.YesRole)
-        messageBox.addButton(QtWidgets.QPushButton('Add to tail'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to the beginning of the queue and pause after'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to the beginning of the queue'), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton('Add to the end of the queue'), QtWidgets.QMessageBox.YesRole)
         ret = messageBox.exec_()
         if ret == 0:
             plans = []
