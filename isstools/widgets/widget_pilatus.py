@@ -16,6 +16,7 @@ spectrometer_image2 = pkg_resources.resource_filename('isstools', 'Resources/spe
 class UIPilatusMonitor(*uic.loadUiType(ui_path)):
     def __init__(self,
                 detector_dict = None,
+                hhm = None,
                 parent=None,
                  *args, **kwargs
                  ):
@@ -23,6 +24,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.detector_dict = detector_dict
+        self.hhm = hhm
 
 
         self.pilatus100k_dict = self.detector_dict['Pilatus 100k']
@@ -49,6 +51,12 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self.pushButton_start.clicked.connect(self.acquire_image)
         self.pushButton_stop.clicked.connect(self.stop_acquire_image)
+
+        self.checkBox_detector_settings.clicked.connect(self.open_detector_setting)
+
+        self.checkBox_enable_energy_change.clicked.connect(self.open_energy_change)
+        self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
+        self.spinBox_mono_energy.valueChanged.connect(self.set_mono_energy)
 
         for i in range(1,5):
             def update_roi_counts(value, **kwargs):
@@ -79,6 +87,30 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         for _keys in self.subscription_dict.keys():
             self.add_pilatus_attribute(_keys)
 
+    def set_mono_energy(self):
+        _energy = self.spinBox_mono_energy.value()
+        self.hhm.energy.user_setpoint(_energy).wait()
+
+    def read_mono_energy(self, value, **kwargs):
+        self.label_current_energy.setText(f'{value:4.1f} eV')
+
+    def open_energy_change(self):
+        if self.checkBox_enable_energy_change.isChecked():
+            self.spinBox_mono_energy.setEnabled(True)
+        else:
+            self.spinBox_mono_energy.setEnabled(False)
+
+
+
+    def open_detector_setting(self):
+
+        if self.checkBox_detector_settings.isChecked():
+            self.doubleSpinBox_set_energy.setEnabled(True)
+            self.doubleSpinBox_cutoff_energy.setEnabled(True)
+        else:
+            self.doubleSpinBox_set_energy.setEnabled(False)
+            self.doubleSpinBox_cutoff_energy.setEnabled(False)
+
 
 
     def addCanvas(self):
@@ -87,13 +119,14 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.canvas_pilatus_image = FigureCanvas(self.figure_pilatus_image)
         self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
         _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        self.figure_pilatus_image.ax.imshow(_img.T)
+        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
         self.figure_pilatus_image.ax.set_xticks([])
         self.figure_pilatus_image.ax.set_yticks([])
         self.toolbar_pilatus_image = NavigationToolbar(self.canvas_pilatus_image, self, coordinates=True)
         self.verticalLayout_pilatus_image.addWidget(self.toolbar_pilatus_image)
-        self.verticalLayout_pilatus_image.addWidget(self.canvas_pilatus_image)
+        self.verticalLayout_pilatus_image.addWidget(self.canvas_pilatus_image, stretch=1)
         self.canvas_pilatus_image.draw_idle()
+        self.figure_pilatus_image.tight_layout()
         # self.figure_pilatus_image.ax.grid(alpha=0.4)
         # self.figure_binned_scans = Figure()
         # self.figure_binned_scans.set_facecolor(color='#FcF9F6')

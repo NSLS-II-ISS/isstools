@@ -718,7 +718,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         print('Done')
 
     def open_pilatus_widget(self):
-        self.widget_pilatus_monitor = UIPilatusMonitor(self.detector_dictionary, parent=self)
+        self.widget_pilatus_monitor = UIPilatusMonitor(self.detector_dictionary, self.hhm, parent=self)
         self.widget_pilatus_monitor.show()
 
         # return None
