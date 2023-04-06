@@ -87,7 +87,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
 
-        self.set_autofoil(self.checkBox_autofoil.isChecked())
+        # self.set_autofoil(self.checkBox_autofoil.isChecked())
+        self.checkBox_autofoil.setChecked(self.plan_processor.auto_foil_set)
         self.checkBox_autofoil.clicked.connect(self.set_autofoil)
         self.push_set_attenuator.clicked.connect(self.set_attenuator)
 

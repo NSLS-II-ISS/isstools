@@ -18,7 +18,8 @@ class UIInfoShutters(*uic.loadUiType(ui_path)):
         self.parent = parent
         self.plan_processor = plan_processor
 
-        self.check_beamline_readiness(self.checkBox_check_vacuum_and_shutters.isChecked())
+        # self.check_beamline_readiness(self.checkBox_check_vacuum_and_shutters.isChecked())
+        self.checkBox_check_vacuum_and_shutters.setChecked(self.plan_processor.beamline_readiness)
         self.checkBox_check_vacuum_and_shutters.clicked.connect(self.check_beamline_readiness)
 
         # Initialize Ophyd elements
