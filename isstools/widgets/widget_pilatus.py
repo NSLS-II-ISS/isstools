@@ -9,6 +9,8 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 
+from isstools.elements.figure_update import update_figure
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_pilatus.ui')
 spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
 spectrometer_image2 = pkg_resources.resource_filename('isstools', 'Resources/spec_image2.png')
@@ -58,7 +60,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
-        self.pilatus100k_device.image.array_data.subscribe(self.update_pilatus_image)
+        # self.pilatus100k_device.cam.trigger_mode.subscribe(self.update_pilatus_image)
+
+
+        # self.pilatus100k_device.image.array_data.subscribe(self.update_pilatus_image)
 
         for i in range(1,5):
             def update_roi_counts(value, **kwargs):
@@ -120,36 +125,40 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.figure_pilatus_image = Figure()
         self.figure_pilatus_image.set_facecolor(color='#FcF9F6')
         self.canvas_pilatus_image = FigureCanvas(self.figure_pilatus_image)
-        self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
-        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
-        self.figure_pilatus_image.ax.set_xticks([])
-        self.figure_pilatus_image.ax.set_yticks([])
         self.toolbar_pilatus_image = NavigationToolbar(self.canvas_pilatus_image, self, coordinates=True)
         self.verticalLayout_pilatus_image.addWidget(self.toolbar_pilatus_image)
         self.verticalLayout_pilatus_image.addWidget(self.canvas_pilatus_image, stretch=1)
+        self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
         self.canvas_pilatus_image.draw_idle()
         self.figure_pilatus_image.tight_layout()
-        # self.figure_pilatus_image.ax.grid(alpha=0.4)
-        # self.figure_binned_scans = Figure()
-        # self.figure_binned_scans.set_facecolor(color='#FcF9F6')
-        # self.canvas_binned_scans = FigureCanvas(self.figure_binned_scans)
-        # self.figure_binned_scans.ax = self.figure_binned_scans.add_subplot(111)
-        # self.toolbar_binned_scans = NavigationToolbar(self.canvas_binned_scans, self, coordinates=True)
-        # self.plot_binned_scans.addWidget(self.toolbar_binned_scans)
-        # self.plot_binned_scans.addWidget(self.canvas_binned_scans)
-        # self.canvas_binned_scans.draw_idle()
-        # self.figure_binned_scans.ax.grid(alpha=0.4)
 
-    def update_pilatus_image(self, value, **kwargs):
-        pass
+    def update_pilatus_image(self):
 
+        update_figure([self.figure_pilatus_image.ax],
+                      self.toolbar_pilatus_image,
+                      self.canvas_pilatus_image)
+
+        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
+        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
+        self.figure_pilatus_image.ax.autoscale(True)
+        self.figure_pilatus_image.ax.set_xticks([])
+        self.figure_pilatus_image.ax.set_yticks([])
+        self.canvas_pilatus_image.draw_idle()
+
+
+        # pass
+        # if value == 0 or value == 4:
+        #     _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
+        #     self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
+        # else:
+        #     pass
 
     def stop_acquire_image(self):
         self.pilatus100k_device.cam.acquire.put(0)
 
     def acquire_image(self):
         self.pilatus100k_device.cam.acquire.set(1).wait()
+        self.update_pilatus_image()
 
     def update_acquisition_mode(self):
         if self.radioButton_single_exposure.isChecked():
