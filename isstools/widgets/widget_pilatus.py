@@ -58,6 +58,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
+        self.pilatus100k_device.image.array_data.subscribe(self.update_pilatus_image)
+
         for i in range(1,5):
             def update_roi_counts(value, **kwargs):
                 getattr(self, 'label_counts_roi'+str(i)).setText(f'{value} cts')
@@ -138,6 +140,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         # self.plot_binned_scans.addWidget(self.canvas_binned_scans)
         # self.canvas_binned_scans.draw_idle()
         # self.figure_binned_scans.ax.grid(alpha=0.4)
+
+    def update_pilatus_image(self, value, **kwargs):
+        pass
+
 
     def stop_acquire_image(self):
         self.pilatus100k_device.cam.acquire.put(0)
