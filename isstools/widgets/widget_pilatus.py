@@ -51,6 +51,11 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.pushButton_stop.clicked.connect(self.stop_acquire_image)
 
         for i in range(1,5):
+            def update_roi_counts(value, **kwargs):
+                getattr(self, 'label_counts_roi'+str(i)).setText(f'{value} cts')
+            getattr(self.pilatus100k_device, 'stats'+str(i)).total.subscribe(update_roi_counts)
+
+        for i in range(1,5):
             def update_roix_parameters(value, **kwargs):
                 getattr(self, 'spinBox_roi' + str(i) + '_min_x').setValue(value)
 
