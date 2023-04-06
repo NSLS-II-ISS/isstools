@@ -83,7 +83,8 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.lineEdit_step = QLineEdit("")
         self.lineEdit_step.setFixedWidth(100)
-        self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
+        # self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
+        self._motor_object.twv.subscribe(self.update_step_value)
         self.layout_motor_widget.addWidget(self.lineEdit_step)
         self.lineEdit_step.returnPressed.connect(self.update_step)
         # self._motor_object.tweak_value.subscribe(self.update_step_value)
@@ -100,6 +101,8 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.button_change_limts = QPushButton("Change limit")
         self.layout_motor_widget.addWidget(self.button_change_limts)
         self.button_change_limts.clicked.connect(self.update_lo_hi_limit)
+
+
 
 
 
@@ -137,24 +140,29 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
             self.label_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
 
     def update_decrement(self):
-        _current_step_reading = self.lineEdit_step.text()
-        _step = float(_current_step_reading.split()[0])
+        self._motor_object.twr.put(1)
+        # _current_step_reading = self.lineEdit_step.text()
+        # _step = float(_current_step_reading.split()[0])
+        #
+        # _current_readback = self._motor_object.position
+        # _set_obj = self._motor_object.set(_current_readback - _step)
 
-        _current_readback = self._motor_object.position
-        _set_obj = self._motor_object.set(_current_readback - _step)
+    def update_step_value(self, value, **kwargs):
+        self.lineEdit_step.setText(f'{value:.3f} {self._motor_object.egu}')
 
     def update_step(self):
         _user_step_reading = self.lineEdit_step.text()
         _step_convert = float(_user_step_reading.split()[0])
         _step_text = f"{_step_convert:3.3f} {self._motor_object.egu}"
         self.lineEdit_step.setText(_step_text)
+        self._motor_object.twv.set(_step_convert)
 
     def update_increment(self):
-        _current_step_reading = self.lineEdit_step.text()
-        _step = float(_current_step_reading.split()[0])
-
-        _current_readback = self._motor_object.position
-        _set_obj = self._motor_object.set(_current_readback + _step)
+        self._motor_object.twf.put(1)
+        # _current_step_reading = self.lineEdit_step.text()
+        # _step = float(_current_step_reading.split()[0])
+        # _current_readback = self._motor_object.position
+        # _set_obj = self._motor_object.set(_current_readback + _step)
 
     def stop_the_motor(self):
         self._motor_object.stop()

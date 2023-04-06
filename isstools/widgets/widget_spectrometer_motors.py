@@ -4,11 +4,12 @@ from PyQt5.QtGui import QPixmap
 from isstools.elements.widget_motors import UIWidgetMotors
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer_motors.ui')
-
+spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
+spectrometer_image2 = pkg_resources.resource_filename('isstools', 'Resources/spec_image2.png')
 
 class UISpectrometerMotors(*uic.loadUiType(ui_path)):
     def __init__(self,
-                detector = None,
+                motor_dict = None,
                 parent=None,
                  *args, **kwargs
                  ):
@@ -16,9 +17,24 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.motor_dict=motor_dict
+        pixmap = QPixmap(spectrometer_image1)
+        pixmap = pixmap.scaled(1000, 700, QtCore.Qt.KeepAspectRatio)
+        self.label_spectrometer_image_1.setPixmap(pixmap)
+
+        pixmap = QPixmap(spectrometer_image2)
+        pixmap = pixmap.scaled(900, 400, QtCore.Qt.KeepAspectRatio)
+        self.label_spectrometer_image_2.setPixmap(pixmap)
         self.widget_list=[]
 
-
+        self._motor_group_dict = {
+            'pushButton_detector_arm':  ['motor_det_x', 'motor_det_th1', 'motor_det_th2'],
+            'pushButton_crystal_assembly': ['auxxy_x', 'auxxy_y'],
+            'pushButton_stack1': ['johann_cr_main_roll', 'johann_cr_main_yaw'],
+            'pushButton_stack2': ['johann_cr_aux2_roll', 'johann_cr_aux2_yaw', 'johann_cr_aux2_x', 'johann_cr_aux2_y'],
+            'pushButton_stack3': ['johann_cr_aux3_roll', 'johann_cr_aux3_yaw', 'johann_cr_aux3_x', 'johann_cr_aux3_y'],
+            'pushButton_stack4': [],
+            'pushButton_stack5': [],
+            }
         for button in self._motor_group_dict.keys():
             getattr(self,button).clicked.connect(self.show_motors)
 
