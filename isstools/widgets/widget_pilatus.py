@@ -56,7 +56,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self.checkBox_enable_energy_change.clicked.connect(self.open_energy_change)
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
-        self.spinBox_mono_energy.valueChanged.connect(self.set_mono_energy)
+        self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
         for i in range(1,5):
             def update_roi_counts(value, **kwargs):
@@ -88,8 +88,9 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             self.add_pilatus_attribute(_keys)
 
     def set_mono_energy(self):
-        _energy = self.spinBox_mono_energy.value()
-        self.hhm.energy.user_setpoint(_energy).wait()
+        if self.checkBox_enable_energy_change.isChecked():
+            _energy = self.spinBox_mono_energy.value()
+            self.hhm.energy.user_setpoint.set(_energy).wait()
 
     def read_mono_energy(self, value, **kwargs):
         self.label_current_energy.setText(f'{value:4.1f} eV')

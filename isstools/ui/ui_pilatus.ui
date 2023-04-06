@@ -141,7 +141,7 @@
       <x>10</x>
       <y>30</y>
       <width>111</width>
-      <height>51</height>
+      <height>60</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -195,14 +195,14 @@
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>410</y>
+     <y>400</y>
      <width>381</width>
      <height>66</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <widget class="QCheckBox" name="checkBox_5">
+     <widget class="QCheckBox" name="checkBox_enable_energy_change">
       <property name="maximumSize">
        <size>
         <width>30</width>
@@ -234,7 +234,7 @@
      </widget>
     </item>
     <item row="0" column="3">
-     <widget class="QLabel" name="label_n_images">
+     <widget class="QLabel" name="label_current_energy">
       <property name="minimumSize">
        <size>
         <width>60</width>
@@ -243,7 +243,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>60</width>
+        <width>80</width>
         <height>20</height>
        </size>
       </property>
@@ -703,8 +703,8 @@
   <widget class="QSlider" name="horizontalSlider">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>810</y>
+     <x>410</x>
+     <y>650</y>
      <width>361</width>
      <height>24</height>
     </rect>
@@ -716,8 +716,8 @@
   <widget class="QSlider" name="horizontalSlider_2">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>840</y>
+     <x>410</x>
+     <y>680</y>
      <width>361</width>
      <height>24</height>
     </rect>
