@@ -4,6 +4,10 @@ from PyQt5.QtGui import QPixmap
 from isstools.elements.widget_motors import UIWidgetMotors
 from functools import partial
 from time import sleep
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.figure import Figure
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_pilatus.ui')
 spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
@@ -44,6 +48,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.radioButton_continuous_exposure.toggled.connect(self.update_acquisition_mode)
 
         self.pushButton_start.clicked.connect(self.acquire_image)
+        self.pushButton_stop.clicked.connect(self.stop_acquire_image)
 
         for i in range(1,5):
             def update_roix_parameters(value, **kwargs):
@@ -95,8 +100,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         # self.canvas_binned_scans.draw_idle()
         # self.figure_binned_scans.ax.grid(alpha=0.4)
 
-
-
+    def stop_acquire_image(self):
+        self.pilatus100k_device.cam.acquire.put(0)
 
     def acquire_image(self):
         self.pilatus100k_device.cam.acquire.set(1).wait()
