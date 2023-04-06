@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1633</width>
-    <height>825</height>
+    <width>1992</width>
+    <height>1155</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -299,360 +299,6 @@
     <string>Show grid</string>
    </property>
   </widget>
-  <widget class="QWidget" name="gridLayoutWidget_3">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>640</y>
-     <width>467</width>
-     <height>151</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_3">
-    <item row="1" column="4">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_stage_y_step">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>24</height>
-       </size>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_x_position_rb">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_y_position_rb">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_label_3">
-      <property name="minimumSize">
-       <size>
-        <width>115</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>115</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Sample Z</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_label">
-      <property name="minimumSize">
-       <size>
-        <width>115</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>115</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Sample X</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="4">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_stage_x_step">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>24</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>24</height>
-       </size>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="pushButton_sample_stage_y_tweak_neg">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="QPushButton" name="pushButton_sample_stage_x_tweak_neg">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_label_2">
-      <property name="minimumSize">
-       <size>
-        <width>115</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>115</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Sample Y</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_x_position_sp">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_y_position_sp">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="5">
-     <widget class="QPushButton" name="pushButton_sample_stage_y_tweak_pos">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_label_4">
-      <property name="minimumSize">
-       <size>
-        <width>115</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>115</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Sample Theta</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_z_position_sp">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_th_position_sp">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_z_position_rb">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="2">
-     <widget class="QLineEdit" name="lineEdit_sample_stage_th_position_rb">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QPushButton" name="pushButton_sample_stage_z_tweak_neg">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QPushButton" name="pushButton_sample_stage_th_tweak_neg">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="4">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_stage_z_step">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>24</height>
-       </size>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="4">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_sample_stage_th_step">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>24</height>
-       </size>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="5">
-     <widget class="QPushButton" name="pushButton_sample_stage_z_tweak_pos">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="5">
-     <widget class="QPushButton" name="pushButton_sample_stage_th_tweak_pos">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="5">
-     <widget class="QPushButton" name="pushButton_sample_stage_x_tweak_pos">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>&gt;</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QLabel" name="label_coordinate_system">
    <property name="geometry">
     <rect>
@@ -742,8 +388,8 @@
   <widget class="QWidget" name="gridLayoutWidget_4">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>640</y>
+     <x>360</x>
+     <y>850</y>
      <width>270</width>
      <height>151</height>
     </rect>
@@ -1847,7 +1493,7 @@ sample</string>
           <x>10</x>
           <y>10</y>
           <width>345</width>
-          <height>251</height>
+          <height>256</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_7">
@@ -2830,6 +2476,34 @@ sample</string>
     <string>Detach tab</string>
    </property>
   </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_4">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>580</y>
+     <width>851</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_sample_stage_motors"/>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
   <zorder>label_coordinate_system</zorder>
   <zorder>verticalLayoutWidget_2</zorder>
   <zorder>verticalLayoutWidget_3</zorder>
@@ -2841,7 +2515,6 @@ sample</string>
   <zorder>pushButton_move_left</zorder>
   <zorder>pushButton_move_right</zorder>
   <zorder>checkBox_show_calibration_grid</zorder>
-  <zorder>gridLayoutWidget_3</zorder>
   <zorder>pushButton_move_downstream</zorder>
   <zorder>pushButton_move_upstream</zorder>
   <zorder>pushButton_move_clockwise</zorder>
@@ -2850,6 +2523,7 @@ sample</string>
   <zorder>groupBox</zorder>
   <zorder>pushButton_calibrate_cameras_advanced</zorder>
   <zorder>push_detach_tab</zorder>
+  <zorder>verticalLayoutWidget_4</zorder>
  </widget>
  <resources/>
  <connections/>

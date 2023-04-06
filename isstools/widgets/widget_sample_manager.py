@@ -9,7 +9,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
 from PyQt5.QtWidgets import QMenu
-
+from isstools.elements.widget_motors import UIWidgetMotors
 from ..elements.elements import remove_special_characters
 
 from isstools.elements.qmicroscope import Microscope
@@ -27,6 +27,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  sample_stage=None,
+                 motor_dict=None,
                  camera_dict=None,
                  sample_manager=None,
                  plan_processor=None,
@@ -40,6 +41,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.sample_stage = sample_stage
+        self.motor_dict = motor_dict
         self.camera_dict = camera_dict
         self.settings = parent.settings
         self.parent = parent
@@ -71,32 +73,38 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.verticalSlider_z_step.valueChanged.connect(self.update_sample_stage_step)
         self.verticalSlider_th_step.valueChanged.connect(self.update_sample_stage_step)
 
-        self.pushButton_sample_stage_x_tweak_neg.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_x_tweak_pos.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_y_tweak_neg.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_y_tweak_pos.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_z_tweak_neg.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_z_tweak_pos.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_th_tweak_neg.clicked.connect(self.move_sample_stage_rel)
-        self.pushButton_sample_stage_th_tweak_pos.clicked.connect(self.move_sample_stage_rel)
+        for _motor in ['sample_stage_x', 'sample_stage_y', 'sample_stage_z', 'sample_stage_th']:
+            widget = UIWidgetMotors(self.motor_dict[_motor])
+            widget.setFixedWidth(900)
+            widget.setFixedHeight(24)
+            self.verticalLayout_sample_stage_motors.addWidget(widget)
 
-        for k, v in stage_lineEdit_widget_dict.items():
-            pv = v['pv']
-            self.update_sample_stage_lineEdits(getattr(self.sample_stage, pv).value, -1e4, obj_name=k)
+        # self.pushButton_sample_stage_x_tweak_neg.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_x_tweak_pos.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_y_tweak_neg.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_y_tweak_pos.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_z_tweak_neg.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_z_tweak_pos.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_th_tweak_neg.clicked.connect(self.move_sample_stage_rel)
+        # self.pushButton_sample_stage_th_tweak_pos.clicked.connect(self.move_sample_stage_rel)
 
-        self.sample_stage.x.user_readback.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.x.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.y.user_readback.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.y.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.z.user_readback.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.z.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.th.user_readback.subscribe(self.update_sample_stage_lineEdits)
-        self.sample_stage.th.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
+        # for k, v in stage_lineEdit_widget_dict.items():
+        #     pv = v['pv']
+        #     self.update_sample_stage_lineEdits(getattr(self.sample_stage, pv).value, -1e4, obj_name=k)
+        #
+        # self.sample_stage.x.user_readback.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.x.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.y.user_readback.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.y.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.z.user_readback.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.z.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.th.user_readback.subscribe(self.update_sample_stage_lineEdits)
+        # self.sample_stage.th.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
 
-        self.lineEdit_sample_stage_x_position_sp.returnPressed.connect(self.move_sample_stage_abs)
-        self.lineEdit_sample_stage_y_position_sp.returnPressed.connect(self.move_sample_stage_abs)
-        self.lineEdit_sample_stage_z_position_sp.returnPressed.connect(self.move_sample_stage_abs)
-        self.lineEdit_sample_stage_th_position_sp.returnPressed.connect(self.move_sample_stage_abs)
+        # self.lineEdit_sample_stage_x_position_sp.returnPressed.connect(self.move_sample_stage_abs)
+        # self.lineEdit_sample_stage_y_position_sp.returnPressed.connect(self.move_sample_stage_abs)
+        # self.lineEdit_sample_stage_z_position_sp.returnPressed.connect(self.move_sample_stage_abs)
+        # self.lineEdit_sample_stage_th_position_sp.returnPressed.connect(self.move_sample_stage_abs)
 
         # sample management
         self._currently_selected_index = -1
@@ -162,6 +170,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
         if not detached:
             self.detached_ui = UISampleManager(sample_stage=self.sample_stage,
+                                               motor_dict=motor_dict,
                                                camera_dict=self.camera_dict,
                                                sample_manager=self.sample_manager,
                                                plan_processor=self.plan_processor,
