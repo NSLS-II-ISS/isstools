@@ -54,6 +54,7 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.pushButton_pause_queue.toggled.connect(self.pause_queue)
         self.pushButton_clear_queue.clicked.connect(self.clear_queue)
         self.pushButton_reset_queue.clicked.connect(self.reset_queue)
+        self.pushButton_load_last_session.clicked.connect(self.load_last_session)
 
         self.listWidget_plan_queue.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listWidget_plan_queue.customContextMenuRequested.connect(self.plan_queue_context_menu)
@@ -120,9 +121,15 @@ class UIPlanQueue(*uic.loadUiType(ui_path)):
         self.plan_processor.clear_plan_list()
 
     def reset_queue(self):
-        ret = question_message_box(self, 'Warning', 'Are you sure? Reseeting the queue will clear all plans and stop its execution')
+        ret = question_message_box(self, 'Warning', 'Are you sure? Resetting the queue will clear all plans and stop its execution')
         if ret:
             self.plan_processor.reset()
+
+    def load_last_session(self):
+        ret = question_message_box(self, 'Warning',
+                                   'You are about to load the plan queue from the disc. Proceed?')
+        if ret:
+            self.plan_processor.init_from_settings()
 
     def select_item_index_iterator(self):
         index_list = self.listWidget_plan_queue.selectedIndexes()

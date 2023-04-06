@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>546</width>
-    <height>498</height>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,9 +120,9 @@
   <widget class="QLabel" name="label_plan_processor_current_plan">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>230</x>
      <y>470</y>
-     <width>521</width>
+     <width>291</width>
      <height>20</height>
     </rect>
    </property>
@@ -170,6 +170,19 @@
    </property>
    <property name="text">
     <string>Reset queue</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_load_last_session">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>470</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Load last session</string>
    </property>
   </widget>
  </widget>
