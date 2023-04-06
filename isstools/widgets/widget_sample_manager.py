@@ -33,6 +33,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                  parent=None,
                  cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
                  cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',
+                 detached=False,
                  *args, **kwargs):
 
 
@@ -47,7 +48,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.camera2 = self.camera_dict['camera_sample2']
 
         self.sample_manager = sample_manager
-        self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
+        if not detached:
+            self.sample_manager.append_list_update_signal(self.sample_list_changed_signal)
         self.plan_processor = plan_processor
 
         # motion controls and stages
@@ -158,21 +160,26 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # self.calibration_data = []
         # self.pushButton_register_calibration_point.clicked.connect(self.register_calibration_point)
         # self.pushButton_process_calibration.clicked.connect(self.process_calibration_data)
+        if not detached:
+            self.detached_ui = UISampleManager(sample_stage=self.sample_stage,
+                                               camera_dict=self.camera_dict,
+                                               sample_manager=self.sample_manager,
+                                               plan_processor=self.plan_processor,
+                                               parent=self,
+                                               cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
+                                               cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',
+                                               detached=True)
+            self.detached_ui.setWindowTitle('Sample Manager - XLive @ISS/08-ID NSLS-II')
+            self.detached_ui.push_detach_tab.setEnabled(False)
+            self.sample_list_changed_signal.connect(self.detached_ui.update_sample_tree)
 
         self.push_detach_tab.clicked.connect(self.detach_tab)
 
     # def mouseDoubleClickEvent(self, event):
 
     def detach_tab(self):
-        self.detached_ui = UISampleManager(sample_stage=self.sample_stage,
-                 camera_dict=self.camera_dict,
-                 sample_manager=self.sample_manager,
-                 plan_processor=self.plan_processor,
-                 parent=self.parent,
-                 cam1_url='http://10.66.59.30:8083/FfmStream1.jpg',
-                 cam2_url='http://10.66.59.30:8082/FfmStream1.jpg',)
         self.detached_ui.show()
-        self.detached_ui.push_detach_tab.setEnabled(False)
+
 
     # motion control methods
 
