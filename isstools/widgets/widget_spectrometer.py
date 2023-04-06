@@ -173,6 +173,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
         self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
 
+
+        # pilatus widget
+        self.widget_pilatus_monitor = UIPilatusMonitor(detector_dict=self.detector_dictionary,
+                                                       plan_processor=self.plan_processor,
+                                                       hhm=self.hhm,
+                                                       parent=self)
+
 # general handling of gui elements, plotting, and scanning
 
 
@@ -718,7 +725,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         print('Done')
 
     def open_pilatus_widget(self):
-        self.widget_pilatus_monitor = UIPilatusMonitor(self.detector_dictionary, self.hhm, parent=self)
         self.widget_pilatus_monitor.show()
 
         # return None

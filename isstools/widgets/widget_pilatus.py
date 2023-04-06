@@ -8,6 +8,8 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
+import matplotlib.patches as patches
+import time as ttime
 
 from isstools.elements.figure_update import update_figure
 
@@ -17,8 +19,9 @@ spectrometer_image2 = pkg_resources.resource_filename('isstools', 'Resources/spe
 
 class UIPilatusMonitor(*uic.loadUiType(ui_path)):
     def __init__(self,
-                detector_dict = None,
-                hhm = None,
+                detector_dict=None,
+                plan_processor=None,
+                hhm=None,
                 parent=None,
                  *args, **kwargs
                  ):
@@ -26,8 +29,9 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent = parent
         self.detector_dict = detector_dict
+        self.plan_processor = plan_processor
         self.hhm = hhm
-
+        self.cur_mouse_coords = None
 
         self.pilatus100k_dict = self.detector_dict['Pilatus 100k']
         self.pilatus100k_device = self.detector_dict['Pilatus 100k']['device']
@@ -94,6 +98,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         for _keys in self.subscription_dict.keys():
             self.add_pilatus_attribute(_keys)
 
+
+        self.last_image_update_time = 0
+        self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
+
     def set_mono_energy(self):
         if self.checkBox_enable_energy_change.isChecked():
             _energy = self.spinBox_mono_energy.value()
@@ -131,34 +139,65 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
         self.canvas_pilatus_image.draw_idle()
         self.figure_pilatus_image.tight_layout()
+        self.cid_start = self.canvas_pilatus_image.mpl_connect('button_press_event', self.roi_mouse_click_start)
+        self.cid_move = self.canvas_pilatus_image.mpl_connect('motion_notify_event', self.roi_mouse_click_move)
+        self.cid_finish = self.canvas_pilatus_image.mpl_connect('button_release_event', self.roi_mouse_click_finish)
 
     def update_pilatus_image(self):
-
+        self.last_image_update_time = ttime.time()
         update_figure([self.figure_pilatus_image.ax],
                       self.toolbar_pilatus_image,
                       self.canvas_pilatus_image)
 
         _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
-        self.figure_pilatus_image.ax.autoscale(True)
+        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=0, vmax=5)
+
+        for i in range(1,5):
+            checkBox_widget = getattr(self, f'checkBox_roi{i}')
+            if checkBox_widget.isChecked():
+                x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
+                rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
+                self.figure_pilatus_image.ax.add_patch(rect)
+
+
+        # Add the patch to the Axes
+
+
+        # self.figure_pilatus_image.ax.autoscale(True)
         self.figure_pilatus_image.ax.set_xticks([])
         self.figure_pilatus_image.ax.set_yticks([])
         self.canvas_pilatus_image.draw_idle()
 
+    def update_image_widget(self, value, old_value, **kwargs):
+        if (value == 0) and (old_value == 1):
+            if (ttime.time() - self.last_image_update_time) > 0.1:
+                self.update_pilatus_image()
 
-        # pass
-        # if value == 0 or value == 4:
-        #     _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        #     self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto')
-        # else:
-        #     pass
+    def roi_mouse_click_start(self, event):
+        # self.event = event
+        if event.button == 3:
+            self.cur_mouse_coords = (event.xdata, event.ydata)
+            print('MOTION STARTED')
+
+    def roi_mouse_click_move(self, event):
+        if self.cur_mouse_coords is not None:
+            self.cur_mouse_coords = (event.xdata, event.ydata)
+            print(self.cur_mouse_coords)
+
+    def roi_mouse_click_finish(self, event):
+        if event.button == 3:
+            if self.cur_mouse_coords is not None:
+                self.cur_mouse_coords = None
+                print('MOTION FINISHED')
+
 
     def stop_acquire_image(self):
         self.pilatus100k_device.cam.acquire.put(0)
 
     def acquire_image(self):
-        self.pilatus100k_device.cam.acquire.set(1).wait()
-        self.update_pilatus_image()
+        self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
+        # self.pilatus100k_device.cam.acquire.set(1).wait()
+        # self.update_pilatus_image()
 
     def update_acquisition_mode(self):
         if self.radioButton_single_exposure.isChecked():
