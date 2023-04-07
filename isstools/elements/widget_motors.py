@@ -1,6 +1,6 @@
 import pkg_resources
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtCore import QThread, QSettings
+from PyQt5.QtCore import QThread, QSettings, Qt
 from PyQt5.Qt import  QObject
 from bluesky.callbacks import LivePlot
 from bluesky.callbacks.mpl_plotting import LiveScatter
@@ -8,7 +8,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
 from functools import partial
-from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem
 
 # from isstools.dialogs import MoveMotorDialog
 # from isstools.dialogs.BasicDialogs import question_message_box
@@ -31,12 +31,14 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
     def __init__(self,
                  this_motor_dictionary=None, # "this" is to emphasize that the dict is for a specific motor!
                  parent=None,
+                 horizontal_scale=1,
+                 motor_description_width=200,
                  *args, **kwargs
                  ):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.parent = parent
-        self.width = 800
+        self.width = int((800 - 200 + motor_description_width) * horizontal_scale)
 
         self.motor_dict = this_motor_dictionary
         self._motor_object = self.motor_dict['object']
@@ -45,44 +47,50 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         self.layout_motor_widget = self.horizontalLayout_motor
         self.label_motor_description.setText(self.motor_dict['description'])
-        self.label_motor_description.setFixedWidth(200)
+        self.label_motor_description.setFixedWidth(int(motor_description_width * horizontal_scale))
+        # self.label_motor_description.setAlignment(Qt.AlignCenter)
         self.layout_motor_widget.addWidget(self.label_motor_description)
 
         self.label_mov_status = QLabel("      ")
+        self.label_mov_status.setFixedWidth(int(23))
         self.label_mov_status.setStyleSheet('background-color: rgb(55,130,60)')
         self.layout_motor_widget.addWidget(self.label_mov_status)
 
         self.lineEdit_setpoint = QLineEdit("")
         _user_setpoint = f"{self._motor_object.user_setpoint.get():3.3f} { self._motor_object.egu}"
         self.lineEdit_setpoint.setText(_user_setpoint)
-        self.lineEdit_setpoint.setFixedWidth(100)
+        self.lineEdit_setpoint.setFixedWidth(int(100 * horizontal_scale))
+        self.lineEdit_setpoint.setAlignment(Qt.AlignCenter)
         self.layout_motor_widget.addWidget(self.lineEdit_setpoint)
         self.lineEdit_setpoint.returnPressed.connect(self.update_set_point)
         self._motor_object.user_setpoint.subscribe(self.update_set_point_value)
 
         self.label_low_limit = QLabel("      ")
+        self.label_low_limit.setFixedWidth(int(23))
         self.label_low_limit.setStyleSheet('background-color: rgb(94,20,20)')
         self._motor_object.low_limit_switch.subscribe(self.update_motor_llim_status)
         self.layout_motor_widget.addWidget(self.label_low_limit)
 
         self.label_motor_readback = QLabel("")
-        self.label_motor_readback.setFixedWidth(100)
+        self.label_motor_readback.setFixedWidth(int(100 * horizontal_scale))
+        self.label_motor_readback.setAlignment(Qt.AlignCenter)
         self._motor_object.user_readback.subscribe(self.update_readback)
         self._motor_object.motor_is_moving.subscribe(self.update_moving_label)
         self.layout_motor_widget.addWidget(self.label_motor_readback)
 
         self.label_high_limit = QLabel("      ")
         self.label_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
+        self.label_high_limit.setFixedWidth(int(23))
         self._motor_object.high_limit_switch.subscribe(self.update_motor_hlim_status)
         self.layout_motor_widget.addWidget(self.label_high_limit)
 
         self.button_move_decrement = QPushButton("<")
-        self.button_move_decrement.setFixedWidth(30)
+        self.button_move_decrement.setFixedWidth(int(30 * horizontal_scale))
         self.layout_motor_widget.addWidget(self.button_move_decrement)
         self.button_move_decrement.clicked.connect(self.update_decrement)
 
         self.lineEdit_step = QLineEdit("")
-        self.lineEdit_step.setFixedWidth(100)
+        self.lineEdit_step.setFixedWidth(int(100 * horizontal_scale))
         # self.lineEdit_step.setText(str(1.00) + " " + self._motor_object.egu)
         self._motor_object.twv.subscribe(self.update_step_value)
         self.layout_motor_widget.addWidget(self.lineEdit_step)
@@ -90,20 +98,22 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         # self._motor_object.tweak_value.subscribe(self.update_step_value)
 
         self.button_move_increment = QPushButton(">")
-        self.button_move_increment.setFixedWidth(30)
+        self.button_move_increment.setFixedWidth(int(30 * horizontal_scale))
         self.layout_motor_widget.addWidget(self.button_move_increment)
         self.button_move_increment.clicked.connect(self.update_increment)
 
         self.button_stop_motor = QPushButton("Stop")
+        self.button_stop_motor.setFixedWidth(int(80 * horizontal_scale))
         self.layout_motor_widget.addWidget(self.button_stop_motor)
         self.button_stop_motor.clicked.connect(self.stop_the_motor)
 
         self.button_change_limts = QPushButton("Change limit")
+        self.button_change_limts.setFixedWidth(int(125 * horizontal_scale))
         self.layout_motor_widget.addWidget(self.button_change_limts)
         self.button_change_limts.clicked.connect(self.update_lo_hi_limit)
 
-
-
+        self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.layout_motor_widget.addSpacerItem(self.spacer)
 
 
     def update_moving_label(self, value, **kwargs):
