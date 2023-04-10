@@ -51,26 +51,6 @@ stage_button_widget_dict = {
                  'tweak_pv': 'twf'},
            }
 
-# stage_lineEdit_widget_dict = {'sample_stage_x' :                {'widget' : 'lineEdit_sample_stage_x_position_rb', 'pv' : 'x.user_readback'},
-#                               'sample_stage_x_user_setpoint' :  {'widget' : 'lineEdit_sample_stage_x_position_sp', 'pv' : 'x.user_setpoint'},
-#                               'sample_stage_y':                 {'widget' : 'lineEdit_sample_stage_y_position_rb', 'pv' : 'y.user_readback'},
-#                               'sample_stage_y_user_setpoint':   {'widget' : 'lineEdit_sample_stage_y_position_sp', 'pv' : 'y.user_setpoint'},
-#                               'sample_stage_z':                 {'widget' : 'lineEdit_sample_stage_z_position_rb', 'pv' : 'z.user_readback'},
-#                               'sample_stage_z_user_setpoint':   {'widget' : 'lineEdit_sample_stage_z_position_sp', 'pv' : 'z.user_setpoint'},
-#                               'sample_stage_th':                {'widget' : 'lineEdit_sample_stage_th_position_rb', 'pv' : 'th.user_readback'},
-#                               'sample_stage_th_user_setpoint':  {'widget' : 'lineEdit_sample_stage_th_position_sp', 'pv' : 'th.user_setpoint'}}
-
-# slider_to_motor_dict = {
-#             'horizontalSlider_x_step' : 'sample_stage_x',
-#             'horizontalSlider_y_step' : 'sample_stage_y',
-#             'horizontalSlider_z_step' : 'sample_stage_z',
-#             'horizontalSlider_th_step': 'sample_stage_th'}
-#
-# motor_to_slider_dict = {
-#          'sample_stage_x_twv': 'horizontalSlider_x_step',
-#          'sample_stage_y_twv': 'horizontalSlider_y_step',
-#          'sample_stage_z_twv': 'horizontalSlider_z_step',
-#          'sample_stage_th_twv': 'horizontalSlider_th_step'}
 
 
 sample_position_widget_dict = {
@@ -94,25 +74,6 @@ sample_position_widget_dict = {
         }
 
 
-#
-#
-# def compute_slide_grid():
-#     __ticks = np.array([0.1, 1, 10, 50])
-#     __ticks_log = np.log10(__ticks)
-#     __slide_tick_spacing = 33
-#
-#     __ranges = []
-#
-#     for i in range(__ticks.size - 1):
-#         _r = 10**np.linspace(__ticks_log[i], __ticks_log[i + 1], __slide_tick_spacing + 1)
-#         __ranges.append(_r)
-#
-#     return np.round(np.unique(np.hstack((__ranges))), 2)
-#
-# _slide_grid = compute_slide_grid()
-#
-# def _grid_to_slide(value):
-#     return np.argmin(np.abs(value - _slide_grid))
 
 
 class UISampleManager(*uic.loadUiType(ui_path)):
@@ -241,7 +202,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         self.push_detach_tab.clicked.connect(self.detach_tab)
 
-    # def mouseDoubleClickEvent(self, event):
+    # widget setup
 
     def populate_motor_widget_layout(self):
         FIXED_WIDTH = 800
@@ -302,75 +263,6 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         motor_object = self.motor_dict[motor_key]['object']
         tweak_pv = getattr(motor_object, tweak_pv_str)
         tweak_pv.put(1)
-        # print(f'signal emitted')
-        # direction = stage_button_widget_dict[sender_object]['direction']
-
-        # step_label_widget = getattr(self, stage_button_widget_dict[sender_object]['step_size_widget'])
-        # step = float(step_label_widget.value())
-        # self.sample_stage.mvr({axis: direction * step}, wait=False)
-
-    # def move_sample_stage_abs(self):
-    #     sender_object_name = QObject().sender().objectName()
-    #     pos_widget = getattr(self, sender_object_name)
-    #     try:
-    #         new_pos = float(pos_widget.text())
-    #         axis = stage_button_widget_dict[sender_object_name]['axis']
-    #         self.sample_stage.mv({axis: new_pos})
-    #     except:
-    #         print('position must be float!')
-
-    # def subscribe_motor_steps_to_slides(self):
-    #     for motor_key, slider_str in motor_to_slider_dict.items():
-    #         step_pv = self.motor_dict[motor_key]['object'].twv
-
-    # def update_sample_stage_step(self, idx):
-    #     slider_widget = QObject().sender()
-    #     slider_value = slider_widget.value()
-    #     step_value = _slide_grid[slider_value]
-    #     motor_key = slider_to_motor_dict[slider_widget.objectName()]
-    #     motor_object = self.motor_dict[motor_key]['object']
-    #     slider_widget.valueChanged.disconnect(self.update_sample_stage_step)
-    #     motor_object.twv.put(step_value)
-    #     slider_widget.valueChanged.connect(self.update_sample_stage_step)
-    #     QToolTip.showText(QCursor.pos(), f'{step_value}', self)
-
-
-    #     # step_label_widget.setText(str(value))
-    #     # step_label_widget.setValue(float(value))
-
-
-    # def _compute_step_value(self, slider_object, idx, min_step=0.1, max_step=50, logarithmic=True):
-    #     n = int(slider_object.maximum() - slider_object.minimum()) + 1
-    #     if logarithmic:
-    #         step_array =  10 ** np.linspace(np.log10(min_step), np.log10(max_step), n)
-    #     else:
-    #         step_array = np.linspace(min_step, max_step, n)
-    #     return np.round(step_array[idx], 2)
-    #
-    # def update_step_slide(self, value, old_value, atol=5e-3, obj_name=None, **kwargs):
-    #     if obj_name is None:
-    #         obj_name = kwargs['obj'].name
-    #     # print(f'{value=}, {old_value=}, {obj_name=}')
-    #     if not np.isclose(value, old_value, atol=atol):
-    #         # print(f'{value=}, {old_value=}, {obj_name=}')
-    #         self._update_step_slide(value, obj_name)
-    #
-    # def _update_step_slide(self, value, obj_name):
-    #     slider_widget = getattr(self, motor_to_slider_dict[obj_name])
-    #     slider_pos = _grid_to_slide(value)
-    #     slider_widget.setValue(slider_pos)
-
-
-    # obj_name = kwargs['obj'].name
-
-    # def update_sample_stage_lineEdits(self, value, old_value, atol=5e-3, obj_name=None, **kwargs):
-    #     if obj_name is None:
-    #         obj_name = kwargs['obj'].name
-    #
-    #     if not np.isclose(value, old_value, atol=atol):
-    #         # print(f'{value=}, {old_value=}, {obj_name=}')
-    #         widget = getattr(self, stage_lineEdit_widget_dict[obj_name]['widget'])
-    #         widget.setText(f'{value:0.3f}')
 
     # sample/sample coordinates management methods
 
@@ -858,95 +750,6 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             if motx.size == 0:
                 return
             return motx, moty
-
-
-
-    # def set_to_calibration_mode(self, state):
-    #     if state:
-    #         self.interaction_mode = 'calibration'
-    #         self.pushButton_register_calibration_point.setEnabled(True)
-    #     else:
-    #         self.interaction_mode = 'default'
-    #         self.pushButton_register_calibration_point.setEnabled(False)
-
-    # def register_calibration_point(self):
-    #     output_dict = self.sample_stage.positions('x', 'y', prefix='sample_stage')
-    #     output_dict['cam1'] = self.sample_cam1.calibration_polygon.coordinate_list
-    #     output_dict['cam2'] = self.sample_cam2.calibration_polygon.coordinate_list
-    #     self.calibration_data.append(output_dict)
-
-    # def process_calibration_data(self):
-    #     pass
-
-
-
-
-
-
-
-class CamCalibration:
-
-    def __init__(self, cdata):
-        self.cdata = cdata
-
-        self.process_cdata(cdata)
-
-    def process_cdata(self, cdata):
-        points = []
-        coords = []
-        n_entries = len(cdata)
-
-        for i_dict in cdata:
-            points.append(i_dict['cam1'])
-            coords.append([i_dict['sample_stage_x'], i_dict['sample_stage_y']])
-
-        points = np.array(points)
-        coords = np.array(coords)
-
-        points_mid = points[:-1, :, :] + np.diff(points, axis=0)
-
-        # points_delta = np.diff(points, axis=0)
-        points_delta = np.mean(np.diff(points, axis=0), axis=1)
-        coords_delta = np.diff(coords, axis=0)
-
-        # points_delta_mean = np.mean(points_delta, axis=(0, 1))
-        # coords_delta_mean = np.mean(coords_delta, axis=0)
-
-        self.A_xy2px, _, _, _ = np.linalg.lstsq(coords_delta, points_delta[:, 0], rcond=-1)
-        self.A_xy2py, _, _, _ = np.linalg.lstsq(coords_delta, points_delta[:, 1], rcond=-1)
-
-
-# cc = CamCalibration(x.calibration_data)
-
-# dx = self.A_xy2px @ [1, 0]
-# self.A_xy2px = np.array([-7.91148978e+00,  8.63858905e-04])
-# self.A_xy2py = np.array([ -1.7081848 , -12.94478738])
-
-
-# x = np.linspace(0, 99, 100)
-# y_steps = [0.1, 1, 10, 50]
-#
-#
-
-# layout = QHBoxLayout()
-# spacer = QSpacerItem(1000, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
-# layout.addSpacerItem(spacer)
-# label_tick1 = QLabel('Step size')
-# # label_tick1 = QLabel('0.1 ')
-# # label_tick2 = QLabel(' 1  ')
-# # label_tick3 = QLabel(' 10 ')
-# # label_tick4 = QLabel("50")
-# layout.addWidget(label_tick1)
-# # layout.addWidget(label_tick2)
-# # layout.addWidget(label_tick3)
-# # layout.addWidget(label_tick4)
-#
-# _widget = QWidget()
-# _widget.setLayout(layout)
-# _widget.setFixedWidth(800)
-# widget = xlive_gui.widget_sample_manager
-#
-# widget.verticalLayout_sample_stage_motors.addWidget(_widget)
 
 
 
