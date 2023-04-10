@@ -8,7 +8,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
 from functools import partial
-from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem
+from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem, QSlider
 
 # from isstools.dialogs import MoveMotorDialog
 # from isstools.dialogs.BasicDialogs import question_message_box
@@ -33,6 +33,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
                  parent=None,
                  horizontal_scale=1,
                  motor_description_width=200,
+                 add_spacer=True,
                  *args, **kwargs
                  ):
         super().__init__(*args, **kwargs)
@@ -112,8 +113,9 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.layout_motor_widget.addWidget(self.button_change_limts)
         self.button_change_limts.clicked.connect(self.update_lo_hi_limit)
 
-        self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.layout_motor_widget.addSpacerItem(self.spacer)
+        if add_spacer:
+            self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
+            self.layout_motor_widget.addSpacerItem(self.spacer)
 
 
     def update_moving_label(self, value, **kwargs):
@@ -182,3 +184,18 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
 
         if dlg.exec_():
             pass
+
+
+# class UIWidgetMotorsWithSlider(UIWidgetMotors):
+#
+#     def __init__(self, *args, **kwargs):
+#         kwargs['add_spacer'] = False
+#         super().__init__(*args, **kwargs)
+#
+#         self.slider = QSlider(1) # horizontal
+#
+#
+#         self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
+#         self.layout_motor_widget.addSpacerItem(self.spacer)
+
+

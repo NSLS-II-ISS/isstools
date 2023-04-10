@@ -5,10 +5,10 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QCursor
 from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
-from PyQt5.QtWidgets import QMenu
+from PyQt5.QtWidgets import QMenu, QToolTip
 from isstools.elements.widget_motors import UIWidgetMotors
 from ..elements.elements import remove_special_characters
 from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem
@@ -32,23 +32,23 @@ stage_button_widget_dict = {
                 {'motor_key': 'sample_stage_x',
                  'tweak_pv': 'twr'},
             'pushButton_move_up':
-                {'axis': 'sample_stage_y',
-                 'tweak_pv': 'twf'},
-            'pushButton_move_down':
-                {'axis': 'sample_stage_y',
+                {'motor_key': 'sample_stage_y',
                  'tweak_pv': 'twr'},
+            'pushButton_move_down':
+                {'motor_key': 'sample_stage_y',
+                 'tweak_pv': 'twf'},
             'pushButton_move_downstream':
-                {'axis': 'sample_stage_z',
+                {'motor_key': 'sample_stage_z',
                  'tweak_pv': 'twr'},
             'pushButton_move_upstream':
-                {'axis': 'sample_stage_z',
+                {'motor_key': 'sample_stage_z',
                  'tweak_pv': 'twf'},
             'pushButton_move_clockwise':
-                {'axis': 'sample_stage_th',
-                 'tweak_pv': 'twf'},
-            'pushButton_move_counterclockwise':
-                {'axis': 'sample_stage_th',
+                {'motor_key': 'sample_stage_th',
                  'tweak_pv': 'twr'},
+            'pushButton_move_counterclockwise':
+                {'motor_key': 'sample_stage_th',
+                 'tweak_pv': 'twf'},
            }
 
 stage_lineEdit_widget_dict = {'sample_stage_x' :                {'widget' : 'lineEdit_sample_stage_x_position_rb', 'pv' : 'x.user_readback'},
@@ -67,10 +67,10 @@ slider_to_motor_dict = {
             'horizontalSlider_th_step': 'sample_stage_th'}
 
 motor_to_slider_dict = {
-         'sample_stage_x': 'horizontalSlider_x_step',
-         'sample_stage_y': 'horizontalSlider_y_step',
-         'sample_stage_z': 'horizontalSlider_z_step',
-         'sample_stage_th': 'horizontalSlider_th_step'}
+         'sample_stage_x_twv': 'horizontalSlider_x_step',
+         'sample_stage_y_twv': 'horizontalSlider_y_step',
+         'sample_stage_z_twv': 'horizontalSlider_z_step',
+         'sample_stage_th_twv': 'horizontalSlider_th_step'}
 
 
 sample_position_widget_dict = {
@@ -109,10 +109,10 @@ def compute_slide_grid():
 
     return np.round(np.unique(np.hstack((__ranges))), 2)
 
-__slide_grid = compute_slide_grid()
+_slide_grid = compute_slide_grid()
 
-def __grid_to_slide(value):
-    return np.argmin(np.abs(value - __slide_grid))
+def _grid_to_slide(value):
+    return np.argmin(np.abs(value - _slide_grid))
 
 
 class UISampleManager(*uic.loadUiType(ui_path)):
@@ -161,13 +161,6 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.pushButton_move_counterclockwise.clicked.connect(self.move_sample_stage_rel)
         self.pushButton_move_clockwise.clicked.connect(self.move_sample_stage_rel)
 
-
-
-        # self.horizontalSlider_x_step.valueChanged.connect(self.update_sample_stage_step)
-        # self.horizontalSlider_y_step.valueChanged.connect(self.update_sample_stage_step)
-        # self.horizontalSlider_z_step.valueChanged.connect(self.update_sample_stage_step)
-        # self.horizontalSlider_th_step.valueChanged.connect(self.update_sample_stage_step)
-
         self.sample_motor_widgets = {}
 
         for _motor in ['sample_stage_x', 'sample_stage_y', 'sample_stage_z', 'sample_stage_th']:
@@ -191,8 +184,22 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # for k, v in stage_lineEdit_widget_dict.items():
         #     pv = v['pv']
         #     self.update_sample_stage_lineEdits(getattr(self.sample_stage, pv).value, -1e4, obj_name=k)
-        #
+
+        self._update_step_slide(self.sample_stage.x.twv.get(), 'sample_stage_x_twv')
+        self._update_step_slide(self.sample_stage.y.twv.get(), 'sample_stage_y_twv')
+        self._update_step_slide(self.sample_stage.z.twv.get(), 'sample_stage_z_twv')
+        self._update_step_slide(self.sample_stage.th.twv.get(), 'sample_stage_th_twv')
+
         self.sample_stage.x.twv.subscribe(self.update_step_slide)
+        self.sample_stage.y.twv.subscribe(self.update_step_slide)
+        self.sample_stage.z.twv.subscribe(self.update_step_slide)
+        self.sample_stage.th.twv.subscribe(self.update_step_slide)
+
+        self.horizontalSlider_x_step.valueChanged.connect(self.update_sample_stage_step)
+        self.horizontalSlider_y_step.valueChanged.connect(self.update_sample_stage_step)
+        self.horizontalSlider_z_step.valueChanged.connect(self.update_sample_stage_step)
+        self.horizontalSlider_th_step.valueChanged.connect(self.update_sample_stage_step)
+
         # self.sample_stage.x.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
         # self.sample_stage.y.user_readback.subscribe(self.update_sample_stage_lineEdits)
         # self.sample_stage.y.user_setpoint.subscribe(self.update_sample_stage_lineEdits)
@@ -320,11 +327,18 @@ class UISampleManager(*uic.loadUiType(ui_path)):
     #     for motor_key, slider_str in motor_to_slider_dict.items():
     #         step_pv = self.motor_dict[motor_key]['object'].twv
 
-    # def update_sample_stage_step(self, idx):
-    #     slider_object = QObject().sender()
-    #     slider_dict = slider_widget_dict[slider_object.objectName()]
-    #     # step_label_widget = getattr(self, slider_dict['widget'])
-    #     value = self._compute_step_value(slider_object, idx, **slider_dict['math_params'])
+    def update_sample_stage_step(self, idx):
+        slider_widget = QObject().sender()
+        slider_value = slider_widget.value()
+        step_value = _slide_grid[slider_value]
+        motor_key = slider_to_motor_dict[slider_widget.objectName()]
+        motor_object = self.motor_dict[motor_key]['object']
+        slider_widget.valueChanged.disconnect(self.update_sample_stage_step)
+        motor_object.twv.put(step_value)
+        slider_widget.valueChanged.connect(self.update_sample_stage_step)
+        QToolTip.showText(QCursor.pos(), f'{step_value}', self)
+
+
     #     # step_label_widget.setText(str(value))
     #     # step_label_widget.setValue(float(value))
 
@@ -340,11 +354,15 @@ class UISampleManager(*uic.loadUiType(ui_path)):
     def update_step_slide(self, value, old_value, atol=5e-3, obj_name=None, **kwargs):
         if obj_name is None:
             obj_name = kwargs['obj'].name
-        print(f'{value=}, {old_value=}, {obj_name=}')
+        # print(f'{value=}, {old_value=}, {obj_name=}')
         if not np.isclose(value, old_value, atol=atol):
-            slider_widget = getattr(self, motor_to_slider_dict[obj_name])
-            slider_pos = __grid_to_slide(value)
-            slider_widget.setValue(slider_pos)
+            # print(f'{value=}, {old_value=}, {obj_name=}')
+            self._update_step_slide(value, obj_name)
+
+    def _update_step_slide(self, value, obj_name):
+        slider_widget = getattr(self, motor_to_slider_dict[obj_name])
+        slider_pos = _grid_to_slide(value)
+        slider_widget.setValue(slider_pos)
 
 
     # obj_name = kwargs['obj'].name
