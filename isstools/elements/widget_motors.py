@@ -1,6 +1,7 @@
 import pkg_resources
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings, Qt
+from PyQt5.QtGui import QPixmap, QCursor
 from PyQt5.Qt import  QObject
 from bluesky.callbacks import LivePlot
 from bluesky.callbacks.mpl_plotting import LiveScatter
@@ -8,7 +9,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
 from functools import partial
-from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem, QSlider
+from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem, QSlider, QToolTip
 
 # from isstools.dialogs import MoveMotorDialog
 # from isstools.dialogs.BasicDialogs import question_message_box
@@ -186,16 +187,59 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
             pass
 
 
-# class UIWidgetMotorsWithSlider(UIWidgetMotors):
-#
-#     def __init__(self, *args, **kwargs):
-#         kwargs['add_spacer'] = False
-#         super().__init__(*args, **kwargs)
-#
-#         self.slider = QSlider(1) # horizontal
-#
-#
-#         self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
-#         self.layout_motor_widget.addSpacerItem(self.spacer)
+class UIWidgetMotorsWithSlider(UIWidgetMotors):
 
+    def __init__(self, *args, ticks=[0.1, 1, 10, 50], **kwargs):
+        kwargs['add_spacer'] = False
+        super().__init__(*args, **kwargs)
+
+
+        self.ticks = np.array([i for i in ticks])
+        self.compute_slider_grid()
+
+        self.slider = QSlider(1) # horizontal
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(99)
+        self.slider.setSingleStep(1)
+        self.slider.setTickInterval(33)
+        self.slider.setTickPosition(3)
+
+        self._update_slider(self._motor_object.twv.get())
+        self._motor_object.twv.subscribe(self.update_slider)
+        self.slider.valueChanged.connect(self.update_step_from_slider)
+
+        self.layout_motor_widget.addWidget(self.slider)
+
+        # self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        # self.layout_motor_widget.addSpacerItem(self.spacer)
+
+    def compute_slider_grid(self):
+        ticks_log = np.log10(self.ticks)
+        slide_tick_spacing = int(99 / (self.ticks.size - 1))
+
+        ranges = []
+        for i in range(self.ticks.size - 1):
+            _r = 10 ** np.linspace(ticks_log[i], ticks_log[i + 1], slide_tick_spacing + 1)
+            ranges.append(_r)
+
+        self.slider_grid = np.round(np.unique(np.hstack((ranges))), 2)
+
+    def step_to_slider_units(self, value):
+        return np.argmin(np.abs(value - self.slider_grid))
+
+    def update_slider(self, value, old_value, atol=5e-3, **kwargs):
+        if not np.isclose(value, old_value, atol=atol):
+            self._update_slider(value)
+
+    def _update_slider(self, value):
+        slider_units = self.step_to_slider_units(value)
+        self.slider.setValue(slider_units)
+
+    def update_step_from_slider(self, idx):
+        slider_value = self.slider.value()
+        step_value = self.slider_grid[slider_value]
+        self.slider.valueChanged.disconnect(self.update_step_from_slider)
+        self._motor_object.twv.put(step_value)
+        self.slider.valueChanged.connect(self.update_step_from_slider)
+        QToolTip.showText(QCursor.pos(), f'{step_value}', self)
 
