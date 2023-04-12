@@ -45,8 +45,28 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>8</number>
+     <number>0</number>
     </property>
+    <widget class="QWidget" name="tab_user_manager">
+     <attribute name="title">
+      <string>User manager</string>
+     </attribute>
+     <widget class="QWidget" name="horizontalLayoutWidget_14">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1631</width>
+        <height>911</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_user_manager">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetNoConstraint</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab_beamline_setup_manager">
      <attribute name="title">
       <string>Beamline Setup</string>

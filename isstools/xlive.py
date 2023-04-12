@@ -21,7 +21,7 @@ from .widgets import (widget_info_general,
                       widget_spectrometer,
                       widget_plan_queue,
                       widget_sample_manager,
-                      )
+                      widget_user_manager)
 
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
@@ -315,6 +315,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
+
+        print('widget user loading', ttime.ctime())
+        self.widget_user_manager = widget_user_manager.UIUserManager(
+                                                                      parent=self
+                                                                      )
+        self.layout_user_manager.addWidget(self.widget_user_manager)
+
+
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
 
@@ -326,6 +334,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                detector_dict=detector_dict,
                                                                parent=self)
         self.layout_plan_queue.addWidget(self.widget_plan_queue)
+
+
+
 
         # self.widget_run.plansAdded.connect(self.widget_plan_queue.update_plan_list)
 
