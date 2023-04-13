@@ -66,15 +66,17 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
-        # self.toggle_selector.RS = RectangleSelector(self.figure_pilatus_image.ax,
-        #                                             self.line_select_callback,
-        #                                             drawtype='box',
-        #                                             useblit=True,
-        #                                             button=[1, 3],
-        #                                             minspanx=5,
-        #                                             minspany=5,
-        #                                             spancoords='pixels',
-        #                                             interactive=True)
+        self._patches = {}
+
+        self.RS = RectangleSelector(self.figure_pilatus_image.ax,
+                                                    self.line_select_callback,
+                                                    drawtype='box',
+                                                    useblit=True,
+                                                    button=[1, 3],
+                                                    minspanx=5,
+                                                    minspany=5,
+                                                    spancoords='pixels',
+                                                    interactive=True)
 
 
         # self.pilatus100k_device.cam.trigger_mode.subscribe(self.update_pilatus_image)
@@ -90,6 +92,9 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         for _keys in self.subscription_dict.keys():
             self.add_pilatus_attribute(_keys)
+
+        for i in range(1, 5):
+            getattr(self, 'checkBox_roi' + str(i)).toggled.connect(self.add_roi_box)
 
 
         self.last_image_update_time = 0
@@ -120,6 +125,15 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         getattr(self.pilatus100k_device, 'roi' + str(ch)).size.x.subscribe(update_roix_size_parameters)
         getattr(self.pilatus100k_device, 'roi' + str(ch)).size.y.subscribe(update_roiy_size_parameters)
 
+        getattr(self, "spinBox_roi" + str(ch) + "_min_x").valueChanged.connect(partial(self.update_roix_value, str(ch)))
+
+        getattr(self, 'spinBox_roi' + str(ch) + '_min_y').valueChanged.connect(partial(self.update_roiy_value, str(ch)))
+
+        getattr(self, 'spinBox_roi' + str(ch) + '_width').valueChanged.connect(partial(self.update_roix_size_value, str(ch)))
+
+        getattr(self, 'spinBox_roi' + str(ch) + '_height').valueChanged.connect(partial(self.update_roiy_size_value, str(ch)))
+
+
     def set_mono_energy(self):
         if self.checkBox_enable_energy_change.isChecked():
             _energy = self.spinBox_mono_energy.value()
@@ -134,6 +148,31 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         else:
             self.spinBox_mono_energy.setEnabled(False)
 
+    def update_roix_value(self, ch):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_value = sender_object.value()
+        getattr(self.pilatus100k_device, 'roi' + ch).min_xyz.min_x.set(sender_obj_value).wait()
+
+
+    def update_roiy_value(self, ch):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_value = sender_object.value()
+        getattr(self.pilatus100k_device, 'roi' + ch).min_xyz.min_y.set(sender_obj_value).wait()
+
+
+    def update_roix_size_value(self, ch):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_value = sender_object.value()
+        getattr(self.pilatus100k_device, 'roi' + ch).size.x.set(sender_obj_value).wait()
+
+    def update_roiy_size_value(self, ch):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_value = sender_object.value()
+        getattr(self.pilatus100k_device, 'roi' + ch).size.y.set(sender_obj_value).wait()
 
     def line_select_callback(self, eclick, erelease):
 
@@ -141,11 +180,20 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         x2, y2 = erelease.xdata, erelease.ydata
         print(f'{x1 = :3.3f} {y1 = :3.3f} {x2 = :3.3f} {y2 = :3.3f}')
 
-    def toggle_selector(self, event):
-        print(f"key pressed")
+        for i in range(1,5):
+            if getattr(self, 'checkBox_roi' + str(i)).isChecked():
+                getattr(self, "spinBox_roi" + str(i) + "_min_x").setValue(int(y1))
+                getattr(self, 'spinBox_roi' + str(i) + '_min_y').setValue(int(x1))
+                getattr(self, 'spinBox_roi' + str(i) + '_width').setValue(int(y2-y1))
+                getattr(self, 'spinBox_roi' + str(i) + '_height').setValue(int(x2-x1))
+
+    #
+    # def toggle_selector(self, event):
+    #     print(f"key pressed")
 
 
-
+        # checkBox_widget = getattr(self, f'checkBox_roi{i}')
+        # if checkBox_widget.isChecked():
 
     def open_detector_setting(self):
 
@@ -168,16 +216,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
         self.canvas_pilatus_image.draw_idle()
         self.figure_pilatus_image.tight_layout()
-        self.RS = RectangleSelector(self.figure_pilatus_image.ax,
-                                                    self.line_select_callback,
-                                                    drawtype='box',
-                                                    useblit=True,
-                                                    button=[1, 3],
-                                                    minspanx=5,
-                                                    minspany=5,
-                                                    spancoords='pixels',
-                                                    interactive=True)
-        self.cid_box = self.canvas_pilatus_image.mpl_connect('key_press_event', self.toggle_selector)
+
         self.cid_start = self.canvas_pilatus_image.mpl_connect('button_press_event', self.roi_mouse_click_start)
         self.cid_move = self.canvas_pilatus_image.mpl_connect('motion_notify_event', self.roi_mouse_click_move)
         self.cid_finish = self.canvas_pilatus_image.mpl_connect('button_release_event', self.roi_mouse_click_finish)
@@ -191,16 +230,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
         self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=0, vmax=5)
 
-        for i in range(1,5):
-            checkBox_widget = getattr(self, f'checkBox_roi{i}')
-            if checkBox_widget.isChecked():
-                pass
 
-
-
-                # x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
-                # rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
-                # self.figure_pilatus_image.ax.add_patch(rect)
 
 
         # Add the patch to the Axes
@@ -215,6 +245,25 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         if (value == 0) and (old_value == 1):
             if (ttime.time() - self.last_image_update_time) > 0.1:
                 self.update_pilatus_image()
+
+    def add_roi_box(self):
+
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_name = sender_object.objectName()
+        sender_obj_value = sender_object.text()
+        if sender_object.isChecked():
+            x, y, dx, dy = self.pilatus100k_device.get_roi_coords(int(sender_obj_value))
+            rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
+            self._patches[sender_obj_name] = self.figure_pilatus_image.ax.add_patch(rect)
+            self.canvas_pilatus_image.draw_idle()
+        if not sender_object.isChecked():
+            try:
+                self._patches[sender_obj_name].remove()
+                self.canvas_pilatus_image.draw_idle()
+            except:
+                pass
+
 
     def roi_mouse_click_start(self, event):
         # self.event = event
