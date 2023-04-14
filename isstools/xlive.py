@@ -318,6 +318,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget user loading', ttime.ctime())
         self.widget_user_manager = widget_user_manager.UIUserManager(
+                                                                      RE=RE,
                                                                       parent=self
                                                                       )
         self.layout_user_manager.addWidget(self.widget_user_manager)

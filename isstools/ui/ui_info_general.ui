@@ -121,58 +121,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="push_set_user_info">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>80</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Update</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_send_results">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>80</y>
-     <width>121</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Send results</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_cloud_setup">
-   <property name="geometry">
-    <rect>
-     <x>570</x>
-     <y>80</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Cloud setup</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_send_to_dropbox">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>80</y>
-     <width>131</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Send to Dropbox</string>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections/>

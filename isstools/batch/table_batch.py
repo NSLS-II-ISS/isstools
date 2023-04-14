@@ -40,7 +40,7 @@
 #     def read_excel(self):
 #         self.experiment_table = pd.read_excel(self.excel_file, skiprows=self._skiprows)
 #         #d = self.experiment_table.iloc[1]
-#         #RE.md['PROPOSAL'] = str(d['Proposal'])
+#         #RE.md['proposal'] = str(d['Proposal'])
 #         #RE.md['SAF'] = str(d['SAF'])
 #         #RE.md['PI'] = str(d['PI'])
 #

@@ -64,10 +64,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
             self.timer_update_user_info.timeout.connect(self.update_user_info)
             self.timer_update_user_info.start(60*1000)
             self.timer_update_user_info.singleShot(0, self.update_user_info)
-            self.push_set_user_info.clicked.connect(self.set_user_info)
-            self.push_send_results.clicked.connect(self.send_results)
-            self.push_cloud_setup.clicked.connect(self.cloud_setup)
-            self.push_send_to_dropbox.clicked.connect(self.send_to_dropbox)
+
 
         else:
             self.push_update_user.setEnabled(False)
@@ -106,17 +103,17 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
     def update_user_info(self):
         self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
-                                     format(self.RE.md['PI'], self.RE.md['PROPOSAL'], self.RE.md['SAF']))
+                                     format(self.RE.md['PI'], self.RE.md['proposal'], self.RE.md['SAF']))
         self.cycle = ['', 'Spring', 'Summer', 'Fall']
         self.label_current_cycle.setText(
             'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
 
     def set_user_info(self):
-        dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'],
+        dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['proposal'],
                                                 self.RE.md['SAF'], self.RE.md['PI'], parent=self)
         if dlg.exec_():
             start = timer()
-            self.RE.md['year'], self.RE.md['cycle'], self.RE.md['PROPOSAL'], self.RE.md['SAF'], self.RE.md[
+            self.RE.md['year'], self.RE.md['cycle'], self.RE.md['proposal'], self.RE.md['SAF'], self.RE.md[
                 'PI'] = dlg.getValues()
             stop1 = timer()
             self.update_user_info()
@@ -150,7 +147,7 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
 
         year=self.RE.md['year']
         cycle=self.RE.md['cycle']
-        proposal = self.RE.md['PROPOSAL']
+        proposal = self.RE.md['proposal']
         PI = self.RE.md['PI']
         # working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
         working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
@@ -185,69 +182,69 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         draft = upload_draft(self.parent.gmail_service, message)
         sent = send_draft(self.parent.gmail_service, draft)
         print('Email sent')
+    #
+    #
+    # def cloud_setup(self):
+    #     year = self.RE.md['year']
+    #     cycle = self.RE.md['cycle']
+    #     proposal = self.RE.md['proposal']
+    #     PI = self.RE.md['PI']
+    #     slack_channel = f'{year}-{cycle}-{proposal}'
+    #     channel_id,channel_info = slack_channel_exists(self.parent.slack_client_bot,slack_channel)
+    #     print(channel_id)
+    #     if not channel_id:
+    #         print('Slack channel not found, Creating new channel...')
+    #         channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
+    #         slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
+    #
+    #
+    #     slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
+    #     self.RE.md['slack_channel'] = channel_id
+    #
+    #     dropbox_folder =f'/{year}/{cycle}/{proposal}'
+    #     if not dropbox_folder_exists(self.parent.dropbox_service,dropbox_folder):
+    #         dropbox_create_folder(self.parent.dropbox_service, dropbox_folder)
+    #
+    #     dropbox_url = dropbox_get_shared_link(self.parent.dropbox_service, dropbox_folder)
+    #
+    #     dlg = GetEmailAddress.GetEmailAddress('', parent=self)
+    #     if dlg.exec_():
+    #         email_address = dlg.getValue()
+    #         regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+    #         if re.search(regex, email_address):
+    #              #print(f'email {email_address}')
+    #             pass
+    #         else:
+    #             message_box('Error', 'Invaild email')
+    #             return 0
+    #
+    #
+    #     message = create_html_message(
+    #         'staff08id@gmail.com',
+    #         email_address,
+    #         f'ISS beamline results Proposal {proposal}',
+    #         f'<p> Dear {PI},</p> '
+    #         f'<p>Slack channel to monitor yor experiemnt is {slack_url} </p>'
+    #         f'<p>Data files will be uploaded to Dropbox folder at {dropbox_url} </p>'
+    #         f'<p> Sincerely, </p> '
+    #         f'<p> ISS Staff </p>'
+    #         )
+    #
+    #     draft = upload_draft(self.parent.gmail_service, message)
+    #     sent = send_draft(self.parent.gmail_service, draft)
+    #     print('Email sent')
 
-
-    def cloud_setup(self):
-        year = self.RE.md['year']
-        cycle = self.RE.md['cycle']
-        proposal = self.RE.md['PROPOSAL']
-        PI = self.RE.md['PI']
-        slack_channel = f'{year}-{cycle}-{proposal}'
-        channel_id,channel_info = slack_channel_exists(self.parent.slack_client_bot,slack_channel)
-        print(channel_id)
-        if not channel_id:
-            print('Slack channel not found, Creating new channel...')
-            channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
-            slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
-
-
-        slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
-        self.RE.md['slack_channel'] = channel_id
-
-        dropbox_folder =f'/{year}/{cycle}/{proposal}'
-        if not dropbox_folder_exists(self.parent.dropbox_service,dropbox_folder):
-            dropbox_create_folder(self.parent.dropbox_service, dropbox_folder)
-
-        dropbox_url = dropbox_get_shared_link(self.parent.dropbox_service, dropbox_folder)
-
-        dlg = GetEmailAddress.GetEmailAddress('', parent=self)
-        if dlg.exec_():
-            email_address = dlg.getValue()
-            regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-            if re.search(regex, email_address):
-                 #print(f'email {email_address}')
-                pass
-            else:
-                message_box('Error', 'Invaild email')
-                return 0
-
-
-        message = create_html_message(
-            'staff08id@gmail.com',
-            email_address,
-            f'ISS beamline results Proposal {proposal}',
-            f'<p> Dear {PI},</p> '
-            f'<p>Slack channel to monitor yor experiemnt is {slack_url} </p>'
-            f'<p>Data files will be uploaded to Dropbox folder at {dropbox_url} </p>'
-            f'<p> Sincerely, </p> '
-            f'<p> ISS Staff </p>'
-            )
-
-        draft = upload_draft(self.parent.gmail_service, message)
-        sent = send_draft(self.parent.gmail_service, draft)
-        print('Email sent')
-
-    def send_to_dropbox(self):
-        year = self.RE.md['year']
-        cycle = self.RE.md['cycle']
-        proposal = self.RE.md['PROPOSAL']
-        working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
-        list_files_to_send = QtWidgets.QFileDialog.getOpenFileNames(directory = working_directory,
-                                                           parent = self)[0]
-        if list_files_to_send:
-            for file in list_files_to_send:
-                print(file)
-                #self.cloud_dispatcher.load_to_dropbox(file)
+    # def send_to_dropbox(self):
+    #     year = self.RE.md['year']
+    #     cycle = self.RE.md['cycle']
+    #     proposal = self.RE.md['proposal']
+    #     working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
+    #     list_files_to_send = QtWidgets.QFileDialog.getOpenFileNames(directory = working_directory,
+    #                                                        parent = self)[0]
+    #     if list_files_to_send:
+    #         for file in list_files_to_send:
+    #             print(file)
+    #             #self.cloud_dispatcher.load_to_dropbox(file)
 
 
 

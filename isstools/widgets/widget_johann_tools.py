@@ -352,7 +352,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def save_emission_motor(self):
         user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
-                                 f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+                                 f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['proposal']}")
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.jcfg',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         if not filename.endswith('.jcfg'):
@@ -379,7 +379,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def select_config_file(self):
         user_folder_path = (self.johann_emission.spectrometer_root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['proposal']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.jcfg', parent=self)[0]
         self.lineEdit_current_spectrometer_file.setText(filename)
@@ -473,7 +473,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def save_energy_calibration(self):
         user_folder_path = (self.motor_dictionary['motor_emission']['object'].spectrometer_root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['proposal']}")
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save spectrometer motor config...', user_folder_path, '*.jcalib',
                                                          options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
         if not filename.endswith('.jcalib'):
@@ -485,7 +485,7 @@ class UIJohannTools(*uic.loadUiType(ui_path)):
 
     def select_energy_calibration_file(self):
         user_folder_path = (self.johann_emission.spectrometer_root_path +
-                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['PROPOSAL']}")
+                            f"/{self.RE.md['year']}/{self.RE.md['cycle']}/{self.RE.md['proposal']}")
         filename = QtWidgets.QFileDialog.getOpenFileName(directory=user_folder_path,
                                                          filter='*.jcalib', parent=self)[0]
         self.lineEdit_current_calibration_file.setText(filename)
