@@ -68,6 +68,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self._patches = {}
 
+
         self.RS = RectangleSelector(self.figure_pilatus_image.ax,
                                                     self.line_select_callback,
                                                     drawtype='box',
@@ -242,9 +243,15 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.canvas_pilatus_image.draw_idle()
 
     def update_image_widget(self, value, old_value, **kwargs):
+        i = 0
         if (value == 0) and (old_value == 1):
             if (ttime.time() - self.last_image_update_time) > 0.1:
                 self.update_pilatus_image()
+            # else:
+            #     i +=1
+            #     if i > 10:
+            #         self.update_pilatus_image()
+            #     i = 0
 
     def add_roi_box(self):
 
