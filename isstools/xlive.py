@@ -189,6 +189,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                 )
         self.layout_processing.addWidget(self.widget_processing)
 
+        print('widget user loading', ttime.ctime())
+        self.widget_user_manager = widget_user_manager.UIUserManager(
+                                                                      RE=RE,
+                                                                      parent=self,
+                                                                      sample_manager=sample_manager,
+                                                                      )
+        self.layout_user_manager.addWidget(self.widget_user_manager)
+
 
         print('widget camera loading', ttime.ctime())
         self.widget_sample_manager = widget_sample_manager.UISampleManager(sample_stage=sample_stage,
@@ -316,12 +324,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
 
 
-        print('widget user loading', ttime.ctime())
-        self.widget_user_manager = widget_user_manager.UIUserManager(
-                                                                      RE=RE,
-                                                                      parent=self
-                                                                      )
-        self.layout_user_manager.addWidget(self.widget_user_manager)
+
 
 
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)

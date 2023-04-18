@@ -77,7 +77,7 @@ sample_position_widget_dict = {
 
 
 class UISampleManager(*uic.loadUiType(ui_path)):
-    sample_list_changed_signal = QtCore.pyqtSignal()
+    # sample_list_changed_signal = QtCore.pyqtSignal()
 
     def __init__(self,
                  sample_stage=None,
@@ -94,12 +94,16 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self.parent = parent
         self.sample_stage = sample_stage
         self.motor_dict = motor_dict
         self.camera_dict = camera_dict
         self.settings = parent.settings
-        self.parent = parent
 
+        if not detached:
+            self.sample_list_changed_signal = self.parent.widget_user_manager.sample_list_changed_signal
+        else:
+            self.sample_list_changed_signal = self.parent.parent.widget_user_manager.sample_list_changed_signal
         self.camera1 = self.camera_dict['camera_sample1']
         self.camera2 = self.camera_dict['camera_sample2']
 

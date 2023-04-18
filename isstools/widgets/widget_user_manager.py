@@ -44,9 +44,12 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_user_manager.ui')
 
 class UIUserManager(*uic.loadUiType(ui_path)):
 
+    sample_list_changed_signal = QtCore.pyqtSignal()
+
     def __init__(self,
                  RE=None,
                  parent=None,
+                 sample_manager=None,
                  *args, **kwargs):
 
 
@@ -60,15 +63,19 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.RE=RE
         self.user_groups = []
         self.user_names = []
+        self.sample_manager=sample_manager
         self.enable_fields(False)
         self.pushButton_setup_user.clicked.connect(self.setup_user)
         self.pushButton_find_proposal.clicked.connect(self.find_proposal)
         self.pushButton_select_saf.clicked.connect(self.select_saf)
+        self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
+        self.push_create_sample.clicked.connect(self.create_new_sample)
+       # self.pushButton_cancel_setup.setEnable(False)
 
         self.comboBox_group.currentIndexChanged.connect(self.select_from_comboboxes)
         self.comboBox_pi.currentIndexChanged.connect(self.select_from_comboboxes)
 
-        #
+        self.sample_list_changed_signal.connect(self.update_sample_list)
 
         # Populate comboboxes
         for user in self.user_list:
@@ -79,13 +86,18 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         groups = list(set(self.user_groups))
         for group in groups:
              self.comboBox_group.addItem(group)
+        # populate fields based on RE.md
+        current_user =  self.RE.md['PI']
+        self.lineEdit_pi_first.setText(current_user.split(' ')[0])
+        self.lineEdit_pi_last.setText(current_user.split(' ')[1])
+        self.spinBox_saf.setValue(int(self.RE.md['SAF']))
+        self.spinBox_proposal.setValue(int(self.RE.md['proposal']))
+        self.lineEdit_email.setText(self.RE.md['email'])
+        self.lineEdit_group.setText(self.RE.md['institution'])
+
 
     def enable_fields(self, enable):
-        elements = ['lineEdit_pi_first',
-                    'lineEdit_pi_last',
-                    'lineEdit_group',
-                    'comboBox_pi',
-                    'lineEdit_email',
+        elements = ['comboBox_pi',
                     'comboBox_group',
                     'pushButton_find_proposal',
                     'spinBox_proposal',
@@ -96,6 +108,16 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
         for element in elements:
             getattr(self, element).setEnabled(enable)
+        elements = [
+            'lineEdit_email',
+            'lineEdit_pi_first',
+            'lineEdit_pi_last',
+            'lineEdit_group',
+            ]
+        for element in elements:
+            getattr(self, element).setReadOnly(not enable)
+
+       # self.pushButton_cancel_setup.setEnable(not enable)
 
     def setup_user(self):
         if self.pushButton_setup_user.isChecked():
@@ -122,9 +144,11 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                     self.user_list.append(new_PI)
                     self.user_names.append(new_user_name)
                     new_PI['email'] = self.lineEdit_email.text()
+                    self.active_user_index = -1
+
             else:
-                index = self.user_names.index(new_user_name)
-                self.user_list[index]['runs'].append(run)
+                self.active_user_index = self.user_names.index(new_user_name)
+                self.user_list[self.active_user_index]['runs'].append(run)
             self.cloud_setup(email_address=self.lineEdit_email.text())
 
     def select_from_comboboxes(self):
@@ -144,6 +168,8 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         if 'error_message' in proposal_info.keys():
             error_message_box('Proposal not found')
         else:
+            self.listWidget_safs.clear()
+            self.listWidget_users.clear()
             safs = proposal_info['safs']
             for saf in safs:
                 item = QListWidgetItem(saf['saf_id'])
@@ -159,7 +185,12 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
 
     def select_saf(self):
+        saf = self.listWidget_safs.currentItem().text()
+        self.spinBox_saf.setValue(int(saf))
+
+    def cancel_setup(self):
         pass
+
 
     def cloud_setup(self, email_address = None):
         year = self.RE.md['year']
@@ -212,6 +243,38 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         draft = upload_draft(self.parent.gmail_service, message)
         sent = send_draft(self.parent.gmail_service, draft)
         print('Email sent')
+
+    def create_new_sample(self):
+        sample_name = self.lineEdit_sample_name.text()
+        if (sample_name == '') or (sample_name.isspace()):
+            message_box('Warning', 'Sample name is empty')
+            return
+        sample_name = remove_special_characters(sample_name)
+        sample_comment = self.lineEdit_sample_comment.text()
+        # positions = self._create_list_of_positions()
+        self._currently_selected_index = -1
+        self.sample_manager.add_new_sample(sample_name, sample_comment, [])
+
+        new_sample = {}
+        new_sample['names']=sample_name
+        new_sample['comment'] = sample_comment
+        new_sample['created'] = ttime.ctime()
+        new_sample['timestamp'] = ttime.time()
+        new_sample['archived'] = False
+        if 'samples' in self.user_list[self.active_user_index].keys():
+            self.user_list[self.active_user_index]['samples'].append(new_sample)
+        else:
+            self.user_list[self.active_user_index]['samples'] = [new_sample]
+
+
+    def update_sample_list(self):
+        self.listWidget_samples.clear()
+        for i, sample in enumerate(self.sample_manager.samples):
+            name = sample.name
+            comment = sample.comment
+            self.listWidget_samples.addItem(f'{name}/{comment}')
+
+
 
 
 
