@@ -2,7 +2,8 @@ import pkg_resources
 from PyQt5 import uic, QtCore
 from matplotlib.widgets import RectangleSelector
 from PyQt5.Qt import QSplashScreen, QObject
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QToolTip
+from PyQt5.QtGui import QPixmap, QCursor
 from isstools.elements.widget_motors import UIWidgetMotors
 from functools import partial
 from time import sleep
@@ -66,7 +67,13 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
+        self._min = 0
+        self._max = 5
+
         self._patches = {}
+
+        self.horizontalSlider_min.valueChanged.connect(self.update_min_color_range)
+        self.horizontalSlider_max.valueChanged.connect(self.update_max_color_range)
 
 
         self.RS = RectangleSelector(self.figure_pilatus_image.ax,
@@ -100,6 +107,27 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self.last_image_update_time = 0
         self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
+
+    def update_min_color_range(self):
+        self._min = self.horizontalSlider_min.value()
+        self._max = self.horizontalSlider_max.value()
+        QToolTip.showText(QCursor.pos(), f'{self._min}')
+
+        if self._min >= self._max - 1:
+            self.horizontalSlider_max.setValue(self._max + 1)
+
+        self.update_pilatus_image()
+
+
+    def update_max_color_range(self):
+        self._max = self.horizontalSlider_max.value()
+        self._min = self.horizontalSlider_min.value()
+        QToolTip.showText(QCursor.pos(), f'{self._max}')
+
+        if self._max <= self._min + 1:
+            self.horizontalSlider_min.setValue(self._min - 1)
+
+        self.update_pilatus_image()
 
     def add_roi_counts_total(self, ch):
         def update_roi_counts(value, **kwargs):
@@ -229,7 +257,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                       self.canvas_pilatus_image)
 
         _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=0, vmax=5)
+        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=self._min, vmax=self._max)
 
 
 
@@ -294,9 +322,9 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.pilatus100k_device.cam.acquire.put(0)
 
     def acquire_image(self):
-        self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
-        # self.pilatus100k_device.cam.acquire.set(1).wait()
-        # self.update_pilatus_image()
+        # self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
+        self.pilatus100k_device.cam.acquire.set(1).wait()
+        self.update_pilatus_image()
 
     def update_acquisition_mode(self):
         if self.radioButton_single_exposure.isChecked():
