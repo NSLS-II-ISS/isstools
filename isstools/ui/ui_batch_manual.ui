@@ -779,7 +779,7 @@ scan</string>
     <string/>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_suffix">
+  <widget class="QLineEdit" name="lineEdit_condition">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -817,7 +817,7 @@ scan</string>
     </size>
    </property>
    <property name="text">
-    <string>Suffix</string>
+    <string>Condition</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_135">

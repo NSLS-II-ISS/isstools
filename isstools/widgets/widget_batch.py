@@ -772,14 +772,14 @@ class UIBatch(*uic.loadUiType(ui_path)):
             message_box('Warning', 'Must select at least one scan!')
             return
 
-        suffix = self.lineEdit_suffix.text()
-        if (suffix == '') or (suffix.isspace()):
-            suffix = None
+        sample_condition = self.lineEdit_condition.text()
+        if (sample_condition == '') or (sample_condition.isspace()):
+            sample_condition = None
         comment = self.lineEdit_comment.text()
         priority = self.measurement_priority
 
         self.batch_manager.add_measurement_to_experiment(experiment_index, sample_index_dict, scan_index_list,
-                                                         priority=priority, suffix=suffix, comment=comment)
+                                                         priority=priority, sample_condition=sample_condition, comment=comment)
 
 
     def get_selected_batch_item_index_list(self):

@@ -73,7 +73,7 @@
     </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="2" column="1" colspan="2">
-      <widget class="QLineEdit" name="lineEdit_suffix">
+      <widget class="QLineEdit" name="lineEdit_condition">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -304,7 +304,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Suffix</string>
+        <string>Condition</string>
        </property>
       </widget>
      </item>

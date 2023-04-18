@@ -77,19 +77,19 @@ class UIRun(*uic.loadUiType(ui_path)):
     def make_plans(self):
         sample_idx = self.comboBox_sample_defs.currentIndex()
         scan_idx = self.comboBox_scan_defs.currentIndex()
-
+        sample_condition = self.lineEdit_condition.text()
         # name = self.lineEdit_exp_name.text()
 
         sample_name = self.sample_manager.sample_name_at_index(sample_idx)
         sample_comment = self.sample_manager.sample_comment_at_index(sample_idx)
         sample_uid = self.sample_manager.sample_uid_at_index(sample_idx)
-        metadata = {'sample_uid' : sample_uid, 'sample_name' : sample_name, 'sample_comment' : sample_comment}
+        metadata = {'sample_uid' : sample_uid, 'sample_name' : sample_name, 'sample_comment' : sample_comment,
+                    'sample_condition': sample_condition}
 
-        suffix = self.lineEdit_suffix.text()
-        if (suffix == '') or (suffix.isspace()):
+        if (sample_condition == '') or (sample_condition.isspace()):
             name = sample_name
         else:
-            name = f'{sample_name} {suffix}'
+            name = f'{sample_name} {sample_condition}'
 
         # name = remove_special_characters(name)
         comment = self.lineEdit_exp_comment.text()
