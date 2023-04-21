@@ -50,20 +50,18 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                  RE=None,
                  parent=None,
                  sample_manager=None,
+                 user_manager=None,
                  *args, **kwargs):
 
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.parent  = parent
-        self.user_list = [ {'pi':['Eli', 'Stavitski'], 'group':'NSLS II'},
-                           {'pi':['Denis', 'Leshchev'], 'group':'NSLS II'},
-                           {'pi':['Randall', 'Meyer'],'group':'Exxon Mobil'}
-                           ]
         self.RE=RE
         self.user_groups = []
         self.user_names = []
         self.sample_manager=sample_manager
+        self.user_manager=user_manager
         self.enable_fields(False)
         self.pushButton_setup_user.clicked.connect(self.setup_user)
         self.pushButton_find_proposal.clicked.connect(self.find_proposal)
@@ -75,14 +73,14 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.comboBox_group.currentIndexChanged.connect(self.select_from_comboboxes)
         self.comboBox_pi.currentIndexChanged.connect(self.select_from_comboboxes)
 
-        self.sample_list_changed_signal.connect(self.update_sample_list)
+        # self.sample_list_changed_signal.connect(self.update_sample_list)
 
         # Populate comboboxes
-        for user in self.user_list:
-            name = user['pi'][0]+' '+user['pi'][1]
-            self.user_names.append(name)
-            self.comboBox_pi.addItem(name)
-            self.user_groups.append(user['group'])
+        # for user in self.user_list:
+        #     name = user['pi'][0]+' '+user['pi'][1]
+        #     self.user_names.append(name)
+        #     self.comboBox_pi.addItem(name)
+        #     self.user_groups.append(user['group'])
         groups = list(set(self.user_groups))
         for group in groups:
              self.comboBox_group.addItem(group)
@@ -267,12 +265,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.user_list[self.active_user_index]['samples'] = [new_sample]
 
 
-    def update_sample_list(self):
-        self.listWidget_samples.clear()
-        for i, sample in enumerate(self.sample_manager.samples):
-            name = sample.name
-            comment = sample.comment
-            self.listWidget_samples.addItem(f'{name}/{comment}')
+
 
 
 
