@@ -196,6 +196,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       parent=self,
                                                                       user_manager=user_manager,
                                                                       sample_manager=sample_manager,
+                                                                      scan_manager=scan_manager,
+
                                                                       )
         self.layout_user_manager.addWidget(self.widget_user_manager)
 

@@ -1915,6 +1915,14 @@ plt.plot(trig_time, trig_sig)
 
 # plt.plot(apb_time, t_apb[:, 6])
 
+########################
+
+
+motor = johann_main_crystal.motor_cr_main_roll
+
+
+RE(bp.rel_list_scan([pil100k], motor, np.linspace(-50, 50, 3)))
+
 
 
 

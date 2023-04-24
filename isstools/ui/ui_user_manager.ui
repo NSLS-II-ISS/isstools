@@ -371,7 +371,7 @@ sample</string>
     </property>
    </widget>
   </widget>
-  <widget class="QComboBox" name="comboBox_group">
+  <widget class="QComboBox" name="comboBox_affiliations">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -413,7 +413,7 @@ sample</string>
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox_pi">
+  <widget class="QComboBox" name="comboBox_users">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -465,7 +465,7 @@ sample</string>
     <number>710000</number>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_pi_first">
+  <widget class="QLineEdit" name="lineEdit_user_first">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -478,7 +478,7 @@ sample</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_group">
+  <widget class="QLineEdit" name="lineEdit_affiliation">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -491,7 +491,7 @@ sample</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_pi_last">
+  <widget class="QLineEdit" name="lineEdit_user_last">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -584,7 +584,7 @@ sample</string>
     </rect>
    </property>
   </widget>
-  <widget class="QListWidget" name="listWidget_users">
+  <widget class="QListWidget" name="listWidget_experimenters">
    <property name="geometry">
     <rect>
      <x>350</x>

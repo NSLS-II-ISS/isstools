@@ -1,6 +1,6 @@
 import pkg_resources
 from PyQt5 import uic, QtCore
-from matplotlib.widgets import RectangleSelector
+from matplotlib.widgets import RectangleSelector, Cursor
 from PyQt5.Qt import QSplashScreen, QObject
 from PyQt5.QtWidgets import QToolTip
 from PyQt5.QtGui import QPixmap, QCursor
@@ -75,6 +75,9 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.horizontalSlider_min.valueChanged.connect(self.update_min_color_range)
         self.horizontalSlider_max.valueChanged.connect(self.update_max_color_range)
 
+        self.lineEdit_min.returnPressed.connect(self.update_min_range)
+        self.lineEdit_max.returnPressed.connect(self.update_max_range)
+
 
         self.RS = RectangleSelector(self.figure_pilatus_image.ax,
                                                     self.line_select_callback,
@@ -117,6 +120,19 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             self.horizontalSlider_max.setValue(self._max + 1)
 
         self.update_pilatus_image()
+
+    def update_min_range(self):
+        _value = int(self.lineEdit_min.text().split()[0])
+        self._min = _value
+        self.horizontalSlider_min.setValue(self._min)
+        self.update_pilatus_image()
+
+    def update_max_range(self):
+        _value = int(self.lineEdit_max.text().split()[0])
+        self._max = _value
+        self.horizontalSlider_max.setValue(self._max)
+        self.update_pilatus_image()
+
 
 
     def update_max_color_range(self):
@@ -215,14 +231,38 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                 getattr(self, 'spinBox_roi' + str(i) + '_min_y').setValue(int(x1))
                 getattr(self, 'spinBox_roi' + str(i) + '_width').setValue(int(y2-y1))
                 getattr(self, 'spinBox_roi' + str(i) + '_height').setValue(int(x2-x1))
+            self.update_roi_box()
 
-    #
-    # def toggle_selector(self, event):
-    #     print(f"key pressed")
+    def update_roi_box(self):
+        for i in range(1,5):
+            if getattr(self, 'checkBox_roi' + str(i)).isChecked():
+                obj_name = getattr(self, 'checkBox_roi' + str(i)).objectName()
+                self._patches[obj_name].remove()
+                self.canvas_pilatus_image.draw_idle()
 
+                x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
+                rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
+                self._patches[obj_name] = self.figure_pilatus_image.ax.add_patch(rect)
+                self.canvas_pilatus_image.draw_idle()
 
-        # checkBox_widget = getattr(self, f'checkBox_roi{i}')
-        # if checkBox_widget.isChecked():
+    def add_roi_box(self):
+
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_obj_name = sender_object.objectName()
+        sender_obj_value = sender_object.text()
+        if sender_object.isChecked():
+            x, y, dx, dy = self.pilatus100k_device.get_roi_coords(int(sender_obj_value))
+            rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
+            self._patches[sender_obj_name] = self.figure_pilatus_image.ax.add_patch(rect)
+            self.canvas_pilatus_image.draw_idle()
+        if not sender_object.isChecked():
+            try:
+                self._patches[sender_obj_name].remove()
+                self.canvas_pilatus_image.draw_idle()
+            except:
+                pass
+
 
     def open_detector_setting(self):
 
@@ -245,6 +285,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.figure_pilatus_image.ax = self.figure_pilatus_image.add_subplot(111)
         self.canvas_pilatus_image.draw_idle()
         self.figure_pilatus_image.tight_layout()
+
+        cursor = Cursor(self.figure_pilatus_image.ax, useblit=True, color='green', linewidth=0.75)
 
         self.cid_start = self.canvas_pilatus_image.mpl_connect('button_press_event', self.roi_mouse_click_start)
         self.cid_move = self.canvas_pilatus_image.mpl_connect('motion_notify_event', self.roi_mouse_click_move)
@@ -281,23 +323,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             #         self.update_pilatus_image()
             #     i = 0
 
-    def add_roi_box(self):
 
-        sender = QObject()
-        sender_object = sender.sender()
-        sender_obj_name = sender_object.objectName()
-        sender_obj_value = sender_object.text()
-        if sender_object.isChecked():
-            x, y, dx, dy = self.pilatus100k_device.get_roi_coords(int(sender_obj_value))
-            rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
-            self._patches[sender_obj_name] = self.figure_pilatus_image.ax.add_patch(rect)
-            self.canvas_pilatus_image.draw_idle()
-        if not sender_object.isChecked():
-            try:
-                self._patches[sender_obj_name].remove()
-                self.canvas_pilatus_image.draw_idle()
-            except:
-                pass
+
+
+
 
 
     def roi_mouse_click_start(self, event):

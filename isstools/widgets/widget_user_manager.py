@@ -19,10 +19,6 @@ from ..elements.elements import remove_special_characters
 
 
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
-from timeit import default_timer as timer
-from isstools.dialogs.BasicDialogs import message_box,question_message_box
-from isscloudtools.initialize import get_slack_service, get_dropbox_service, get_gmail_service
-import bluesky.plan_stubs as bps
 from PyQt5 import uic, QtWidgets
 
 from xas.file_io import make_user_dir
@@ -34,8 +30,6 @@ from isscloudtools.dropbox import *
 from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem
 from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
 
-from isstools.elements.qmicroscope import Microscope
-from isstools.dialogs import UpdateSampleInfo
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
 import matplotlib.path as mpltPath
@@ -51,6 +45,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                  parent=None,
                  sample_manager=None,
                  user_manager=None,
+                 scan_manager=None,
                  *args, **kwargs):
 
 
@@ -58,8 +53,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.parent  = parent
         self.RE=RE
-        self.user_groups = []
-        self.user_names = []
+        self.scan_manager = scan_manager
         self.sample_manager=sample_manager
         self.user_manager=user_manager
         self.enable_fields(False)
@@ -68,49 +62,72 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_select_saf.clicked.connect(self.select_saf)
         self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
         self.push_create_sample.clicked.connect(self.create_new_sample)
+        self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
+
+
        # self.pushButton_cancel_setup.setEnable(False)
 
-        self.comboBox_group.currentIndexChanged.connect(self.select_from_comboboxes)
-        self.comboBox_pi.currentIndexChanged.connect(self.select_from_comboboxes)
-
-        # self.sample_list_changed_signal.connect(self.update_sample_list)
-
-        # Populate comboboxes
-        # for user in self.user_list:
-        #     name = user['pi'][0]+' '+user['pi'][1]
-        #     self.user_names.append(name)
-        #     self.comboBox_pi.addItem(name)
-        #     self.user_groups.append(user['group'])
-        groups = list(set(self.user_groups))
-        for group in groups:
-             self.comboBox_group.addItem(group)
         # populate fields based on RE.md
         current_user =  self.RE.md['PI']
-        self.lineEdit_pi_first.setText(current_user.split(' ')[0])
-        self.lineEdit_pi_last.setText(current_user.split(' ')[1])
+        self.lineEdit_user_first.setText(current_user.split(' ')[0])
+        self.lineEdit_user_last.setText(current_user.split(' ')[1])
         self.spinBox_saf.setValue(int(self.RE.md['SAF']))
         self.spinBox_proposal.setValue(int(self.RE.md['proposal']))
         self.lineEdit_email.setText(self.RE.md['email'])
-        self.lineEdit_group.setText(self.RE.md['institution'])
+        self.lineEdit_affiliation.setText(self.RE.md['affiliation'])
+
+        self.sample_list_changed_signal.connect(self.update_sample_list)
+        self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
+        self.comboBox_users.currentIndexChanged.connect(self.select_from_comboboxes)
+        self.comboBox_users.activated.connect(self.select_from_comboboxes)
+        self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
+
+        self.populate_comboboxes()
+        self.update_sample_list()
+
+    def update_sample_list(self):
+        self.listWidget_samples.clear()
+        for sample in self.sample_manager.samples:
+            self.listWidget_samples.addItem(f'{sample.name}/{sample.comment}')
+
+
+    def populate_comboboxes(self):
+        self.comboBox_affiliations.currentIndexChanged.disconnect(self.select_from_comboboxes)
+        self.comboBox_users.currentIndexChanged.disconnect(self.select_from_comboboxes)
+        self.comboBox_users.activated.disconnect(self.select_from_comboboxes)
+        self.comboBox_affiliations.activated.disconnect(self.select_from_comboboxes)
+        self.comboBox_users.clear()
+        self.comboBox_affiliations.clear()
+        affiliations=[]
+        for user in self.user_manager.users:
+            self.comboBox_users.addItem(f"{user['first_name']} {user['last_name']}")
+            affiliations.append(user['affiliation'])
+        affiliations = list(set(affiliations))
+        for affiliation in affiliations:
+            self.comboBox_affiliations.addItem(affiliation)
+        self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
+        self.comboBox_users.currentIndexChanged.connect(self.select_from_comboboxes)
+        self.comboBox_users.activated.connect(self.select_from_comboboxes)
+        self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
 
 
     def enable_fields(self, enable):
-        elements = ['comboBox_pi',
-                    'comboBox_group',
+        elements = ['comboBox_users',
+                    'comboBox_affiliations',
                     'pushButton_find_proposal',
                     'spinBox_proposal',
                     'spinBox_saf',
                     'listWidget_safs',
-                    'listWidget_users',
+                    'listWidget_experimenters',
                     'pushButton_select_saf']
 
         for element in elements:
             getattr(self, element).setEnabled(enable)
         elements = [
             'lineEdit_email',
-            'lineEdit_pi_first',
-            'lineEdit_pi_last',
-            'lineEdit_group',
+            'lineEdit_user_first',
+            'lineEdit_user_last',
+            'lineEdit_affiliation',
             ]
         for element in elements:
             getattr(self, element).setReadOnly(not enable)
@@ -119,45 +136,45 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
     def setup_user(self):
         if self.pushButton_setup_user.isChecked():
+            self.current_first = self.lineEdit_user_first.text()
+            self.current_last = self.lineEdit_user_last.text()
+            self.current_affiliation = self.lineEdit_affiliation.text()
+            self.current_email = self.lineEdit_email.text()
             self.enable_fields(True)
         else:
             self.enable_fields(False)
-            new_user_name = f'{self.lineEdit_pi_first.text()} {self.lineEdit_pi_last.text()}'
-            run = {}
-            run['uid'] = str(uuid.uuid4())[: 8]
-            run['start'] = ttime.ctime()
-            run['timestamp'] = ttime.time()
-            run['proposal'] = self.spinBox_proposal.value()
-            run['saf'] = self.spinBox_saf.value()
-            if new_user_name not in self.user_names:
-                ret = question_message_box(self, 'New user', 'Create a new user?')
-                if ret:
-                    runs = []
-                    new_PI = {}
-                    new_PI['pi']=[self.lineEdit_pi_first.text(), self.lineEdit_pi_last.text()]
-                    new_PI['uid'] = str(uuid.uuid4())[: 8]
-                    new_PI['group'] = self.lineEdit_group.text()
-                    runs.append(run)
-                    new_PI['runs'] = runs
-                    self.user_list.append(new_PI)
-                    self.user_names.append(new_user_name)
-                    new_PI['email'] = self.lineEdit_email.text()
-                    self.active_user_index = -1
 
-            else:
-                self.active_user_index = self.user_names.index(new_user_name)
-                self.user_list[self.active_user_index]['runs'].append(run)
-            self.cloud_setup(email_address=self.lineEdit_email.text())
+            _first = self.lineEdit_user_first.text()
+            _last = self.lineEdit_user_last.text()
+            _affiliation = self.lineEdit_affiliation.text()
+            _email = self.lineEdit_email.text()
+
+            self.RE.md['PI'] = f'{_first} {_last}'
+            self.RE.md['affiliation'] = _affiliation
+            self.RE.md['email'] = _email
+
+            self.user_manager.set_user(_first, _last,_affiliation,_email)
+            _proposal = self.spinBox_proposal.value()
+            _saf = self.spinBox_saf.value()
+            _experimenters = []
+            for j in range(self.listWidget_experimenters.count()):
+                _experimenters.append(self.listWidget_experimenters.item(j).text())
+            self.user_manager.add_run(_proposal, _saf, _experimenters)
+
+            self.cloud_setup(email_address=_email)
+            self.populate_comboboxes()
+
+
 
     def select_from_comboboxes(self):
         sender_object = QObject().sender()
         sender_object_name = self.sender().objectName()
-        if sender_object_name ==  'comboBox_pi':
+        if sender_object_name == 'comboBox_users':
             print(10)
-            self.lineEdit_pi_first.setText(sender_object.currentText().split(' ')[0])
-            self.lineEdit_pi_last.setText(sender_object.currentText().split(' ')[1])
-        if sender_object_name == 'comboBox_group':
-            self.lineEdit_group.setText(sender_object.currentText())
+            self.lineEdit_user_first.setText(sender_object.currentText().split(' ')[0])
+            self.lineEdit_user_last.setText(sender_object.currentText().split(' ')[1])
+        if sender_object_name == 'comboBox_affiliations':
+            self.lineEdit_affiliation.setText(sender_object.currentText())
 
     def find_proposal(self):
         headers = {'accept': 'application/json',}
@@ -167,7 +184,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             error_message_box('Proposal not found')
         else:
             self.listWidget_safs.clear()
-            self.listWidget_users.clear()
+            self.listWidget_experimenters.clear()
             safs = proposal_info['safs']
             for saf in safs:
                 item = QListWidgetItem(saf['saf_id'])
@@ -179,7 +196,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                 item = QListWidgetItem(user['first_name']+ ' ' +user['last_name'])
                 if user['is_pi']:
                     item.setForeground(Qt.blue)
-                self.listWidget_users.addItem(item)
+                self.listWidget_experimenters.addItem(item)
 
 
     def select_saf(self):
@@ -188,7 +205,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
     def cancel_setup(self):
         pass
-
 
     def cloud_setup(self, email_address = None):
         year = self.RE.md['year']
@@ -202,7 +218,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             print('Slack channel not found, Creating new channel...')
             channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
             slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
-
 
         slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
         self.RE.md['slack_channel'] = channel_id
@@ -249,20 +264,17 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             return
         sample_name = remove_special_characters(sample_name)
         sample_comment = self.lineEdit_sample_comment.text()
-        # positions = self._create_list_of_positions()
-        self._currently_selected_index = -1
+
+        self.sample_manager._currently_selected_index = -1
         self.sample_manager.add_new_sample(sample_name, sample_comment, [])
 
-        new_sample = {}
-        new_sample['names']=sample_name
-        new_sample['comment'] = sample_comment
-        new_sample['created'] = ttime.ctime()
-        new_sample['timestamp'] = ttime.time()
-        new_sample['archived'] = False
-        if 'samples' in self.user_list[self.active_user_index].keys():
-            self.user_list[self.active_user_index]['samples'].append(new_sample)
-        else:
-            self.user_list[self.active_user_index]['samples'] = [new_sample]
+    def cancel_setup(self):
+        self.pushButton_setup_user.setChecked(False)
+        self.lineEdit_user_first.setText(self.current_first)
+        self.lineEdit_user_last.setText(self.current_last)
+        self.lineEdit_affiliation.setText(self.current_affiliation)
+        self.lineEdit_email.setText(self.current_email)
+        self.enable_fields(False)
 
 
 
