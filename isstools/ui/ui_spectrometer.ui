@@ -680,7 +680,7 @@
       <rect>
        <x>220</x>
        <y>10</y>
-       <width>371</width>
+       <width>141</width>
        <height>20</height>
       </rect>
      </property>
@@ -2646,7 +2646,7 @@ offset</string>
        <x>10</x>
        <y>40</y>
        <width>581</width>
-       <height>52</height>
+       <height>41</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -2677,7 +2677,7 @@ offset</string>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="push_pilatus_widget">
+       <widget class="QPushButton" name="push_move_crystals_to_90_deg">
         <property name="maximumSize">
          <size>
           <width>500</width>
@@ -2685,7 +2685,8 @@ offset</string>
          </size>
         </property>
         <property name="text">
-         <string>Pilatus screen</string>
+         <string>Move crystals
+to 90 deg</string>
         </property>
        </widget>
       </item>
@@ -2718,6 +2719,25 @@ to safe position</string>
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QPushButton" name="push_pilatus_widget">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>0</y>
+       <width>112</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Pilatus screen</string>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_6">

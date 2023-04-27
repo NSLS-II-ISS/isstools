@@ -33,7 +33,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
                  this_motor_dictionary=None, # "this" is to emphasize that the dict is for a specific motor!
                  parent=None,
                  horizontal_scale=1,
-                 motor_description_width=200,
+                 motor_description_width=300,
                  add_spacer=True,
                  *args, **kwargs
                  ):

@@ -127,6 +127,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.push_johann_home_crystals.clicked.connect(self.johann_home_crystals)
         self.push_johann_reset_config.clicked.connect(self.johann_reset_config)
+        self.push_move_crystals_to_90_deg.clicked.connect(self.move_crystals_to_90_deg)
         self.push_johann_put_detector_to_safe_position.clicked.connect(self.johann_put_detector_to_safe_position)
         self.push_johann_parking_element_update.clicked.connect(self.johann_parking_element_update)
 
@@ -503,6 +504,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def johann_reset_config(self):
         self.johann_emission.reset_config()
+
+    def move_crystals_to_90_deg(self):
+        self.johann_emission.move_crystals_to_90_deg()
 
     def johann_put_detector_to_safe_position(self):
         self.johann_emission.put_detector_to_safe_position()
