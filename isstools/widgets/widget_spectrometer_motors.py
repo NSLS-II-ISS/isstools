@@ -46,7 +46,7 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         self.widget_list=[]
 
         for motor in self._motor_group_dict[sender_object_name]:
-            widget = UIWidgetMotors(self.motor_dict[motor])
+            widget = UIWidgetMotors(self.motor_dict[motor], motor_description_width=500, horizontal_scale=1.0)
             widget.setFixedWidth(900)
             widget.setFixedHeight(24)
             self.verticalLayout_currentMotors.addWidget(widget)

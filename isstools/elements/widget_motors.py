@@ -48,7 +48,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
         self.label_motor_description = QLabel("")
 
         self.layout_motor_widget = self.horizontalLayout_motor
-        self.label_motor_description.setText(self.motor_dict['description'])
+        self.label_motor_description.setText(self.motor_dict['keyword'])
         self.label_motor_description.setFixedWidth(int(motor_description_width * horizontal_scale))
         # self.label_motor_description.setAlignment(Qt.AlignCenter)
         self.layout_motor_widget.addWidget(self.label_motor_description)
