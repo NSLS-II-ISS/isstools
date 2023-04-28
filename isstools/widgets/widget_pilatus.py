@@ -53,6 +53,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         for i in range(4):
             self.comboBox_shapetime.addItem(self.gain_menu[i])
 
+        self.pilatus100k_device.cam.image_mode.set(0).wait()
+        self.pilatus100k_device.cam.trigger_mode.set(0).wait()
+
+
         self.comboBox_shapetime.currentIndexChanged.connect(self.change_pilatus_gain)
         self.pilatus100k_device.cam.gain_menu.subscribe(self.update_gain_combobox)
 
@@ -68,6 +72,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
+        self.pushButton_clear_box.clicked.connect(self.clear_selection_box)
+
         self._min = 0
         self._max = 5
 
@@ -75,9 +81,6 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.label_max.setText(f'{self._max}')
 
         self._patches = {}
-
-        # self.horizontalSlider_min.valueChanged.connect(self.update_min_color_range)
-        # self.horizontalSlider_max.valueChanged.connect(self.update_max_color_range)
 
         self.lineEdit_min.returnPressed.connect(self.update_min_range)
         self.lineEdit_max.returnPressed.connect(self.update_max_range)
@@ -93,12 +96,6 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                                                     spancoords='pixels',
                                                     interactive=True)
 
-
-        # self.pilatus100k_device.cam.trigger_mode.subscribe(self.update_pilatus_image)
-
-
-        # self.pilatus100k_device.image.array_data.subscribe(self.update_pilatus_image)
-
         for i in range(1,5):
             self.add_roi_counts_total(i)
 
@@ -111,90 +108,16 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         for i in range(1, 5):
             getattr(self, 'radioButton_roi' + str(i)).toggled.connect(self.add_roi_box)
 
+        self.checkBox_auto_scale.toggled.connect(self.auto_scale_image)
+
+
+
 
         self.last_image_update_time = 0
         self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
 
-    # def update_min_color_range(self):
-    #     self._min = self.horizontalSlider_min.value()
-    #     self._max = self.horizontalSlider_max.value()
-    #     QToolTip.showText(QCursor.pos(), f'{self._min}')
-    #
-    #     if self._min >= self._max - 1:
-    #         self.horizontalSlider_max.setValue(self._max + 1)
-    #
-    #     if self._min < self._max:
-    #         self.update_pilatus_image()
-    #     else:
-    #         self.horizontalSlider_min.setValue(self._max)
-    #         self.horizontalSlider_max.setValue(self._min)
-    #         self.update_pilatus_image()
 
 
-
-    def update_min_range(self):
-        _value = int(self.lineEdit_min.text().split()[0])
-        self._min = _value
-
-        if self._min < self._max:
-            self.label_min.setText(f"{self._min}")
-            self.update_pilatus_image()
-        else:
-            message_box("Error", 'Min should be smaller then Max')
-
-
-        # if self._min >= self._max - 1:
-        #     self.horizontalSlider_max.setValue(self._max + 1)
-        #
-        # if self._min < self._max:
-        #     self.update_pilatus_image()
-        # else:
-        #     self.horizontalSlider_min.setValue(self._max)
-        #     self.horizontalSlider_max.setValue(self._min)
-        #     self.update_pilatus_image()
-
-        # self.horizontalSlider_min.setValue(self._min)
-        #
-        # self.update_pilatus_image()
-
-    def update_max_range(self):
-        _value = int(self.lineEdit_max.text().split()[0])
-        self._max = _value
-
-        if self._max > self._min:
-            self.label_max.setText(f"{self._max}")
-            self.update_pilatus_image()
-        else:
-            message_box("Error", 'Max should be larger then Min')
-
-        # if self._max <= self._min + 1:
-        #     self.horizontalSlider_min.setValue(self._min - 1)
-        #
-        # if self._max > self._min:
-        #     self.update_pilatus_image()
-        # else:
-        #     self.horizontalSlider_min.setValue(self._max)
-        #     self.horizontalSlider_max.setValue(self._min)
-        #     self.update_pilatus_image()
-        # self.horizontalSlider_max.setValue(self._max)
-        # self.update_pilatus_image()
-
-
-
-    # def update_max_color_range(self):
-    #     self._max = self.horizontalSlider_max.value()
-    #     self._min = self.horizontalSlider_min.value()
-    #     QToolTip.showText(QCursor.pos(), f'{self._max}')
-    #
-    #     if self._max <= self._min + 1:
-    #         self.horizontalSlider_min.setValue(self._min - 1)
-    #
-    #     if self._max > self._min:
-    #         self.update_pilatus_image()
-    #     else:
-    #         self.horizontalSlider_min.setValue(self._max)
-    #         self.horizontalSlider_max.setValue(self._min)
-    #         self.update_pilatus_image()
 
     def add_roi_counts_total(self, ch):
         def update_roi_counts(value, **kwargs):
@@ -230,19 +153,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         getattr(self, 'spinBox_roi' + str(ch) + '_height').valueChanged.connect(partial(self.update_roiy_size_value, str(ch)))
 
 
-    def set_mono_energy(self):
-        if self.checkBox_enable_energy_change.isChecked():
-            _energy = self.spinBox_mono_energy.value()
-            self.hhm.energy.user_setpoint.set(_energy).wait()
 
-    def read_mono_energy(self, value, **kwargs):
-        self.label_current_energy.setText(f'{value:4.1f} eV')
-
-    def open_energy_change(self):
-        if self.checkBox_enable_energy_change.isChecked():
-            self.spinBox_mono_energy.setEnabled(True)
-        else:
-            self.spinBox_mono_energy.setEnabled(False)
 
     def update_roix_value(self, ch):
         sender = QObject()
@@ -270,19 +181,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         sender_obj_value = sender_object.value()
         getattr(self.pilatus100k_device, 'roi' + ch).size.y.set(sender_obj_value).wait()
 
-    def line_select_callback(self, eclick, erelease):
 
-        x1, y1 = eclick.xdata, eclick.ydata
-        x2, y2 = erelease.xdata, erelease.ydata
-        print(f'{x1 = :3.3f} {y1 = :3.3f} {x2 = :3.3f} {y2 = :3.3f}')
-
-        for i in range(1,5):
-            if getattr(self, 'radioButton_roi' + str(i)).isChecked():
-                getattr(self, "spinBox_roi" + str(i) + "_min_x").setValue(int(y1))
-                getattr(self, 'spinBox_roi' + str(i) + '_min_y').setValue(int(x1))
-                getattr(self, 'spinBox_roi' + str(i) + '_width').setValue(int(y2-y1))
-                getattr(self, 'spinBox_roi' + str(i) + '_height').setValue(int(x2-x1))
-            self.update_roi_box()
 
     def update_roi_box(self):
         for i in range(1,5):
@@ -314,16 +213,71 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             except:
                 pass
 
+    def update_pilatus_image(self):
+        self.last_image_update_time = ttime.time()
+        update_figure([self.figure_pilatus_image.ax],
+                      self.toolbar_pilatus_image,
+                      self.canvas_pilatus_image)
 
-    def open_detector_setting(self):
+        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
+        ## Dead pixels
+        _img[158, 11] = 0
+        _img[15, 352] = 0
+        _img[171, 364] = 0
+        _img[171, 365] = 0
 
-        if self.checkBox_detector_settings.isChecked():
-            self.doubleSpinBox_set_energy.setEnabled(True)
-            self.doubleSpinBox_cutoff_energy.setEnabled(True)
+        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=self._min, vmax=self._max)
+
+
+        # Add the patch to the Axes
+
+        for i in range(1,5):
+            if getattr(self, 'radioButton_roi' + str(i)).isChecked():
+                x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
+                rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor='r', facecolor='none')
+                self._patches['radioButton_roi' + str(i)] = self.figure_pilatus_image.ax.add_patch(rect)
+                # self.canvas_pilatus_image.draw_idle()
+            if not getattr(self, 'radioButton_roi' + str(i)).isChecked():
+                try:
+                    self._patches['radioButton_roi' + str(i)].remove()
+                    # self.canvas_pilatus_image.draw_idle()
+                except:
+                    pass
+
+
+
+        # self.figure_pilatus_image.ax.autoscale(True)
+        self.figure_pilatus_image.ax.set_xticks([])
+        self.figure_pilatus_image.ax.set_yticks([])
+        self.canvas_pilatus_image.draw_idle()
+        self.figure_pilatus_image.tight_layout()
+
+    def update_image_widget(self, value, old_value, **kwargs):
+        i = 0
+        if (value == 0) and (old_value == 1):
+            if (ttime.time() - self.last_image_update_time) > 0.1:
+                self.update_pilatus_image()
+
+
+    def auto_scale_image(self):
+        if self.checkBox_auto_scale.isChecked():
+            self._min = None
+            self._max = None
+            self.update_pilatus_image()
+
+    def update_min_range(self):
+        _value = int(self.lineEdit_min.text().split()[0])
+        self._min = _value
+
+        if self._max is None:
+            self._max = self._min + 1
+            self.label_max.setText(f"{self._max}")
+
+        if self._min < self._max:
+            self.label_min.setText(f"{self._min}")
+            self.update_pilatus_image()
         else:
-            self.doubleSpinBox_set_energy.setEnabled(False)
-            self.doubleSpinBox_cutoff_energy.setEnabled(False)
-
+            message_box("Error", 'Min should be smaller then Max')
 
 
     def addCanvas(self):
@@ -343,52 +297,43 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.cid_move = self.canvas_pilatus_image.mpl_connect('motion_notify_event', self.roi_mouse_click_move)
         self.cid_finish = self.canvas_pilatus_image.mpl_connect('button_release_event', self.roi_mouse_click_finish)
 
-    def update_pilatus_image(self):
-        self.last_image_update_time = ttime.time()
-        update_figure([self.figure_pilatus_image.ax],
-                      self.toolbar_pilatus_image,
-                      self.canvas_pilatus_image)
+    def update_max_range(self):
+        _value = int(self.lineEdit_max.text().split()[0])
+        self._max = _value
 
-        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        ## Dead pixels
+        if self._min is None:
+            self._min = self._max - 1
+            self.label_min.setText(f"{self._min}")
 
-        _img[158, 11] = 0
-        _img[15, 352] = 0
-        _img[171, 364] = 0
-        _img[171, 365] = 0
-        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=self._min, vmax=self._max)
+        if self._max > self._min:
+            self.label_max.setText(f"{self._max}")
+            self.update_pilatus_image()
+        else:
+            message_box("Error", 'Max should be larger then Min')
 
-
-
-
-        # Add the patch to the Axes
-
-
-        # self.figure_pilatus_image.ax.autoscale(True)
-        self.figure_pilatus_image.ax.set_xticks([])
-        self.figure_pilatus_image.ax.set_yticks([])
-        self.canvas_pilatus_image.draw_idle()
-        self.figure_pilatus_image.tight_layout()
-
-    def update_image_widget(self, value, old_value, **kwargs):
-        i = 0
-        if (value == 0) and (old_value == 1):
-            if (ttime.time() - self.last_image_update_time) > 0.1:
-                self.update_pilatus_image()
-            # else:
-            #     i +=1
-            #     if i > 10:
-            #         self.update_pilatus_image()
-            #     i = 0
+    def clear_selection_box(self):
+        if self.RS.active:
+            self.RS.set_visible(False)
+            self.RS.set_active(False)
+            self.RS.update()
+            self.RS.set_active(True)
 
 
+    def line_select_callback(self, eclick, erelease):
 
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+        print(f'{x1 = :3.3f} {y1 = :3.3f} {x2 = :3.3f} {y2 = :3.3f}')
 
-
-
+        for i in range(1,5):
+            if getattr(self, 'radioButton_roi' + str(i)).isChecked():
+                getattr(self, "spinBox_roi" + str(i) + "_min_x").setValue(int(y1))
+                getattr(self, 'spinBox_roi' + str(i) + '_min_y').setValue(int(x1))
+                getattr(self, 'spinBox_roi' + str(i) + '_width').setValue(int(y2-y1))
+                getattr(self, 'spinBox_roi' + str(i) + '_height').setValue(int(x2-x1))
+            self.update_roi_box()
 
     def roi_mouse_click_start(self, event):
-        # self.event = event
         if event.button == 3:
             self.cur_mouse_coords = (event.xdata, event.ydata)
             print('MOTION STARTED')
@@ -404,6 +349,30 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                 self.cur_mouse_coords = None
                 print('MOTION FINISHED')
 
+
+    def set_mono_energy(self):
+        if self.checkBox_enable_energy_change.isChecked():
+            _energy = self.spinBox_mono_energy.value()
+            self.hhm.energy.user_setpoint.set(_energy).wait()
+
+    def read_mono_energy(self, value, **kwargs):
+        self.label_current_energy.setText(f'{value:4.1f} eV')
+
+    def open_energy_change(self):
+        if self.checkBox_enable_energy_change.isChecked():
+            self.spinBox_mono_energy.setEnabled(True)
+        else:
+            self.spinBox_mono_energy.setEnabled(False)
+
+
+    def open_detector_setting(self):
+
+        if self.checkBox_detector_settings.isChecked():
+            self.doubleSpinBox_set_energy.setEnabled(True)
+            self.doubleSpinBox_cutoff_energy.setEnabled(True)
+        else:
+            self.doubleSpinBox_set_energy.setEnabled(False)
+            self.doubleSpinBox_cutoff_energy.setEnabled(False)
 
     def stop_acquire_image(self):
         self.pilatus100k_device.cam.acquire.put(0)
