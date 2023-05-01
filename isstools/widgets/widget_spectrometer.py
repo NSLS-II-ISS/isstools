@@ -142,6 +142,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_johann_element_parking.currentIndexChanged.connect(self.johann_populate_parking_element_widgets)
 
         self.update_enabled_crystals_checkboxes()
+        self.update_crystal_kind_fields()
 
         self.checkBox_enable_main.toggled.connect(self.enable_crystal)
         self.checkBox_enable_aux2.toggled.connect(self.enable_crystal)
@@ -530,6 +531,19 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         sender_object = QObject().sender()
         crystal_key = sender_object.text()
         self.johann_emission.enable_crystal(crystal_key, enable)
+
+    def update_crystal_kind_fields(self):
+        crystal, R, hkl, roll_offset = self.johann_emission.read_basic_crystal_config()
+        for i in range(self.comboBox_johann_crystal_kind.count()):
+            if self.comboBox_johann_crystal_kind.itemText(i) == crystal:
+                self.comboBox_johann_crystal_kind.setCurrentIndex(i)
+                break
+        self.lineEdit_johann_hkl.setText('(' + ','.join([str(i) for i in hkl]) + ')')
+        self.edit_johann_crystal_R.setText(str(R))
+        for i in range(self.comboBox_johann_roll_offset.count()):
+            if float(self.comboBox_johann_roll_offset.itemText(i)) == roll_offset:
+                self.comboBox_johann_roll_offset.setCurrentIndex(i)
+                break
 
     def _johann_update_crystal_config(self):
         crystal = self.comboBox_johann_crystal_kind.currentText()
