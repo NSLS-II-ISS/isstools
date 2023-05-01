@@ -8,6 +8,8 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import numpy as np
 import pandas as pd
+from PyQt5 import uic, QtGui, QtCore, QtWidgets
+from datetime import datetime
 
 from isstools.dialogs import MoveMotorDialog
 from isstools.dialogs.BasicDialogs import question_message_box
@@ -24,12 +26,14 @@ from isstools.widgets import widget_emission_energy_selector
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
 class UISpectrometer(*uic.loadUiType(ui_path)):
+    spectrometer_config_list_changed_signal = QtCore.pyqtSignal()
     def __init__(self,
                  RE,
                  plan_processor,
                  hhm,
                  db,
                  johann_emission,
+                 johann_spectrometer_manager,
                  detector_dictionary,
                  motor_dictionary,
                  shutter_dictionary,
@@ -51,6 +55,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.db = db
 
         self.johann_emission = johann_emission
+        self.johann_spectrometer_manager = johann_spectrometer_manager
+        self.johann_spectrometer_manager.append_list_update_signal(self.spectrometer_config_list_changed_signal)
+        self.update_johann_config_tree()
+        self.spectrometer_config_list_changed_signal.connect(self.update_johann_config_tree)
         self.hhm = hhm
 
         self.detector_dictionary = detector_dictionary
@@ -169,11 +177,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
         self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
-
+        self.push_johann_reset_limits.clicked.connect(self.johann_reset_energy_limits)
         self.johann_alignment_data = []
         self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
         self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
 
+        self.push_johann_create_config.clicked.connect(self.johann_create_config)
+        self.push_johann_set_current_config.clicked.connect(self.johann_set_current_config)
 
         # pilatus widget
         self.widget_pilatus_monitor = UIPilatusMonitor(detector_dict=self.detector_dictionary,
@@ -717,6 +727,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         e_hi = float(self.lineEdit_johann_energy_lim_hi.text())
         self.johann_emission.set_energy_limits(e_lo, e_hi)
 
+    def johann_reset_energy_limits(self):
+        self.lineEdit_johann_energy_lim_lo.setText('')
+        self.lineEdit_johann_energy_lim_hi.setText('')
+        self.johann_emission.reset_energy_limits()
 
     def open_motor_widget(self):
         self.widget_motor_detachable = QtWidgets.QWidget()
@@ -743,8 +757,34 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.widget_pilatus_detachable.show()
         print('Done')
 
+    def _make_spectrometer_config_item(self, item_str, index, kind=''):
+        item = QtWidgets.QTreeWidgetItem(self.treeWidget_johann_config)
+        item.setText(0, item_str)
+        item.setExpanded(True)
+        item.kind = kind
+        item.index = index
+        return item
 
+    def update_johann_config_tree(self):
+        self.treeWidget_johann_config.clear()
+        for i, config_dict in enumerate(self.johann_spectrometer_manager.configs):
+            name = config_dict['name']
+            timestamp = config_dict['timestamp']
+            config = config_dict['config']
+            item_str = f'{name} - {config["crystal"]}({"".join([str(i) for i in config["hkl"]])})-{int(config["R"])} - {timestamp}'
+            self._make_spectrometer_config_item(item_str, i)
+            # config = config_dict['config']
 
+    def johann_create_config(self):
+        name = self.lineEdit_johann_config_name.text()
+        timestamp = datetime.strftime(datetime.now(), '%Y-%m-%d')
+        if name != '':
+            self.johann_spectrometer_manager.add_current_config(name, timestamp)
 
-
+    def johann_set_current_config(self):
+        qt_index = self.treeWidget_johann_config.selectedIndexes()[0]
+        qt_item = self.treeWidget_johann_config.itemFromIndex(qt_index)
+        index = qt_item.index
+        print(f'Configuring spectrometer to {qt_item.text(0)}')
+        self.johann_spectrometer_manager.set_config_by_index(index)
 
