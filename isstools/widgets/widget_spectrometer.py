@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from datetime import datetime
+import time as ttime
 
 from isstools.dialogs import MoveMotorDialog
 from isstools.dialogs.BasicDialogs import question_message_box
@@ -783,17 +784,16 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.treeWidget_johann_config.clear()
         for i, config_dict in enumerate(self.johann_spectrometer_manager.configs):
             name = config_dict['name']
-            timestamp = config_dict['timestamp']
+            timestamp_str = datetime.strftime(datetime.fromtimestamp(ttime.time()), '%Y-%m-%d')
             config = config_dict['config']
-            item_str = f'{name} - {config["crystal"]}({"".join([str(i) for i in config["hkl"]])})-{int(config["R"])} - {timestamp}'
+            item_str = f'{name} - {config["crystal"]}({"".join([str(i) for i in config["hkl"]])})-{int(config["R"])} - {timestamp_str}'
             self._make_spectrometer_config_item(item_str, i)
             # config = config_dict['config']
 
     def johann_create_config(self):
         name = self.lineEdit_johann_config_name.text()
-        timestamp = datetime.strftime(datetime.now(), '%Y-%m-%d')
         if name != '':
-            self.johann_spectrometer_manager.add_current_config(name, timestamp)
+            self.johann_spectrometer_manager.add_current_config(name)
 
     def johann_set_current_config(self):
         qt_index = self.treeWidget_johann_config.selectedIndexes()[0]
