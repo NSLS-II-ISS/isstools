@@ -68,9 +68,10 @@ class UIRun(*uic.loadUiType(ui_path)):
 
 
     def update_sample_defs(self):
-        sample_defs = [s.name for s in self.sample_manager.samples]
         self.comboBox_sample_defs.clear()
-        self.comboBox_sample_defs.addItems(sample_defs)
+        for s in self.sample_manager.samples:
+            if not s.archived:
+                self.comboBox_sample_defs.addItem(s.name)
 
     # def update_conditions(self):
     #     cond_tuples = [(k, v['shortcut']) for k, v in self.sample_env_dict.items()]

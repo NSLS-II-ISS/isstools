@@ -68,16 +68,12 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_archive_scans.clicked.connect(self.archive_scan)
         self.pushButton_restore_scans.clicked.connect(self.restore_scan)
 
+        self.pushButton_add_metadata_key.clicked.connect(self.add_metadata_key)
+        self.pushButton_remove_metadata_key.clicked.connect(self.remove_metadata_key)
+
        # self.pushButton_cancel_setup.setEnable(False)
 
-        # populate fields based on RE.md
-        current_user =  self.RE.md['PI']
-        self.lineEdit_user_first.setText(current_user.split(' ')[0])
-        self.lineEdit_user_last.setText(current_user.split(' ')[1])
-        self.spinBox_saf.setValue(int(self.RE.md['SAF']))
-        self.spinBox_proposal.setValue(int(self.RE.md['proposal']))
-        self.lineEdit_email.setText(self.RE.md['email'])
-        self.lineEdit_affiliation.setText(self.RE.md['affiliation'])
+
 
         self.sample_list_changed_signal.connect(self.update_sample_list)
         self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
@@ -89,12 +85,37 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.checkBox_show_archived_scans.toggled.connect(self.show_archives)
 
         self.populate_comboboxes()
-        self.update_sample_list()
-        self.update_scan_list()
+        self.initialize()
+
         self.listWidget_samples_archived.hide()
         self.listWidget_scans_archived.hide()
         self.pushButton_restore_scans.hide()
         self.pushButton_restore_samples.hide()
+
+    def initialize(self):
+        _, _current_user =  self.user_manager.current_user()
+        self.lineEdit_user_first.setText(_current_user['first_name'])
+        self.lineEdit_user_last.setText(_current_user['last_name'])
+        self.spinBox_saf.setValue(int(_current_user['runs'][-1]['saf']))
+        self.spinBox_proposal.setValue(int(_current_user['runs'][-1]['proposal']))
+        self.lineEdit_email.setText(_current_user['email'])
+        self.lineEdit_affiliation.setText(_current_user['affiliation'])
+        for _key in _current_user['metadata']:
+            self.listWidget_metadata.addItem(_key)
+        self.update_sample_list()
+        self.update_scan_list()
+
+
+    def add_metadata_key(self):
+        _key = self.lineEdit_new_metadata_key.text()
+        if _key !='':
+            self.user_manager.add_metadata_key(_key)
+            self.listWidget_metadata.addItems(_key)
+
+    def remove_metadata_key(self):
+        _key = self.lineEdit_new_metadata_key.text()
+        if _key !='':
+            pass
 
     def archive_sample(self):
         for item in self.listWidget_samples.selectedItems():

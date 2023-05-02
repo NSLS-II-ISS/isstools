@@ -428,20 +428,21 @@ class UIBatch(*uic.loadUiType(ui_path)):
     def update_sample_tree(self):
         self.treeWidget_samples.clear()
         for i, sample in enumerate(self.sample_manager.samples):
-            name = sample.name
-            npts = sample.number_of_points
-            npts_fresh = sample.number_of_unexposed_points
-            sample_str = f"{name} ({npts_fresh}/{npts})"
-            sample_item = self._make_sample_item(sample_str, i)
-            sample_item.setExpanded(False)
-            # self.treeWidget_samples.addItem(sample_item)
-            for j in range(npts):
-                point_idx = sample.index_position_index(j)
-                point_str = sample.index_coordinate_str(j)
-                point_exposed = sample.index_exposed(j)
-                # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                point_str = f'{point_idx+1:3d} - {point_str}'
-                self._make_sample_point_item(sample_item, point_str, j, point_exposed)
+            if not sample.archived:
+                name = sample.name
+                npts = sample.number_of_points
+                npts_fresh = sample.number_of_unexposed_points
+                sample_str = f"{name} ({npts_fresh}/{npts})"
+                sample_item = self._make_sample_item(sample_str, i)
+                sample_item.setExpanded(False)
+                # self.treeWidget_samples.addItem(sample_item)
+                for j in range(npts):
+                    point_idx = sample.index_position_index(j)
+                    point_str = sample.index_coordinate_str(j)
+                    point_exposed = sample.index_exposed(j)
+                    # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                    point_str = f'{point_idx+1:3d} - {point_str}'
+                    self._make_sample_point_item(sample_item, point_str, j, point_exposed)
 
     # def create_new_sample(self):
     #     sample_name = self.lineEdit_sample_name.text()
@@ -521,35 +522,11 @@ class UIBatch(*uic.loadUiType(ui_path)):
         for item in self._sample_item_iterator():
             item.setCheckState(0, 0)
 
-    # def get_sample_info_from_autopilot(self):
-    #     try:
-    #         df = self.parent_gui.widget_autopilot.sample_df
-    #         str_to_parse = self.lineEdit_sample_name.text()
-    #         if '_' in str_to_parse:
-    #             try:
-    #                 n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
-    #                 select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
-    #                 select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
-    #                 line_number = np.where(select_holders & select_sample_n)[0][0]
-    #             except:
-    #                 pass
-    #         else:
-    #             line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
-    #         name = df.iloc[line_number]['Name']
-    #         comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
-    #         name = name.replace('/', '_')
-    #         self.lineEdit_sample_name.setText(name)
-    #         self.lineEdit_sample_comment.setText(comment)
-    #     except:
-    #         message_box('Error', 'Autopilot table is not defined')
-
-
     def check_selected_samples(self, checkstate=2):
         index_list = self.treeWidget_samples.selectedIndexes()
         for index in index_list:
             item = self.treeWidget_samples.itemFromIndex(index)
             item.setCheckState(0, checkstate)
-
 
     def check_n_unexposed_samples(self):
         dlg = SelectNNeffPointsDialog.SelectNNeffPointsDialog(parent=self)
