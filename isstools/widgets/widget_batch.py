@@ -127,12 +127,13 @@ class UIBatch(*uic.loadUiType(ui_path)):
 
 
     def update_scan_defs(self):
-        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
         self.comboBox_scans.clear()
-        self.comboBox_scans.addItems(scan_defs)
-        self.update_n_eff_label(0)
+        for scan in self.scan_manager.scan_list_local:
+            if not scan['archived']:
+                scan_defs = scan['scan_def']
+                self.comboBox_scans.addItem(scan_defs)
         # self.scan_sequence_manager.reset()
-
+        self.update_n_eff_label(0)
 
     '''
     General methods used more than once

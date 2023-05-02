@@ -58,9 +58,14 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.figure.ax3 = self.figure.ax.twinx()
 
     def update_scan_defs(self):
-        scan_defs = [scan['scan_def'] for scan in self.scan_manager.scan_list_local]
         self.comboBox_scan_defs.clear()
-        self.comboBox_scan_defs.addItems(scan_defs)
+        for scan in self.scan_manager.scan_list_local:
+            if not scan['archived']:
+                scan_defs = scan['scan_def']
+                self.comboBox_scan_defs.addItem(scan_defs)
+
+
+
 
     def update_sample_defs(self):
         sample_defs = [s.name for s in self.sample_manager.samples]

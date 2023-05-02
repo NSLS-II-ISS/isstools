@@ -335,7 +335,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
-
+        self.widget_scan_manager.scansChanged.connect(self.widget_user_manager.update_scan_list)
 
 
         print('widget plan queue loading', ttime.ctime())

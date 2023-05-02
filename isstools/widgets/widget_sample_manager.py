@@ -133,12 +133,12 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.update_sample_tree()
         self.sample_list_changed_signal.connect(self.update_sample_tree)
 
-        self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
-        self.push_create_sample.clicked.connect(self.create_new_sample)
+        # self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
+        # self.push_create_sample.clicked.connect(self.create_new_sample)
         self.push_define_sample_points.clicked.connect(self.define_sample_points)
 
-        self.push_delete_sample.clicked.connect(self.delete_sample)
-        self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
+        # self.push_delete_sample.clicked.connect(self.delete_sample)
+        # self.push_delete_all_samples.clicked.connect(self.delete_all_samples)
 
         self.push_get_sample_position.clicked.connect(self.get_sample_position)
         self.push_get_sample_position_map_start.clicked.connect(self.get_sample_position)
@@ -494,37 +494,38 @@ class UISampleManager(*uic.loadUiType(ui_path)):
 
         self.treeWidget_samples.clear()
         for i, sample in enumerate(self.sample_manager.samples):
-            name = sample.name
-            npts = sample.number_of_points
-            npts_fresh = sample.number_of_unexposed_points
-            sample_str = f"{name} ({npts_fresh}/{npts})"
-            sample_item = self._make_sample_item(sample_str, i)
-            # self.treeWidget_samples.addItem(sample_item)
+            if not sample.archived:
+                name = sample.name
+                npts = sample.number_of_points
+                npts_fresh = sample.number_of_unexposed_points
+                sample_str = f"{name} ({npts_fresh}/{npts})"
+                sample_item = self._make_sample_item(sample_str, i)
+                # self.treeWidget_samples.addItem(sample_item)
 
-            if (i == self._currently_selected_index) or ((i == len(self.sample_manager.samples)) and
-                                                         (self._currently_selected_index == -1)):
-                sample_item.setExpanded(True)
-            else:
-                sample_item.setExpanded(False)
+                if (i == self._currently_selected_index) or ((i == len(self.sample_manager.samples)) and
+                                                             (self._currently_selected_index == -1)):
+                    sample_item.setExpanded(True)
+                else:
+                    sample_item.setExpanded(False)
 
-            for j in range(npts):
-                point_idx = sample.index_position_index(j)
-                point_str = sample.index_coordinate_str(j)
-                point_exposed = sample.index_exposed(j)
-                # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                point_str = f'{point_idx + 1:3d} - {point_str}'
-                self._make_sample_point_item(sample_item, point_str, j, point_exposed)
+                for j in range(npts):
+                    point_idx = sample.index_position_index(j)
+                    point_str = sample.index_coordinate_str(j)
+                    point_exposed = sample.index_exposed(j)
+                    # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
+                    point_str = f'{point_idx + 1:3d} - {point_str}'
+                    self._make_sample_point_item(sample_item, point_str, j, point_exposed)
 
-    def create_new_sample(self):
-        sample_name = self.lineEdit_sample_name.text()
-        if (sample_name == '') or (sample_name.isspace()):
-            message_box('Warning', 'Sample name is empty')
-            return
-        sample_name = remove_special_characters(sample_name)
-        sample_comment = self.lineEdit_sample_comment.text()
-        # positions = self._create_list_of_positions()
-        self._currently_selected_index = -1
-        self.sample_manager.add_new_sample(sample_name, sample_comment, [])
+    # def create_new_sample(self):
+    #     sample_name = self.lineEdit_sample_name.text()
+    #     if (sample_name == '') or (sample_name.isspace()):
+    #         message_box('Warning', 'Sample name is empty')
+    #         return
+    #     sample_name = remove_special_characters(sample_name)
+    #     sample_comment = self.lineEdit_sample_comment.text()
+    #     # positions = self._create_list_of_positions()
+    #     self._currently_selected_index = -1
+    #     self.sample_manager.add_new_sample(sample_name, sample_comment, [])
 
 
     def define_sample_points(self):
@@ -543,50 +544,50 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             message_box('Error', 'Please select one sample')
 
 
-    def get_sample_info_from_autopilot(self):
-        try:
-            df = self.parent_gui.widget_autopilot.sample_df
-            str_to_parse = self.lineEdit_sample_name.text()
-            if '_' in str_to_parse:
-                try:
-                    n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
-                    select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
-                    select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
-                    line_number = np.where(select_holders & select_sample_n)[0][0]
-                except:
-                    pass
-            else:
-                line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
-            name = df.iloc[line_number]['Name']
-            comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
-            name = name.replace('/', '_')
-            self.lineEdit_sample_name.setText(name)
-            self.lineEdit_sample_comment.setText(comment)
-        except:
-            message_box('Error', 'Autopilot table is not defined')
-
-    def delete_sample(self):
-        index_dict = {}
-
-        index_list = self.treeWidget_samples.selectedIndexes()
-        for index in index_list:
-            item = self.treeWidget_samples.itemFromIndex(index)
-            if item.kind == 'sample':
-                sample_index = item.index
-                point_index_list = [item.child(i).index for i in range(item.childCount())]
-            elif item.kind == 'sample_point':
-                sample_index = item.parent().index
-                point_index_list = [item.index]
-            if sample_index in index_dict.keys():
-                index_dict[sample_index].extend(point_index_list)
-            else:
-                index_dict[sample_index] = point_index_list
-        self.sample_manager.delete_samples_with_index_dict(index_dict)
-        self._currently_selected_index = -1
-
-    def delete_all_samples(self):
-        self.sample_manager.reset()
-        self._currently_selected_index = -1
+    # def get_sample_info_from_autopilot(self):
+    #     try:
+    #         df = self.parent_gui.widget_autopilot.sample_df
+    #         str_to_parse = self.lineEdit_sample_name.text()
+    #         if '_' in str_to_parse:
+    #             try:
+    #                 n_holder, n_sample = [int(i) for i in str_to_parse.split('_')]
+    #                 select_holders = df['Holder ID'].apply(lambda x: int(x)).values == n_holder
+    #                 select_sample_n = df['Sample #'].apply(lambda x: int(x)).values == n_sample
+    #                 line_number = np.where(select_holders & select_sample_n)[0][0]
+    #             except:
+    #                 pass
+    #         else:
+    #             line_number = int(self.lineEdit_sample_name.text()) - 1  # pandas is confusing
+    #         name = df.iloc[line_number]['Name']
+    #         comment = df.iloc[line_number]['Composition'] + ' ' + df.iloc[line_number]['Comment']
+    #         name = name.replace('/', '_')
+    #         self.lineEdit_sample_name.setText(name)
+    #         self.lineEdit_sample_comment.setText(comment)
+    #     except:
+    #         message_box('Error', 'Autopilot table is not defined')
+    #
+    # def delete_sample(self):
+    #     index_dict = {}
+    #
+    #     index_list = self.treeWidget_samples.selectedIndexes()
+    #     for index in index_list:
+    #         item = self.treeWidget_samples.itemFromIndex(index)
+    #         if item.kind == 'sample':
+    #             sample_index = item.index
+    #             point_index_list = [item.child(i).index for i in range(item.childCount())]
+    #         elif item.kind == 'sample_point':
+    #             sample_index = item.parent().index
+    #             point_index_list = [item.index]
+    #         if sample_index in index_dict.keys():
+    #             index_dict[sample_index].extend(point_index_list)
+    #         else:
+    #             index_dict[sample_index] = point_index_list
+    #     self.sample_manager.delete_samples_with_index_dict(index_dict)
+    #     self._currently_selected_index = -1
+    #
+    # def delete_all_samples(self):
+    #     self.sample_manager.reset()
+    #     self._currently_selected_index = -1
 
     '''
     Sample Context menu

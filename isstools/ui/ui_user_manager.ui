@@ -58,7 +58,7 @@ institution</string>
    <property name="title">
     <string>Samples</string>
    </property>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="pushButton_archive_samples">
     <property name="geometry">
      <rect>
       <x>280</x>
@@ -71,9 +71,9 @@ institution</string>
      <string>Archive</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="pushButton_restore_samples">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -87,7 +87,7 @@ institution</string>
      <string>Restore</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox">
+   <widget class="QCheckBox" name="checkBox_show_archived_samples">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -100,9 +100,9 @@ institution</string>
      <string>Show archive</string>
     </property>
    </widget>
-   <widget class="QListView" name="listView_2">
+   <widget class="QListWidget" name="listWidget_samples_archived">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -194,7 +194,7 @@ sample</string>
       <x>20</x>
       <y>120</y>
       <width>361</width>
-      <height>431</height>
+      <height>451</height>
      </rect>
     </property>
    </widget>
@@ -202,8 +202,8 @@ sample</string>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>580</y>
+     <x>60</x>
+     <y>540</y>
      <width>401</width>
      <height>261</height>
     </rect>
@@ -211,13 +211,13 @@ sample</string>
    <property name="title">
     <string>Metadata builder </string>
    </property>
-   <widget class="QListView" name="listView_5">
+   <widget class="QListWidget" name="listWidget_5">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>100</y>
       <width>271</width>
-      <height>131</height>
+      <height>141</height>
      </rect>
     </property>
    </widget>
@@ -254,7 +254,7 @@ sample</string>
     <property name="geometry">
      <rect>
       <x>290</x>
-      <y>190</y>
+      <y>200</y>
       <width>100</width>
       <height>36</height>
      </rect>
@@ -305,7 +305,7 @@ sample</string>
    <property name="title">
     <string>Scans</string>
    </property>
-   <widget class="QListView" name="listView_3">
+   <widget class="QListWidget" name="listWidget_scans">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -315,7 +315,7 @@ sample</string>
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="pushButton_archive_scans">
     <property name="geometry">
      <rect>
       <x>280</x>
@@ -328,9 +328,9 @@ sample</string>
      <string>Archive</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="pushButton_restore_scans">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -344,7 +344,7 @@ sample</string>
      <string>Restore</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_2">
+   <widget class="QCheckBox" name="checkBox_show_archived_scans">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -357,9 +357,9 @@ sample</string>
      <string>Show archive</string>
     </property>
    </widget>
-   <widget class="QListView" name="listView_4">
+   <widget class="QListWidget" name="listWidget_scans_archived">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -423,7 +423,7 @@ sample</string>
     </rect>
    </property>
   </widget>
-  <widget class="QListView" name="listView_group_proposals">
+  <widget class="QListWidget" name="listWidget_group_proposals">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -526,7 +526,7 @@ sample</string>
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>330</x>
      <y>210</y>
      <width>31</width>
      <height>31</height>
@@ -542,7 +542,7 @@ sample</string>
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>330</x>
      <y>350</y>
      <width>111</width>
      <height>31</height>
@@ -561,7 +561,7 @@ sample</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>440</x>
+     <x>420</x>
      <y>330</y>
      <width>71</width>
      <height>31</height>
@@ -577,7 +577,7 @@ sample</string>
   <widget class="QListWidget" name="listWidget_safs">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>330</x>
      <y>240</y>
      <width>161</width>
      <height>81</height>
@@ -587,7 +587,7 @@ sample</string>
   <widget class="QListWidget" name="listWidget_experimenters">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>330</x>
      <y>380</y>
      <width>161</width>
      <height>121</height>

@@ -9,7 +9,7 @@ import uuid
 
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PyQt5.QtGui import QPixmap, QCursor
+from PyQt5.QtGui import QPixmap, QCursor, QStandardItem
 from PyQt5.Qt import QObject, Qt
 from PyQt5.QtCore import QThread, QSettings
 from PyQt5.QtWidgets import QMenu, QToolTip, QHBoxLayout, QWidget, QListWidgetItem
@@ -51,7 +51,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.parent  = parent
+        self.parent = parent
         self.RE=RE
         self.scan_manager = scan_manager
         self.sample_manager=sample_manager
@@ -63,7 +63,10 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
-
+        self.pushButton_archive_samples.clicked.connect(self.archive_sample)
+        self.pushButton_restore_samples.clicked.connect(self.restore_sample)
+        self.pushButton_archive_scans.clicked.connect(self.archive_scan)
+        self.pushButton_restore_scans.clicked.connect(self.restore_scan)
 
        # self.pushButton_cancel_setup.setEnable(False)
 
@@ -82,13 +85,58 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.comboBox_users.activated.connect(self.select_from_comboboxes)
         self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
 
+        self.checkBox_show_archived_samples.toggled.connect(self.show_archives)
+        self.checkBox_show_archived_scans.toggled.connect(self.show_archives)
+
         self.populate_comboboxes()
         self.update_sample_list()
+        self.update_scan_list()
+        self.listWidget_samples_archived.hide()
+        self.listWidget_scans_archived.hide()
+        self.pushButton_restore_scans.hide()
+        self.pushButton_restore_samples.hide()
+
+    def archive_sample(self):
+        for item in self.listWidget_samples.selectedItems():
+            indx = self.sample_manager.uid_to_sample_index(item.toolTip())
+            self.sample_manager.archive_at_index(indx)
+
+    def restore_sample(self):
+        for item in self.listWidget_samples_archived.selectedItems():
+            indx = self.sample_manager.uid_to_sample_index(item.toolTip())
+            self.sample_manager.restore_at_index(indx)
+
+    def update_scan_list(self):
+        self.listWidget_scans.clear()
+        self.listWidget_scans_archived.clear()
+        for scan in self.scan_manager.scan_list_local:
+            item = QListWidgetItem(scan['scan_def'])
+            item.setToolTip(scan['uid'])
+            if scan['archived']:
+                self.listWidget_scans_archived.addItem(item)
+            else:
+                self.listWidget_scans.addItem(item)
+    def restore_scan(self):
+        for item in self.listWidget_scans_archived.selectedItems():
+            self.scan_manager.restore_scan_at_uid(item.toolTip())
+        self.parent.widget_scan_manager.update_local_manager_list()
+
+    def archive_scan(self):
+        for item in self.listWidget_scans.selectedItems():
+            self.scan_manager.archive_scan_at_uid(item.toolTip())
+        self.parent.widget_scan_manager.update_local_manager_list()
 
     def update_sample_list(self):
         self.listWidget_samples.clear()
+        self.listWidget_samples_archived.clear()
         for sample in self.sample_manager.samples:
-            self.listWidget_samples.addItem(f'{sample.name}/{sample.comment}')
+            item = QListWidgetItem(f'{sample.name} - {sample.comment}')
+            item.setToolTip(sample.uid)
+            if sample.archived:
+                self.listWidget_samples_archived.addItem(item)
+            else:
+                self.listWidget_samples.addItem(item)
+
 
 
     def populate_comboboxes(self):
@@ -110,6 +158,16 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.comboBox_users.activated.connect(self.select_from_comboboxes)
         self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
 
+    def show_archives(self):
+        sender_object = QObject().sender()
+        object_dict = {self.checkBox_show_archived_samples: [self.listWidget_samples_archived, self.pushButton_restore_samples],
+                       self.checkBox_show_archived_scans: [self.listWidget_scans_archived, self.pushButton_restore_scans]}
+        if sender_object.isChecked():
+            for object in object_dict[sender_object]:
+                object.show()
+        else:
+            for object in object_dict[sender_object]:
+                object.hide()
 
     def enable_fields(self, enable):
         elements = ['comboBox_users',
@@ -143,7 +201,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.enable_fields(True)
         else:
             self.enable_fields(False)
-
             _first = self.lineEdit_user_first.text()
             _last = self.lineEdit_user_last.text()
             _affiliation = self.lineEdit_affiliation.text()
@@ -160,7 +217,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             for j in range(self.listWidget_experimenters.count()):
                 _experimenters.append(self.listWidget_experimenters.item(j).text())
             self.user_manager.add_run(_proposal, _saf, _experimenters)
-
             self.cloud_setup(email_address=_email)
             self.populate_comboboxes()
 
@@ -170,7 +226,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         sender_object = QObject().sender()
         sender_object_name = self.sender().objectName()
         if sender_object_name == 'comboBox_users':
-            print(10)
             self.lineEdit_user_first.setText(sender_object.currentText().split(' ')[0])
             self.lineEdit_user_last.setText(sender_object.currentText().split(' ')[1])
         if sender_object_name == 'comboBox_affiliations':

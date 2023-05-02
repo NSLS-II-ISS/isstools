@@ -90,6 +90,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.handle_exposure_parameters_crosstalk()
         self.groupBox_constant_energy_exposure_params.toggled.connect(self.handle_exposure_parameters_tab_selection)
 
+        self.dict_presets = {"Regular fly scan": [4, 6, 20],
+                        "Regular fly scan with SDD": [12, 18, 60]}
+        self.comboBox_fly_scan_presets.addItems(list(self.dict_presets.keys()))
+        self.comboBox_fly_scan_presets.currentIndexChanged.connect(self.fly_scan_preset)
+        self.comboBox_fly_scan_presets.activated.connect(self.fly_scan_preset)
+
     def update_angle_offset_label(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
 
@@ -464,10 +470,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def update_local_manager_list(self):
         self.listWidget_local_manager.clear()
-        scan_defs = [scan['scan_def']  for scan in self.scan_manager.scan_list_local]
-        self.listWidget_local_manager.addItems(scan_defs )
+        for scan in self.scan_manager.scan_list_local:
+            if not scan['archived']:
+                scan_defs = scan['scan_def']
+                self.listWidget_local_manager.addItem(scan_defs)
         self.scansChanged.emit()
-        # self.parent.widget_run.update_scan_defs(scan_defs)
+
 
     def delete_scan(self):
         selection = self.listWidget_local_manager.selectedIndexes()
@@ -510,5 +518,14 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                     print('[New offset] {}. No reason to be desperate, though.'.format(exc))
                 else:
                     print('[New offset] Something went wrong, not the limit: {}'.format(exc))
+
+
+    def fly_scan_preset(self):
+        fly_scan_parameters =self.dict_presets[self.comboBox_fly_scan_presets.currentText()]
+        self.edit_ds2_pree_duration.setText(str(fly_scan_parameters[0]))
+        self.edit_ds2_edge_duration.setText(str(fly_scan_parameters[1]))
+        self.edit_ds2_poste_duration.setText(str(fly_scan_parameters[2]))
+
+
 
 
