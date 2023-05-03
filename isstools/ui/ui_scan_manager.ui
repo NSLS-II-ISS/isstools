@@ -206,7 +206,7 @@ Scan Manager</string>
       <x>10</x>
       <y>30</y>
       <width>261</width>
-      <height>371</height>
+      <height>361</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -231,7 +231,7 @@ Scan Manager</string>
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>140</y>
+        <y>130</y>
         <width>241</width>
         <height>181</height>
        </rect>
@@ -516,8 +516,8 @@ Scan Manager</string>
      <rect>
       <x>280</x>
       <y>30</y>
-      <width>691</width>
-      <height>371</height>
+      <width>681</width>
+      <height>361</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -876,7 +876,7 @@ Scan Manager</string>
         <x>530</x>
         <y>220</y>
         <width>141</width>
-        <height>31</height>
+        <height>38</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
@@ -1634,7 +1634,7 @@ Scan Manager</string>
       <x>10</x>
       <y>30</y>
       <width>261</width>
-      <height>361</height>
+      <height>301</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -1650,7 +1650,7 @@ Scan Manager</string>
         <x>10</x>
         <y>0</y>
         <width>221</width>
-        <height>141</height>
+        <height>101</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_emission_energy_selector"/>
@@ -1659,31 +1659,12 @@ Scan Manager</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>155</y>
+        <y>110</y>
         <width>221</width>
         <height>141</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_9">
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_38">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <italic>false</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Main Line end</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="2">
         <widget class="QLabel" name="label_36">
          <property name="maximumSize">
@@ -1694,44 +1675,6 @@ Scan Manager</string>
          </property>
          <property name="text">
           <string> eV </string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_37">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Post-line end</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_40">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <italic>false</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Pre-Line start</string>
          </property>
         </widget>
        </item>
@@ -1777,25 +1720,6 @@ Scan Manager</string>
          </property>
          <property name="text">
           <string> eV </string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_39">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <italic>false</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Main Line start</string>
          </property>
         </widget>
        </item>
@@ -1864,6 +1788,58 @@ Scan Manager</string>
          </property>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_65">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Pre-Line start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_66">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Main Line start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_67">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Main Line end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_68">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Post-Line end</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -1876,7 +1852,7 @@ Scan Manager</string>
        <rect>
         <x>20</x>
         <y>40</y>
-        <width>221</width>
+        <width>251</width>
         <height>31</height>
        </rect>
       </property>
@@ -2241,12 +2217,18 @@ Scan Manager</string>
       <x>120</x>
       <y>0</y>
       <width>262</width>
-      <height>28</height>
+      <height>21</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_5">
      <item row="0" column="0">
       <widget class="QRadioButton" name="radioButton_spectrometer_none">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
         <string>None</string>
        </property>
@@ -2257,6 +2239,12 @@ Scan Manager</string>
      </item>
      <item row="0" column="1">
       <widget class="QRadioButton" name="radioButton_spectrometer_johann">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
         <string>Johann</string>
        </property>
@@ -2264,12 +2252,53 @@ Scan Manager</string>
      </item>
      <item row="0" column="2">
       <widget class="QRadioButton" name="radioButton_spectrometer_von_hamos">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
         <string>Von Hamos</string>
        </property>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QComboBox" name="comboBox_spectrometer_config">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>360</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>100</height>
+     </size>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_64">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>340</y>
+      <width>171</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Spectrometer config:</string>
+    </property>
    </widget>
   </widget>
   <widget class="QListWidget" name="listWidget_local_manager">

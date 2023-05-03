@@ -48,7 +48,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                  ):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-
+        self.parent = parent
         self.RE = RE
         self.plan_processor = plan_processor
         self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
@@ -60,11 +60,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_spectrometer_manager.append_list_update_signal(self.spectrometer_config_list_changed_signal)
         self.update_johann_config_tree()
         self.spectrometer_config_list_changed_signal.connect(self.update_johann_config_tree)
+        self.spectrometer_config_list_changed_signal.connect(self.parent.widget_scan_manager.update_johann_spectrometer_manager_combobox)
         self.hhm = hhm
 
         self.detector_dictionary = detector_dictionary
         # self.pilatus = detector_dictionary['Pilatus 100k']['device']
-        self.parent = parent
+
 
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -783,10 +784,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def update_johann_config_tree(self):
         self.treeWidget_johann_config.clear()
         for i, config_dict in enumerate(self.johann_spectrometer_manager.configs):
-            name = config_dict['name']
-            timestamp_str = datetime.strftime(datetime.fromtimestamp(ttime.time()), '%Y-%m-%d')
-            config = config_dict['config']
-            item_str = f'{name} - {config["crystal"]}({"".join([str(i) for i in config["hkl"]])})-{int(config["R"])} - {timestamp_str}'
+            item_str = self.johann_spectrometer_manager.generate_config_str(config_dict)
             self._make_spectrometer_config_item(item_str, i)
             # config = config_dict['config']
 

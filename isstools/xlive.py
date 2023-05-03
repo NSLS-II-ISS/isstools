@@ -178,6 +178,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         print('widget scan manager loading', ttime.ctime())
         self.widget_scan_manager = widget_scan_manager.UIScanManager(hhm=hhm,
                                                                      scan_manager=scan_manager,
+                                                                     johann_spectrometer_manager=johann_spectrometer_manager,
                                                                      detector_dict=detector_dict,
                                                                      parent=self
                                                                      )

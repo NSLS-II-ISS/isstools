@@ -29,6 +29,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                  hhm= None,
                  spectrometer=None,
                  scan_manager=None,
+                 johann_spectrometer_manager=None,
                  detector_dict=[],
                  parent = None,
                  *args, **kwargs):
@@ -41,6 +42,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.spectrometer = spectrometer
 
         self.scan_manager = scan_manager
+        self.johann_spectrometer_manager = johann_spectrometer_manager
         self.detector_dict = detector_dict
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector()
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
@@ -95,6 +97,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.comboBox_fly_scan_presets.addItems(list(self.dict_presets.keys()))
         self.comboBox_fly_scan_presets.currentIndexChanged.connect(self.fly_scan_preset)
         self.comboBox_fly_scan_presets.activated.connect(self.fly_scan_preset)
+
+        self.update_johann_spectrometer_manager_combobox()
 
     def update_angle_offset_label(self, pvname = None, value=None, char_value=None, **kwargs):
         self.label_angle_offset.setText('{0:.8f}'.format(value))
@@ -176,6 +180,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         else:
             self.groupBox_step_xas_scan.setChecked(True)
             self.handle_xas_edge_parameters_group(step_scan_selected=True, linear_scan_checked=False)
+
+    def update_johann_spectrometer_manager_combobox(self):
+        self.comboBox_spectrometer_config.clear()
+        existing_config_list = [self.johann_spectrometer_manager.generate_config_str(c) for c in self.johann_spectrometer_manager.configs]
+        items = ['Current'] + existing_config_list
+        self.comboBox_spectrometer_config.addItems(items)
 
     def populate_detectors(self):
         detector_names = ['Pilatus 100k', 'Xspress3']
@@ -383,7 +393,15 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             return 'constant energy'
 
     @property
+    def _spectromer_config(self):
+        if self.comboBox_spectrometer_config.currentText() == 'Current':
+            return None
+        index = self.comboBox_spectrometer_config.currentIndex() - 1
+        return self.johann_spectrometer_manager.configs[index]
+
+    @property
     def _spectrometer_parameters(self):
+
         if self.radioButton_spectrometer_von_hamos.isChecked():
             return {'kind': 'von_hamos',
                     'scan_type': 'constant energy',
@@ -391,6 +409,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
         elif self.radioButton_spectrometer_johann.isChecked():
             scan_type = self._spectrometer_scan_type
+            spectrometer_config = self._spectromer_config
             if scan_type == 'constant energy':
                 scan_parameters = {'energy' : self.doubleSpinBox_spectrometer_energy.value()}
             else:
@@ -410,6 +429,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
             return {'kind': 'johann',
                     'scan_type': scan_type,
+                    'spectrometer_config': spectrometer_config,
                     'scan_parameters': scan_parameters}
 
 
