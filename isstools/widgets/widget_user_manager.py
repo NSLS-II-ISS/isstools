@@ -99,8 +99,11 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.lineEdit_email.setText(_current_user['email'])
         self.lineEdit_affiliation.setText(_current_user['affiliation'])
         if 'metadata' in _current_user.keys():
+            self.listWidget_metadata.clear()
             for _key in _current_user['metadata']:
                 self.listWidget_metadata.addItem(_key)
+        else:
+             self.listWidget_metadata.clear()
         self.update_sample_list()
         self.update_scan_list()
 
