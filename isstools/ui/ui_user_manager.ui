@@ -401,7 +401,7 @@ sample</string>
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>260</y>
+     <y>290</y>
      <width>41</width>
      <height>31</height>
     </rect>
@@ -426,8 +426,8 @@ sample</string>
   <widget class="QListWidget" name="listWidget_group_proposals">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>330</y>
+     <x>70</x>
+     <y>350</y>
      <width>171</width>
      <height>171</height>
     </rect>
@@ -436,8 +436,8 @@ sample</string>
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>300</y>
+     <x>70</x>
+     <y>320</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -643,7 +643,7 @@ sample</string>
    <property name="geometry">
     <rect>
      <x>90</x>
-     <y>260</y>
+     <y>290</y>
      <width>131</width>
      <height>31</height>
     </rect>
@@ -666,6 +666,22 @@ sample</string>
    </property>
    <property name="text">
     <string>Cancel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_proposal_title">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>260</y>
+     <width>311</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Proposal </string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
   </widget>
  </widget>

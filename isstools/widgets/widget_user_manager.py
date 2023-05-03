@@ -71,10 +71,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_add_metadata_key.clicked.connect(self.add_metadata_key)
         self.pushButton_remove_metadata_key.clicked.connect(self.remove_metadata_key)
 
-       # self.pushButton_cancel_setup.setEnable(False)
-
-
-
         self.sample_list_changed_signal.connect(self.update_sample_list)
         self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
         self.comboBox_users.currentIndexChanged.connect(self.select_from_comboboxes)
@@ -92,6 +88,8 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_restore_scans.hide()
         self.pushButton_restore_samples.hide()
 
+        self.label_proposal_title.setText('')
+
     def initialize(self):
         _, _current_user =  self.user_manager.current_user()
         self.lineEdit_user_first.setText(_current_user['first_name'])
@@ -100,8 +98,9 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.spinBox_proposal.setValue(int(_current_user['runs'][-1]['proposal']))
         self.lineEdit_email.setText(_current_user['email'])
         self.lineEdit_affiliation.setText(_current_user['affiliation'])
-        for _key in _current_user['metadata']:
-            self.listWidget_metadata.addItem(_key)
+        if 'metadata' in _current_user.keys():
+            for _key in _current_user['metadata']:
+                self.listWidget_metadata.addItem(_key)
         self.update_sample_list()
         self.update_scan_list()
 
@@ -157,8 +156,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                 self.listWidget_samples_archived.addItem(item)
             else:
                 self.listWidget_samples.addItem(item)
-
-
 
     def populate_comboboxes(self):
         self.comboBox_affiliations.currentIndexChanged.disconnect(self.select_from_comboboxes)
@@ -226,11 +223,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             _last = self.lineEdit_user_last.text()
             _affiliation = self.lineEdit_affiliation.text()
             _email = self.lineEdit_email.text()
-
-            self.RE.md['PI'] = f'{_first} {_last}'
-            self.RE.md['affiliation'] = _affiliation
-            self.RE.md['email'] = _email
-
             self.user_manager.set_user(_first, _last,_affiliation,_email)
             _proposal = self.spinBox_proposal.value()
             _saf = self.spinBox_saf.value()
@@ -259,6 +251,12 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         if 'error_message' in proposal_info.keys():
             error_message_box('Proposal not found')
         else:
+            title = proposal_info['title']
+            if len(title) > 100:
+                title = title[:101]
+            if  len(title) > 50:
+                title = f'{title[:50]}\n{title[50]}'
+            self.label_proposal_title.setText(title)
             self.listWidget_safs.clear()
             self.listWidget_experimenters.clear()
             safs = proposal_info['safs']
