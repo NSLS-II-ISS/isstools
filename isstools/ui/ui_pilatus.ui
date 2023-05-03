@@ -162,13 +162,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QRadioButton" name="radioButton_detector_flying">
-       <property name="text">
-        <string>Det Flying</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </widget>
   </widget>
@@ -1066,6 +1059,25 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_detector_flying">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>10</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Update image on Fly</string>
+   </property>
   </widget>
  </widget>
  <resources/>

@@ -41,6 +41,12 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.pilatus100k_device = self.detector_dict['Pilatus 100k']['device']
         self.addCanvas()
 
+        self.update_image_timer = QtCore.QTimer(self)
+        self.update_image_timer.setInterval(200)
+        self.update_image_timer.timeout.connect(self.update_continuous_plot)
+        self.update_image_timer.start()
+
+
         self.subscription_dict = {'exposure': self.pilatus100k_device.cam.acquire_time,
                                   'num_of_images': self.pilatus100k_device.cam.num_images,
                                   'set_energy' : self.pilatus100k_device.cam.set_energy,
@@ -58,12 +64,13 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.pilatus100k_device.cam.trigger_mode.set(0).wait()
 
 
+
         self.comboBox_shapetime.currentIndexChanged.connect(self.change_pilatus_gain)
         self.pilatus100k_device.cam.gain_menu.subscribe(self.update_gain_combobox)
 
         self.radioButton_single_exposure.toggled.connect(self.update_acquisition_mode)
         self.radioButton_continuous_exposure.toggled.connect(self.update_acquisition_mode)
-        self.radioButton_detector_flying.toggled.connect(self.update_acquisition_mode)
+        # self.radioButton_detector_flying.toggled.connect(self.update_acquisition_mode)
 
         self.pushButton_start.clicked.connect(self.acquire_image)
         self.pushButton_stop.clicked.connect(self.stop_acquire_image)
@@ -119,12 +126,32 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self.last_image_update_time = 0
         self.colors = {1: 'r',
-                  2: 'b',
+                  2: 'c',
                   3: 'g',
                   4: 'y'
                   }
 
-        # self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
+        self.checkBox_roi1.setStyleSheet("QCheckBox::checked"
+                                         "{"
+                                         "background-color : red"
+                                         "}")
+
+        self.checkBox_roi2.setStyleSheet("QCheckBox::checked"
+                                         "{"
+                                         "background-color : cyan"
+                                         "}")
+
+        self.checkBox_roi3.setStyleSheet("QCheckBox::checked"
+                                         "{"
+                                         "background-color : green"
+                                         "}")
+
+        self.checkBox_roi4.setStyleSheet("QCheckBox::checked"
+                                         "{"
+                                         "background-color : yellow"
+                                         "}")
+
+        self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
 
 
 
@@ -197,6 +224,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
 #### Update minimum and maximum range for the 2D plot
 
+#### Update Roi value
 
     def set_roi(self):
         sender = QObject()
@@ -320,6 +348,11 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             except:
                 pass
 
+#### Update Roi value
+
+
+
+##### Update, Add Pilatus Image
     def update_pilatus_image(self):
         self.last_image_update_time = ttime.time()
         update_figure([self.figure_pilatus_image.ax],
@@ -374,19 +407,32 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.canvas_pilatus_image.draw_idle()
         self.figure_pilatus_image.tight_layout()
 
-    def update_image_widget(self, value, old_value, **kwargs):
-        _img_mode = self.pilatus100k_device.cam.image_mode.get()
-        _trig_mode = self.pilatus100k_device.cam.trigger_mode.get()
+    def update_continuous_plot(self):
+        if self.radioButton_continuous_exposure.isChecked() or self.checkBox_detector_flying.isChecked():
+            try:
+                self.update_pilatus_image()
+            except:
+                pass
 
-        # i =0
-        if (_img_mode == 2 and _trig_mode == 4) or (_img_mode == 0 and _trig_mode == 0):
+    def update_image_widget(self, value, old_value, **kwargs):
+        if value == 0 and old_value == 1:
             self.update_pilatus_image()
-        else:
-            if (value == 0) and (old_value == 1):
-                if (ttime.time() - self.last_image_update_time) > 0.1:
-                    self.update_pilatus_image()
-            # if (ttime.time() - self.last_image_update_time) > 0.1:
-            #     self.update_pilatus_image()
+        #     print('acquiring')
+        # print('done')
+        # self.update_pilatus_image()
+
+        # _img_mode = self.pilatus100k_device.cam.image_mode.get()
+        # _trig_mode = self.pilatus100k_device.cam.trigger_mode.get()
+        #
+        # # i =0
+        # if (_img_mode == 2 and _trig_mode == 4) or (_img_mode == 0 and _trig_mode == 0):
+        #     self.update_pilatus_image()
+        # else:
+        #     if (value == 0) and (old_value == 1):
+        #         if (ttime.time() - self.last_image_update_time) > 0.1:
+        #             self.update_pilatus_image()
+        #     # if (ttime.time() - self.last_image_update_time) > 0.1:
+        #     #     self.update_pilatus_image()
 
     def addCanvas(self):
         self.figure_pilatus_image = Figure()
@@ -404,17 +450,6 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.cid_start = self.canvas_pilatus_image.mpl_connect('button_press_event', self.roi_mouse_click_start)
         self.cid_move = self.canvas_pilatus_image.mpl_connect('motion_notify_event', self.roi_mouse_click_move)
         self.cid_finish = self.canvas_pilatus_image.mpl_connect('button_release_event', self.roi_mouse_click_finish)
-
-
-
-
-    # def clear_selection_box(self):
-    #     if self.RS.active:
-    #         self.RS.set_visible(False)
-    #         self.RS.set_active(False)
-    #         self.RS.update()
-    #         self.RS.set_active(True)
-
 
     def line_select_callback(self, eclick, erelease):
         pass
@@ -447,6 +482,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                 self.cur_mouse_coords = None
                 print('MOTION FINISHED')
 
+##### Update, Add Pilatus Image
 
 ##### Set, read and change mono energy
 
@@ -478,18 +514,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.pilatus100k_device.cam.acquire.put(0)
 
     def acquire_image(self):
-        self.update_pilatus_image()
         # self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
         self.pilatus100k_device.cam.acquire.set(1).wait()
-        self.update_pilatus_image()
-        _img_mode = self.pilatus100k_device.cam.image_mode.get()
-        _trig_mode = self.pilatus100k_device.cam.trigger_mode.get()
-        # if (_img_mode == 2 and _trig_mode == 4):
-        #     while self.radioButton_continuous_exposure.isChecked():
-        #         if self.radioButton_single_exposure.isChecked():
-        #             self.stop_acquire_image()
-        #             break
-        #         self.update_pilatus_image()
+
+
 
 
     def update_acquisition_mode(self):
