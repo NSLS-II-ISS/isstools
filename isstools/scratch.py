@@ -1578,7 +1578,13 @@ plt.plot(t.cm2_y, t.bpm_cm_stats1_total)
 
 from xas.file_io import write_df_to_file
 
-def test_plan(roll_swing = 1000, exp_time=20):
+
+from bluesky.preprocessors import monitor_during_wrapper
+def test_plan(roll_swing = 400, exp_time=3):
+
+    cur_exp_time = pil100k.cam.acquire_period.get()
+    pil100k.set_exposure_time(exp_time)
+
     cur_roll_pos = johann_main_crystal.motor_cr_main_roll.position
     yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos - roll_swing / 2)
 
@@ -1586,15 +1592,14 @@ def test_plan(roll_swing = 1000, exp_time=20):
     scan_velocity = roll_swing / exp_time * 1.6
     yield from bps.mv(johann_main_crystal.motor_cr_main_roll.velocity, scan_velocity)
 
-    cur_exp_time = pil100k.cam.acquire_period.get()
-    pil100k.set_exposure_time(exp_time)
 
-    yield from bps.stage(pil100k)
-    # yield from bps.open_run()
+
+    # yield from bps.stage(pil100k)
+    yield from bps.open_run()
     # st_trigger = pil100k.trigger()
     # yield from bps.create('primary')
-    yield from bps.trigger(pil100k)
-
+    # yield from bps.trigger(pil100k)
+    pil100k.cam.acquire.put(1)
     yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos + roll_swing)
 
     # st_trigger.wait()
@@ -1605,45 +1610,128 @@ def test_plan(roll_swing = 1000, exp_time=20):
     # yield from bps.save()
     # return ret
 
-    # yield from bps.close_run()
-    yield from bps.unstage(pil100k)
+    yield from bps.close_run()
+    # yield from bps.unstage(pil100k)
 
-    yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos)
-    pil100k.set_exposure_time(exp_time)
     yield from bps.mv(johann_main_crystal.motor_cr_main_roll.velocity, cur_velocity)
+    yield from bps.mv(johann_main_crystal.motor_cr_main_roll, cur_roll_pos)
+    pil100k.set_exposure_time(cur_exp_time)
 
-    image = pil100k.image.array_data.get().reshape((195, 487))
-
-    x = pil100k.roi4.min_xyz.min_x.get()
-    y = pil100k.roi4.min_xyz.min_y.get()
-    dx = pil100k.roi4.size.x.get()
-    dy = pil100k.roi4.size.y.get()
-
-    image_roi = image[y : (y + dy), x : (x + dx)]
-    spectrum = np.sum(image_roi, axis=0)
-    df = pd.DataFrame({'energy': np.arange(x, x + dx).tolist(), 'intesity': spectrum.tolist()})
-
-    write_df_to_file('/nsls2/data/iss/legacy/processed/2023/1/312089/test.dat', df, '')
+RE(monitor_during_wrapper(test_plan(), [pil100k.image.array_data]))
 
 
 
 
+# image = pil100k.image.array_data.get().reshape((195, 487))
+#
+# x = pil100k.roi4.min_xyz.min_x.get()
+# y = pil100k.roi4.min_xyz.min_y.get()
+# dx = pil100k.roi4.size.x.get()
+# dy = pil100k.roi4.size.y.get()
+#
+# image_roi = image[y : (y + dy), x : (x + dx)]
+# spectrum = np.sum(image_roi, axis=0)
+# df = pd.DataFrame({'energy': np.arange(x, x + dx).tolist(), 'intesity': spectrum.tolist()})
+#
+# write_df_to_file('/nsls2/data/iss/legacy/processed/2023/1/312089/test.dat', df, '')
 
-RE(test_plan())
 
-
-
-
-
-
+# RE(test_plan())
 
 
 
 
 
 
+def test_plan(sleep_time):
+    yield from bps.open_run()
+    pil100k.cam.acquire.put(1)
+    yield from bps.sleep(sleep_time)
+    yield from bps.close_run()
 
+
+
+
+
+
+
+img = np.array(db[-1].table(stream_name='pil100k_image_array_data_monitor')['pil100k_image_array_data'][2]).reshape(195, 487)
+plt.figure()
+plt.imshow(img[25:150, 200:340], vmin=0, vmax=50)
+
+def get_projection_from_uid(uid):
+    img = np.array(db[uid].table(stream_name='pil100k_image_array_data_monitor')['pil100k_image_array_data'][2]).reshape(195, 487)
+    return np.sum(img[25:150, 200:340], axis=0)
+
+bla1 = get_projection_from_uid(-5)
+bla2 = get_projection_from_uid(-1)
+
+
+
+plt.figure()
+plt.plot(np.sum(img[25:150, 200:340], axis=0))
+
+
+# johann_x = 0
+
+def plot_for_uid(uid, **kwargs):
+    t = db[uid].table()
+    _roll = t['johann_main_crystal_motor_cr_main_roll'].values
+    _intensity = t.pil100k_stats1_total.values
+    plt.plot(_roll, _intensity, **kwargs)
+
+plt.figure()
+plot_for_uid('030b3e2d-a722-4bb2-a880-31d92c55c361', label='0 mm')
+plot_for_uid('306eaa80-cdd6-4ba4-881a-962da6a5e3be', label='-10 mm')
+
+plt.legend()
+
+
+
+
+from numpy.polynomial import Polynomial as P
+# np.random.seed(11)
+# x = np.linspace(0, 2*np.pi, 20)
+# y = np.sin(x) + np.random.normal(scale=.1, size=x.shape)
+
+idx = np.argmax(y)
+p = P.fit(x[idx-1:idx+2], y[idx-1:idx+2], 2)
+
+plt.figure(1, clear=True)
+plt.plot(x, y)
+plt.plot(x, p(x))
+
+
+plt.figure()
+plt.plot((bla1 - np.mean(bla1[25:30]))/(bla1 - np.mean(bla1[25:30])).max(), label='0 mm')
+plt.plot((bla2 - np.mean(bla1[25:30]))/(bla2 - np.mean(bla1[25:30])).max(), label='-10 mm')
+plt.legend()
 #######
+
+
+x = [ -20, -10, -5.0, -2.5, 0.0, 2.5, 5.0, 10, 20]
+uids = ['bcbb4b4d-304b-4132-8d35-f48dbf193757',
+        'bb8c2456-7012-4d73-80e0-51a9883d6442',
+        '304eb06d-1436-4441-a9fe-4798a6ed812a',
+        '2479e7b0-dedc-44e9-8ed0-38c0a38f9dbf',
+        '7edc70c3-3911-4e68-8244-b0c2b9485356',
+        'ad7d10e3-af07-4aed-91b7-43c17216cd9d',
+        '7804cf79-d1e8-48a3-9001-3cb91b4468a1',
+        '20a5287e-e753-48ba-b46f-22c456ec0834',
+        '3ce53b94-e6f0-422c-a7d8-f9b98293cac7']
+plt.figure(1, clear=True)
+
+fwhms = []
+for uid in  uids:
+    df = process_monitor_scan(db, uid, det_for_time_base='pil100k')
+    _fwhm = _estimate_peak_fwhm_from_roll_scan(df, 'johann_main_crystal_motor_cr_main_roll', 'pil100k_stats1_total')
+    fwhms.append(_fwhm)
+    plt.plot(df.johann_main_crystal_motor_cr_main_roll, df.pil100k_stats1_total)
+
+plt.figure(2, clear=True)
+plt.plot(x, fwhms)
+
+
 
 
 # johann_x = [-5, -2.329, 0.00, 2.5, 5]

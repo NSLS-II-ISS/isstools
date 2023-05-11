@@ -231,3 +231,41 @@ class TreeView(QtWidgets.QTreeView):
             QtWidgets.QTreeView.dropEvent(self, event)
         '''
 
+# # import time as ttime
+# # from ophyd import Signal
+# # bla = Signal(name='bla')
+# # def time_subscription(method, timestamp_dict):
+# #     def wrapper(obj, *args, **kwargs):
+# #         timestamp = ttime.time()
+# #         result = method(obj, *args, **kwargs)
+# #         return result
+# #     return wrapper
+#
+# previous_time_dict = {}
+# def time_subscription_decorator(method):
+#     def wrapper(*args, **kwargs):
+#         timestamp = ttime.time()
+#         pv_key = kwargs['obj'].name
+#         if pv_key in previous_time_dict.keys():
+#             old_timestamp = previous_time_dict[pv_key]
+#         else:
+#             old_timestamp = 0
+#
+#         if timestamp - old_timestamp > 3:
+#             print(f'method call at {timestamp}')
+#             previous_time_dict[pv_key] = timestamp
+#             return method(*args, **kwargs)
+#         else:
+#             print(f'to soon for a method call')
+#             return None
+#
+#     return wrapper
+#
+# @time_subscription_decorator
+# def print_value(value, **kwargs):
+#     print(value)
+#
+#
+# bla.subscribe(print_value)
+
+

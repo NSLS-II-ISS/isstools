@@ -341,6 +341,8 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def set_reference_foil(self):
         foil = self.comboBox_reference_foils.currentText()
+        if foil == '--':
+            foil = None
         self.plan_processor.add_plan_and_run_if_idle('set_reference_foil', {'element': foil})
         # self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 

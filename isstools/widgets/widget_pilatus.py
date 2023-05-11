@@ -46,6 +46,10 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.update_image_timer.timeout.connect(self.update_continuous_plot)
         self.update_image_timer.start()
 
+        self.update_counts_n_energy_timer = QtCore.QTimer(self)
+        self.update_counts_n_energy_timer.setInterval(200)
+        self.update_counts_n_energy_timer.timeout.connect(self.update_counts_n_energy)
+        self.update_counts_n_energy_timer.start()
 
         self.subscription_dict = {'exposure': self.pilatus100k_device.cam.acquire_time,
                                   'num_of_images': self.pilatus100k_device.cam.num_images,
@@ -78,7 +82,7 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
         self.checkBox_detector_settings.clicked.connect(self.open_detector_setting)
 
         self.checkBox_enable_energy_change.clicked.connect(self.open_energy_change)
-        self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
+        # self.hhm.energy.user_readback.subscribe(self.read_mono_energy)
         self.pushButton_move_energy.clicked.connect(self.set_mono_energy)
 
         # self.pushButton_clear_box.clicked.connect(self.clear_selection_box)
@@ -107,8 +111,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
                                                     spancoords='pixels',
                                                     interactive=True)
 
-        for i in range(1,5):
-            self.add_roi_counts_total(i)
+        # for i in range(1,5):
+        #     self.add_roi_counts_total(i)
 
         for i in range(1, 5):
             self.add_roi_parameters(i)
@@ -153,6 +157,25 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
         self.pilatus100k_device.cam.acquire.subscribe(self.update_image_widget)
 
+    def update_counts_n_energy(self):
+        try:
+
+            _energy = self.hhm.energy.user_readback.get()
+            _det_state = self.pilatus100k_device.cam.detector_state.get()
+            if _det_state == 1:
+                self.label_detector_state.setText('Acquiring')
+                self.label_detector_state.setStyleSheet('background-color: rgb(95,249,95)')
+            else:
+                self.label_detector_state.setText('Idle')
+                self.label_detector_state.setStyleSheet('background-color: rgb(255,0,0)')
+
+
+            self.label_current_energy.setText(f'{_energy:4.1f} eV')
+            for ch in range(1,5):
+                _cnts = getattr(self.pilatus100k_device, 'stats' + str(ch)).total.get()
+                getattr(self, 'label_counts_roi' + str(ch)).setText(f'{_cnts} cts')
+        except Exception as e:
+            print("Could not update the counts and energy Error:", e)
 
 
 #### Update minimum and maximum range for the 2D plot
@@ -255,11 +278,11 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             self.update_roi_box()
 
 
-    def add_roi_counts_total(self, ch):
-        def update_roi_counts(value, **kwargs):
-            getattr(self, 'label_counts_roi'+str(ch)).setText(f'{value} cts')
-
-        getattr(self.pilatus100k_device, 'stats'+str(ch)).total.subscribe(update_roi_counts)
+    # def add_roi_counts_total(self, ch):
+    #     def update_roi_counts(value, **kwargs):
+    #         getattr(self, 'label_counts_roi'+str(ch)).setText(f'{value} cts')
+    #
+    #     getattr(self.pilatus100k_device, 'stats'+str(ch)).total.subscribe(update_roi_counts)
 
     def add_roi_parameters(self, ch):
         def update_roix_parameters(value, **kwargs):
@@ -354,58 +377,62 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
 
 ##### Update, Add Pilatus Image
     def update_pilatus_image(self):
-        self.last_image_update_time = ttime.time()
-        update_figure([self.figure_pilatus_image.ax],
-                      self.toolbar_pilatus_image,
-                      self.canvas_pilatus_image)
+        try:
 
-        _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
-        ## Dead pixels
-        _img[158, 11] = 0
-        _img[15, 352] = 0
-        _img[171, 364] = 0
-        _img[171, 365] = 0
+            self.last_image_update_time = ttime.time()
+            update_figure([self.figure_pilatus_image.ax],
+                          self.toolbar_pilatus_image,
+                          self.canvas_pilatus_image)
 
-        # self._min = _img.min()
-        # self._max = _img.max()
-        self.horizontalSlider_min.setMinimum(_img.min())
-        self.horizontalSlider_max.setMinimum(_img.min())
-        self.horizontalSlider_min.setMaximum(_img.max())
-        self.horizontalSlider_max.setMaximum(_img.max())
-        # self.horizontalSlider_min.setValue(_img.min())
-        # self.horizontalSlider_max.setValue(_img.max())
+            _img = self.pilatus100k_device.image.array_data.value.reshape(195, 487)
+            ## Dead pixels
+            _img[158, 11] = 0
+            _img[15, 352] = 0
+            _img[171, 364] = 0
+            _img[171, 365] = 0
 
-        # self.label_min.setText (str(self._min))
-        # self.label_max.setText(str(self._max))
+            # self._min = _img.min()
+            # self._max = _img.max()
+            self.horizontalSlider_min.setMinimum(_img.min())
+            self.horizontalSlider_max.setMinimum(_img.min())
+            self.horizontalSlider_min.setMaximum(_img.max())
+            self.horizontalSlider_max.setMaximum(_img.max())
+            # self.horizontalSlider_min.setValue(_img.min())
+            # self.horizontalSlider_max.setValue(_img.max())
 
-
-
-
-        self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=self._min, vmax=self._max)
+            # self.label_min.setText (str(self._min))
+            # self.label_max.setText(str(self._max))
 
 
-        # Add the patch to the Axes
 
-        for i in range(1,5):
-            if getattr(self, 'checkBox_roi' + str(i)).isChecked():
-                x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
-                rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor=self.colors[i], facecolor='none')
-                self._patches['checkBox_roi' + str(i)] = self.figure_pilatus_image.ax.add_patch(rect)
-                # self.canvas_pilatus_image.draw_idle()
-            if not getattr(self, 'checkBox_roi' + str(i)).isChecked():
-                try:
-                    self._patches['checkBox_roi' + str(i)].remove()
+
+            self.figure_pilatus_image.ax.imshow(_img.T, aspect='auto', vmin=self._min, vmax=self._max)
+
+
+            # Add the patch to the Axes
+
+            for i in range(1,5):
+                if getattr(self, 'checkBox_roi' + str(i)).isChecked():
+                    x, y, dx, dy = self.pilatus100k_device.get_roi_coords(i)
+                    rect = patches.Rectangle((y, x), dy, dx, linewidth=1, edgecolor=self.colors[i], facecolor='none')
+                    self._patches['checkBox_roi' + str(i)] = self.figure_pilatus_image.ax.add_patch(rect)
                     # self.canvas_pilatus_image.draw_idle()
-                except:
-                    pass
+                if not getattr(self, 'checkBox_roi' + str(i)).isChecked():
+                    try:
+                        self._patches['checkBox_roi' + str(i)].remove()
+                        # self.canvas_pilatus_image.draw_idle()
+                    except:
+                        pass
 
 
 
-        # self.figure_pilatus_image.ax.autoscale(True)
-        self.figure_pilatus_image.ax.set_xticks([])
-        self.figure_pilatus_image.ax.set_yticks([])
-        self.canvas_pilatus_image.draw_idle()
-        self.figure_pilatus_image.tight_layout()
+            # self.figure_pilatus_image.ax.autoscale(True)
+            self.figure_pilatus_image.ax.set_xticks([])
+            self.figure_pilatus_image.ax.set_yticks([])
+            self.canvas_pilatus_image.draw_idle()
+            self.figure_pilatus_image.tight_layout()
+        except Exception as e:
+            print('Could not update the image. Error: ',e)
 
     def update_continuous_plot(self):
         if self.radioButton_continuous_exposure.isChecked() or self.checkBox_detector_flying.isChecked():
@@ -491,8 +518,8 @@ class UIPilatusMonitor(*uic.loadUiType(ui_path)):
             _energy = self.spinBox_mono_energy.value()
             self.hhm.energy.user_setpoint.set(_energy).wait()
 
-    def read_mono_energy(self, value, **kwargs):
-        self.label_current_energy.setText(f'{value:4.1f} eV')
+    # def read_mono_energy(self, value, **kwargs):
+    #     self.label_current_energy.setText(f'{value:4.1f} eV')
 
     def open_energy_change(self):
         if self.checkBox_enable_energy_change.isChecked():
