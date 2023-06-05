@@ -189,10 +189,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_set_current_config.clicked.connect(self.johann_set_current_config)
 
         # pilatus widget
-        self.widget_pilatus_monitor = UIPilatusMonitor(detector_dict=self.detector_dictionary,
-                                                       plan_processor=self.plan_processor,
-                                                       hhm=self.hhm,
-                                                       parent=self)
+        # self.widget_pilatus_monitor = UIPilatusMonitor(detector_dict=self.detector_dictionary,
+        #                                                plan_processor=self.plan_processor,
+        #                                                hhm=self.hhm,
+        #                                                parent=self)
 
 # general handling of gui elements, plotting, and scanning
 

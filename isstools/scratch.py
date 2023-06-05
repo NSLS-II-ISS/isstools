@@ -1,5 +1,6 @@
 import numpy as np
 
+
 bender_current_position = bender.pos.user_readback.get()
 
 bender_positions = bender_current_position + np.arange(-15, 20, 5)
@@ -2015,10 +2016,34 @@ RE(bp.rel_list_scan([pil100k], motor, np.linspace(-50, 50, 3)))
 
 
 
+######
 
 
 
 
+['22e37f88-fef2-4030-8996-fc9a42dc75ed',
+ 'fc9f5a08-ee9e-4024-9f4a-e72a6e15ba3e',
+ 'bb1c30e0-1ec9-4104-a59f-a320ea3c0525',
+ '483cd3e2-ce45-429d-a503-623d972dd031',
+ '9e93d969-b069-4302-a3b4-a6a0a21d4af9',
+ 'cc9db346-6648-4c44-846d-e27ce6e9c227',
+ 'd0c98d91-1848-4e32-ad45-add2fa0bb253',
+ '1ec329b1-9f88-4494-8830-4ad92bdc0bc4',
+ 'c6f8f7b6-4a03-448e-b1cb-0dd4e5d59458',
+ '1f9f26bb-249d-421e-b088-ccd1598189ce',
+ '5933bc80-1dce-4ae9-a2f4-b7ab7b2e9b96',
+ '1a0df1df-3e5a-4235-9948-3b186744bf91',
+ '7c3d76ae-157f-4197-9a00-68d220b3af4d',
+ '036851bf-00f8-413f-a31e-39e0f84ba99d',
+ '3440cc18-f0a9-4b01-8d1f-eed2df894021',
+ '8a6cc88a-71cc-4114-a522-a8c6a9313cb2']
 
 
+t = db['22e37f88-fef2-4030-8996-fc9a42dc75ed'].table(fill=True)
+
+t.pil100k_image
+
+plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 250: 270], vmin=0, vmax=10)
+plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 270: 286], vmin=0, vmax=10)
+plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 286: 304], vmin=0, vmax=10)
 

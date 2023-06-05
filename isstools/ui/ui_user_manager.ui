@@ -459,7 +459,7 @@ sample</string>
     </rect>
    </property>
    <property name="minimum">
-    <number>310000</number>
+    <number>300000</number>
    </property>
    <property name="maximum">
     <number>710000</number>

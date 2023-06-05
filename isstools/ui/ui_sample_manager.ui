@@ -391,7 +391,7 @@
      <x>1230</x>
      <y>10</y>
      <width>411</width>
-     <height>791</height>
+     <height>821</height>
     </rect>
    </property>
    <property name="font">
@@ -527,11 +527,11 @@
       <x>20</x>
       <y>440</y>
       <width>371</width>
-      <height>271</height>
+      <height>341</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_1">
      <attribute name="title">
@@ -1889,7 +1889,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>730</y>
+      <y>790</y>
       <width>141</width>
       <height>31</height>
      </rect>

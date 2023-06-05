@@ -294,7 +294,10 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         if not channel_id:
             print('Slack channel not found, Creating new channel...')
             channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
-            slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
+            try:
+                slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
+            except Exception as e:
+                print(f'Failed to invite user to channel. Error: {e}')
 
         slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
         self.RE.md['slack_channel'] = channel_id

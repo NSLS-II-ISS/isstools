@@ -1571,10 +1571,13 @@ offset</string>
          </size>
         </property>
         <property name="decimals">
-         <number>1</number>
+         <number>2</number>
         </property>
         <property name="maximum">
          <double>10000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
         </property>
         <property name="value">
          <double>5.000000000000000</double>
@@ -1745,10 +1748,13 @@ offset</string>
          </size>
         </property>
         <property name="decimals">
-         <number>1</number>
+         <number>3</number>
         </property>
         <property name="maximum">
          <double>10000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
         </property>
         <property name="value">
          <double>0.100000000000000</double>
@@ -1950,7 +1956,7 @@ offset</string>
          </size>
         </property>
         <property name="decimals">
-         <number>1</number>
+         <number>2</number>
         </property>
         <property name="maximum">
          <double>10000.000000000000000</double>

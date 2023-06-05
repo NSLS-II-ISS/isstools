@@ -144,6 +144,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         print('cloud starting', ttime.ctime())
+        self.dropbox_service = get_dropbox_service()
         try:
             print('starting slackbot', ttime.ctime())
             self.slack_client_bot, self.slack_client_oath = get_slack_service()

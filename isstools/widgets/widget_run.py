@@ -120,12 +120,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         self.plan_processor.run()
 
     def run_test_scan(self):
-        suffix = self.lineEdit_suffix.text()
+        condition = self.lineEdit_condition.text()
         repeat = self.spinBox_scan_repeat.value()
-        self.lineEdit_suffix.setText(f'{suffix} test')
+        self.lineEdit_condition.setText(f'{condition} test')
         self.spinBox_scan_repeat.setValue(1)
         self._queue_scan(add_at='head')
-        self.lineEdit_suffix.setText(suffix)
+        self.lineEdit_condition.setText(condition)
         self.spinBox_scan_repeat.setValue(repeat)
         self.plan_processor.run()
 
