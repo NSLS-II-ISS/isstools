@@ -566,24 +566,24 @@ class UISampleManager(*uic.loadUiType(ui_path)):
     #     except:
     #         message_box('Error', 'Autopilot table is not defined')
     #
-    # def delete_sample(self):
-    #     index_dict = {}
-    #
-    #     index_list = self.treeWidget_samples.selectedIndexes()
-    #     for index in index_list:
-    #         item = self.treeWidget_samples.itemFromIndex(index)
-    #         if item.kind == 'sample':
-    #             sample_index = item.index
-    #             point_index_list = [item.child(i).index for i in range(item.childCount())]
-    #         elif item.kind == 'sample_point':
-    #             sample_index = item.parent().index
-    #             point_index_list = [item.index]
-    #         if sample_index in index_dict.keys():
-    #             index_dict[sample_index].extend(point_index_list)
-    #         else:
-    #             index_dict[sample_index] = point_index_list
-    #     self.sample_manager.delete_samples_with_index_dict(index_dict)
-    #     self._currently_selected_index = -1
+    def delete_sample_points(self):
+        index_dict = {}
+
+        index_list = self.treeWidget_samples.selectedIndexes()
+        for index in index_list:
+            item = self.treeWidget_samples.itemFromIndex(index)
+            if item.kind == 'sample':
+                sample_index = item.index
+                point_index_list = [item.child(i).index for i in range(item.childCount())]
+            elif item.kind == 'sample_point':
+                sample_index = item.parent().index
+                point_index_list = [item.index]
+            if sample_index in index_dict.keys():
+                index_dict[sample_index].extend(point_index_list)
+            else:
+                index_dict[sample_index] = point_index_list
+        self.sample_manager.delete_samples_with_index_dict(index_dict)
+        self._currently_selected_index = -1
     #
     # def delete_all_samples(self):
     #     self.sample_manager.reset()
@@ -599,6 +599,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         move_to_sample = menu.addAction("Mo&ve to sample")
         set_as_exposed = menu.addAction("Set as exposed")
         set_as_unexposed = menu.addAction("Set as unexposed")
+        delete_points = menu.addAction("Delete points")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition + QPos)
         action = menu.exec_()
@@ -610,6 +611,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             self.set_as_exposed_selected_samples()
         elif action == set_as_unexposed:
             self.set_as_exposed_selected_samples(exposed=False)
+        elif action == delete_points:
+            self.delete_sample_points()
 
     def modify_item(self):
         sender_object = QObject().sender()

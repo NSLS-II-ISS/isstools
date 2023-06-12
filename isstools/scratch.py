@@ -2021,7 +2021,7 @@ RE(bp.rel_list_scan([pil100k], motor, np.linspace(-50, 50, 3)))
 
 
 
-['22e37f88-fef2-4030-8996-fc9a42dc75ed',
+uids = ['22e37f88-fef2-4030-8996-fc9a42dc75ed',
  'fc9f5a08-ee9e-4024-9f4a-e72a6e15ba3e',
  'bb1c30e0-1ec9-4104-a59f-a320ea3c0525',
  '483cd3e2-ce45-429d-a503-623d972dd031',
@@ -2038,12 +2038,93 @@ RE(bp.rel_list_scan([pil100k], motor, np.linspace(-50, 50, 3)))
  '3440cc18-f0a9-4b01-8d1f-eed2df894021',
  '8a6cc88a-71cc-4114-a522-a8c6a9313cb2']
 
+#
+uids = list(db.v2.search({'sample_name': 'Fe_EDTA', 'sample_condition': 'RT_NH3_5ml_min', 'scan_name': 'v2c 0_3eV'}))
+
 
 t = db['22e37f88-fef2-4030-8996-fc9a42dc75ed'].table(fill=True)
-
-t.pil100k_image
 
 plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 250: 270], vmin=0, vmax=10)
 plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 270: 286], vmin=0, vmax=10)
 plt.figure(); plt.imshow(np.sum(np.array(t.pil100k_image.tolist()).squeeze(), axis=0)[37: 160, 286: 304], vmin=0, vmax=10)
+
+def compare_rois(uid, x1, x2, y1, y2, title=''):
+    t = db[uid].table(fill=True).copy()
+    npts = t.shape[0]
+    roi_signal = np.zeros(npts)
+    for i in range(npts):
+        image = t.pil100k_image[i + 1].squeeze()
+        # if i==70: plt.figure(); plt.imshow(image[x1:x2, y1:y2], vmin=0, vmax=5); plt.title(title)
+        roi_signal[i] = np.sum(image[x1:x2, y1:y2])
+    return roi_signal
+
+roi1 = []
+roi2 = []
+roi3 = []
+
+for uid in uids:
+    print(uid)
+    _roi1 = compare_rois(uid, x1=37, x2=160, y1=250, y2=270, title='roi1')
+    _roi2 = compare_rois(uid, x1=37, x2=160, y1=270, y2=286, title='roi2')
+    _roi3 = compare_rois(uid, x1=37, x2=160, y1=286, y2=304, title='roi3')
+    roi1.append(_roi1)
+    roi2.append(_roi2)
+    roi3.append(_roi3)
+
+roi1_av = np.mean(np.array(roi1), axis=0)
+roi2_av = np.mean(np.array(roi2), axis=0)
+roi3_av = np.mean(np.array(roi3), axis=0)
+
+
+
+plt.figure()
+plt.plot(roi1_av, label='aux2')
+plt.plot(roi2_av, label='main')
+plt.plot(roi3_av, label='aux3')
+
+plt.legend()
+
+def remove_bkg(roi, n1=5, n2=-5):
+    x = np.arange(roi.size)
+    x1 = x[n1]
+    x2 = x[n2]
+    mask = (x <= x1) | (x >= x2)
+    x_mask = x[mask]
+    roi_mask = roi[mask]
+    p = np.polyfit(x_mask, roi_mask, 1)
+    roi_bkg = np.polyval(p, x)
+    roi_norm = (roi - roi_bkg) / np.sum(roi - roi_bkg)
+    return roi_norm
+
+plt.figure()
+plt.plot(remove_bkg(roi1_av), label='aux2')
+plt.plot(remove_bkg(roi2_av), label='main')
+plt.plot(remove_bkg(roi3_av), label='aux3')
+
+plt.legend()
+
+
+
+
+my_volt = EpicsSignal('XF:08IDB-CT{DIODE-Box_B1:13}InCh0:Data-I', name='my_volt')
+my_volt_conv = Signal(name='my_volt_conv')
+
+def update_my_volt_conv(value, **kwargs):
+    if value >=10:
+        my_volt_conv.put(0)
+    else:
+        my_volt_conv.put(value)
+
+my_volt.subscribe(update_my_volt_conv)
+
+
+class PotentiostatVoltage(EpicsSignal):
+    def get(self):
+        v = super().get()
+        if v > 10:
+            return 0
+        else:
+            return v
+
+potentiostat_voltage = PotentiostatVoltage('XF:08IDB-CT{DIODE-Box_B1:13}InCh0:Data-I', name='my_volt')
 
