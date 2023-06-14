@@ -16,10 +16,10 @@
   <widget class="QGroupBox" name="groupBox_8">
    <property name="geometry">
     <rect>
-     <x>1020</x>
+     <x>1060</x>
      <y>10</y>
      <width>551</width>
-     <height>66</height>
+     <height>761</height>
     </rect>
    </property>
    <property name="title">
@@ -121,6 +121,93 @@
      <string>Create experiment</string>
     </property>
    </widget>
+   <widget class="QTreeWidget" name="treeWidget_batch">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>531</width>
+      <height>621</height>
+     </rect>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::SingleSelection</enum>
+    </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectItems</enum>
+    </property>
+    <property name="indentation">
+     <number>20</number>
+    </property>
+    <property name="rootIsDecorated">
+     <bool>true</bool>
+    </property>
+    <attribute name="headerVisible">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QLabel" name="label_137">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>266</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="text">
+     <string>Batch scan protocol</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_batch_delete">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>730</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="text">
+     <string>Delete</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_batch_info">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>730</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="text">
+     <string>Info</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_9">
    <property name="geometry">
@@ -203,7 +290,7 @@
      <x>350</x>
      <y>10</y>
      <width>341</width>
-     <height>631</height>
+     <height>671</height>
     </rect>
    </property>
    <property name="title">
@@ -213,7 +300,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>350</y>
+      <y>430</y>
       <width>71</width>
       <height>21</height>
      </rect>
@@ -235,9 +322,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>400</y>
-      <width>326</width>
-      <height>201</height>
+      <y>460</y>
+      <width>311</width>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
@@ -247,7 +334,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>60</y>
+       <y>70</y>
        <width>41</width>
        <height>26</height>
       </rect>
@@ -261,7 +348,7 @@
       <rect>
        <x>100</x>
        <y>70</y>
-       <width>121</width>
+       <width>131</width>
        <height>26</height>
       </rect>
      </property>
@@ -312,7 +399,7 @@
       <rect>
        <x>100</x>
        <y>100</y>
-       <width>121</width>
+       <width>131</width>
        <height>24</height>
       </rect>
      </property>
@@ -332,7 +419,7 @@
     <widget class="QLabel" name="label_134">
      <property name="geometry">
       <rect>
-       <x>230</x>
+       <x>240</x>
        <y>100</y>
        <width>66</width>
        <height>26</height>
@@ -366,7 +453,7 @@
       <rect>
        <x>90</x>
        <y>30</y>
-       <width>191</width>
+       <width>211</width>
        <height>23</height>
       </rect>
      </property>
@@ -386,8 +473,8 @@
     <widget class="QPushButton" name="push_create_scan">
      <property name="geometry">
       <rect>
-       <x>180</x>
-       <y>130</y>
+       <x>190</x>
+       <y>140</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -423,7 +510,7 @@ scan</string>
       <x>10</x>
       <y>30</y>
       <width>311</width>
-      <height>311</height>
+      <height>391</height>
      </rect>
     </property>
     <property name="selectionMode">
@@ -448,71 +535,13 @@ scan</string>
     </column>
    </widget>
   </widget>
-  <widget class="QPushButton" name="push_batch_delete">
-   <property name="geometry">
-    <rect>
-     <x>1510</x>
-     <y>770</y>
-     <width>80</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Delete</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_batch_info">
-   <property name="geometry">
-    <rect>
-     <x>1020</x>
-     <y>770</y>
-     <width>80</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Info</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="push_create_measurement">
-   <property name="geometry">
-    <rect>
-     <x>882</x>
-     <y>740</y>
-     <width>101</width>
-     <height>56</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Create
- measurement</string>
-   </property>
-  </widget>
   <widget class="QGroupBox" name="groupBox_12">
    <property name="geometry">
     <rect>
-     <x>700</x>
-     <y>10</y>
-     <width>301</width>
-     <height>281</height>
+     <x>710</x>
+     <y>490</y>
+     <width>321</width>
+     <height>391</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -537,7 +566,7 @@ scan</string>
     <string>Services</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_28" columnstretch="0,0,0">
-    <item row="2" column="1">
+    <item row="2" column="0" colspan="2">
      <spacer name="verticalSpacer_4">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -549,19 +578,6 @@ scan</string>
        </size>
       </property>
      </spacer>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_130">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Type</string>
-      </property>
-     </widget>
     </item>
     <item row="0" column="1" colspan="2">
      <widget class="QComboBox" name="comboBox_service_plan">
@@ -582,130 +598,55 @@ scan</string>
     <item row="1" column="0" colspan="3">
      <layout class="QGridLayout" name="gridLayout_service_parameters"/>
     </item>
-   </layout>
-  </widget>
-  <widget class="QPushButton" name="push_create_service">
-   <property name="geometry">
-    <rect>
-     <x>900</x>
-     <y>310</y>
-     <width>101</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>1800</width>
-     <height>16777215</height>
-    </size>
-   </property>
-   <property name="text">
-    <string>Create
+    <item row="3" column="0" colspan="3">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="push_create_service">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1800</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Create
  service</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_137">
-   <property name="geometry">
-    <rect>
-     <x>1030</x>
-     <y>100</y>
-     <width>266</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Batch scan protocol</string>
-   </property>
-  </widget>
-  <widget class="QTreeWidget" name="treeWidget_batch">
-   <property name="geometry">
-    <rect>
-     <x>1010</x>
-     <y>130</y>
-     <width>581</width>
-     <height>631</height>
-    </rect>
-   </property>
-   <property name="selectionMode">
-    <enum>QAbstractItemView::SingleSelection</enum>
-   </property>
-   <property name="selectionBehavior">
-    <enum>QAbstractItemView::SelectItems</enum>
-   </property>
-   <property name="indentation">
-    <number>20</number>
-   </property>
-   <property name="rootIsDecorated">
-    <bool>true</bool>
-   </property>
-   <attribute name="headerVisible">
-    <bool>false</bool>
-   </attribute>
-   <column>
-    <property name="text">
-     <string notr="true">1</string>
-    </property>
-   </column>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>682</x>
-     <y>720</y>
-     <width>185</width>
-     <height>94</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_6">
-    <item>
-     <widget class="QLabel" name="label_136">
-      <property name="text">
-       <string>Priority on</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QRadioButton" name="radioButton_priority_scan">
-        <property name="text">
-         <string>scan</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioButton_priority_sample">
-        <property name="text">
-         <string>sample</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioButton_priority_sample_coords">
-        <property name="text">
-         <string>coordinates</string>
         </property>
        </widget>
       </item>
      </layout>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_130">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Type</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -744,8 +685,8 @@ scan</string>
   <widget class="QPushButton" name="push_parse_batch">
    <property name="geometry">
     <rect>
-     <x>1430</x>
-     <y>880</y>
+     <x>1400</x>
+     <y>850</y>
      <width>196</width>
      <height>36</height>
     </rect>
@@ -760,83 +701,239 @@ scan</string>
     <string>Parse batch into queue</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_comment">
+  <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>752</x>
-     <y>680</y>
-     <width>231</width>
-     <height>24</height>
+     <x>710</x>
+     <y>10</y>
+     <width>321</width>
+     <height>221</height>
     </rect>
    </property>
-   <property name="maximumSize">
-    <size>
-     <width>16777215</width>
-     <height>24</height>
-    </size>
+   <property name="title">
+    <string>Measurement</string>
    </property>
-   <property name="text">
-    <string/>
+   <widget class="QLabel" name="label_135">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>66</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Comment</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_condition">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>40</y>
+      <width>221</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_138">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>66</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Condition</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_comment">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>70</y>
+      <width>221</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>24</height>
+     </size>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>185</width>
+      <height>94</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="label_136">
+       <property name="text">
+        <string>Priority on</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QRadioButton" name="radioButton_priority_scan">
+         <property name="text">
+          <string>scan</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButton_priority_sample">
+         <property name="text">
+          <string>sample</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButton_priority_sample_coords">
+         <property name="text">
+          <string>coordinates</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="push_add_measurement_to_experiment">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>120</y>
+      <width>111</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add
+measurement
+to experiment</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="Line" name="line_9">
+   <property name="geometry">
+    <rect>
+     <x>1330</x>
+     <y>860</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_condition">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
+  <widget class="Line" name="line_10">
    <property name="geometry">
     <rect>
-     <x>752</x>
-     <y>650</y>
-     <width>231</width>
-     <height>24</height>
+     <x>1310</x>
+     <y>770</y>
+     <width>41</width>
+     <height>101</height>
     </rect>
    </property>
-   <property name="maximumSize">
-    <size>
-     <width>16777215</width>
-     <height>24</height>
-    </size>
-   </property>
-   <property name="text">
-    <string/>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QLabel" name="label_138">
+  <widget class="Line" name="line_11">
    <property name="geometry">
     <rect>
-     <x>680</x>
-     <y>650</y>
-     <width>66</width>
-     <height>24</height>
+     <x>840</x>
+     <y>230</y>
+     <width>41</width>
+     <height>31</height>
     </rect>
    </property>
-   <property name="maximumSize">
-    <size>
-     <width>16777215</width>
-     <height>24</height>
-    </size>
-   </property>
-   <property name="text">
-    <string>Condition</string>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QLabel" name="label_135">
+  <widget class="Line" name="line_12">
    <property name="geometry">
     <rect>
-     <x>680</x>
-     <y>680</y>
-     <width>66</width>
-     <height>24</height>
+     <x>860</x>
+     <y>250</y>
+     <width>201</width>
+     <height>20</height>
     </rect>
    </property>
-   <property name="maximumSize">
-    <size>
-     <width>16777215</width>
-     <height>24</height>
-    </size>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
-   <property name="text">
-    <string>Comment</string>
+  </widget>
+  <widget class="Line" name="line_13">
+   <property name="geometry">
+    <rect>
+     <x>840</x>
+     <y>470</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_14">
+   <property name="geometry">
+    <rect>
+     <x>860</x>
+     <y>460</y>
+     <width>201</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>

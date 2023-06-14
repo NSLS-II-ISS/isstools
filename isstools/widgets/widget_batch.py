@@ -117,7 +117,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.populate_service_parameters()
         # batch/measurements
         self.push_create_batch_experiment.clicked.connect(self.create_batch_experiment)
-        self.push_create_measurement.clicked.connect(self.create_measurement)
+        self.push_add_measurement_to_experiment.clicked.connect(self.add_measurement_to_experiment)
         self.push_batch_delete.clicked.connect(self.delete_batch_element)
         self.push_batch_info.clicked.connect(self.batch_info)
 
@@ -708,6 +708,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
         return self.treeWidget_batch.invisibleRootItem()
 
     def get_selected_experiment_index(self):
+
+        if len(self.batch_manager.experiments) == 1:
+            return 0
+
         index_list = self.treeWidget_batch.selectedIndexes()
 
         if len(index_list) > 1:
@@ -734,7 +738,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
             return 'sample_point'
 
 
-    def create_measurement(self):
+    def add_measurement_to_experiment(self):
         experiment_index = self.get_selected_experiment_index()
         if experiment_index is None:
             # message boxes are handled upstream

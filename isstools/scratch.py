@@ -2128,3 +2128,100 @@ class PotentiostatVoltage(EpicsSignal):
 
 potentiostat_voltage = PotentiostatVoltage('XF:08IDB-CT{DIODE-Box_B1:13}InCh0:Data-I', name='my_volt')
 
+####%%
+
+# scan_dict = scan_manager.standard_scan_dict('Cu', 'K')
+scan_parameters = { 'element': 'Cu',
+                    'edge': 'K',
+                    'e0': xraydb.xray_edge('Cu', 'K').energy,
+                    'preedge_start': -200,
+                    'XANES_start': -30,
+                    'XANES_end': 50,
+                    'EXAFS_end': 16,
+                    'type': 'standard',
+                    'preedge_duration': 4,
+                    'edge_duration': 6,
+                    'postedge_duration': 20,
+                    'preedge_flex': 0.5,
+                    'postedge_flex': 0.3,
+                    'pad': 0.0,
+                    'repeat': 1,
+                    'single_direction': True,
+                    'revert': True,
+                    'filename': ''}
+scan_parameters_fly = {**scan_parameters}
+scan_parameters_fly['XANES_end'] = 950
+scan_parameters_fly['preedge_duration'] = 2
+scan_parameters_fly['edge_duration'] = 26
+scan_parameters_fly['postedge_duration'] = 2
+scan_manager.trajectory_creator.define_from_dict(scan_parameters_fly)
+# scan_manager.trajectory_creator.interpolate()
+# scan_manager.trajectory_creator.compute_time_per_bin()
+
+_time = scan_manager.trajectory_creator.time
+_energy = scan_manager.trajectory_creator.energy
+# _energy_fly = scan_manager.trajectory_creator.e_bin
+# _time_dwell_fly = scan_manager.trajectory_creator.time_per_bin
+
+scan_parameters_step = {**scan_parameters,
+                        'preedge_stepsize': 2,
+                        'XANES_stepsize': 0.25,
+                        'EXAFS_stepsize': 0.05,
+                        'preedge_dwelltime': 1,
+                        'XANES_dwelltime': 1,
+                        'EXAFS_dwelltime': 1,
+                        'k_power': 1}
+# _energy_step, _dwell_step, _time_step = generate_energy_grid_from_dict(scan_parameters_step)
+# _time_step = _time_step[::-1]
+
+_energy_step, _, _ = generate_energy_grid_from_dict(scan_parameters_step)
+_energy_step = _energy_step[::-1]
+
+_energy_step = _energy_step / (_energy_step.max() - _energy_step.min()) * (_energy.max() - _energy.min())
+_energy_step = _energy_step - _energy_step.min() + _energy.min()
+
+_k_mask = _energy_step > (scan_parameters['e0'] + scan_parameters['XANES_end'])
+_k_step = xray.e2k(_energy_step[_k_mask], scan_parameters['e0'])
+_k_power = 2
+
+time_dwell = np.ones(_energy_step.size)
+time_dwell[_k_mask] = time_dwell[_k_mask] * (_k_step / _k_step.min()) ** _k_power
+_time_step = np.cumsum(time_dwell)
+
+time_dwell = time_dwell / (_time_step.max() - _time_step.min())* 30
+_time_step = _time_step / (_time_step.max() - _time_step.min())* 30
+_time_step -= _time_step.min()
+
+_energy_edges = np.hstack([_energy_step[0], _energy_step[:-1] + np.diff(_energy_step)/2, _energy_step[-1]])
+_time_edges = np.interp(_energy_edges, _energy, _time)
+_time_dwell_fly = np.diff(_time_edges)
+
+plt.figure(1, clear=True )
+plt.subplot(211)
+plt.plot(_time, _energy)
+plt.plot(_time_step, _energy_step)
+
+plt.subplot(212)
+plt.semilogy(_energy_step, _time_dwell_fly)#, 'k.-')
+plt.semilogy(_energy_step, time_dwell)#, 'k.-')
+
+_energy_step_fine = np.interp(_time, _time_step, _energy_step)
+
+def dy_dx(x, y):
+    return x[:-1] + np.diff(x), np.diff(y) / np.diff(x)
+
+_time_v, _energy_step_fine_v = dy_dx(_time, _energy_step_fine)
+_time_a, _energy_step_fine_a = dy_dx(_time_v, _energy_step_fine_v)
+
+plt.figure(2, clear=True)
+plt.subplot(311)
+plt.plot(_time, _energy_step_fine)
+
+plt.subplot(312)
+plt.plot(_time_v, _energy_step_fine_v)
+
+plt.subplot(313)
+plt.plot(_time_a, _energy_step_fine_a)
+
+
+
