@@ -599,6 +599,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         move_to_sample = menu.addAction("Mo&ve to sample")
         set_as_exposed = menu.addAction("Set as exposed")
         set_as_unexposed = menu.addAction("Set as unexposed")
+        sort_by_x = menu.addAction("Sort positions by X")
+        sort_by_y = menu.addAction("Sort positions by Y")
         delete_points = menu.addAction("Delete points")
         parentPosition = self.treeWidget_samples.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition + QPos)
@@ -611,6 +613,10 @@ class UISampleManager(*uic.loadUiType(ui_path)):
             self.set_as_exposed_selected_samples()
         elif action == set_as_unexposed:
             self.set_as_exposed_selected_samples(exposed=False)
+        elif action == sort_by_x:
+            self.sort_sample_positions_by(['x', 'y'])
+        elif action == sort_by_y:
+            self.sort_sample_positions_by(['y', 'x'])
         elif action == delete_points:
             self.delete_sample_points()
 
@@ -690,6 +696,17 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                 index_dict[sample_index] = point_index_list
         self.sample_manager.set_as_exposed_with_index_dict(index_dict, exposed=exposed)
 
+    def sort_sample_positions_by(self, keys):
+        index = self.treeWidget_samples.selectedIndexes()[0]
+        item = self.treeWidget_samples.itemFromIndex(index)
+        if item.kind == 'sample':
+            sample_index = item.index
+        elif item.kind == 'sample_point':
+            sample_index = item.parent().index
+        else:
+            return
+        self._currently_selected_index = sample_index
+        self.sample_manager.sort_sample_positions_by_at_index(sample_index, keys)
 
     # sample visualization methods
 
