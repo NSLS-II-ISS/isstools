@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1636</width>
-    <height>847</height>
+    <width>1678</width>
+    <height>1230</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1962,6 +1962,46 @@
     </item>
    </layout>
   </widget>
+  <widget class="QTreeView" name="treeView_samples">
+   <property name="geometry">
+    <rect>
+     <x>980</x>
+     <y>980</y>
+     <width>311</width>
+     <height>192</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTreeWidget" name="treeWidget_samples_2">
+   <property name="geometry">
+    <rect>
+     <x>560</x>
+     <y>970</y>
+     <width>381</width>
+     <height>391</height>
+    </rect>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::ExtendedSelection</enum>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectItems</enum>
+   </property>
+   <property name="indentation">
+    <number>20</number>
+   </property>
+   <property name="rootIsDecorated">
+    <bool>true</bool>
+   </property>
+   <attribute name="headerVisible">
+    <bool>false</bool>
+   </attribute>
+   <column>
+    <property name="text">
+     <string notr="true">1</string>
+    </property>
+   </column>
+  </widget>
   <zorder>label_coordinate_system</zorder>
   <zorder>verticalLayoutWidget_2</zorder>
   <zorder>verticalLayoutWidget_3</zorder>
@@ -1981,6 +2021,8 @@
   <zorder>pushButton_calibrate_cameras_advanced</zorder>
   <zorder>push_detach_tab</zorder>
   <zorder>verticalLayoutWidget_4</zorder>
+  <zorder>treeView_samples</zorder>
+  <zorder>treeWidget_samples_2</zorder>
  </widget>
  <resources/>
  <connections/>

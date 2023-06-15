@@ -12,7 +12,8 @@ from PyQt5.QtWidgets import QMenu, QToolTip, QHBoxLayout, QWidget
 from isstools.elements.widget_motors import UIWidgetMotors, UIWidgetMotorsWithSlider
 from ..elements.elements import remove_special_characters
 from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem
-
+import time as ttime
+from datetime import datetime
 from isstools.elements.qmicroscope import Microscope
 from isstools.dialogs import UpdateSampleInfo
 from isstools.dialogs.BasicDialogs import message_box, question_message_box
@@ -23,6 +24,28 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_sample_manager.ui')
 coordinate_system_file = pkg_resources.resource_filename('isstools', 'icons/Coordinate system.png')
 
 
+
+def time_now_str():
+    return datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S.%f')
+
+# def print_to_gui(msg, tag='', add_timestamp=False, ntabs=0, stdout=sys.stdout):
+def print_to_gui(msg, tag='', add_timestamp=False, ntabs=0, stdout_alt=sys.stdout):
+    # print('THIS IS STDOUT', stdout, stdout is xlive_gui.emitstream_out)
+    try:
+        stdout = xlive_gui.emitstream_out
+    except NameError:
+        stdout = stdout_alt
+
+    msg = '\t'*ntabs + msg
+    if add_timestamp:
+        msg = f'({time_now_str()}) {msg}'
+    if tag:
+        msg = f'[{tag}] {msg}'
+
+    print(msg, file=stdout, flush=True)
+
+def print_debug(msg):
+    print_to_gui(msg, tag='>> DEBUG <<', add_timestamp=True, ntabs=1)
 
 stage_button_widget_dict = {
             'pushButton_move_right':
@@ -100,6 +123,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.camera_dict = camera_dict
         self.settings = parent.settings
 
+        self.model_sample_tree = QtGui.QStandardItemModel(self)
+
         if not detached:
             self.sample_list_changed_signal = self.parent.widget_user_manager.sample_list_changed_signal
         else:
@@ -131,7 +156,8 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # sample management
         self._currently_selected_index = -1
         self.update_sample_tree()
-        self.sample_list_changed_signal.connect(self.update_sample_tree)
+        if not detached:
+            self.sample_list_changed_signal.connect(self.update_sample_tree)
 
         # self.push_import_from_autopilot.clicked.connect(self.get_sample_info_from_autopilot)
         # self.push_create_sample.clicked.connect(self.create_new_sample)
@@ -473,6 +499,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         point_item.is_exposed = is_exposed
         if is_exposed:
             point_item.setForeground(0, QtGui.QColor('red'))
+        return point_item
 
     '''
     Dealing with samples
@@ -491,10 +518,14 @@ class UISampleManager(*uic.loadUiType(ui_path)):
     #     return sample_index
 
     def update_sample_tree(self):
-
+        # print_debug('updating treeWidget_samples: start')
         self.treeWidget_samples.clear()
+        self.treeWidget_samples.setUpdatesEnabled(False)
         for i, sample in enumerate(self.sample_manager.samples):
+
             if not sample.archived:
+                # print_debug(f'{i=}, {sample.name=}')
+                # print_debug(f'making sample item: start')
                 name = sample.name
                 npts = sample.number_of_points
                 npts_fresh = sample.number_of_unexposed_points
@@ -509,12 +540,24 @@ class UISampleManager(*uic.loadUiType(ui_path)):
                     sample_item.setExpanded(False)
 
                 for j in range(npts):
-                    point_idx = sample.index_position_index(j)
-                    point_str = sample.index_coordinate_str(j)
-                    point_exposed = sample.index_exposed(j)
-                    # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                    point_str = f'{point_idx + 1:3d} - {point_str}'
+                    # point_data = sample.index_point_data(j)
+                    # point_idx = sample.index_position_index(j)
+                    # point_str = sample.index_coordinate_str(j)
+                    # point_exposed = sample.index_exposed(j)
+                    # point_idx = int(point_data.name)
+                    # coord_dict = {k: point_data[k] for k in ['x', 'y', 'z', 'th']}
+                    # point_str = ' '.join([(f"{key}={value : 0.2f}") for key, value in coord_dict.items()])
+                    # point_exposed = point_data['exposed']
+                    # point_str = f'{point_idx + 1:3d} - {point_str}'
+                    # print_debug(f'making sample point item: start')
+                    point_str, point_exposed = sample.index_point_info_for_qt_item(j)
                     self._make_sample_point_item(sample_item, point_str, j, point_exposed)
+                    # print_debug(f'making sample point item: end')
+                # print_debug(f'making sample item: end')
+        # print_debug('updating treeWidget_samples: end')
+        self.treeWidget_samples.setUpdatesEnabled(True)
+
+
 
     # def create_new_sample(self):
     #     sample_name = self.lineEdit_sample_name.text()

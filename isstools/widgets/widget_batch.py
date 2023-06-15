@@ -437,11 +437,12 @@ class UIBatch(*uic.loadUiType(ui_path)):
                 sample_item.setExpanded(False)
                 # self.treeWidget_samples.addItem(sample_item)
                 for j in range(npts):
-                    point_idx = sample.index_position_index(j)
-                    point_str = sample.index_coordinate_str(j)
-                    point_exposed = sample.index_exposed(j)
+                    # point_idx = sample.index_position_index(j)
+                    # point_str = sample.index_coordinate_str(j)
+                    # point_exposed = sample.index_exposed(j)
                     # point_str = ' '.join([(f"{key}={value : 0.2f}") for key,value in coord_dict.items()])
-                    point_str = f'{point_idx+1:3d} - {point_str}'
+                    # point_str = f'{point_idx+1:3d} - {point_str}'
+                    point_str, point_exposed = sample.index_point_info_for_qt_item(j)
                     self._make_sample_point_item(sample_item, point_str, j, point_exposed)
 
     # def create_new_sample(self):

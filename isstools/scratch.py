@@ -2223,5 +2223,65 @@ plt.plot(_time_v, _energy_step_fine_v)
 plt.subplot(313)
 plt.plot(_time_a, _energy_step_fine_a)
 
+##########
+
+x = xlive_gui.widget_sample_manager.detached_ui
+
+x.treeWidget_samples.clear()
+treeWidget_tracking_dict = {}
+
+def update_sample_tree(x):
+    # print_debug('updating treeWidget_samples: start')
+    #
+    for i, sample in enumerate(x.sample_manager.samples):
+
+        if not sample.archived:
+            # print_debug(f'{i=}, {sample.name=}')
+            # print_debug(f'making sample item: start')
+
+            if sample.uid not in treeWidget_tracking_dict.keys():
+                # print('creating the sample')
+                name = sample.name
+                npts = sample.number_of_points
+                npts_fresh = sample.number_of_unexposed_points
+                sample_str = f"{name} ({npts_fresh}/{npts})"
+                sample_item = x._make_sample_item(sample_str, i)
+                treeWidget_tracking_dict[sample.uid] = sample_item
+            # x.treeWidget_samples.addItem(sample_item)
+            else:
+                # print('sample exists')
+                sample_item = treeWidget_tracking_dict[sample.uid]
+            # fsdga
+
+            if (i == x._currently_selected_index) or ((i == len(x.sample_manager.samples)) and
+                                                         (x._currently_selected_index == -1)):
+                sample_item.setExpanded(True)
+            else:
+                sample_item.setExpanded(False)
+
+            for j in range(sample.number_of_points):
+                point_data = sample.position_data.iloc[j]
+                point_uid = point_data['sample_point_uid']
+                if point_uid not in treeWidget_tracking_dict.keys():
+                    # print_debug(f'making sample point item: start')
+                    point_str, point_exposed = sample.index_point_info_for_qt_item(j)
+                    point_item = x._make_sample_point_item(sample_item, point_str, j, point_exposed)
+                    treeWidget_tracking_dict[point_uid] = point_item
 
 
+
+                # print_debug(f'making sample point item: end')
+            # print_debug(f'making sample item: end')
+    # print_debug('updating treeWidget_samples: end')
+                # x._make_sample_point_item(sample_item, point_str, j, point_exposed)
+                # print_debug(f'making sample point item: end')
+            # print_debug(f'making sample item: end')
+    # print_debug('updating treeWidget_samples: end')
+
+
+update_sample_tree(x)
+
+
+sample = Sample('bla', coordinates=[{'x': 0.0, 'y': 0.0, 'z': 0.0, 'th': 0.0}])
+
+{'x': sample.position_data.iloc[0]['x'], 'y': sample.position_data.iloc[0]['y'], 'z': sample.position_data.iloc[0]['z'], 'th': sample.position_data.iloc[0]['th']}
