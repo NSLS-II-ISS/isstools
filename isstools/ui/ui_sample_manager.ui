@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1678</width>
-    <height>1230</height>
+    <height>844</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -315,7 +315,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../icons/Coordinate system.png</pixmap>
+    <pixmap>../../../../.designer/icons/Coordinate system.png</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -527,11 +527,11 @@
       <x>20</x>
       <y>440</y>
       <width>371</width>
-      <height>341</height>
+      <height>331</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_1">
      <attribute name="title">
@@ -1889,7 +1889,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>790</y>
+      <y>780</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -1962,46 +1962,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QTreeView" name="treeView_samples">
-   <property name="geometry">
-    <rect>
-     <x>980</x>
-     <y>980</y>
-     <width>311</width>
-     <height>192</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QTreeWidget" name="treeWidget_samples_2">
-   <property name="geometry">
-    <rect>
-     <x>560</x>
-     <y>970</y>
-     <width>381</width>
-     <height>391</height>
-    </rect>
-   </property>
-   <property name="selectionMode">
-    <enum>QAbstractItemView::ExtendedSelection</enum>
-   </property>
-   <property name="selectionBehavior">
-    <enum>QAbstractItemView::SelectItems</enum>
-   </property>
-   <property name="indentation">
-    <number>20</number>
-   </property>
-   <property name="rootIsDecorated">
-    <bool>true</bool>
-   </property>
-   <attribute name="headerVisible">
-    <bool>false</bool>
-   </attribute>
-   <column>
-    <property name="text">
-     <string notr="true">1</string>
-    </property>
-   </column>
-  </widget>
   <zorder>label_coordinate_system</zorder>
   <zorder>verticalLayoutWidget_2</zorder>
   <zorder>verticalLayoutWidget_3</zorder>
@@ -2021,8 +1981,6 @@
   <zorder>pushButton_calibrate_cameras_advanced</zorder>
   <zorder>push_detach_tab</zorder>
   <zorder>verticalLayoutWidget_4</zorder>
-  <zorder>treeView_samples</zorder>
-  <zorder>treeWidget_samples_2</zorder>
  </widget>
  <resources/>
  <connections/>

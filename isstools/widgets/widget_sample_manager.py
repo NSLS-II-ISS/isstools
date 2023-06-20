@@ -123,7 +123,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         self.camera_dict = camera_dict
         self.settings = parent.settings
 
-        self.model_sample_tree = QtGui.QStandardItemModel(self)
+        # self.model_sample_tree = QtGui.QStandardItemModel(self)
 
         if not detached:
             self.sample_list_changed_signal = self.parent.widget_user_manager.sample_list_changed_signal

@@ -139,6 +139,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
                 self.listWidget_scans_archived.addItem(item)
             else:
                 self.listWidget_scans.addItem(item)
+
     def restore_scan(self):
         for item in self.listWidget_scans_archived.selectedItems():
             self.scan_manager.restore_scan_at_uid(item.toolTip())
@@ -235,6 +236,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.user_manager.add_run(_proposal, _saf, _experimenters)
             self.cloud_setup(email_address=_email)
             self.populate_comboboxes()
+            self.parent.widget_scan_manager.update_local_manager_list()
 
 
 
@@ -292,9 +294,10 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         channel_id,channel_info = slack_channel_exists(self.parent.slack_client_bot,slack_channel)
         print(channel_id)
         if not channel_id:
-            print('Slack channel not found, Creating new channel...')
-            channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
             try:
+                print('Slack channel not found, Creating new channel...')
+                channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
+                print('Trying to invite user to the channel')
                 slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
             except Exception as e:
                 print(f'Failed to invite user to channel. Error: {e}')
