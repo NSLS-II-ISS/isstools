@@ -238,6 +238,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.populate_comboboxes()
             self.parent.widget_scan_manager.update_local_manager_list()
             self.parent.johann_emission.initialized = False
+            self.parent.widget_info_general.update_user_info()
 
 
 
