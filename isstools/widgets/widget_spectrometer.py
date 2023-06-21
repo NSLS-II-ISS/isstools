@@ -821,5 +821,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # return self.johann_spectrometer_manager.configs[index]['uid']
         # print(f'Configuring spectrometer to {qt_item.text(0)}')
         self.johann_spectrometer_manager.set_config_by_index(index)
+        self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(True)
 
 
