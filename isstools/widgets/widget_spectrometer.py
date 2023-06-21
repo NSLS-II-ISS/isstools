@@ -28,6 +28,7 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
 
 class UISpectrometer(*uic.loadUiType(ui_path)):
     spectrometer_config_list_changed_signal = QtCore.pyqtSignal()
+    spectrometer_config_changed_signal = QtCore.pyqtSignal()
     def __init__(self,
                  RE,
                  plan_processor,
@@ -56,11 +57,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.db = db
 
         self.johann_emission = johann_emission
+        self.johann_emission.append_gui_update_signal(self.spectrometer_config_changed_signal)
+        self.update_johann_spectrometer_gui_elements()
+        self.spectrometer_config_changed_signal.connect(self.update_johann_spectrometer_gui_elements)
+
         self.johann_spectrometer_manager = johann_spectrometer_manager
         self.johann_spectrometer_manager.append_list_update_signal(self.spectrometer_config_list_changed_signal)
         self.update_johann_config_tree()
         self.spectrometer_config_list_changed_signal.connect(self.update_johann_config_tree)
-        self.spectrometer_config_list_changed_signal.connect(self.parent.widget_scan_manager.update_johann_spectrometer_manager_combobox)
+        self.spectrometer_config_list_changed_signal.connect(self.parent.widget_scan_manager.update_comboBox_spectrometer_config)
         self.hhm = hhm
 
         self.detector_dictionary = detector_dictionary
@@ -547,6 +552,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 self.comboBox_johann_roll_offset.setCurrentIndex(i)
                 break
 
+    def update_johann_spectrometer_gui_elements(self):
+        self.update_enabled_crystals_checkboxes()
+        self.update_crystal_kind_fields()
+        for i in range(self.comboBox_johann_roll_offset.count()):
+            if self.johann_emission.rowland_circle.roll_offset == float(self.comboBox_johann_roll_offset.itemText(i)):
+                self.comboBox_johann_roll_offset.setCurrentIndex(i)
+                break
+        self.johann_update_energy_limits_fields()
+
     def _johann_update_crystal_config(self):
         crystal = self.comboBox_johann_crystal_kind.currentText()
         R = float(self.edit_johann_crystal_R.text())
@@ -743,6 +757,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         e_hi = float(self.lineEdit_johann_energy_lim_hi.text())
         self.johann_emission.set_energy_limits(e_lo, e_hi)
 
+    def johann_update_energy_limits_fields(self):
+        e_lo, e_hi = self.johann_emission.read_energy_limits()
+        self.lineEdit_johann_energy_lim_lo.setText(str(e_lo))
+        self.lineEdit_johann_energy_lim_hi.setText(str(e_hi))
+
     def johann_reset_energy_limits(self):
         self.lineEdit_johann_energy_lim_lo.setText('')
         self.lineEdit_johann_energy_lim_hi.setText('')
@@ -783,7 +802,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def update_johann_config_tree(self):
         self.treeWidget_johann_config.clear()
-        for i, config_dict in enumerate(self.johann_spectrometer_manager.configs):
+        for i, config_dict in enumerate(self.johann_spectrometer_manager.configs[::-1]):
             item_str = self.johann_spectrometer_manager.generate_config_str(config_dict)
             self._make_spectrometer_config_item(item_str, i)
             # config = config_dict['config']
@@ -796,7 +815,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def johann_set_current_config(self):
         qt_index = self.treeWidget_johann_config.selectedIndexes()[0]
         qt_item = self.treeWidget_johann_config.itemFromIndex(qt_index)
-        index = qt_item.index
-        print(f'Configuring spectrometer to {qt_item.text(0)}')
+        # index = qt_item.index
+        n_configs = len(self.johann_spectrometer_manager.configs)
+        index = n_configs - 1 - qt_item.index
+        # return self.johann_spectrometer_manager.configs[index]['uid']
+        # print(f'Configuring spectrometer to {qt_item.text(0)}')
         self.johann_spectrometer_manager.set_config_by_index(index)
+
 
