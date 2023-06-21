@@ -237,6 +237,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.cloud_setup(email_address=_email)
             self.populate_comboboxes()
             self.parent.widget_scan_manager.update_local_manager_list()
+            self.parent.johann_emission.initialized = False
 
 
 
