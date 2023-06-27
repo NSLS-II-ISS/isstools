@@ -525,6 +525,81 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n\n Scan parameters \n {params} \n Detectors: {detectors}"
             message_box('Scan information', scan_info)
 
+    def populate_fields_for_clicked_scan(self):
+        selection = self.listWidget_local_manager.selectedIndexes()
+        if selection != []:
+            local_scan = self.scan_manager.scan_list_local[selection[0].row()]
+            uid = local_scan['uid']
+            global_scan = self.scan_manager.scan_dict[uid]
+
+            if global_scan['scan_type'] == 'constant energy':
+                self.tabWidget_mono_scan.setCurrentIndex(1)
+                self.tabWidget_mono_scan.tabBarClicked.emit(1)
+                self.doubleSpinBox_mono_energy.setValue(global_scan['scan_parameters']['energy'])
+            else:
+                self.tabWidget_mono_scan.setCurrentIndex(0)
+                self.tabWidget_mono_scan.tabBarClicked.emit(0)
+                for i in range(self.widget_energy_selector.comboBox_element.count()):
+                    if self.widget_energy_selector.comboBox_element.itemText(i) == global_scan['scan_parameters']['element']:
+                        self.widget_energy_selector.comboBox_element.setCurrentIndex(i)
+                for i in range(self.widget_energy_selector.comboBox_edge.count()):
+                    if self.widget_energy_selector.comboBox_edge.itemText(i) == global_scan['scan_parameters']['edge']:
+                        self.widget_energy_selector.comboBox_edge.setCurrentIndex(i)
+                self.widget_energy_selector.edit_E0.setText(str(int(global_scan['scan_parameters']['e0'])))
+                self.edit_preedge_start.setText(str(int(global_scan['scan_parameters']['preedge_start'])))
+                self.edit_xanes_start.setText(str(int(global_scan['scan_parameters']['XANES_start'])))
+                self.edit_xanes_end.setText(str(int(global_scan['scan_parameters']['XANES_end'])))
+                self.edit_exafs_end_k.setText(str(int(global_scan['scan_parameters']['EXAFS_end'])))
+
+
+            for i in range(self.widget_energy_selector.comboBox_element.count()):
+                if self.widget_energy_selector.comboBox_element.itemText(i) == global_scan['scan_parameters']['element']:
+                    self.widget_energy_selector.comboBox_element.setCurrentIndex(i)
+            for i in range(self.widget_energy_selector.comboBox_edge.count()):
+                if self.widget_energy_selector.comboBox_edge.itemText(i) == global_scan['scan_parameters']['edge']:
+                    self.widget_energy_selector.comboBox_edge.setCurrentIndex(i)
+            self.widget_energy_selector.edit_E0.setText(str(int(global_scan['scan_parameters']['e0'])))
+
+            self.edit_preedge_start.setText(str(int(global_scan['scan_parameters']['preedge_start'])))
+            self.edit_xanes_start.setText(str(int(global_scan['scan_parameters']['XANES_start'])))
+            self.edit_xanes_end.setText(str(int(global_scan['scan_parameters']['XANES_end'])))
+            self.edit_exafs_end_k.setText(str(int(global_scan['scan_parameters']['EXAFS_end'])))
+
+            if global_scan['scan_type'] == 'fly scan':
+                self.tabWidget_mono_scan_type.setCurrentIndex(0)
+                self.tabWidget_mono_scan_type.tabBarClicked.emit(0)
+
+                if global_scan['scan_parameters']['type'] == 'standard':
+                    self.radioButton_flypath_standard.setChecked(1)
+                    self.edit_ds2_pree_duration.setText(str(global_scan['scan_parameters']['preedge_duration']))
+                    self.edit_ds2_edge_duration.setText(str(global_scan['scan_parameters']['edge_duration']))
+                    self.edit_ds2_poste_duration.setText(str(global_scan['scan_parameters']['postedge_duration']))
+                    self.edit_preedge_flex_frac.setText(str(global_scan['scan_parameters']['preedge_flex']))
+                    self.edit_postedge_flex_frac.setText(str(global_scan['scan_parameters']['postedge_flex']))
+                elif global_scan['scan_parameters']['type'] == 'double_sine':
+                    self.radioButton_flypath_doublesine.setChecked(1)
+                    self.edit_ds_pree_duration.setText(str(global_scan['scan_parameters']['preedge_duration']))
+                    self.edit_ds_poste_duration.setText(str(global_scan['scan_parameters']['postedge_duration']))
+                elif global_scan['scan_parameters']['type'] == 'sine':
+                    self.radioButton_flypath_sine.setChecked(1)
+                    self.edit_sine_total_duration.setText(str(global_scan['scan_parameters']['duration']))
+                self.edit_pad_time.setText(str(global_scan['scan_parameters']['pad']))
+                self.spinBox_tiling_repetitions.setValue(global_scan['scan_parameters']['repeat'])
+                self.checkBox_traj_single_dir.setChecked(global_scan['scan_parameters']['single_direction'])
+                self.checkBox_traj_revert.setChecked(global_scan['scan_parameters']['revert'])
+            else:
+                self.tabWidget_mono_scan_type.setCurrentIndex(1)
+                self.tabWidget_mono_scan_type.tabBarClicked.emit(1)
+
+
+
+            self.lineEdit_scan_name.setText(local_scan['scan_name'])
+
+
+
+            # detectors = local_scan['aux_parameters']['detectors']
+
+
     def update_offset(self):
         offset = float(self.label_angle_offset.text())
         energy = float(self.widget_energy_selector.edit_E0.text())
