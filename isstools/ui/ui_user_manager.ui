@@ -112,6 +112,9 @@ institution</string>
       <height>131</height>
      </rect>
     </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
+    </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_sample_comment">
     <property name="geometry">
@@ -196,6 +199,9 @@ sample</string>
       <width>361</width>
       <height>451</height>
      </rect>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
     </property>
    </widget>
   </widget>
@@ -314,6 +320,9 @@ sample</string>
       <height>541</height>
      </rect>
     </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButton_archive_scans">
     <property name="geometry">
@@ -368,6 +377,9 @@ sample</string>
       <width>361</width>
       <height>131</height>
      </rect>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
     </property>
    </widget>
   </widget>

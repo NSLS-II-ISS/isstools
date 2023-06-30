@@ -120,14 +120,20 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             pass
 
     def archive_sample(self):
-        for item in self.listWidget_samples.selectedItems():
-            indx = self.sample_manager.uid_to_sample_index(item.toolTip())
-            self.sample_manager.archive_at_index(indx)
+        # for item in self.listWidget_samples.selectedItems():
+        #     indx = self.sample_manager.uid_to_sample_index(item.toolTip())
+        #     self.sample_manager.archive_at_index(indx)
+        index_list = [qindex.row() for qindex in self.listWidget_samples.selectedIndexes()]
+        # for index in index_list:
+        self.sample_manager.archive_at_index(index_list)
 
     def restore_sample(self):
-        for item in self.listWidget_samples_archived.selectedItems():
-            indx = self.sample_manager.uid_to_sample_index(item.toolTip())
-            self.sample_manager.restore_at_index(indx)
+        # for item in self.listWidget_samples_archived.selectedItems():
+        #     indx = self.sample_manager.uid_to_sample_index(item.toolTip())
+        #     self.sample_manager.restore_at_index(indx)
+        index_list = [qindex.row() for qindex in self.listWidget_samples_archived.selectedIndexes()]
+        # for index in index_list:
+        self.sample_manager.restore_at_index(index_list)
 
     def update_scan_list(self):
         self.listWidget_scans.clear()
@@ -153,7 +159,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
     def update_sample_list(self):
         self.listWidget_samples.clear()
         self.listWidget_samples_archived.clear()
-        for sample in self.sample_manager.samples:
+        for sample in self.sample_manager.all_samples:
             item = QListWidgetItem(f'{sample.name} - {sample.comment}')
             item.setToolTip(sample.uid)
             if sample.archived:
