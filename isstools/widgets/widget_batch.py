@@ -756,6 +756,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
             return
 
         sample_condition = self.lineEdit_condition.text()
+        sample_condition = remove_special_characters(sample_condition)
         if (sample_condition == '') or (sample_condition.isspace()):
             sample_condition = None
         comment = self.lineEdit_comment.text()

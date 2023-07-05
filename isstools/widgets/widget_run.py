@@ -84,6 +84,7 @@ class UIRun(*uic.loadUiType(ui_path)):
         sample_idx = self.comboBox_sample_defs.currentIndex()
         scan_idx = self.comboBox_scan_defs.currentIndex()
         sample_condition = self.lineEdit_condition.text()
+        sample_condition = remove_special_characters(sample_condition)
         # name = self.lineEdit_exp_name.text()
 
         sample_name = self.sample_manager.sample_name_at_index(sample_idx)
