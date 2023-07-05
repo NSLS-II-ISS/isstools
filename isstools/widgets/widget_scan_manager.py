@@ -7,6 +7,8 @@ from isstools.widgets import widget_energy_selector
 import numpy as np
 import pkg_resources
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
+from PyQt5.Qt import Qt
+from PyQt5.QtWidgets import QMenu
 
 from isstools.conversions import xray
 from isstools.dialogs import UpdateAngleOffset
@@ -97,6 +99,9 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         self.comboBox_fly_scan_presets.addItems(list(self.dict_presets.keys()))
         self.comboBox_fly_scan_presets.currentIndexChanged.connect(self.fly_scan_preset)
         self.comboBox_fly_scan_presets.activated.connect(self.fly_scan_preset)
+
+        self.listWidget_local_manager.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_local_manager.customContextMenuRequested.connect(self.local_manager_context_menu)
 
         # self.update_comboBox_spectrometer_config()
 
@@ -632,4 +637,23 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
+    def local_manager_context_menu(self, QPos):
+        menu = QMenu()
+        change_offset = menu.addAction("&Change angular offset to current")
+        populate_fields = menu.addAction("&Populate fields with scan parameters")
+        parentPosition = self.listWidget_local_manager.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition + QPos)
+        action = menu.exec_()
+        if action == change_offset:
+            self.change_offset_for_local_scan
+        elif action == populate_fields:
+            pass
 
+    def change_offset_for_local_scan(self):
+        pass
+        # selection = self.listWidget_local_manager.selectedIndexes()
+        # indexes = [sel.row() for sel in selection]
+        # for index in indexes:
+        #
+        #
+        # self.update_local_manager_list()
