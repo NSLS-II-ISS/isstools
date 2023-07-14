@@ -530,45 +530,47 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n\n Scan parameters \n {params} \n Detectors: {detectors}"
             message_box('Scan information', scan_info)
 
-    def populate_fields_for_clicked_scan(self):
+    def populate_fields_with_scan_parameters(self):
         selection = self.listWidget_local_manager.selectedIndexes()
         if selection != []:
             local_scan = self.scan_manager.scan_list_local[selection[0].row()]
             uid = local_scan['uid']
             global_scan = self.scan_manager.scan_dict[uid]
 
+            scan_parameters = global_scan['scan_parameters']
+            aux_parameters = local_scan['aux_parameters']
+
             if global_scan['scan_type'] == 'constant energy':
                 self.tabWidget_mono_scan.setCurrentIndex(1)
                 self.tabWidget_mono_scan.tabBarClicked.emit(1)
-                self.doubleSpinBox_mono_energy.setValue(global_scan['scan_parameters']['energy'])
+                self.doubleSpinBox_mono_energy.setValue(scan_parameters['energy'])
             else:
                 self.tabWidget_mono_scan.setCurrentIndex(0)
                 self.tabWidget_mono_scan.tabBarClicked.emit(0)
                 for i in range(self.widget_energy_selector.comboBox_element.count()):
-                    if self.widget_energy_selector.comboBox_element.itemText(i) == global_scan['scan_parameters']['element']:
+                    if self.widget_energy_selector.comboBox_element.itemText(i) == scan_parameters['element']:
                         self.widget_energy_selector.comboBox_element.setCurrentIndex(i)
                 for i in range(self.widget_energy_selector.comboBox_edge.count()):
-                    if self.widget_energy_selector.comboBox_edge.itemText(i) == global_scan['scan_parameters']['edge']:
+                    if self.widget_energy_selector.comboBox_edge.itemText(i) == scan_parameters['edge']:
                         self.widget_energy_selector.comboBox_edge.setCurrentIndex(i)
-                self.widget_energy_selector.edit_E0.setText(str(int(global_scan['scan_parameters']['e0'])))
-                self.edit_preedge_start.setText(str(int(global_scan['scan_parameters']['preedge_start'])))
-                self.edit_xanes_start.setText(str(int(global_scan['scan_parameters']['XANES_start'])))
-                self.edit_xanes_end.setText(str(int(global_scan['scan_parameters']['XANES_end'])))
-                self.edit_exafs_end_k.setText(str(int(global_scan['scan_parameters']['EXAFS_end'])))
-
+                self.widget_energy_selector.edit_E0.setText(str(int(scan_parameters['e0'])))
+                self.edit_preedge_start.setText(str(int(scan_parameters['preedge_start'])))
+                self.edit_xanes_start.setText(str(int(scan_parameters['XANES_start'])))
+                self.edit_xanes_end.setText(str(int(scan_parameters['XANES_end'])))
+                self.edit_exafs_end_k.setText(str(int(scan_parameters['EXAFS_end'])))
 
             for i in range(self.widget_energy_selector.comboBox_element.count()):
-                if self.widget_energy_selector.comboBox_element.itemText(i) == global_scan['scan_parameters']['element']:
+                if self.widget_energy_selector.comboBox_element.itemText(i) == scan_parameters['element']:
                     self.widget_energy_selector.comboBox_element.setCurrentIndex(i)
             for i in range(self.widget_energy_selector.comboBox_edge.count()):
-                if self.widget_energy_selector.comboBox_edge.itemText(i) == global_scan['scan_parameters']['edge']:
+                if self.widget_energy_selector.comboBox_edge.itemText(i) == scan_parameters['edge']:
                     self.widget_energy_selector.comboBox_edge.setCurrentIndex(i)
-            self.widget_energy_selector.edit_E0.setText(str(int(global_scan['scan_parameters']['e0'])))
+            self.widget_energy_selector.edit_E0.setText(str(int(scan_parameters['e0'])))
 
-            self.edit_preedge_start.setText(str(int(global_scan['scan_parameters']['preedge_start'])))
-            self.edit_xanes_start.setText(str(int(global_scan['scan_parameters']['XANES_start'])))
-            self.edit_xanes_end.setText(str(int(global_scan['scan_parameters']['XANES_end'])))
-            self.edit_exafs_end_k.setText(str(int(global_scan['scan_parameters']['EXAFS_end'])))
+            self.edit_preedge_start.setText(str(int(scan_parameters['preedge_start'])))
+            self.edit_xanes_start.setText(str(int(scan_parameters['XANES_start'])))
+            self.edit_xanes_end.setText(str(int(scan_parameters['XANES_end'])))
+            self.edit_exafs_end_k.setText(str(int(scan_parameters['EXAFS_end'])))
 
             if global_scan['scan_type'] == 'fly scan':
                 self.tabWidget_mono_scan_type.setCurrentIndex(0)
@@ -576,29 +578,97 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
                 if global_scan['scan_parameters']['type'] == 'standard':
                     self.radioButton_flypath_standard.setChecked(1)
-                    self.edit_ds2_pree_duration.setText(str(global_scan['scan_parameters']['preedge_duration']))
-                    self.edit_ds2_edge_duration.setText(str(global_scan['scan_parameters']['edge_duration']))
-                    self.edit_ds2_poste_duration.setText(str(global_scan['scan_parameters']['postedge_duration']))
-                    self.edit_preedge_flex_frac.setText(str(global_scan['scan_parameters']['preedge_flex']))
-                    self.edit_postedge_flex_frac.setText(str(global_scan['scan_parameters']['postedge_flex']))
+                    self.edit_ds2_pree_duration.setText(str(scan_parameters['preedge_duration']))
+                    self.edit_ds2_edge_duration.setText(str(scan_parameters['edge_duration']))
+                    self.edit_ds2_poste_duration.setText(str(scan_parameters['postedge_duration']))
+                    self.edit_preedge_flex_frac.setText(str(scan_parameters['preedge_flex']))
+                    self.edit_postedge_flex_frac.setText(str(scan_parameters['postedge_flex']))
                 elif global_scan['scan_parameters']['type'] == 'double_sine':
                     self.radioButton_flypath_doublesine.setChecked(1)
-                    self.edit_ds_pree_duration.setText(str(global_scan['scan_parameters']['preedge_duration']))
-                    self.edit_ds_poste_duration.setText(str(global_scan['scan_parameters']['postedge_duration']))
+                    self.edit_ds_pree_duration.setText(str(scan_parameters['preedge_duration']))
+                    self.edit_ds_poste_duration.setText(str(scan_parameters['postedge_duration']))
                 elif global_scan['scan_parameters']['type'] == 'sine':
                     self.radioButton_flypath_sine.setChecked(1)
-                    self.edit_sine_total_duration.setText(str(global_scan['scan_parameters']['duration']))
-                self.edit_pad_time.setText(str(global_scan['scan_parameters']['pad']))
-                self.spinBox_tiling_repetitions.setValue(global_scan['scan_parameters']['repeat'])
-                self.checkBox_traj_single_dir.setChecked(global_scan['scan_parameters']['single_direction'])
-                self.checkBox_traj_revert.setChecked(global_scan['scan_parameters']['revert'])
+                    self.edit_sine_total_duration.setText(str(scan_parameters['duration']))
+                self.edit_pad_time.setText(str(scan_parameters['pad']))
+                self.spinBox_tiling_repetitions.setValue(scan_parameters['repeat'])
+                self.checkBox_traj_single_dir.setChecked(scan_parameters['single_direction'])
+                self.checkBox_traj_revert.setChecked(scan_parameters['revert'])
             else:
                 self.tabWidget_mono_scan_type.setCurrentIndex(1)
                 self.tabWidget_mono_scan_type.tabBarClicked.emit(1)
+                self.checkBox_energy_down.setChecked(scan_parameters['revert'])
+                if scan_parameters['grid_kind'] == 'xas':
+                    self.groupBox_step_xas_scan.setChecked(True)
+                    self.edit_preedge_spacing.setText(str(scan_parameters['preedge_stepsize']))
+                    self.edit_xanes_spacing.setText(str(scan_parameters['XANES_stepsize']))
+                    self.edit_exafs_spacing.setText(str(scan_parameters['EXAFS_stepsize']))
+                    self.edit_preedge_dwell.setText(str(scan_parameters['preedge_dwelltime']))
+                    self.edit_xanes_dwell.setText(str(scan_parameters['XANES_dwelltime']))
+                    self.edit_exafs_dwell.setText(str(scan_parameters['EXAFS_dwelltime']))
+                    self.comboBox_exafs_dwell_kpower.setCurrentIndex(scan_parameters['k_power'])
+
+                elif scan_parameters['grid_kind'] == 'linear':
+                    self.groupBox_step_linear_scan.setChecked(True)
+                    self.edit_linear_scan_start.setText(str(scan_parameters['energy_min']))
+                    self.edit_linear_scan_end.setText(str(scan_parameters['energy_max']))
+                    self.edit_linear_scan_spacing.setText(str(scan_parameters['energy_step']))
+                    self.edit_linear_scan_dwell.setText(str(scan_parameters['dwell_time']))
+
+            if 'spectrometer' in aux_parameters.keys():
+                spectrometer_parameters = aux_parameters['spectrometer']
+                if spectrometer_parameters['kind'] == 'johann':
+                    spectrometer_scan_parameters = spectrometer_parameters['scan_parameters']
+                    spectrometer_config_string = self.johann_spectrometer_manager.generate_config_str_from_uid(spectrometer_parameters['spectrometer_config_uid'])
+                    for i in range(self.comboBox_spectrometer_config.count()):
+                        if self.comboBox_spectrometer_config.itemText(i) == spectrometer_config_string:
+                            self.comboBox_spectrometer_config.setCurrentIndex(i)
+
+                    if spectrometer_parameters['scan_type'] == 'constant energy':
+                        self.tabWidget_spectrometer_scan.setCurrentIndex(1)
+                        self.tabWidget_spectrometer_scan.tabBarClicked.emit(1)
+                        self.doubleSpinBox_spectrometer_energy.setValue(spectrometer_scan_parameters['energy'])
+
+                    else:
+                        self.tabWidget_spectrometer_scan.setCurrentIndex(0)
+                        self.tabWidget_spectrometer_scan.tabBarClicked.emit(1)
+                        for i in range(self.widget_emission_energy.comboBox_element.count()):
+                            if self.widget_emission_energy.comboBox_element.itemText(i) == spectrometer_scan_parameters['element']:
+                                self.widget_emission_energy.comboBox_element.setCurrentIndex(i)
+                        for i in range(self.widget_emission_energy.comboBox_line.count()):
+                            if self.widget_emission_energy.comboBox_line.itemText(i) == spectrometer_scan_parameters['line']:
+                                self.widget_emission_energy.comboBox_line.setCurrentIndex(i)
+                        self.widget_emission_energy.edit_E.setText(str(int(spectrometer_scan_parameters['e0'])))
+                        self.edit_preline_start.setText(str(spectrometer_scan_parameters['preline_start']))
+                        self.edit_line_start.setText(str(spectrometer_scan_parameters['mainline_start']))
+                        self.edit_line_end.setText(str(spectrometer_scan_parameters['mainline_end']))
+                        self.edit_postline_end.setText(str(spectrometer_scan_parameters['postline_end']))
+                        if spectrometer_parameters['scan_type'] == 'step scan':
+                            self.edit_preline_spacing.setText(str(spectrometer_scan_parameters['preline_stepsize']))
+                            self.edit_mainline_spacing.setText(str(spectrometer_scan_parameters['mainline_stepsize']))
+                            self.edit_postline_spacing.setText(str(spectrometer_scan_parameters['postline_stepsize']))
+                            self.checkBox_spectrometer_energy_down.setChecked(spectrometer_scan_parameters['revert'])
+                            if global_scan['scan_type'] == 'constant energy':
+                                self.edit_preline_dwell.setText(str(spectrometer_scan_parameters['preline_dwelltime']))
+                                self.edit_mainline_dwell.setText(str(spectrometer_scan_parameters['mainline_dwelltime']))
+                                self.edit_postline_dwell.setText(str(spectrometer_scan_parameters['postline_dwelltime']))
+
+                elif spectrometer_parameters['kind'] == 'von_hamos':
+                    self.radioButton_spectrometer_von_hamos.setChecked(True)
+
+            else:
+                self.radioButton_spectrometer_none.setChecked(True)
+
+            # handle dwell time and exposures
+            if ((global_scan['scan_type'] == 'constant energy') and
+                ()):
+                pass
 
 
+            self.checkBox_calibration_purpose.setChecked(aux_parameters['scan_for_calibration_purpose'])
 
             self.lineEdit_scan_name.setText(local_scan['scan_name'])
+
 
 
 
@@ -645,11 +715,12 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         menu.move(parentPosition + QPos)
         action = menu.exec_()
         if action == change_offset:
-            self.change_offset_for_local_scan
+            self.change_offset_for_local_scan()
         elif action == populate_fields:
-            pass
+            self.populate_fields_with_scan_parameters()
 
     def change_offset_for_local_scan(self):
+        print('dont worry - nothing happens')
         pass
         # selection = self.listWidget_local_manager.selectedIndexes()
         # indexes = [sel.row() for sel in selection]
@@ -657,3 +728,6 @@ class UIScanManager(*uic.loadUiType(ui_path)):
         #
         #
         # self.update_local_manager_list()
+
+    # def populate_fields_with_scan_parameters(self):
+    #     pass

@@ -265,6 +265,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             error_message_box('Proposal not found')
         else:
             title = proposal_info['title']
+            if title is None: title = ''
             if len(title) > 100:
                 title = title[:101]
             if  len(title) > 50:

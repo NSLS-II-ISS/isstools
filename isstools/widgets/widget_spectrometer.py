@@ -456,6 +456,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                                                   'read_parking_func': self.johann_emission.read_aux2_crystal_parking},
                                          'Aux3': {'set_parking_func': self.johann_emission.set_aux3_crystal_parking,
                                                   'read_parking_func': self.johann_emission.read_aux3_crystal_parking},
+                                         'Aux4': {'set_parking_func': self.johann_emission.set_aux4_crystal_parking,
+                                                  'read_parking_func': self.johann_emission.read_aux4_crystal_parking},
+                                         'Aux5': {'set_parking_func': self.johann_emission.set_aux5_crystal_parking,
+                                                  'read_parking_func': self.johann_emission.read_aux5_crystal_parking},
                                          'Detector': {'set_parking_func': self.johann_emission.set_det_arm_parking,
                                                   'read_parking_func': self.johann_emission.read_det_arm_parking}}
 

@@ -32,8 +32,8 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
             'pushButton_stack1': ['johann_cr_main_roll', 'johann_cr_main_yaw'],
             'pushButton_stack2': ['johann_cr_aux2_roll', 'johann_cr_aux2_yaw', 'johann_cr_aux2_x', 'johann_cr_aux2_y'],
             'pushButton_stack3': ['johann_cr_aux3_roll', 'johann_cr_aux3_yaw', 'johann_cr_aux3_x', 'johann_cr_aux3_y'],
-            'pushButton_stack4': [],
-            'pushButton_stack5': [],
+            'pushButton_stack4': ['johann_cr_aux4_roll', 'johann_cr_aux4_yaw', 'johann_cr_aux4_x', 'johann_cr_aux4_y'],
+            'pushButton_stack5': ['johann_cr_aux5_roll', 'johann_cr_aux5_yaw', 'johann_cr_aux5_x', 'johann_cr_aux5_y'],
             }
         for button in self._motor_group_dict.keys():
             getattr(self,button).clicked.connect(self.show_motors)
