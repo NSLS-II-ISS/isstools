@@ -167,7 +167,7 @@ class UIRun(*uic.loadUiType(ui_path)):
             motor_name = self.hhm.energy.name
         elif plan_name in ['step_scan_johann_xes_plan']:
             motor_name = self.johann_spectrometer_motor.energy.name
-        elif plan_name in ['fly_scan_plan', 'fly_scan_von_hamos_plan', 'fly_scan_johann_herfd_plan']:
+        elif plan_name in ['fly_scan_plan', 'fly_scan_von_hamos_plan', 'fly_scan_johann_herfd_plan', 'epics_fly_scan_johann_xes_plan']:
             return []
         else:
             motor_name = 'time'
