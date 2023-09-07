@@ -524,10 +524,14 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             uid = local_scan['uid']
             global_scan = self.scan_manager.scan_dict[uid]
             params = ''
-            detectors = local_scan['aux_parameters']['detectors']
+            # detectors = local_scan['aux_parameters']['detectors']
+            scan_aux_parameters = local_scan['aux_parameters']
             for k, v in global_scan['scan_parameters'].items():
                 params += f' {k}: {v} \n'
-            scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n\n Scan parameters \n {params} \n Detectors: {detectors}"
+            params += '\nAux parameters\n'
+            for k, v in scan_aux_parameters.items():
+                params += f' {k}: {v} \n'
+            scan_info = f" {local_scan['scan_def']} \n UID: {uid} \n\n Scan parameters \n {params}"
             message_box('Scan information', scan_info)
 
     def populate_fields_with_scan_parameters(self):
@@ -709,7 +713,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
     def local_manager_context_menu(self, QPos):
         menu = QMenu()
-        change_offset = menu.addAction("&Change angular offset to current")
+        change_offset = menu.addAction("&Update scan angular offset to current")
         populate_fields = menu.addAction("&Populate fields with scan parameters")
         parentPosition = self.listWidget_local_manager.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition + QPos)
@@ -720,13 +724,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.populate_fields_with_scan_parameters()
 
     def change_offset_for_local_scan(self):
-        print('dont worry - nothing happens')
-        pass
-        # selection = self.listWidget_local_manager.selectedIndexes()
-        # indexes = [sel.row() for sel in selection]
-        # for index in indexes:
-        #
-        #
+        # print('dont worry - nothing happens')
+        selection = self.listWidget_local_manager.selectedIndexes()
+        indexes = [sel.row() for sel in selection]
+        self.scan_manager.update_local_scan_offset_to_current(indexes)
         # self.update_local_manager_list()
 
     # def populate_fields_with_scan_parameters(self):
