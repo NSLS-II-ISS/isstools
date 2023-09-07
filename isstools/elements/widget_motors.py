@@ -26,7 +26,14 @@ from isstools.dialogs.UpdateMotorLimit import UIUpdateMotorLimit
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_motor_widget.ui')
 
-
+def try_to_update_gui_decorator(method):
+    def wrapper(obj, *args, **kwargs):
+        try:
+            return method(obj, *args, **kwargs)
+        except:
+            print('Failed to updated GUI element.')
+            return None
+    return wrapper
 
 class UIWidgetMotors(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -118,7 +125,7 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
             self.spacer = QSpacerItem(100, 24, QSizePolicy.Minimum, QSizePolicy.Expanding)
             self.layout_motor_widget.addSpacerItem(self.spacer)
 
-
+    @try_to_update_gui_decorator
     def update_moving_label(self, value, **kwargs):
         if value == 1:
             self.label_mov_status.setStyleSheet('background-color: rgb(95,249,95)')
@@ -140,12 +147,14 @@ class UIWidgetMotors(*uic.loadUiType(ui_path)):
     def update_readback(self, value, **kwargs):
         self.label_motor_readback.setText(f"{value:3.3f} {self._motor_object.egu}")
 
+    @try_to_update_gui_decorator
     def update_motor_hlim_status(self, value, **kwargs):
         if value == 1:
             self.label_high_limit.setStyleSheet('background-color: rgb(255,0,0)')
         else:
             self.label_high_limit.setStyleSheet('background-color: rgb(94,20,20)')
 
+    @try_to_update_gui_decorator
     def update_motor_llim_status(self, value, **kwargs):
         if value == 1:
             self.label_low_limit.setStyleSheet('background-color: rgb(255,0,0)')
