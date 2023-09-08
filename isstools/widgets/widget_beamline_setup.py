@@ -364,9 +364,10 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
                     return
             ret = question_message_box(self, 'Warning', 'For best results make sure that there is no sample in the beam')
             if ret:
+                propagate_calibration = question_message_box(self, 'Warning', f'Would you like to apply new calibration to all scans performed within {energy - 200}-{energy + 500} eV energy range?')
                 plan_name = 'calibrate_mono_energy_plan_bundle'
                 plan_gui_services = ['beamline_setup_plot_energy_calibration_data', 'error_message_box']
-                plan_kwargs = {'element': element, 'edge': edge, 'plan_gui_services' : plan_gui_services}
+                plan_kwargs = {'element': element, 'edge': edge, 'propagate_calibration': propagate_calibration, 'plan_gui_services' : plan_gui_services}
                 self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, ['question_message_box'])
         else:
             error_message_box('Calibration standard could not be found within -200 - +600 eV from the edge position' )
