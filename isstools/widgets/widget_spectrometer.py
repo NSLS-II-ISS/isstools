@@ -88,7 +88,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
         self.push_johann_open_motors_widget.clicked.connect(self.open_motor_widget)
-        self.push_pilatus_widget.clicked.connect(self.open_pilatus_widget)
+        # self.push_pilatus_widget.clicked.connect(self.open_pilatus_widget)
 
 
         self.det_list = list(detector_dictionary.keys())
@@ -170,25 +170,25 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                                         ('spectrometer_kind' in self.motor_dictionary[motor].keys()) and
                                         (self.motor_dictionary[motor]['spectrometer_kind'] == 'johann')]
 
-        self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
-        self.johann_update_tweak_motor()
-        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
+        # self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
+        # self.johann_update_tweak_motor()
+        # self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
 
-        self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
+        # self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
         # self.comboBox_johann_pilatus_channels.addItems(self.detector_dictionary['Pilatus 100k']['channels'])
 
-        self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
-        self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
+        # self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
+        # self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
-        self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
-        self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
+        # self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
+        # self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
         self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
         self.push_johann_reset_limits.clicked.connect(self.johann_reset_energy_limits)
-        self.johann_alignment_data = []
-        self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
-        self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
+        # self.johann_alignment_data = []
+        # self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
+        # self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
 
         self.push_johann_create_config.clicked.connect(self.johann_create_config)
         self.push_johann_set_current_config.clicked.connect(self.johann_set_current_config)
@@ -781,8 +781,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.widget_motor_detachable.show()
         print('Done')
 
-    def open_pilatus_widget(self):
-        self.widget_pilatus_monitor.show()
+    # def open_pilatus_widget(self):
+    #     self.widget_pilatus_monitor.show()
 
         # return None
         # self.widget_pilatus_detachable = QtWidgets.QWidget()
