@@ -562,7 +562,7 @@
        <x>10</x>
        <y>0</y>
        <width>611</width>
-       <height>511</height>
+       <height>781</height>
       </rect>
      </property>
      <property name="font">
@@ -572,7 +572,7 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
@@ -1023,7 +1023,7 @@ to safe position</string>
         <x>0</x>
         <y>0</y>
         <width>611</width>
-        <height>341</height>
+        <height>611</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1366,8 +1366,8 @@ to safe position</string>
       <widget class="QPushButton" name="push_johann_compute_geometry">
        <property name="geometry">
         <rect>
-         <x>380</x>
-         <y>160</y>
+         <x>300</x>
+         <y>170</y>
          <width>91</width>
          <height>50</height>
         </rect>
@@ -1386,8 +1386,8 @@ Geometry</string>
       <widget class="QPushButton" name="push_johann_move_motors">
        <property name="geometry">
         <rect>
-         <x>510</x>
-         <y>160</y>
+         <x>450</x>
+         <y>170</y>
          <width>91</width>
          <height>50</height>
         </rect>
@@ -1405,6 +1405,14 @@ Motors</string>
       </widget>
      </widget>
      <widget class="QWidget" name="page_3">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>611</width>
+        <height>611</height>
+       </rect>
+      </property>
       <attribute name="label">
        <string>Alignment</string>
       </attribute>
@@ -1869,17 +1877,6 @@ Motors</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="verticalLayoutWidget_3">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>170</y>
-         <width>611</width>
-         <height>51</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="johann_alignment_aux_layout"/>
-      </widget>
       <widget class="QComboBox" name="comboBox_johann_alignment_kind">
        <property name="geometry">
         <rect>
@@ -2067,10 +2064,29 @@ Motors</string>
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="gridLayoutWidget_6">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>160</y>
+         <width>611</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="johann_alignment_aux_layout"/>
+      </widget>
      </widget>
      <widget class="QWidget" name="page_4">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>611</width>
+        <height>611</height>
+       </rect>
+      </property>
       <attribute name="label">
-       <string>Config Registration</string>
+       <string>Registration / Config Mgr</string>
       </attribute>
       <widget class="QLabel" name="label_qrcode_18">
        <property name="geometry">
@@ -2500,6 +2516,14 @@ Motors</string>
       </widget>
      </widget>
      <widget class="QWidget" name="page_5">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>100</width>
+        <height>30</height>
+       </rect>
+      </property>
       <attribute name="label">
        <string>Calibration</string>
       </attribute>
