@@ -278,8 +278,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         else:
             _widget_motor = QCheckBox(motor_str)
             _widget_motor.setChecked(motor_check)
-
         widgets.append(_widget_motor)
+        relevant_widgets["scan_flag"] = _widget_motor
+
         _widget_scan_range = QLineEdit(str(scan_range))
         relevant_widgets["scan_range"] = _widget_scan_range
         widgets.append(_widget_scan_range)
@@ -433,18 +434,18 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
             _widgets0_tune = self._johann_label_row_widget(motor_label="Tune motor")
-            _widgets1_tune, tune_yaw_widgets = self._johann_create_motor_widget_row(
+            _widgets1_tune, yaw_tune_widgets = self._johann_create_motor_widget_row(
                 motor_check=True, motor_str='yaw', motor_unit_str='mdeg',
                 scan_range=1000, scan_duration=10,
                 scan_step=10, scan_exposure=0.25, with_button=True)
-            self._johann_alignment_parameter_widget_dict['tune_yaw'] = tune_yaw_widgets
+            self._johann_alignment_parameter_widget_dict['yaw_tune'] = yaw_tune_widgets
 
             if self._johann_alignment_strategy == 'elastic':
                 _widgets2_tune, tune_roll_widgets = self._johann_create_motor_widget_row(
                     motor_check=False, motor_str='roll', motor_unit_str='mdeg',
                     scan_range=1000, scan_duration=10,
                     scan_step=10, scan_exposure=0.25, with_button=True)
-                self._johann_alignment_parameter_widget_dict['tune_roll'] = tune_roll_widgets
+                self._johann_alignment_parameter_widget_dict['roll_tune'] = tune_roll_widgets
             else:
                 _widgets2_tune = []
 
@@ -482,12 +483,57 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
             self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
 
-    def _johann_alignment_parse_tune_kwargs(self):
+    def _get_johann_tune_parameters(self, key='yaw_tune'):
+        d = self._johann_alignment_parameter_widget_dict[key]
+        scan_flag = bool(d['scan_flag'].isChecked()) if type(d['scan_flag']) == QCheckBox else True
+        scan_range = float(d['scan_range'].text())
+        scan_duration = float(d['scan_duration'].text()) if self._johann_alignment_scan_kind == 'fly' else None
+        scan_step = float(d['scan_step'].text()) if self._johann_alignment_scan_kind == 'step' else None
+        scan_exposure = float(d['scan_exposure'].text()) if self._johann_alignment_scan_kind == 'step' else None
+        return (scan_flag, scan_range, scan_duration, scan_step, scan_exposure)
 
+    def _parse_johann_tune_motor_dict(self, motor='yaw_tune'):
+        values = self._get_johann_tune_parameters(key=motor)
+        keys = [f'{motor}', f'{motor}_range', f'{motor}_duration', f'{motor}_step', f'{motor}_exposure']
+        output = {k: v for k, v in zip(keys, values)}
+        return output
+
+    def _johann_alignment_parse_tune_kwargs(self):
+        output = {}
+        for key in ['yaw_tune', 'roll_tune']:
+            if key in self._johann_alignment_parameter_widget_dict.keys():
+                tune_kwargs = self._parse_johann_tune_motor_dict(key)
+                output = {**output, **tune_kwargs}
 
     def johann_run_tune_scan(self):
         sender_object_name = self.sender().objectName()
 
+        plan_name = 'tune_johann_piezo_plan'
+
+        plan_kwargs = {}
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois[0]
+        plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
+        plan_kwargs['crystal'] = self.comboBox_johann_alignment_crystal.currentText()
+
+        if sender_object_name == 'yaw_tune_button':
+            axis = 'yaw'
+        elif sender_object_name == 'roll_tune_button':
+            axis = 'roll'
+        plan_kwargs['axis'] = axis
+
+        _, scan_range, duration, step_size, exposure_time = self._get_johann_tune_parameters(key=f'{axis}_tune')
+        plan_kwargs['scan_range'] = scan_range
+        if self._johann_alignment_scan_kind == 'fly':
+            plan_kwargs = {**plan_kwargs, 'duration': duration}
+        elif self._johann_alignment_scan_kind == 'step':
+            plan_kwargs = {**plan_kwargs, 'step_size': step_size, 'exposure_time': exposure_time}
+
+        # plan_kwargs['plot_func'] = None
+        # plan_kwargs['liveplot_kwargs'] = None
+        # plan_kwargs['md'] = None
+        print(plan_name)
+        print(plan_kwargs)
+        # return plan_name, plan_kwargs
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         self.start_gen_scan_figure()
@@ -906,11 +952,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 break
         return curr_mot, liveplot_mot_kwargs
 
+    @property
+    def _johann_checked_pilatus_rois(self):
+        _ch = 'checkBox_johann_pilatus_roi'
+        return [i for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
+
+    @property
+    def _johann_checked_pilatus_channels(self):
+        _ch = 'checkBox_johann_pilatus_roi'
+        return [f'pil100k_stats{i + 1}_total' for i in self._johann_checked_pilatus_rois]
+
     def run_johann_motor_scan(self):
         detector = 'Pilatus 100k'
-        _ch = 'checkBox_johann_pilatus_roi'
-
-        channels = [f'pil100k_stats{i + 1}_total' for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
+        # _ch = 'checkBox_johann_pilatus_roi'
+        # channels = [f'pil100k_stats{i + 1}_total' for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
+        channels = self._johann_checked_pilatus_rois
         channel = channels[0]
         liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
 
