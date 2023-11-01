@@ -579,8 +579,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>611</height>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1022,8 +1022,8 @@ to safe position</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>611</height>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1881,7 +1881,7 @@ Motors</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>270</y>
+         <y>320</y>
          <width>101</width>
          <height>20</height>
         </rect>
@@ -1906,7 +1906,7 @@ Motors</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>240</y>
+         <y>290</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -1931,7 +1931,7 @@ Motors</string>
        <property name="geometry">
         <rect>
          <x>130</x>
-         <y>240</y>
+         <y>290</y>
          <width>381</width>
          <height>51</height>
         </rect>
@@ -1942,7 +1942,7 @@ Motors</string>
        <property name="geometry">
         <rect>
          <x>520</x>
-         <y>270</y>
+         <y>320</y>
          <width>81</width>
          <height>21</height>
         </rect>
@@ -2055,10 +2055,60 @@ Motors</string>
          <x>10</x>
          <y>160</y>
          <width>591</width>
-         <height>61</height>
+         <height>111</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="johann_alignment_tune_layout"/>
+      </widget>
+      <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>420</x>
+         <y>50</y>
+         <width>181</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_johann_fom">
+        <item>
+         <widget class="QLabel" name="label_167">
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Alignment fom</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBox_johann_alignment_fom">
+          <property name="minimumSize">
+           <size>
+            <width>70</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="currentText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="page_4">
