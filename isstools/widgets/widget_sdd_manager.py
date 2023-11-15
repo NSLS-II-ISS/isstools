@@ -41,6 +41,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.xs = xs
         self.roi_bounds = []
         #self.shutter_dict=shutter_dict
+        self.counter = 0
 
         self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
@@ -76,6 +77,8 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.connect_roi_spinboxes()
         self.comboBox_roi_index.addItems([str(i+1) for i in range(self.num_rois)])
         self.pushButton_set_roi_hilo.clicked.connect(self.set_roi_hilo)
+        self.pushButton_reset_limits.clicked.connect(self.reset_limit)
+        self.reset = 0
         self.checkBox_roi_window_auto.toggled.connect(self.enable_doubleSpinBox_energy_window)
 
     def connect_roi_spinboxes(self):
@@ -202,13 +205,16 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.acquired = True
         self.plot_traces()
         # self.update_roi_bounds()
-        # self.canvas_mca.draw_idle()
+        self.canvas_mca.draw_idle()
         print('Xspress3 acquisition complete')
 
     # TODO close shutter self.shutter_dict
 
     def plot_traces(self):
+        max_mca = []
         #THis method plot the MCA signal
+        xlims = self.figure_mca.ax.get_xlim()
+        ylims = self.figure_mca.ax.get_ylim()
         update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
         self.roi_bounds = []
         if self.acquired:
@@ -216,11 +222,21 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                 if getattr(self, self.checkbox_ch.format(indx+1)).isChecked():
                     ch = getattr(self.xs,'mca{}'.format(indx+1))
                     mca = ch.get()
+                    max_mca.append(max(mca[10:]))
                     # energy = np.array(list(range(len(mca))))*10
                     energy = np.arange(mca.size)*10
                     self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
-                    self.figure_mca.ax.legend(loc=1)
+        self.figure_mca.ax.legend(loc=1)
+        if self.counter:
+            if self.reset:
+                self.figure_mca.ax.set_xlim(-200, 40200)
+                self.figure_mca.ax.set_ylim(max(max_mca)*-0.1,max(max_mca)*1.1)
+                self.reset = 0
+            else:
+                self.figure_mca.ax.set_xlim(xlims)
+                self.figure_mca.ax.set_ylim(ylims)
         self.update_roi_bounds()
+        self.counter = 1
 
     def set_roi_hilo(self):
         self.disconnect_roi_spinboxes()
@@ -243,3 +259,6 @@ class UISDDManager(*uic.loadUiType(ui_path)):
 
     def enable_doubleSpinBox_energy_window(self, state):
         self.doubleSpinBox_energy_window.setEnabled(not state)
+
+    def reset_limit(self):
+        self.reset = 1
