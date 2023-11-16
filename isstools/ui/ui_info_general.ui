@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>686</width>
-    <height>110</height>
+    <width>308</width>
+    <height>136</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,7 @@
      <x>50</x>
      <y>30</y>
      <width>311</width>
-     <height>51</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="font">
@@ -68,7 +68,7 @@
      <x>0</x>
      <y>30</y>
      <width>50</width>
-     <height>50</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -78,8 +78,8 @@
   <widget class="QLabel" name="label_current_cycle">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>0</y>
+     <x>0</x>
+     <y>70</y>
      <width>241</width>
      <height>20</height>
     </rect>
@@ -98,8 +98,8 @@
   <widget class="QLabel" name="label_user_info">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>30</y>
+     <x>0</x>
+     <y>100</y>
      <width>291</width>
      <height>31</height>
     </rect>
