@@ -364,7 +364,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         # self.RE(self.aux_plan_funcs['set_reference_foil'](foil))
 
     def set_autofoil(self, state):
-        self.Flabelauto_foil_set = state
+        self.plan_processor.auto_foil_set = state
 
     def set_attenuator(self):
         attenuator = self.comboBox_attenuator.currentText()
