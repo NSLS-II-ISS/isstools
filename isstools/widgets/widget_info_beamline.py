@@ -26,9 +26,11 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  accelerator=None,
+                 front_end=None,
                  hhm = None,
                  hhm_feedback = None,
                  motor_emission=None,
+                 inclinometers = None,
                  shutters=None,
                  ic_amplifiers = None,
                  apb=None,
@@ -46,10 +48,9 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         # Start QTimer to display current day and time
-        self.timer_update_time = QtCore.QTimer(self)
-        self.timer_update_time.setInterval(1000)
-        self.timer_update_time.timeout.connect(self.update_status)
-        self.timer_update_time.start()
+
+
+
 
         self.hhm = hhm
         self.hhm_feedback = hhm_feedback
@@ -57,6 +58,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.apb = apb
         self.RE = RE
         self.plan_processor = plan_processor
+        self.inclinometers = inclinometers
         self.db = db
         self.shutters = shutters
         self.ic_amplifiers = ic_amplifiers
@@ -68,6 +70,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.aux_plan_funcs = aux_plan_funcs
         # Initialize general settings
         self.accelerator = accelerator
+        self.front_end = front_end
         self.accelerator.beam_current.subscribe(self.update_beam_current)
         self.accelerator.status.subscribe(self.update_accelerator_status)
 
@@ -83,6 +86,18 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
         self.push_auto_pitch.clicked.connect(self.auto_pitch)
+
+
+        self.timer_update_time = QtCore.QTimer(self)
+        self.timer_update_time.setInterval(1000)
+        self.timer_update_time.timeout.connect(self.update_status)
+        self.timer_update_time.start()
+
+        self.timer_update_slits = QtCore.QTimer(self)
+        self.timer_update_slits.setInterval(60000)
+        self.timer_update_slits.timeout.connect(self.update_slits)
+        self.timer_update_slits.singleShot(0, self.update_slits)
+        self.timer_update_slits.start()
 
 
         self.push_set_reference_foil.clicked.connect(self.set_reference_foil)
@@ -180,6 +195,10 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
             error = 360000*self.hhm.theta.position-self.encoder_pb.pos_I.get()
             self.label_offset_error.setText(f'Encoder error: {int(error)}')
 
+            #inclinometers
+            self.label_spectrometer_gonio1_sp.setText('{:.2f}°'.format(self.motor_emission.motor_det_th1.position))
+            self.label_spectrometer_gonio1_rb.setText('{:.2f}°'.format(self.inclinometers[0].position_from_sensor))
+
             #check for detector saturation
             saturation_list = [{'ch':self.apb.ch1.value, 'label':self.label_i0_saturation },
                                {'ch':self.apb.ch2.value, 'label':self.label_it_saturation },
@@ -193,13 +212,11 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                     element['label'].setStyleSheet('background-color: rgb(255,0,0)')
                     element['label'].setText('Saturated')
 
-
-
-
-
-
             #update feedback heartbeat
             self.update_feedback_gui_components()
+
+
+
         except Exception as e:
             print(e)
 
@@ -367,6 +384,18 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
     def take_pilatus_image(self):
         self.plan_processor.add_plan_and_run_if_idle('take_pil100k_test_image_plan', {})
+
+
+    def update_slits(self):
+        self.front_end.sync_slits()
+        self.label_fe_slit_top.setText('{:.2f} mm'.format(self.front_end.slit_top.get()))
+        self.label_fe_slit_bottom.setText('{:.2f} mm'.format(self.front_end.slit_bottom.get()))
+        self.label_fe_slit_inboard.setText('{:.2f} mm'.format(self.front_end.slit_inb.get()))
+        self.label_fe_slit_outboard.setText('{:.2f} mm'.format(self.front_end.slit_outb.get()))
+
+
+
+
 
 
 

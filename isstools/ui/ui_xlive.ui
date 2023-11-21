@@ -251,9 +251,9 @@
     <property name="geometry">
      <rect>
       <x>1660</x>
-      <y>190</y>
-      <width>551</width>
-      <height>431</height>
+      <y>210</y>
+      <width>541</width>
+      <height>411</height>
      </rect>
     </property>
     <property name="font">
@@ -335,8 +335,8 @@
    <widget class="QLabel" name="label_59">
     <property name="geometry">
      <rect>
-      <x>1670</x>
-      <y>170</y>
+      <x>1660</x>
+      <y>190</y>
       <width>141</width>
       <height>20</height>
      </rect>
@@ -356,8 +356,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>701</width>
-      <height>131</height>
+      <width>341</width>
+      <height>151</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_info_general">
@@ -380,9 +380,9 @@
    <widget class="QWidget" name="horizontalLayoutWidget_11">
     <property name="geometry">
      <rect>
-      <x>720</x>
+      <x>360</x>
       <y>10</y>
-      <width>1091</width>
+      <width>1451</width>
       <height>151</height>
      </rect>
     </property>

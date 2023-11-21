@@ -67,6 +67,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  db=None,
                  processing_ioc_uid=None,
                  accelerator=None,
+                 front_end=None,
                  hhm=None,
                  hhm_encoder=None,
                  hhm_feedback=None,
@@ -74,6 +75,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  johann_emission=None,
                  johann_spectrometer_manager=None,
                  sdd=None,
+                 inclinometers = None,
                  pil100k=None,
                  apb=None,
                  apb_trigger_xs=None,
@@ -274,9 +276,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         # Info beamline
         print('widget info beamline loading', ttime.ctime())
         self.widget_info_beamline = widget_info_beamline.UIInfoBeamline(accelerator=accelerator,
+                                                                        front_end=front_end,
                                                                         hhm=hhm,
                                                                         hhm_feedback=hhm_feedback,
                                                                         motor_emission=johann_emission,
+                                                                        inclinometers = inclinometers,
                                                                         shutters=shutter_dict,
                                                                         ic_amplifiers=ic_amplifiers,
                                                                         apb=apb,
