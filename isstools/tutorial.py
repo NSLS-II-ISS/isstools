@@ -1,5 +1,4 @@
 import pkg_resources
-
 from PyQt5 import uic
 
 
@@ -101,7 +100,8 @@ class TutorialGui(*uic.loadUiType(ui_path)):
         self.figure.ax.grid(alpha=0.4)
 
     def run(self):
-        print('Hello world!')
+        self.RE(self.plans[0](name = 'test',trajectory_filename='2fd68c04-0e60.txt',element='Se',e0=12658))
+
         pass
 
     def show_data(self):
