@@ -572,15 +572,15 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>611</height>
        </rect>
       </property>
       <attribute name="label">
@@ -828,32 +828,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="push_johann_parking_element_update">
-       <property name="geometry">
-        <rect>
-         <x>380</x>
-         <y>240</y>
-         <width>221</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>1000</width>
-         <height>1000</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Record 90 deg position</string>
-       </property>
-      </widget>
       <widget class="QPushButton" name="push_move_crystals_to_90_deg">
        <property name="geometry">
         <rect>
@@ -952,30 +926,11 @@ motors widget</string>
 to safe position</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="edit_johann_crystal_R_2">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>240</y>
-         <width>70</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>70</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>1000</string>
-       </property>
-      </widget>
       <widget class="QLabel" name="label_34">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>240</y>
+         <x>230</x>
+         <y>250</y>
          <width>25</width>
          <height>24</height>
         </rect>
@@ -990,30 +945,223 @@ to safe position</string>
         <string>mm</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_141">
+      <widget class="QPushButton" name="push_johann_parking_element_update">
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>240</y>
+         <width>221</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Record 90 deg position</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_qrcode_23">
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>240</y>
-         <width>70</width>
+         <y>250</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Nominal R</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_qrcode_24">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>310</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>aux2_z</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_qrcode_25">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>340</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>aux4_z</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_35">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>310</y>
+         <width>25</width>
          <height>24</height>
         </rect>
        </property>
        <property name="maximumSize">
         <size>
-         <width>70</width>
+         <width>25</width>
          <height>24</height>
         </size>
        </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
+       <property name="text">
+        <string>mm</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_36">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>340</y>
+         <width>25</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>24</height>
+        </size>
        </property>
        <property name="text">
-        <string>Nominal R</string>
+        <string>mm</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinBox_johann_crystal_R_parking">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>250</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>90</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="minimum">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>5000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>500.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>1000.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinBox_johann_crystal_aux2_z">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>310</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>90</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="minimum">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>5000.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>144.738000000000000</double>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinBox_johann_crystal_aux4_z">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>340</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>90</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="minimum">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>5000.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>131.014000000000010</double>
        </property>
       </widget>
      </widget>
@@ -1022,8 +1170,8 @@ to safe position</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>96</width>
+        <height>26</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1056,9 +1204,28 @@ to safe position</string>
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkBox_enable_aux5">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="text">
            <string>aux5</string>
@@ -1070,6 +1237,12 @@ to safe position</string>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_enable_aux3">
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>aux3</string>
           </property>
@@ -1080,6 +1253,12 @@ to safe position</string>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_enable_main">
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>main</string>
           </property>
@@ -1090,6 +1269,12 @@ to safe position</string>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_enable_aux2">
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>aux2</string>
           </property>
@@ -1102,6 +1287,12 @@ to safe position</string>
          <widget class="QCheckBox" name="checkBox_enable_aux4">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="text">
            <string>aux4</string>
@@ -1409,8 +1600,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>611</height>
+        <width>96</width>
+        <height>26</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1581,7 +1772,7 @@ Motors</string>
         <rect>
          <x>10</x>
          <y>100</y>
-         <width>591</width>
+         <width>602</width>
          <height>51</height>
         </rect>
        </property>
@@ -2066,7 +2257,7 @@ Motors</string>
          <x>420</x>
          <y>50</y>
          <width>181</width>
-         <height>21</height>
+         <height>22</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_johann_fom">
@@ -2116,8 +2307,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>611</height>
+        <width>96</width>
+        <height>26</height>
        </rect>
       </property>
       <attribute name="label">
@@ -2555,8 +2746,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>611</height>
+        <width>96</width>
+        <height>26</height>
        </rect>
       </property>
       <attribute name="label">

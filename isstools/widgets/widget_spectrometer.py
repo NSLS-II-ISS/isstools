@@ -22,6 +22,7 @@ from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
 from .widget_spectrometer_motors import UISpectrometerMotors
 from isstools.elements.widget_motors import UIWidgetMotors
+from isstools.elements.widget_spectrometer_R import UIWidgetSpectrometerR
 from .widget_pilatus import UIPilatusMonitor
 from ..elements.liveplots import XASPlot, NormPlot  # , XASPlotX
 from ..elements.elements import get_spectrometer_line_dict
@@ -151,6 +152,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.comboBox_johann_element_parking.currentIndexChanged.connect(self.johann_populate_parking_element_widgets)
 
+        self.johann_populate_R_parking_related_widgets()
+        self.spinBox_johann_crystal_R_parking.valueChanged.connect(self.johann_update_parking_R)
+
         self.update_enabled_crystals_checkboxes()
         self.update_comboBox_johann_alignment_crystal()
         self.update_crystal_kind_fields()
@@ -183,6 +187,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_alignment_tune_widget_list = []
         self.johann_alignment_scan_widget_list = []
 
+        self.doubleSpinBox_johann_alignment_R_energy.setValue(johann_emission.energy.position)
+
         self.handle_johann_alignment_widgets()
         self.radioButton_alignment_mode_manual.clicked.connect(self.handle_johann_alignment_widgets)
         self.radioButton_alignment_mode_semi.clicked.connect(self.handle_johann_alignment_widgets)
@@ -191,8 +197,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_alignment_widgets)
 
         self.comboBox_johann_alignment_crystal.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
-        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self._handle_enabled_johann_alignment_widgets)
-
+        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
         self.comboBox_johann_alignment_strategy.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
 
         self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
@@ -446,12 +451,16 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 motor_key = f'johann_cr_{crystal_str}_x'
             widget = UIWidgetMotors(self.motor_dictionary[motor_key], motor_description_width=500,
                                     horizontal_scale=0.9)
-            # self.johann_alignment_tune_layout.addWidget(widget)
-            self.johann_alignment_tune_widget_list.append(widget)
-            self._johann_alignment_parameter_widget_dict['tweak_motor'] = widget
-            tweak_motor_widgets.append(widget)
         elif motor_str == 'R':
-            pass
+            widget = UIWidgetSpectrometerR(johann_emission=self.johann_emission, spinbox_energy=self.doubleSpinBox_johann_alignment_R_energy,
+                                            plan_processor=self.plan_processor, parent=self)
+        else:
+            raise NotImplementedError('Tweak motor must be either R or X. No other options are implemented!')
+            # widget = None
+
+        self.johann_alignment_tune_widget_list.append(widget)
+        self._johann_alignment_parameter_widget_dict['tweak_motor'] = widget
+        tweak_motor_widgets.append(widget)
 
         # elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
         labels_tune_widgets = self._johann_label_row_widget(motor_label="Tune motor")
@@ -914,6 +923,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     #         self.johann_emission.set_det_arm_parking()
     #         self.johann_populate_detector_parking()
 
+    def johann_populate_R_parking_related_widgets(self):
+        self.spinBox_johann_crystal_R_parking.setValue(self.johann_emission.read_R_parking())
+        self.johann_deal_with_crystal_aux_z()
+
+    def johann_update_parking_R(self, value):
+        print(f'new parking R = {value}')
+        self.johann_emission.update_R_parking(value)
+        self.johann_deal_with_crystal_aux_z()
+        self.edit_johann_crystal_R.setText(f'{value :.0f}')
+
+    def johann_deal_with_crystal_aux_z(self):
+        aux2_z, aux4_z = self.johann_emission.read_crystal_aux_dz()
+        self.spinBox_johann_crystal_aux2_z.setValue(aux2_z)
+        self.spinBox_johann_crystal_aux4_z.setValue(aux4_z)
+
     def johann_home_crystals(self):
         self.johann_emission.home_crystal_piezos()
 
@@ -925,6 +949,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def johann_put_detector_to_safe_position(self):
         self.johann_emission.put_detector_to_safe_position()
+
+
 
     def update_enabled_crystals_checkboxes(self):
         for crystal_key, enable in self.johann_emission.enabled_crystals.items():
@@ -960,7 +986,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _johann_update_crystal_config(self):
         crystal = self.comboBox_johann_crystal_kind.currentText()
-        R = float(self.edit_johann_crystal_R.text())
+        # R = float(self.edit_johann_crystal_R.text())
         hkl = self.lineEdit_johann_hkl.text()
         hkl = hkl.replace(')', '').replace('(', '').replace(']', '').replace('[', '')
         hkl = [int(i) for i in hkl.split(',')]
@@ -994,6 +1020,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.johann_emission.initialized = True
         self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(True)
+
+        self.doubleSpinBox_johann_alignment_R_energy.setValue(energy)
 
     def johann_update_tweak_motor(self):
         motor_description = self.comboBox_johann_tweak_motor.currentText()
