@@ -205,13 +205,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.johann_update_tweak_motor()
         # self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
 
-        # self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
+        self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
         # self.comboBox_johann_pilatus_channels.addItems(self.detector_dictionary['Pilatus 100k']['channels'])
 
         # self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
         # self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
-        # self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
+        self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
         # self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
@@ -1058,20 +1058,18 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         return curr_mot, liveplot_mot_kwargs
 
     @property
-    def _johann_checked_pilatus_rois(self):
-        _ch = 'checkBox_johann_pilatus_roi'
+    def _johann_checked_pilatus_rois(self, _ch='checkBox_johann_pilatus_roi'):
         return [i for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
 
     @property
-    def _johann_checked_pilatus_channels(self):
-        _ch = 'checkBox_johann_pilatus_roi'
-        return [f'pil100k_stats{i + 1}_total' for i in self._johann_checked_pilatus_rois]
+    def _johann_checked_pilatus_channels(self, _ch='checkBox_johann_pilatus_roi'):
+        return [f'pil100k_stats{i + 1}_total' for i in self._johann_checked_pilatus_rois(_ch=_ch)]
 
     def run_johann_motor_scan(self):
         detector = 'Pilatus 100k'
         # _ch = 'checkBox_johann_pilatus_roi'
         # channels = [f'pil100k_stats{i + 1}_total' for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
-        channels = self._johann_checked_pilatus_rois
+        channels = self._johann_checked_pilatus_channels(_ch='checkBox_johann_motor_scan_pilatus_roi')
         channel = channels[0]
         liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
 
