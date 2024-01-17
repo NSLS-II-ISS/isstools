@@ -554,7 +554,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_name = 'tune_johann_piezo_plan'
 
         plan_kwargs = {}
-        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois[0]
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
         plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
         plan_kwargs['crystal'] = self.comboBox_johann_alignment_crystal.currentText()
 
@@ -567,12 +567,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         _, scan_range, duration, step_size, exposure_time = self._get_johann_scan_parameters_from_relevant_widgets(key=f'{axis}_tune')
         plan_kwargs['scan_range'] = scan_range
         if self._johann_alignment_scan_kind == 'fly':
-            plan_kwargs = {**plan_kwargs, 'duration': duration}
+            plan_kwargs = {**plan_kwargs,
+                           'duration': duration,
+                           'plan_gui_services': ['spectrometer_plot_epics_fly_scan_data']}
         elif self._johann_alignment_scan_kind == 'step':
             plan_kwargs = {**plan_kwargs, 'step_size': step_size, 'exposure_time': exposure_time}
 
-        plan_kwargs['plot_func'] = None
-        plan_kwargs['liveplot_kwargs'] = None
+        # plan_kwargs['plot_func'] = None
+        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer'}
+
         plan_kwargs['md'] = None
         # print(plan_name)
         # print(plan_kwargs)
@@ -610,7 +613,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['alignment_strategy'] = self._johann_alignment_strategy
         plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
         plan_kwargs['automatic_fom'] = f'{self.comboBox_johann_alignment_fom.currentText()}_value'
-        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois[0]
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
 
         tune_kwargs = self._johann_alignment_parse_tune_kwargs()
         scan_kwargs = self._johann_alignment_parse_scan_kwargs()
@@ -1057,11 +1060,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 break
         return curr_mot, liveplot_mot_kwargs
 
-    @property
     def _johann_checked_pilatus_rois(self, _ch='checkBox_johann_pilatus_roi'):
         return [i for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
 
-    @property
     def _johann_checked_pilatus_channels(self, _ch='checkBox_johann_pilatus_roi'):
         return [f'pil100k_stats{i + 1}_total' for i in self._johann_checked_pilatus_rois(_ch=_ch)]
 
@@ -1131,8 +1132,37 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.canvas_scan.motor = self.hhm.energy
         self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
 
-        self.update_johann_alignment_data(ecen, fwhm)
+        # self.update_johann_alignment_data(ecen, fwhm)
         # self.plot_johann_alignment_data(purpose='alignment')
+
+    def _update_figure_with_epics_fly_data(self, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None, label='', roi_color='tab:blue',
+                                           x_label='roll', y_label='intensity', scan_motor_description=None):
+        self.figure_scan.ax.plot(x, y, '.', label=f'{label}', color=roi_color, ms=15)
+        if (x_fit is not None) and (y_fit is not None):
+            self.figure_scan.ax.plot(x_fit, y_fit, '-', color=roi_color)
+
+        if (x_peak is not None) and (y_peak is not None):
+            self.figure_scan.ax.plot([x_peak, x_peak], [0, y_peak], '-', color=roi_color, lw=0.5)
+
+        if (x_peak is not None) and (fwhm is not None):
+            x_lo = x_peak - fwhm / 2
+            x_hi = x_peak + fwhm / 2
+            self.figure_scan.ax.plot([x_lo, x_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
+            self.figure_scan.ax.text(x_peak, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
+
+        self.figure_scan.ax.set_xlabel(x_label)
+        self.figure_scan.ax.set_ylabel(y_label)
+        self.figure_scan.ax.set_xlim(x[0], x[-1])
+        self.figure_scan.legend(loc='upper left', frameon=False)
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        if scan_motor_description is not None:
+            for motor_key, motor_dict in self.motor_dictionary.items():
+                if motor_dict['desctiption'] == scan_motor_description:
+                    self.canvas_scan.motor = motor_dict['object']
+
+        # self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
+        # self.update_johann_alignment_data(ecen, fwhm)
 
     def update_johann_alignment_data(self, ecen, fwhm):
         current_pos = {}

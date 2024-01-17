@@ -417,6 +417,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                   'spectrometer_plot_energy_resolution_data':
                                       {'kwarg_name': 'plot_func',
                                        'kwarg_value': self.widget_spectrometer._update_figure_with_resolution_data},
+                                  'spectrometer_plot_epics_fly_scan_data':
+                                      {'kwarg_name': 'plot_func',
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_epics_fly_data},
                                   }
 
     def question_message_box_func(self, *args):
