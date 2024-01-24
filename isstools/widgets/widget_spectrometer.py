@@ -319,7 +319,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def _johann_create_herfd_widget_rows(self):
         widgets0 = []
         widgets1 = []
-        relevant_widgets = {}
+        relevant_widgets = {"scan_flag": None}
 
         _element_guess = self.widget_johann_line_selector.comboBox_element.currentText()
         _z = xraydb.atomic_number(_element_guess)
@@ -547,9 +547,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan')
         output.pop('scan')
         if self._johann_alignment_strategy == 'herfd':
-            d = self.widget_spectrometer._johann_alignment_parameter_widget_dict['scan_params']
-            output['herfd_scan_element'] = d['scan_element']
-            output['herfd_scan_edge'] = d['scan_edge']
+            d = self._johann_alignment_parameter_widget_dict['scan_params']
+            output['herfd_scan_element'] = d['scan_element'].text()
+            output['herfd_scan_edge'] = d['scan_edge'].text()
         return output
 
     def run_johann_tune_scan(self):
@@ -624,7 +624,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             plan_kwargs['post_tuning'] = True
 
         if self.comboBox_johann_tweak_motor.currentText().lower() == 'r':
-            plan_kwargs['spectrometer_nominal_energy'] = float(self.doubleSpinBox_johann_alignment_R_energy.currentValue())
+            plan_kwargs['spectrometer_nominal_energy'] = float(self.doubleSpinBox_johann_alignment_R_energy.value())
 
         plan_kwargs['alignment_strategy'] = self._johann_alignment_strategy
         plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
