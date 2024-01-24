@@ -1,7 +1,7 @@
 import pkg_resources
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QThread, QSettings
-from PyQt5.Qt import  QObject
+from PyQt5.Qt import QObject
 from bluesky.callbacks import LivePlot
 from bluesky.callbacks.mpl_plotting import LiveScatter
 import bluesky.plan_stubs as bps
@@ -11,24 +11,31 @@ import pandas as pd
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from datetime import datetime
 import time as ttime
-
+from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit, QSizePolicy, QSpacerItem, QSlider, QToolTip, QCheckBox
+import xraydb
+import copy
 from isstools.dialogs import MoveMotorDialog
 from isstools.dialogs.BasicDialogs import question_message_box
 from isstools.elements.figure_update import update_figure_with_colorbar, update_figure, setup_figure
-from isstools.elements.transformations import  range_step_2_start_stop_nsteps
+from isstools.elements.transformations import range_step_2_start_stop_nsteps
 from isstools.widgets import widget_johann_tools
 from xas.spectrometer import analyze_elastic_scan
 from .widget_spectrometer_motors import UISpectrometerMotors
+from isstools.elements.widget_motors import UIWidgetMotors
+from isstools.elements.widget_spectrometer_R import UIWidgetSpectrometerR
 from .widget_pilatus import UIPilatusMonitor
-from ..elements.liveplots import XASPlot, NormPlot#, XASPlotX
+from ..elements.liveplots import XASPlot, NormPlot  # , XASPlotX
 from ..elements.elements import get_spectrometer_line_dict
 # from isstools.elements.liveplots import NormPlot
 from isstools.widgets import widget_emission_energy_selector
+
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer.ui')
+
 
 class UISpectrometer(*uic.loadUiType(ui_path)):
     spectrometer_config_list_changed_signal = QtCore.pyqtSignal()
     spectrometer_config_changed_signal = QtCore.pyqtSignal()
+
     def __init__(self,
                  RE,
                  plan_processor,
@@ -65,12 +72,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_spectrometer_manager.append_list_update_signal(self.spectrometer_config_list_changed_signal)
         self.update_johann_config_tree()
         self.spectrometer_config_list_changed_signal.connect(self.update_johann_config_tree)
-        self.spectrometer_config_list_changed_signal.connect(self.parent.widget_scan_manager.update_comboBox_spectrometer_config)
+        self.spectrometer_config_list_changed_signal.connect(
+            self.parent.widget_scan_manager.update_comboBox_spectrometer_config)
         self.hhm = hhm
 
         self.detector_dictionary = detector_dictionary
         # self.pilatus = detector_dictionary['Pilatus 100k']['device']
-
 
         self.aux_plan_funcs = aux_plan_funcs
         self.motor_dictionary = motor_dictionary
@@ -88,12 +95,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # self.push_time_scan.clicked.connect(self.run_time_scan)
         # self.push_single_shot.clicked.connect(self.single_shot)
         self.push_johann_open_motors_widget.clicked.connect(self.open_motor_widget)
-        self.push_pilatus_widget.clicked.connect(self.open_pilatus_widget)
-
+        # self.push_pilatus_widget.clicked.connect(self.open_pilatus_widget)
 
         self.det_list = list(detector_dictionary.keys())
         self.comboBox_pcl_detectors.addItems(self.det_list)
-        self.comboBox_pcl_detectors.setCurrentIndex(3) # make it PIPS by default!
+        self.comboBox_pcl_detectors.setCurrentIndex(3)  # make it PIPS by default!
         self.comboBox_pcl_detectors.currentIndexChanged.connect(self.pcl_detector_selected)
         self.pcl_detector_selected()
 
@@ -105,8 +111,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_pcl_detectors.addItems(self.det_list)
 
         self.motor_list = [self.motor_dictionary[motor]['description'] for motor in self.motor_dictionary
-                         if ('group' in  self.motor_dictionary[motor].keys())
-                         and (self.motor_dictionary[motor]['group']=='spectrometer')]
+                           if ('group' in self.motor_dictionary[motor].keys())
+                           and (self.motor_dictionary[motor]['group'] == 'spectrometer')]
 
         # self.comboBox_gen_motors.addItems(self.motor_list)
 
@@ -118,7 +124,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
         # self.spinBox_image_max.valueChanged.connect(self.rescale_image)
         # self.spinBox_image_min.valueChanged.connect(self.rescale_image)
-
 
         self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
                                                                      motor_dictionary=motor_dictionary,
@@ -136,7 +141,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                                                                      toolbar_proc=self.toolbar_proc)
         self.layout_johann_tools.addWidget(self.widget_johann_tools)
 
-
         # johann functions/subscriptions
         self._prepare_johann_elements()
 
@@ -148,47 +152,74 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.comboBox_johann_element_parking.currentIndexChanged.connect(self.johann_populate_parking_element_widgets)
 
+        self.johann_populate_R_parking_related_widgets()
+        self.spinBox_johann_crystal_R_parking.valueChanged.connect(self.johann_update_parking_R)
+
         self.update_enabled_crystals_checkboxes()
+        self.update_comboBox_johann_alignment_crystal()
         self.update_crystal_kind_fields()
 
-        self.checkBox_enable_main.toggled.connect(self.enable_crystal)
-        self.checkBox_enable_aux2.toggled.connect(self.enable_crystal)
-        self.checkBox_enable_aux3.toggled.connect(self.enable_crystal)
-        self.checkBox_enable_aux4.toggled.connect(self.enable_crystal)
-        self.checkBox_enable_aux5.toggled.connect(self.enable_crystal)
+        checkBox_enable_list = [self.checkBox_enable_main,
+                                self.checkBox_enable_aux2,
+                                self.checkBox_enable_aux3,
+                                self.checkBox_enable_aux4,
+                                self.checkBox_enable_aux5]
+        for checkBox_enable in checkBox_enable_list:
+            checkBox_enable.toggled.connect(self.enable_crystal)
+            checkBox_enable.toggled.connect(self.update_comboBox_johann_alignment_crystal)
 
-        self.widget_johann_line_selector = widget_emission_energy_selector.UIEmissionLineSelectorEnergyOnly(parent=self, emin=4500)
+        self.widget_johann_line_selector = widget_emission_energy_selector.UIEmissionLineSelectorEnergyOnly(parent=self,
+                                                                                                            emin=4500)
         self.layout_johann_emission_line_selector.addWidget(self.widget_johann_line_selector)
         self.comboBox_johann_roll_offset.addItems([str(i) for i in self.johann_emission.allowed_roll_offsets])
         self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
         self.push_johann_move_motors.clicked.connect(self.johann_move_motors)
 
-
         self.johann_motor_list = [motor_dictionary[motor]['description'] for motor in motor_dictionary
-                                    if ('group' in self.motor_dictionary[motor].keys()) and
-                                        (self.motor_dictionary[motor]['group'] == 'spectrometer') and
-                                        ('spectrometer_kind' in self.motor_dictionary[motor].keys()) and
-                                        (self.motor_dictionary[motor]['spectrometer_kind'] == 'johann')]
+                                  if ('group' in self.motor_dictionary[motor].keys()) and
+                                  (self.motor_dictionary[motor]['group'] == 'spectrometer') and
+                                  ('spectrometer_kind' in self.motor_dictionary[motor].keys()) and
+                                  (self.motor_dictionary[motor]['spectrometer_kind'] == 'johann')]
 
-        self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
-        self.johann_update_tweak_motor()
-        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
+        self.comboBox_johann_alignment_fom.addItems(['max', 'fwhm'])
+        self.comboBox_johann_alignment_strategy.addItems(['Emission', 'Elastic', 'HERFD'])
+        self._johann_alignment_parameter_widget_dict = {}
+        self.johann_alignment_tune_widget_list = []
+        self.johann_alignment_scan_widget_list = []
+
+        self.doubleSpinBox_johann_alignment_R_energy.setValue(johann_emission.energy.position)
+
+        self.handle_johann_alignment_widgets()
+        self.radioButton_alignment_mode_manual.clicked.connect(self.handle_johann_alignment_widgets)
+        self.radioButton_alignment_mode_semi.clicked.connect(self.handle_johann_alignment_widgets)
+        self.radioButton_alignment_mode_automatic.clicked.connect(self.handle_johann_alignment_widgets)
+        self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_alignment_widgets)
+        self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_alignment_widgets)
+
+        self.comboBox_johann_alignment_crystal.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
+        self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
+        self.comboBox_johann_alignment_strategy.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
+
+        self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
+        # self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
+        # self.johann_update_tweak_motor()
+        # self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
 
         self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
         # self.comboBox_johann_pilatus_channels.addItems(self.detector_dictionary['Pilatus 100k']['channels'])
 
-        self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
-        self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
+        # self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
+        # self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
         self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
-        self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
+        # self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
         self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
         self.push_johann_reset_limits.clicked.connect(self.johann_reset_energy_limits)
-        self.johann_alignment_data = []
-        self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
-        self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
+        # self.johann_alignment_data = []
+        # self.push_johann_reset_alignment_data.clicked.connect(self.johann_reset_alignment_data)
+        # self.push_johann_plot_alignment_data.clicked.connect(self.johann_plot_alignment_data)
 
         self.push_johann_create_config.clicked.connect(self.johann_create_config)
         self.push_johann_set_current_config.clicked.connect(self.johann_set_current_config)
@@ -199,8 +230,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         #                                                hhm=self.hhm,
         #                                                parent=self)
 
-# general handling of gui elements, plotting, and scanning
-
+    # general handling of gui elements, plotting, and scanning
 
     def handle_gui_elements(self):
         if self.plan_processor.status == 'idle':
@@ -210,6 +240,405 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.liveplot_kwargs = {}
         elif self.plan_processor.status == 'running':
             self.canvas_scan.mpl_disconnect(self.cid_scan)
+
+    def update_comboBox_johann_alignment_crystal(self):
+        self.comboBox_johann_alignment_crystal.clear()
+        self.comboBox_johann_alignment_crystal.addItems(
+            [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
+
+        self.comboBox_johann_tweak_motor.clear()
+        self.comboBox_johann_tweak_motor.addItems(['X', 'R'])
+
+    @property
+    def _johann_alignment_scan_kind(self):
+        return "fly" if self.radioButton_alignment_mode_fly.isChecked() else "step"
+
+    @property
+    def _johann_alignment_strategy(self):
+        return self.comboBox_johann_alignment_strategy.currentText().lower()
+
+    def _johann_label_row_widget(self, motor_label="Tune motor", with_button=False):
+        widgets = []
+        widgets.append(QLabel(motor_label))
+        widgets.append(QLabel("Range"))
+        widgets.append(QLabel(""))
+        if self._johann_alignment_scan_kind == 'fly':
+            widgets.append(QLabel("Duration"))
+            widgets.append(QLabel(""))
+        elif self._johann_alignment_scan_kind == 'step':
+            widgets.append(QLabel("Step"))
+            widgets.append(QLabel(""))
+            widgets.append(QLabel("Exposure"))
+            widgets.append(QLabel(""))
+        return widgets
+
+    def _johann_create_motor_widget_row(self, motor_check: bool = None,
+                                        motor_str: str = 'yaw',
+                                        motor_unit_str: str = 'mdeg',
+                                        scan_range=1000, scan_duration=10,
+                                        scan_step=10.0, scan_exposure=0.25,
+                                        with_button=False):
+        widgets = []
+        relevant_widgets = {}
+        if motor_check is None:
+            _widget_motor = QLabel(motor_str)
+        else:
+            _widget_motor = QCheckBox(motor_str)
+            _widget_motor.setChecked(motor_check)
+        widgets.append(_widget_motor)
+        relevant_widgets["scan_flag"] = _widget_motor
+
+        _widget_scan_range = QLineEdit(str(scan_range))
+        relevant_widgets["scan_range"] = _widget_scan_range
+        widgets.append(_widget_scan_range)
+        widgets.append(QLabel(motor_unit_str))
+        if self._johann_alignment_scan_kind == 'fly':
+            _widget_duration = QLineEdit(str(scan_duration))
+            relevant_widgets["scan_duration"] = _widget_duration
+            widgets.append(_widget_duration)
+            widgets.append(QLabel("s"))
+        elif self._johann_alignment_scan_kind == 'step':
+            _widget_scan_step = QLineEdit(str(scan_step))
+            relevant_widgets["scan_step"] = _widget_scan_step
+            widgets.append(_widget_scan_step)
+            widgets.append(QLabel(motor_unit_str))
+            _widget_scan_exposure = QLineEdit(str(scan_exposure))
+            relevant_widgets["scan_exposure"] = _widget_scan_exposure
+            widgets.append(_widget_scan_exposure)
+            widgets.append(QLabel("s"))
+
+        if with_button:
+            _widget_scan_button = QPushButton("Tune")
+            _widget_scan_button.setObjectName(f"{motor_str}_tune_button")
+            _widget_scan_button.clicked.connect(self.run_johann_tune_scan)
+            relevant_widgets["scan_button"] = _widget_scan_button
+            widgets.append(_widget_scan_button)
+
+        return widgets, relevant_widgets
+
+    def _johann_create_herfd_widget_rows(self):
+        widgets0 = []
+        widgets1 = []
+        relevant_widgets = {"scan_flag": None}
+
+        _element_guess = self.widget_johann_line_selector.comboBox_element.currentText()
+        _z = xraydb.atomic_number(_element_guess)
+        _edge_guess = "K" if _z < 55 else "L3"
+
+        _label_element = QLabel("Element")
+        widgets0.append(_label_element)
+        _label_element.setFixedWidth(int(30))
+        _widget_element = QLineEdit(_element_guess)
+        _widget_element.setFixedWidth(int(30))
+        relevant_widgets['scan_element'] = _widget_element
+        widgets1.append(_widget_element)
+
+        _label_edge = QLabel("Edge")
+        _label_edge.setFixedWidth(int(30))
+        widgets0.append(_label_edge)
+        _widget_edge = QLineEdit(_edge_guess)
+        _widget_edge.setFixedWidth(int(30))
+        relevant_widgets['scan_edge'] = _widget_edge
+        widgets1.append(_widget_edge)
+
+        widgets0.append(QLabel("Range"))
+        _widget_range = QLineEdit("200")
+        relevant_widgets['scan_range'] = _widget_range
+        widgets1.append(_widget_range)
+        widgets0.append(QLabel(""))
+        widgets1.append(QLabel("eV"))
+
+        if self._johann_alignment_scan_kind == 'fly':
+            widgets0.append(QLabel("Duration"))
+            _widget_duration = QLineEdit("10")
+            relevant_widgets['scan_duration'] = _widget_duration
+            widgets1.append(_widget_duration)
+
+            widgets0.append(QLabel(""))
+            widgets1.append(QLabel("s"))
+
+        elif self._johann_alignment_scan_kind == 'step':
+            widgets0.append(QLabel("Step"))
+
+            _widget_step = QLineEdit("0.3")
+            relevant_widgets['scan_step'] = _widget_step
+            widgets1.append(_widget_step)
+
+            widgets0.append(QLabel(""))
+            widgets1.append(QLabel("eV"))
+
+            widgets0.append(QLabel("Exposure"))
+            _widget_exposure = QLineEdit("0.5")
+            relevant_widgets['scan_exposure'] = _widget_exposure
+            widgets1.append(_widget_exposure)
+
+            widgets0.append(QLabel(""))
+            widgets1.append(QLabel("s"))
+
+        return widgets0, widgets1, relevant_widgets
+
+    def _handle_enabled_johann_alignment_widgets(self):
+        if self.radioButton_alignment_mode_manual.isChecked():
+            self.comboBox_johann_alignment_fom.setEnabled(False)
+            self.label_johann_alignment_crystal.setEnabled(True)
+            self.label_johann_alignment_tweak_motor.setEnabled(True)
+            self.comboBox_johann_alignment_crystal.setEnabled(True)
+            self.comboBox_johann_tweak_motor.setEnabled(True)
+
+            self.label_johann_alignment_tweak_range.setEnabled(False)
+            self.label_johann_alignment_tweak_range_mm.setEnabled(False)
+            self.label_johann_alignment_n_steps.setEnabled(False)
+            self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(False)
+            self.label_johann_alignment_n_steps.setEnabled(False)
+
+        elif self.radioButton_alignment_mode_semi.isChecked():
+            self.comboBox_johann_alignment_fom.setEnabled(False)
+            self.label_johann_alignment_crystal.setEnabled(True)
+            self.label_johann_alignment_tweak_motor.setEnabled(True)
+            self.comboBox_johann_alignment_crystal.setEnabled(True)
+            self.comboBox_johann_tweak_motor.setEnabled(True)
+
+            self.label_johann_alignment_tweak_range.setEnabled(True)
+            self.label_johann_alignment_tweak_range_mm.setEnabled(True)
+            self.label_johann_alignment_n_steps.setEnabled(True)
+            self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(True)
+            self.label_johann_alignment_n_steps.setEnabled(True)
+
+        elif self.radioButton_alignment_mode_automatic.isChecked():
+            self.comboBox_johann_alignment_fom.setEnabled(True)
+            self.label_johann_alignment_crystal.setEnabled(False)
+            self.label_johann_alignment_tweak_motor.setEnabled(True)
+            self.comboBox_johann_alignment_crystal.setEnabled(False)
+            self.comboBox_johann_tweak_motor.setEnabled(True)
+
+            self.label_johann_alignment_tweak_range.setEnabled(True)
+            self.label_johann_alignment_tweak_range_mm.setEnabled(True)
+            self.label_johann_alignment_n_steps.setEnabled(True)
+            self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(True)
+            self.label_johann_alignment_n_steps.setEnabled(True)
+
+        if self.comboBox_johann_tweak_motor.currentText().lower() == 'r':
+            self.label_johann_alignment_R_energy.setEnabled(True)
+            self.label_johann_alignment_R_energy_eV.setEnabled(True)
+            self.doubleSpinBox_johann_alignment_R_energy.setEnabled(True)
+        else:
+            self.label_johann_alignment_R_energy.setEnabled(False)
+            self.label_johann_alignment_R_energy_eV.setEnabled(False)
+            self.doubleSpinBox_johann_alignment_R_energy.setEnabled(False)
+
+    def handle_johann_alignment_widgets(self):
+        # clean up old widgets
+        self._johann_alignment_parameter_widget_dict = {}
+
+        self._handle_enabled_johann_alignment_widgets()
+        for widget in self.johann_alignment_tune_widget_list:
+            self.johann_alignment_tune_layout.removeWidget(widget)
+            widget.deleteLater()
+        self.johann_alignment_tune_widget_list = []
+
+        for widget in self.johann_alignment_scan_widget_list:
+            self.johann_alignment_scan_layout.removeWidget(widget)
+            widget.deleteLater()
+        self.johann_alignment_scan_widget_list = []
+
+        tweak_motor_widgets = []
+        crystal_str = self.comboBox_johann_alignment_crystal.currentText()
+        motor_str = self.comboBox_johann_tweak_motor.currentText()
+        if motor_str == 'X':
+            if crystal_str == 'main':
+                motor_key = 'auxxy_x'
+            else:
+                motor_key = f'johann_cr_{crystal_str}_x'
+            widget = UIWidgetMotors(self.motor_dictionary[motor_key], motor_description_width=500,
+                                    horizontal_scale=0.9)
+        elif motor_str == 'R':
+            widget = UIWidgetSpectrometerR(johann_emission=self.johann_emission, spinbox_energy=self.doubleSpinBox_johann_alignment_R_energy,
+                                            plan_processor=self.plan_processor, parent=self)
+        else:
+            raise NotImplementedError('Tweak motor must be either R or X. No other options are implemented!')
+            # widget = None
+
+        self.johann_alignment_tune_widget_list.append(widget)
+        self._johann_alignment_parameter_widget_dict['tweak_motor'] = widget
+        tweak_motor_widgets.append(widget)
+
+        # elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
+        labels_tune_widgets = self._johann_label_row_widget(motor_label="Tune motor")
+        yaw_tune_widgets, yaw_tune_relevant_widgets = self._johann_create_motor_widget_row(
+            motor_check=True, motor_str='yaw', motor_unit_str='mdeg',
+            scan_range=1000, scan_duration=10,
+            scan_step=10, scan_exposure=0.25, with_button=True)
+        self._johann_alignment_parameter_widget_dict['yaw_tune'] = yaw_tune_relevant_widgets
+
+        roll_tune_widgets, roll_tune_relevant_widgets = self._johann_create_motor_widget_row(
+            motor_check=False, motor_str='roll', motor_unit_str='mdeg',
+            scan_range=1000, scan_duration=10,
+            scan_step=10, scan_exposure=0.25, with_button=True)
+        self._johann_alignment_parameter_widget_dict['roll_tune'] = roll_tune_relevant_widgets
+
+        self.johann_alignment_tune_widget_list.extend(labels_tune_widgets + yaw_tune_widgets + roll_tune_widgets)
+
+        for widget in tweak_motor_widgets:
+            self.johann_alignment_tune_layout.addWidget(widget, 0, 0, 1, len(labels_tune_widgets) + 1)
+            widget.setEnabled(self.radioButton_alignment_mode_manual.isChecked())
+
+        tune_widget_row_offset = len(tweak_motor_widgets)
+        for row, _widget_list in enumerate([labels_tune_widgets, yaw_tune_widgets, roll_tune_widgets]):
+            for col, _widget in enumerate(_widget_list):
+                self.johann_alignment_tune_layout.addWidget(_widget, row + tune_widget_row_offset, col)
+
+        if self._johann_alignment_strategy == 'emission':
+            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                     motor_str='roll',
+                                                                                     motor_unit_str='mdeg',
+                                                                                     scan_range=1000,
+                                                                                     scan_duration=10,
+                                                                                     scan_step=10,
+                                                                                     scan_exposure=0.25)
+        elif self._johann_alignment_strategy == 'elastic':
+            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                     motor_str='energy',
+                                                                                     motor_unit_str='eV',
+                                                                                     scan_range=15,
+                                                                                     scan_duration=10,
+                                                                                     scan_step=0.1,
+                                                                                     scan_exposure=0.25)
+        elif self._johann_alignment_strategy == 'herfd':
+            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows()
+
+        self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
+        self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
+
+        for i in range(len(_widgets0_scan)):
+            self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
+            self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
+
+    def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune'):
+        d = self._johann_alignment_parameter_widget_dict[key]
+        scan_flag = bool(d['scan_flag'].isChecked()) if type(d['scan_flag']) == QCheckBox else True
+        scan_range = float(d['scan_range'].text())
+        scan_duration = float(d['scan_duration'].text()) if self._johann_alignment_scan_kind == 'fly' else None
+        scan_step = float(d['scan_step'].text()) if self._johann_alignment_scan_kind == 'step' else None
+        scan_exposure = float(d['scan_exposure'].text()) if self._johann_alignment_scan_kind == 'step' else None
+        return (scan_flag, scan_range, scan_duration, scan_step, scan_exposure)
+
+    def _parse_johann_tune_motor_dict(self, motor='yaw_tune', key_prefix=None):
+        if key_prefix is None: key_prefix = motor
+        values = self._get_johann_scan_parameters_from_relevant_widgets(key=motor)
+        keys = [f'{key_prefix}', f'{key_prefix}_range', f'{key_prefix}_duration', f'{key_prefix}_step', f'{key_prefix}_exposure']
+        output = {k: v for k, v in zip(keys, values)}
+        return output
+
+    # def _parse_johann_tune_motor_to_default_values(self, motor='yaw_tune', key_prefix='motor'):
+    #     output = self._parse_johann_tune_motor_dict()
+    #     if motor == 'yaw_tune':
+
+    def _johann_alignment_parse_tune_kwargs(self):
+        output = {}
+        for key in ['yaw_tune', 'roll_tune']:
+            if key in self._johann_alignment_parameter_widget_dict.keys():
+                tune_kwargs = self._parse_johann_tune_motor_dict(key)
+                output = {**output, **tune_kwargs}
+        return output
+
+    def _johann_alignment_parse_scan_kwargs(self):
+        output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan')
+        output.pop('scan')
+        if self._johann_alignment_strategy == 'herfd':
+            d = self._johann_alignment_parameter_widget_dict['scan_params']
+            output['herfd_scan_element'] = d['scan_element'].text()
+            output['herfd_scan_edge'] = d['scan_edge'].text()
+        return output
+
+    def run_johann_tune_scan(self):
+        sender_object_name = self.sender().objectName()
+
+        plan_name = 'tune_johann_piezo_plan'
+
+        plan_kwargs = {}
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+        plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
+        plan_kwargs['crystal'] = self.comboBox_johann_alignment_crystal.currentText()
+
+        if sender_object_name == 'yaw_tune_button':
+            axis = 'yaw'
+        elif sender_object_name == 'roll_tune_button':
+            axis = 'roll'
+        plan_kwargs['axis'] = axis
+
+        _, scan_range, duration, step_size, exposure_time = self._get_johann_scan_parameters_from_relevant_widgets(key=f'{axis}_tune')
+        plan_kwargs['scan_range'] = scan_range
+        if self._johann_alignment_scan_kind == 'fly':
+            plan_kwargs = {**plan_kwargs,
+                           'duration': duration}
+            plan_gui_services = ['spectrometer_plot_epics_fly_scan_data']
+        elif self._johann_alignment_scan_kind == 'step':
+            plan_kwargs = {**plan_kwargs, 'step_size': step_size, 'exposure_time': exposure_time}
+            plan_gui_services = None
+
+        # plan_kwargs['plot_func'] = None
+        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer'}
+        plan_kwargs['md'] = None
+
+        if self.radioButton_alignment_mode_automatic.isChecked():
+            plans = []
+            for crystal in [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled]:
+                _plan_kwargs = copy.deepcopy(plan_kwargs)
+                _plan_kwargs['crystal'] = crystal
+                plan_dict = {'plan_name': plan_name, 'plan_kwargs': _plan_kwargs}
+                if plan_gui_services is not None:
+                    plan_dict['plan_gui_services'] = plan_gui_services
+                plans.append(plan_dict)
+                # to keep the plots after the first scan in the batch:
+                if _plan_kwargs['liveplot_kwargs'] is not None:
+                    _plan_kwargs['liveplot_kwargs'] = None
+            self.plan_processor.add_plans(plans)
+            self.plan_processor.run_if_idle()
+        else:
+            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs, plan_gui_services=plan_gui_services)
+
+    def run_johann_alignment_scan(self):
+        plan_name = 'johann_spectrometer_alignment_plan_bundle'
+        plan_kwargs = {}
+
+        plan_kwargs['alignment_motor'] = self.comboBox_johann_tweak_motor.currentText()
+        if self.radioButton_alignment_mode_manual.isChecked():
+            plan_kwargs['crystals'] = [self.comboBox_johann_alignment_crystal.currentText()]
+            plan_kwargs['motor_range'] = 0
+            plan_kwargs['motor_num_steps'] = 1
+            plan_kwargs['automatic_mode'] = False
+            plan_kwargs['post_tuning'] = False
+        elif self.radioButton_alignment_mode_semi.isChecked():
+            plan_kwargs['crystals'] = [self.comboBox_johann_alignment_crystal.currentText()]
+            plan_kwargs['motor_range'] = float(self.doubleSpinBox_johann_alignemnt_tweak_range.value())
+            plan_kwargs['motor_num_steps'] = int(self.spinBox_johann_alignment_n_steps.value())
+            plan_kwargs['automatic_mode'] = False
+            plan_kwargs['post_tuning'] = False
+        elif self.radioButton_alignment_mode_automatic.isChecked():
+            plan_kwargs['crystals'] = None
+            plan_kwargs['motor_range'] = float(self.doubleSpinBox_johann_alignemnt_tweak_range.value())
+            plan_kwargs['motor_num_steps'] = int(self.spinBox_johann_alignment_n_steps.value())
+            plan_kwargs['automatic_mode'] = True
+            plan_kwargs['post_tuning'] = True
+
+        if self.comboBox_johann_tweak_motor.currentText().lower() == 'r':
+            plan_kwargs['spectrometer_nominal_energy'] = float(self.doubleSpinBox_johann_alignment_R_energy.value())
+
+        plan_kwargs['alignment_strategy'] = self._johann_alignment_strategy
+        plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
+        plan_kwargs['automatic_fom'] = f'{self.comboBox_johann_alignment_fom.currentText()}_value'
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+
+        tune_kwargs = self._johann_alignment_parse_tune_kwargs()
+        scan_kwargs = self._johann_alignment_parse_scan_kwargs()
+        plan_kwargs = {**plan_kwargs, **tune_kwargs, **scan_kwargs}
+
+        self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        # print(plan_name)
+        # print(plan_kwargs)
+
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         self.start_gen_scan_figure()
@@ -244,26 +673,25 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                       motor, liveplot_mot_kwargs,
                       scan_range, scan_step, exposure_time=1):
 
-        rel_start, rel_stop, num_steps =  range_step_2_start_stop_nsteps(scan_range, scan_step)
+        rel_start, rel_stop, num_steps = range_step_2_start_stop_nsteps(scan_range, scan_step)
 
         plan_name = 'general_scan'
-        plan_kwargs = {'detectors' : detectors,
-                       'motor' : motor,
-                       'rel_start' : rel_start,
-                       'rel_stop' : rel_stop,
-                       'num_steps' : num_steps,
+        plan_kwargs = {'detectors': detectors,
+                       'motor': motor,
+                       'rel_start': rel_start,
+                       'rel_stop': rel_stop,
+                       'num_steps': num_steps,
                        'exposure_time': exposure_time,
-                       'liveplot_kwargs' : {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab' : 'spectrometer'}}
+                       'liveplot_kwargs': {**liveplot_det_kwargs, **liveplot_mot_kwargs, 'tab': 'spectrometer'}}
 
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
-
 
     def getX_scan(self, event):
         print(f'Event {event.button}')
         if event.button == 3:
             if self.canvas_scan.motor != '':
                 dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_scan.motor,
-                                                          parent=self.canvas_scan)
+                                                      parent=self.canvas_scan)
                 if dlg.exec_():
                     pass
 
@@ -272,7 +700,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         detector_name = cb_det.currentText()
         cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
 
-# General / PCL scans
+    # General / PCL scans
 
     def run_pcl_scan(self):
         detector = self.comboBox_pcl_detectors.currentText()
@@ -283,7 +711,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         motor = f'six_axes_stage_{motor_suffix}'
         motor_description = self.motor_dictionary[motor]['description']
         liveplot_mot_kwargs = {'curr_mot_name': motor}
-
 
         scan_range = getattr(self, f'doubleSpinBox_pcl_range_{motor_suffix}').value()
         scan_step = getattr(self, f'doubleSpinBox_pcl_step_{motor_suffix}').value()
@@ -349,7 +776,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     #     self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
     #     self.last_motor_used = [motor1, motor2]
 
-
     # def run_gen_scan(self):
     #
     #     detector_name = self.comboBox_gen_detectors.currentText()
@@ -367,7 +793,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     #     scan_step = self.doubleSpinBox_gen_motor_step.value()
     #
     #     uid_list = self._run_any_scan(detector, channel, motor, scan_range, scan_step)
-
 
     # def run_time_scan(self):
     #     self.canvas_scan.mpl_disconnect(self.cid_scan)
@@ -397,10 +822,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         if event.button == 3:
             if self.canvas_proc.motor != '':
                 dlg = MoveMotorDialog.MoveMotorDialog(new_position=event.xdata, motor=self.canvas_proc.motor,
-                                                          parent=self.canvas_proc)
+                                                      parent=self.canvas_proc)
                 if dlg.exec_():
                     pass
-
 
     def update_scan_figure_for_energy_scan(self, E, I_fit_raw):
         self.canvas_scan.mpl_disconnect(self.cid_scan)
@@ -408,7 +832,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.figure_scan.tight_layout()
         self.canvas_scan.draw_idle()
         self.cid_scan = self.canvas_scan.mpl_connect('button_press_event', self.getX_scan)
-
 
     def update_proc_figure(self, x_key):
         # managing figures
@@ -433,7 +856,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             motor_pos = self.widget_johann_tools._alignment_data[x_key].values
             fwhm = self.widget_johann_tools._alignment_data['fwhm'].values
             ecen = self.widget_johann_tools._alignment_data['ecen'].values
-            res = np.sqrt(fwhm**2 - (1.3e-4 * ecen)**2)
+            res = np.sqrt(fwhm ** 2 - (1.3e-4 * ecen) ** 2)
 
             for each_pos, each_fwhm, each_res in zip(motor_pos, fwhm, res):
                 self.figure_proc.ax.plot(each_pos, each_fwhm, 'o')
@@ -446,22 +869,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.canvas_proc.draw_idle()
         self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
 
-
-# handling Johann spectrometer elements
+    # handling Johann spectrometer elements
 
     def _prepare_johann_elements(self):
-        self.johann_parking_elements = { 'Main': {'set_parking_func': self.johann_emission.set_main_crystal_parking,
-                                              'read_parking_func': self.johann_emission.read_main_crystal_parking},
-                                         'Aux2': {'set_parking_func': self.johann_emission.set_aux2_crystal_parking,
-                                                  'read_parking_func': self.johann_emission.read_aux2_crystal_parking},
-                                         'Aux3': {'set_parking_func': self.johann_emission.set_aux3_crystal_parking,
-                                                  'read_parking_func': self.johann_emission.read_aux3_crystal_parking},
-                                         'Aux4': {'set_parking_func': self.johann_emission.set_aux4_crystal_parking,
-                                                  'read_parking_func': self.johann_emission.read_aux4_crystal_parking},
-                                         'Aux5': {'set_parking_func': self.johann_emission.set_aux5_crystal_parking,
-                                                  'read_parking_func': self.johann_emission.read_aux5_crystal_parking},
-                                         'Detector': {'set_parking_func': self.johann_emission.set_det_arm_parking,
-                                                  'read_parking_func': self.johann_emission.read_det_arm_parking}}
+        self.johann_parking_elements = {'Main': {'set_parking_func': self.johann_emission.set_main_crystal_parking,
+                                                 'read_parking_func': self.johann_emission.read_main_crystal_parking},
+                                        'Aux2': {'set_parking_func': self.johann_emission.set_aux2_crystal_parking,
+                                                 'read_parking_func': self.johann_emission.read_aux2_crystal_parking},
+                                        'Aux3': {'set_parking_func': self.johann_emission.set_aux3_crystal_parking,
+                                                 'read_parking_func': self.johann_emission.read_aux3_crystal_parking},
+                                        'Aux4': {'set_parking_func': self.johann_emission.set_aux4_crystal_parking,
+                                                 'read_parking_func': self.johann_emission.read_aux4_crystal_parking},
+                                        'Aux5': {'set_parking_func': self.johann_emission.set_aux5_crystal_parking,
+                                                 'read_parking_func': self.johann_emission.read_aux5_crystal_parking},
+                                        'Detector': {'set_parking_func': self.johann_emission.set_det_arm_parking,
+                                                     'read_parking_func': self.johann_emission.read_det_arm_parking}}
 
         self.comboBox_johann_element_parking.addItems(self.johann_parking_elements.keys())
         self.johann_populate_parking_element_widgets()
@@ -488,13 +910,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _johann_populate_parking_element_widgets(self, names, positions, units):
         for i, (name, position, unit) in enumerate(zip(names, positions, units)):
-            widget_label_name = getattr(self, f'label_johann_parking_element_name_{i+1}')
+            widget_label_name = getattr(self, f'label_johann_parking_element_name_{i + 1}')
             widget_spinbox_position = getattr(self, f'spinBox_johann_parking_element_position_{i + 1}')
             widget_label_unit = getattr(self, f'label_johann_parking_element_unit_{i + 1}')
             widget_label_name.setText(name)
             widget_spinbox_position.setValue(position)
             widget_label_unit.setText(unit)
-
 
     # def johann_populate_detector_parking(self):
     #     x, th1, th2 = self.johann_emission.read_det_arm_parking()
@@ -521,6 +942,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     #         self.johann_emission.set_det_arm_parking()
     #         self.johann_populate_detector_parking()
 
+    def johann_populate_R_parking_related_widgets(self):
+        self.spinBox_johann_crystal_R_parking.setValue(self.johann_emission.read_R_parking())
+        self.johann_deal_with_crystal_aux_z()
+
+    def johann_update_parking_R(self, value):
+        print(f'new parking R = {value}')
+        self.johann_emission.update_R_parking(value)
+        self.johann_deal_with_crystal_aux_z()
+        self.edit_johann_crystal_R.setText(f'{value :.0f}')
+
+    def johann_deal_with_crystal_aux_z(self):
+        aux2_z, aux4_z = self.johann_emission.read_crystal_aux_dz()
+        self.spinBox_johann_crystal_aux2_z.setValue(aux2_z)
+        self.spinBox_johann_crystal_aux4_z.setValue(aux4_z)
+
     def johann_home_crystals(self):
         self.johann_emission.home_crystal_piezos()
 
@@ -535,7 +971,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def update_enabled_crystals_checkboxes(self):
         for crystal_key, enable in self.johann_emission.enabled_crystals.items():
-            checkBox_widget = getattr(self, f'checkBox_enable_{crystal_key}') # oh boy
+            checkBox_widget = getattr(self, f'checkBox_enable_{crystal_key}')  # oh boy
             checkBox_widget.setChecked(enable)
 
     def enable_crystal(self, enable):
@@ -567,7 +1003,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _johann_update_crystal_config(self):
         crystal = self.comboBox_johann_crystal_kind.currentText()
-        R = float(self.edit_johann_crystal_R.text())
+        # R = float(self.edit_johann_crystal_R.text())
         hkl = self.lineEdit_johann_hkl.text()
         hkl = hkl.replace(')', '').replace('(', '').replace(']', '').replace('[', '')
         hkl = [int(i) for i in hkl.split(',')]
@@ -593,13 +1029,16 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         roll_offset = float(self.comboBox_johann_roll_offset.currentText())
         R = float(self.edit_johann_crystal_R.text())
         self.johann_emission.set_R(R)
-        self.johann_emission.set_roll_offset(roll_offset) # this will compute all the motor positions and will save the config to settings
+        self.johann_emission.set_roll_offset(
+            roll_offset)  # this will compute all the motor positions and will save the config to settings
 
         energy = float(self.widget_johann_line_selector.edit_E.text())
         self.johann_emission.move(energy=energy)
 
         self.johann_emission.initialized = True
         self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(True)
+
+        self.doubleSpinBox_johann_alignment_R_energy.setValue(energy)
 
     def johann_update_tweak_motor(self):
         motor_description = self.comboBox_johann_tweak_motor.currentText()
@@ -631,16 +1070,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         curr_mot = self.comboBox_johann_scan_motor.currentText()
         for motor_key, motor_dict in self.motor_dictionary.items():
             if curr_mot == motor_dict['description']:
-                liveplot_mot_kwargs = {'curr_mot_name' : motor_dict['object'].name}
+                liveplot_mot_kwargs = {'curr_mot_name': motor_dict['object'].name}
                 break
         return curr_mot, liveplot_mot_kwargs
 
+    def _johann_checked_pilatus_rois(self, _ch='checkBox_johann_pilatus_roi'):
+        return [(i + 1) for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
+
+    def _johann_checked_pilatus_channels(self, _ch='checkBox_johann_pilatus_roi'):
+        return [f'pil100k2_stats{i}_total' for i in self._johann_checked_pilatus_rois(_ch=_ch)]
 
     def run_johann_motor_scan(self):
-        detector = 'Pilatus 100k'
-        _ch = 'checkBox_johann_pilatus_roi'
-
-        channels = [f'pil100k_stats{i+1}_total' for i in range(4) if getattr(self, f'{_ch}{i+1}').isChecked()]
+        detector = 'Pilatus 100k New'
+        # _ch = 'checkBox_johann_pilatus_roi'
+        # channels = [f'pil100k_stats{i + 1}_total' for i in range(4) if getattr(self, f'{_ch}{i + 1}').isChecked()]
+        channels = self._johann_checked_pilatus_channels(_ch='checkBox_johann_motor_scan_pilatus_roi')
         channel = channels[0]
         liveplot_det_kwargs = {'channel': channel, 'channel_den': '1', 'result_name': channel}
 
@@ -654,17 +1098,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                            motor, liveplot_mot_kwargs,
                            scan_range, scan_step, exposure_time)
 
-
     def _get_checked_pilatus_rois(self):
         rois = []
         for i in range(4):
-            checkBox = getattr(self, f'checkBox_johann_pilatus_roi{i+1}')
+            checkBox = getattr(self, f'checkBox_johann_pilatus_roi{i + 1}')
             if checkBox.isChecked():
-                rois.append(i+1)
+                rois.append(i + 1)
         if len(rois) == 0:
             rois = [1]
         return rois
-
 
     def run_johann_energy_scan(self):
         motor_name = self.comboBox_johann_tweak_motor.currentText()
@@ -680,12 +1122,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                        'e_width': e_width,
                        'e_velocity': e_velocity,
                        'rois': rois,
-                       'motor_info' : motor_info,
+                       'motor_info': motor_info,
                        'plan_gui_services': plan_gui_services,
-                       'liveplot_kwargs': {'tab' : 'spectrometer'}}
+                       'liveplot_kwargs': {'tab': 'spectrometer'}}
         self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
-    def _update_figure_with_resolution_data(self, energy, intensity, intensity_fit, ecen, fwhm, roi_label='roi1', roi_color='tab:blue'):
+    def _update_figure_with_resolution_data(self, energy, intensity, intensity_fit, ecen, fwhm, roi_label='roi1',
+                                            roi_color='tab:blue'):
         self.figure_scan.ax.plot(energy, intensity, '.', label=f'{roi_label}', color=roi_color, ms=15)
         self.figure_scan.ax.plot(energy, intensity_fit, '-', color=roi_color)
 
@@ -703,8 +1146,38 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.canvas_scan.motor = self.hhm.energy
         self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
 
-        self.update_johann_alignment_data(ecen, fwhm)
+        # self.update_johann_alignment_data(ecen, fwhm)
         # self.plot_johann_alignment_data(purpose='alignment')
+
+    def _update_figure_with_epics_fly_data(self, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None, label='', roi_color='tab:blue',
+                                           x_label='roll', y_label='intensity', scan_motor_description=None):
+        # print('in the plotting function')
+        self.figure_scan.ax.plot(x, y, '.', label=f'{label}', color=roi_color, ms=15)
+        if (x_fit is not None) and (y_fit is not None):
+            self.figure_scan.ax.plot(x_fit, y_fit, '-', color=roi_color)
+
+        if (x_peak is not None) and (y_peak is not None):
+            self.figure_scan.ax.plot([x_peak, x_peak], [y.min(), y.max()], '-', color=roi_color, lw=0.5)
+
+        if (x_peak is not None) and (fwhm is not None):
+            x_lo = x_peak - fwhm / 2
+            x_hi = x_peak + fwhm / 2
+            self.figure_scan.ax.plot([x_lo, x_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
+            self.figure_scan.ax.text(x_peak, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
+
+        self.figure_scan.ax.set_xlabel(x_label)
+        self.figure_scan.ax.set_ylabel(y_label)
+        self.figure_scan.ax.set_xlim(x.min(), x.max())
+        self.figure_scan.ax.legend(loc='upper left', frameon=False)
+        self.figure_scan.tight_layout()
+        self.canvas_scan.draw_idle()
+        if scan_motor_description is not None:
+            for motor_key, motor_dict in self.motor_dictionary.items():
+                if motor_dict['description'] == scan_motor_description:
+                    self.canvas_scan.motor = motor_dict['object']
+
+        # self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
+        # self.update_johann_alignment_data(ecen, fwhm)
 
     def update_johann_alignment_data(self, ecen, fwhm):
         current_pos = {}
@@ -715,7 +1188,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         current_pos['fwhm'] = fwhm
         current_pos['ecen'] = ecen
         self.johann_alignment_data.append(current_pos)
-
 
     def johann_reset_alignment_data(self):
         self.johann_alignment_data = []
@@ -742,19 +1214,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         self.cid_proc = self.canvas_proc.mpl_connect('button_press_event', self.getX_proc)
 
-
-
-
-
-
-
-
-
-
     def johann_register_energy(self):
         energy = float(self.lineEdit_johann_energy_init.text())
         self.johann_emission.register_energy(energy)
-
 
     def johann_set_energy_limits(self):
         e_lo = float(self.lineEdit_johann_energy_lim_lo.text())
@@ -781,8 +1243,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.widget_motor_detachable.show()
         print('Done')
 
-    def open_pilatus_widget(self):
-        self.widget_pilatus_monitor.show()
+        # def open_pilatus_widget(self):
+        #     self.widget_pilatus_monitor.show()
 
         # return None
         # self.widget_pilatus_detachable = QtWidgets.QWidget()
@@ -826,5 +1288,3 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # print(f'Configuring spectrometer to {qt_item.text(0)}')
         self.johann_spectrometer_manager.set_config_by_index(index)
         self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(True)
-
-

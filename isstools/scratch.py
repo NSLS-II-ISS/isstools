@@ -2285,3 +2285,32 @@ update_sample_tree(x)
 sample = Sample('bla', coordinates=[{'x': 0.0, 'y': 0.0, 'z': 0.0, 'th': 0.0}])
 
 {'x': sample.position_data.iloc[0]['x'], 'y': sample.position_data.iloc[0]['y'], 'z': sample.position_data.iloc[0]['z'], 'th': sample.position_data.iloc[0]['th']}
+
+###
+
+from xas.db_io import load_apb_dataset_from_db, translate_apb_dataset, load_apb_trig_dataset_from_db, load_xs3_dataset_from_db, load_pil100k_dataset_from_db, load_apb_dataset_only_from_db, translate_apb_only_dataset
+from xas.interpolate import interpolate
+
+
+def interpolate_data_for_fly_scan_and_plot(db, uid, label=''):
+    hdr = db[uid]
+    stream_names = hdr.stream_names
+    apb_df, energy_df, energy_offset = load_apb_dataset_from_db(db, uid)
+    raw_dict = translate_apb_dataset(apb_df, energy_df, energy_offset)
+    for stream_name in stream_names:
+
+        if stream_name == 'xs_stream':
+            apb_trigger_xs_timestamps = load_apb_trig_dataset_from_db(db, uid, stream_name='apb_trigger_xs')
+            xs3_dict = load_xs3_dataset_from_db(db, uid, apb_trigger_xs_timestamps)
+            raw_dict = {**raw_dict, **xs3_dict}
+
+    df = interpolate(raw_dict)
+    plt.plot(df.energy, df.xs_ch02_roi04, label=label)
+
+
+plt.figure()
+interpolate_data_for_fly_scan_and_plot(db, '89daed24-678e-4a68-985b-3ffe7e2fafd2', label='UP RT')
+interpolate_data_for_fly_scan_and_plot(db, '1d779dd5-6c90-4523-b6fc-e4d6cb3ae468', label='DOWN RT')
+interpolate_data_for_fly_scan_and_plot(db, 'eddd649a-0a67-43ad-b381-46e6aa9f915d', label='UP 300C')
+interpolate_data_for_fly_scan_and_plot(db, '5df31038-f505-46cc-adab-d9ed745d3975', label='DOWN 300C')
+plt.legend()
