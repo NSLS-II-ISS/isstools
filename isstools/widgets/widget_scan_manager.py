@@ -195,7 +195,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.comboBox_spectrometer_config.addItems(items)
 
     def populate_detectors(self):
-        detector_names = ['Pilatus 100k', 'Xspress3']
+        detector_names = ['Pilatus 100k New', 'Pilatus 100k', 'Xspress3']
         for detector in detector_names:
             qitem = QtWidgets.QCheckBox(detector)
             qitem.setCheckState(False)
