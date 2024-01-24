@@ -394,11 +394,14 @@ class XliveGui(*uic.loadUiType(ui_path)):
         elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan',
                            'obtain_hhm_calibration_plan', 'obtain_spectrometer_resolution_plan',
                            'tune_johann_piezo_plan']:
-            if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
-                if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
-                    liveplot_list = self.widget_spectrometer.make_liveplot_func(plan_name, plan_kwargs)
+            if plan_kwargs['liveplot_kwargs'] is not None:
+                if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
+                    if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
+                        liveplot_list = self.widget_spectrometer.make_liveplot_func(plan_name, plan_kwargs)
+                else:
+                    liveplot_list = self.widget_beamline_setup.make_liveplot_func(plan_name, plan_kwargs)
             else:
-                liveplot_list = self.widget_beamline_setup.make_liveplot_func(plan_name, plan_kwargs)
+                liveplot_list = []
         else:
             liveplot_list = []
 
