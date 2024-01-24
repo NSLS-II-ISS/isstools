@@ -362,7 +362,7 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         x_array -= np.median(x_array)
         y_array = np.arange(n_y, dtype=float)
         y_array -= np.median(y_array)
-        x_mesh, y_mesh = np.meshgrid(x_array * step_size, y_array * step_size)
+        x_mesh, y_mesh = np.meshgrid(x_array * step_size / np.cos(np.pi / 4), y_array * step_size)
         x_mesh = x_mesh.ravel()
         y_mesh = y_mesh.ravel()
 
