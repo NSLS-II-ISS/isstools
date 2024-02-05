@@ -67,6 +67,8 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.update_batch_tree()
         self.batch_list_changed_signal.connect(self.update_batch_tree)
 
+        self.pushButton_deselect_all_batchscan.clicked.connect(self.deselect_all_batchscan)
+
         '''
         WIP add horizontal scrollbar
         self.treeView_batch.header().horizontalScrollBar()
@@ -99,6 +101,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.treeWidget_samples.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget_samples.customContextMenuRequested.connect(self.sample_context_menu)
 
+        # setSelectionMode(ui.my_treeView.selectionMode().MultiSelection)
+
+        self.treeWidget_batch.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection) #multi selection
+
         # scans
         self.update_scan_defs()
         self.update_scan_tree()
@@ -124,6 +130,10 @@ class UIBatch(*uic.loadUiType(ui_path)):
         self.settings = parent_gui.settings
 
         self.push_parse_batch.clicked.connect(self.parse_batch)
+
+
+    def deselect_all_batchscan(self):
+        self.treeWidget_batch.clearSelection()
 
 
     def update_scan_defs(self):
@@ -771,7 +781,7 @@ class UIBatch(*uic.loadUiType(ui_path)):
         index_tuple_list = []
 
         for index in index_list:
-            item = self.treeWidget_batch.itemFromIndex(index_list[0])
+            item = self.treeWidget_batch.itemFromIndex(index)
             if item.parent() is None: # this must be experiment
                 index_tuple_list.append( (item.index, ) )
             else:
@@ -793,9 +803,15 @@ class UIBatch(*uic.loadUiType(ui_path)):
         index_tuple_list = self.get_selected_batch_item_index_list()
         if len(index_tuple_list) == 0:
             message_box('Warning', 'Select one element in batch list')
-        elif len(index_tuple_list) > 2:
-            message_box('Warning', 'Select only one element in batch list')
-        self.batch_manager.delete_element(index_tuple_list[0])
+            # self.batch_manager.delete_element(index_tuple_list[0])
+        else:
+            # message_box('Warning', 'Select only one element in batch list')
+            for index_tuple in index_tuple_list[::-1]:
+                try:
+                    self.batch_manager.delete_element(index_tuple)
+                except IndexError as e:
+                    print('The element has been deleted already')
+
 
 
     def batch_info(self):
