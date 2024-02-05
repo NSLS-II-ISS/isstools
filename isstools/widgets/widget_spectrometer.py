@@ -188,8 +188,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_alignment_scan_widget_list = []
 
         self.doubleSpinBox_johann_alignment_R_energy.setValue(johann_emission.energy.position)
-
-        self.handle_johann_alignment_widgets()
+        self._get_default_johann_alignment_parameters()
+        self.handle_johann_alignment_widgets(gui_initialized=False)
         self.radioButton_alignment_mode_manual.clicked.connect(self.handle_johann_alignment_widgets)
         self.radioButton_alignment_mode_semi.clicked.connect(self.handle_johann_alignment_widgets)
         self.radioButton_alignment_mode_automatic.clicked.connect(self.handle_johann_alignment_widgets)
@@ -231,6 +231,55 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         #                                                parent=self)
 
     # general handling of gui elements, plotting, and scanning
+
+    def _get_default_johann_alignment_parameters(self):
+        _element_guess = self.widget_johann_line_selector.comboBox_element.currentText()
+        _edge_guess = "K" if xraydb.atomic_number(_element_guess) < 55 else "L3"
+        self._default_johann_alignment_paramters = \
+            {'yaw_tune': {'motor_check': True,
+                          'scan_range': 1000.0,
+                          'scan_duration': 10.0,
+                          'scan_step': 10.0,
+                          'scan_exposure': 0.25},
+             'roll_tune': {'motor_check': False,
+                           'scan_range': 1000,
+                           'scan_duration': 10,
+                           'scan_step': 10,
+                           'scan_exposure': 0.25},
+             'scan_params': {'emission': {'scan_range': 1000,
+                                          'scan_duration': 10,
+                                          'scan_step': 10,
+                                          'scan_exposure': 0.25},
+                             'elastic':  {'scan_range': 15,
+                                          'scan_duration': 10,
+                                          'scan_step': 0.1,
+                                          'scan_exposure': 0.25},
+                             'herfd':    {'scan_element': _element_guess,
+                                          'scan_edge': _edge_guess,
+                                          'scan_range': 200,
+                                          'scan_duration': 10,
+                                          'scan_step': 0.1,
+                                          'scan_exposure': 0.25},
+                             }
+             }
+
+    def _update_default_johann_alignment_parameters(self):
+        for tune_key in ['yaw_tune', 'roll_tune']:
+            values = self._get_johann_scan_parameters_from_relevant_widgets(key=tune_key,
+                                                                            scan_kind=self._previous_johann_alignment_scan_kind)
+            param_keys = ['motor_check', 'scan_range', 'scan_duration', 'scan_step', 'scan_exposure']
+            for param_key, value in zip(param_keys, values):
+                if value is not None:
+                    self._default_johann_alignment_paramters[tune_key][param_key] = value
+
+        scan_kwargs = self._johann_alignment_parse_scan_kwargs(alignment_strategy=self._previous_johann_alignment_strategy,
+                                                               scan_kind=self._previous_johann_alignment_scan_kind,
+                                                               add_herfd_prefix=False)
+        for key, value in scan_kwargs.items():
+            print(self._previous_johann_alignment_strategy, key, value)
+            if value is not None:
+                self._default_johann_alignment_paramters['scan_params'][self._previous_johann_alignment_strategy][key] = value
+
 
     def handle_gui_elements(self):
         if self.plan_processor.status == 'idle':
@@ -316,19 +365,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         return widgets, relevant_widgets
 
-    def _johann_create_herfd_widget_rows(self):
+    def _johann_create_herfd_widget_rows(self, scan_element: str='Fe', scan_edge: str='K',
+                                         scan_range: float=200.0, scan_duration: float=10.0,
+                                         scan_step: float=0.1, scan_exposure: float=0.25):
         widgets0 = []
         widgets1 = []
         relevant_widgets = {"scan_flag": None}
 
-        _element_guess = self.widget_johann_line_selector.comboBox_element.currentText()
-        _z = xraydb.atomic_number(_element_guess)
-        _edge_guess = "K" if _z < 55 else "L3"
+        # _element_guess = self.widget_johann_line_selector.comboBox_element.currentText()
+        # _z = xraydb.atomic_number(_element_guess)
+        # _edge_guess = "K" if _z < 55 else "L3"
 
         _label_element = QLabel("Element")
         widgets0.append(_label_element)
         _label_element.setFixedWidth(int(30))
-        _widget_element = QLineEdit(_element_guess)
+        _widget_element = QLineEdit(scan_element)
         _widget_element.setFixedWidth(int(30))
         relevant_widgets['scan_element'] = _widget_element
         widgets1.append(_widget_element)
@@ -336,13 +387,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         _label_edge = QLabel("Edge")
         _label_edge.setFixedWidth(int(30))
         widgets0.append(_label_edge)
-        _widget_edge = QLineEdit(_edge_guess)
+        _widget_edge = QLineEdit(scan_edge)
         _widget_edge.setFixedWidth(int(30))
         relevant_widgets['scan_edge'] = _widget_edge
         widgets1.append(_widget_edge)
 
         widgets0.append(QLabel("Range"))
-        _widget_range = QLineEdit("200")
+        _widget_range = QLineEdit(str(scan_range))
         relevant_widgets['scan_range'] = _widget_range
         widgets1.append(_widget_range)
         widgets0.append(QLabel(""))
@@ -350,7 +401,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
         if self._johann_alignment_scan_kind == 'fly':
             widgets0.append(QLabel("Duration"))
-            _widget_duration = QLineEdit("10")
+            _widget_duration = QLineEdit(str(scan_duration))
             relevant_widgets['scan_duration'] = _widget_duration
             widgets1.append(_widget_duration)
 
@@ -360,7 +411,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         elif self._johann_alignment_scan_kind == 'step':
             widgets0.append(QLabel("Step"))
 
-            _widget_step = QLineEdit("0.3")
+            _widget_step = QLineEdit(str(scan_step))
             relevant_widgets['scan_step'] = _widget_step
             widgets1.append(_widget_step)
 
@@ -368,7 +419,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             widgets1.append(QLabel("eV"))
 
             widgets0.append(QLabel("Exposure"))
-            _widget_exposure = QLineEdit("0.5")
+            _widget_exposure = QLineEdit(str(scan_exposure))
             relevant_widgets['scan_exposure'] = _widget_exposure
             widgets1.append(_widget_exposure)
 
@@ -426,7 +477,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_alignment_R_energy_eV.setEnabled(False)
             self.doubleSpinBox_johann_alignment_R_energy.setEnabled(False)
 
-    def handle_johann_alignment_widgets(self):
+    def handle_johann_alignment_widgets(self, *args, gui_initialized=True, **kwargs):
+        # remember the state of old widgets
+
+        # try:
+        #     sender_object_name = self.sender().objectName()
+        #     print(f'{sender_object_name=} >>> {args=}, {kwargs=}')
+        # except:
+        #     pass
+
+
+        if gui_initialized:
+            self._update_default_johann_alignment_parameters()
+
+
+
         # clean up old widgets
         self._johann_alignment_parameter_widget_dict = {}
 
@@ -465,15 +530,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         # elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
         labels_tune_widgets = self._johann_label_row_widget(motor_label="Tune motor")
         yaw_tune_widgets, yaw_tune_relevant_widgets = self._johann_create_motor_widget_row(
-            motor_check=True, motor_str='yaw', motor_unit_str='mdeg',
-            scan_range=1000, scan_duration=10,
-            scan_step=10, scan_exposure=0.25, with_button=True)
+            motor_str='yaw', motor_unit_str='mdeg', with_button=True,
+            **self._default_johann_alignment_paramters['yaw_tune'])
         self._johann_alignment_parameter_widget_dict['yaw_tune'] = yaw_tune_relevant_widgets
 
         roll_tune_widgets, roll_tune_relevant_widgets = self._johann_create_motor_widget_row(
-            motor_check=False, motor_str='roll', motor_unit_str='mdeg',
-            scan_range=1000, scan_duration=10,
-            scan_step=10, scan_exposure=0.25, with_button=True)
+            motor_str='roll', motor_unit_str='mdeg', with_button=True,
+            **self._default_johann_alignment_paramters['roll_tune'])
         self._johann_alignment_parameter_widget_dict['roll_tune'] = roll_tune_relevant_widgets
 
         self.johann_alignment_tune_widget_list.extend(labels_tune_widgets + yaw_tune_widgets + roll_tune_widgets)
@@ -492,21 +555,15 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
                                                                                      motor_str='roll',
                                                                                      motor_unit_str='mdeg',
-                                                                                     scan_range=1000,
-                                                                                     scan_duration=10,
-                                                                                     scan_step=10,
-                                                                                     scan_exposure=0.25)
+                                                                                     **self._default_johann_alignment_paramters['scan_params']['emission'])
         elif self._johann_alignment_strategy == 'elastic':
             _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
             _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
                                                                                      motor_str='energy',
                                                                                      motor_unit_str='eV',
-                                                                                     scan_range=15,
-                                                                                     scan_duration=10,
-                                                                                     scan_step=0.1,
-                                                                                     scan_exposure=0.25)
+                                                                                     **self._default_johann_alignment_paramters['scan_params']['elastic'])
         elif self._johann_alignment_strategy == 'herfd':
-            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows()
+            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows(**self._default_johann_alignment_paramters['scan_params']['herfd'])
 
         self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
         self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
@@ -515,18 +572,23 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
             self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
 
-    def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune'):
+        self._previous_johann_alignment_strategy = self._johann_alignment_strategy
+        self._previous_johann_alignment_scan_kind = self._johann_alignment_scan_kind
+
+    def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune', scan_kind=None):
         d = self._johann_alignment_parameter_widget_dict[key]
+        if scan_kind is None:
+            scan_kind = self._johann_alignment_scan_kind
         scan_flag = bool(d['scan_flag'].isChecked()) if type(d['scan_flag']) == QCheckBox else True
         scan_range = float(d['scan_range'].text())
-        scan_duration = float(d['scan_duration'].text()) if self._johann_alignment_scan_kind == 'fly' else None
-        scan_step = float(d['scan_step'].text()) if self._johann_alignment_scan_kind == 'step' else None
-        scan_exposure = float(d['scan_exposure'].text()) if self._johann_alignment_scan_kind == 'step' else None
+        scan_duration = float(d['scan_duration'].text()) if scan_kind == 'fly' else None
+        scan_step = float(d['scan_step'].text()) if scan_kind == 'step' else None
+        scan_exposure = float(d['scan_exposure'].text()) if scan_kind == 'step' else None
         return (scan_flag, scan_range, scan_duration, scan_step, scan_exposure)
 
-    def _parse_johann_tune_motor_dict(self, motor='yaw_tune', key_prefix=None):
+    def _parse_johann_tune_motor_dict(self, motor='yaw_tune', key_prefix=None, scan_kind=None):
         if key_prefix is None: key_prefix = motor
-        values = self._get_johann_scan_parameters_from_relevant_widgets(key=motor)
+        values = self._get_johann_scan_parameters_from_relevant_widgets(key=motor, scan_kind=scan_kind)
         keys = [f'{key_prefix}', f'{key_prefix}_range', f'{key_prefix}_duration', f'{key_prefix}_step', f'{key_prefix}_exposure']
         output = {k: v for k, v in zip(keys, values)}
         return output
@@ -543,13 +605,19 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 output = {**output, **tune_kwargs}
         return output
 
-    def _johann_alignment_parse_scan_kwargs(self):
-        output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan')
+    def _johann_alignment_parse_scan_kwargs(self, alignment_strategy=None, scan_kind=None, add_herfd_prefix=True):
+        output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan', scan_kind=scan_kind)
         output.pop('scan')
-        if self._johann_alignment_strategy == 'herfd':
+        if alignment_strategy is None:
+            alignment_strategy = self._johann_alignment_strategy
+        if alignment_strategy == 'herfd':
             d = self._johann_alignment_parameter_widget_dict['scan_params']
-            output['herfd_scan_element'] = d['scan_element'].text()
-            output['herfd_scan_edge'] = d['scan_edge'].text()
+            if add_herfd_prefix:
+                output['herfd_scan_element'] = d['scan_element'].text()
+                output['herfd_scan_edge'] = d['scan_edge'].text()
+            else:
+                output['scan_element'] = d['scan_element'].text()
+                output['scan_edge'] = d['scan_edge'].text()
         return output
 
     def run_johann_tune_scan(self):
