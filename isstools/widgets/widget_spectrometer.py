@@ -200,6 +200,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
         self.comboBox_johann_alignment_strategy.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
 
+        self.push_johann_reset_alignement_data.clicked.connect(self.johann_reset_alignment_data)
+
         self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
         # self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
         # self.johann_update_tweak_motor()
@@ -698,6 +700,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
         plan_kwargs['automatic_fom'] = f'{self.comboBox_johann_alignment_fom.currentText()}_value'
         plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+        plan_kwargs['scan_tag'] = self.lineEdit_johann_alignment_scan_tag.text()
 
         tune_kwargs = self._johann_alignment_parse_tune_kwargs()
         scan_kwargs = self._johann_alignment_parse_scan_kwargs()
@@ -1258,7 +1261,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_alignment_data.append(current_pos)
 
     def johann_reset_alignment_data(self):
-        self.johann_alignment_data = []
+        self.johann_emission.reset_alignment_data()
 
     def johann_plot_alignment_data(self):
         self.canvas_proc.mpl_disconnect(self.cid_proc)
