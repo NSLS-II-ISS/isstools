@@ -175,11 +175,16 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_compute_geometry.clicked.connect(self.johann_compute_geometry)
         self.push_johann_move_motors.clicked.connect(self.johann_move_motors)
 
+
+
         self.johann_motor_list = [motor_dictionary[motor]['description'] for motor in motor_dictionary
                                   if ('group' in self.motor_dictionary[motor].keys()) and
                                   (self.motor_dictionary[motor]['group'] == 'spectrometer') and
                                   ('spectrometer_kind' in self.motor_dictionary[motor].keys()) and
                                   (self.motor_dictionary[motor]['spectrometer_kind'] == 'johann')]
+
+        self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
+        self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
 
         self.comboBox_johann_alignment_fom.addItems(['max', 'fwhm'])
         self.comboBox_johann_alignment_strategy.addItems(['Emission', 'Elastic', 'HERFD'])
@@ -196,24 +201,37 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_alignment_widgets)
         self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_alignment_widgets)
 
+
         self.comboBox_johann_alignment_crystal.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
         self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
         self.comboBox_johann_alignment_strategy.currentIndexChanged.connect(self.handle_johann_alignment_widgets)
 
+        self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
         self.push_johann_reset_alignement_data.clicked.connect(self.johann_reset_alignment_data)
 
-        self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
-        # self.comboBox_johann_tweak_motor.addItems(self.johann_motor_list)
-        # self.johann_update_tweak_motor()
-        # self.comboBox_johann_tweak_motor.currentIndexChanged.connect(self.johann_update_tweak_motor)
+        self._johann_calibration_parameter_widget_dict = {}
+        self.johann_calibration_tune_widget_list = []
+        self.johann_calibration_scan_widget_list = []
+        self.comboBox_johann_calibration_strategy.addItems(['Emission', 'Elastic', 'HERFD'])
+        self.handle_johann_calibration_widgets()
+        self.comboBox_johann_calibration_strategy.currentIndexChanged.connect(self.handle_johann_calibration_widgets)
+        self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_calibration_widgets)
+        self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_calibration_widgets)
 
-        self.comboBox_johann_scan_motor.addItems(self.johann_motor_list)
+        self._johann_resolution_parameter_widget_dict = {}
+        self.johann_resolution_tune_widget_list = []
+        self.johann_resolution_scan_widget_list = []
+        self.handle_johann_resolution_widgets()
+        self.checkBox_johann_bender_scan.toggled.connect(self._handle_enabled_johann_resolution_widgets)
+        self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_resolution_widgets)
+        self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_resolution_widgets)
+
         # self.comboBox_johann_pilatus_channels.addItems(self.detector_dictionary['Pilatus 100k']['channels'])
 
         # self.push_johann_tweak_down.clicked.connect(self.johann_tweak_down)
         # self.push_johann_tweak_up.clicked.connect(self.johann_tweak_up)
 
-        self.push_johann_motor_scan.clicked.connect(self.run_johann_motor_scan)
+
         # self.push_johann_energy_scan.clicked.connect(self.run_johann_energy_scan)
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
@@ -299,6 +317,14 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def update_comboBox_johann_alignment_crystal(self):
         self.comboBox_johann_alignment_crystal.clear()
         self.comboBox_johann_alignment_crystal.addItems(
+            [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
+
+        self.comboBox_johann_calibration_crystal.clear()
+        self.comboBox_johann_calibration_crystal.addItems(['enabled'] +
+            [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
+
+        self.comboBox_johann_resolution_crystal.clear()
+        self.comboBox_johann_resolution_crystal.addItems(
             [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
 
         self.comboBox_johann_tweak_motor.clear()
@@ -483,20 +509,44 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_alignment_R_energy_eV.setEnabled(False)
             self.doubleSpinBox_johann_alignment_R_energy.setEnabled(False)
 
-    def handle_johann_alignment_widgets(self, *args, gui_initialized=True, **kwargs):
+
+    def _handle_johann_scope_scan_widgets(self, scope='alignment', strategy='emission'):
+        scan_widget_list = getattr(self, f'johann_{scope}_scan_widget_list')
+        scan_layout = getattr(self, f'johann_{scope}_scan_layout')
+        parameter_widget_dict = getattr(self, f'_johann_{scope}_parameter_widget_dict')
+
+        for widget in scan_widget_list:
+            scan_layout.removeWidget(widget)
+            widget.deleteLater()
+        scan_widget_list = []
+
+        if strategy == 'emission':
+            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                     motor_str='roll',
+                                                                                     motor_unit_str='mdeg',
+                                                                                     **self._default_johann_alignment_paramters['scan_params']['emission'])
+        elif strategy== 'elastic':
+            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                     motor_str='energy',
+                                                                                     motor_unit_str='eV',
+                                                                                     **self._default_johann_alignment_paramters['scan_params']['elastic'])
+        elif strategy == 'herfd':
+            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows(**self._default_johann_alignment_paramters['scan_params']['herfd'])
+
+        parameter_widget_dict['scan_params'] = _johann_scan_dict
+        scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
+
+        for i in range(len(_widgets0_scan)):
+            scan_layout.addWidget(_widgets0_scan[i], 0, i)
+            scan_layout.addWidget(_widgets1_scan[i], 1, i)
+
+
+    def handle_johann_alignment_widgets(self, gui_initialized=True):
         # remember the state of old widgets
-
-        # try:
-        #     sender_object_name = self.sender().objectName()
-        #     print(f'{sender_object_name=} >>> {args=}, {kwargs=}')
-        # except:
-        #     pass
-
-
         if gui_initialized:
             self._update_default_johann_alignment_parameters()
-
-
 
         # clean up old widgets
         self._johann_alignment_parameter_widget_dict = {}
@@ -507,10 +557,10 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             widget.deleteLater()
         self.johann_alignment_tune_widget_list = []
 
-        for widget in self.johann_alignment_scan_widget_list:
-            self.johann_alignment_scan_layout.removeWidget(widget)
-            widget.deleteLater()
-        self.johann_alignment_scan_widget_list = []
+        # for widget in self.johann_alignment_scan_widget_list:
+        #     self.johann_alignment_scan_layout.removeWidget(widget)
+        #     widget.deleteLater()
+        # self.johann_alignment_scan_widget_list = []
 
         tweak_motor_widgets = []
         crystal_str = self.comboBox_johann_alignment_crystal.currentText()
@@ -556,27 +606,29 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             for col, _widget in enumerate(_widget_list):
                 self.johann_alignment_tune_layout.addWidget(_widget, row + tune_widget_row_offset, col)
 
-        if self._johann_alignment_strategy == 'emission':
-            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
-            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
-                                                                                     motor_str='roll',
-                                                                                     motor_unit_str='mdeg',
-                                                                                     **self._default_johann_alignment_paramters['scan_params']['emission'])
-        elif self._johann_alignment_strategy == 'elastic':
-            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
-            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
-                                                                                     motor_str='energy',
-                                                                                     motor_unit_str='eV',
-                                                                                     **self._default_johann_alignment_paramters['scan_params']['elastic'])
-        elif self._johann_alignment_strategy == 'herfd':
-            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows(**self._default_johann_alignment_paramters['scan_params']['herfd'])
+        self._handle_johann_scope_scan_widgets(scope='alignment', strategy=self._johann_alignment_strategy)
 
-        self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
-        self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
-
-        for i in range(len(_widgets0_scan)):
-            self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
-            self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
+        # if self._johann_alignment_strategy == 'emission':
+        #     _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+        #     _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+        #                                                                              motor_str='roll',
+        #                                                                              motor_unit_str='mdeg',
+        #                                                                              **self._default_johann_alignment_paramters['scan_params']['emission'])
+        # elif self._johann_alignment_strategy == 'elastic':
+        #     _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+        #     _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+        #                                                                              motor_str='energy',
+        #                                                                              motor_unit_str='eV',
+        #                                                                              **self._default_johann_alignment_paramters['scan_params']['elastic'])
+        # elif self._johann_alignment_strategy == 'herfd':
+        #     _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows(**self._default_johann_alignment_paramters['scan_params']['herfd'])
+        #
+        # self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
+        # self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
+        #
+        # for i in range(len(_widgets0_scan)):
+        #     self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
+        #     self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
 
         self._previous_johann_alignment_strategy = self._johann_alignment_strategy
         self._previous_johann_alignment_scan_kind = self._johann_alignment_scan_kind
@@ -713,6 +765,46 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
         # print(plan_name)
         # print(plan_kwargs)
+
+    @property
+    def _johann_calibration_strategy(self):
+        return self.comboBox_johann_calibration_strategy.currentText().lower()
+
+    def _handle_enabled_johann_calbration_widgets(self):
+        if self._johann_calibration_strategy == 'elastic' or 'emission':
+            self.label_johann_calibration_roll_range.setEnabled(False)
+            self.doubleSpinBox_johann_calibration_roll_range.setEnabled(False)
+            self.label_johann_calibration_roll_range_units.setEnabled(False)
+            self.label_johann_calibration_roll_step.setEnabled(False)
+            self.doubleSpinBox_johann_calibration_roll_step.setEnabled(False)
+            self.label_johann_calibration_roll_step_units.setEnabled(False)
+        elif self._johann_calibration_strategy == 'herfd':
+            self.label_johann_calibration_roll_range.setEnabled(True)
+            self.doubleSpinBox_johann_calibration_roll_range.setEnabled(True)
+            self.label_johann_calibration_roll_range_units.setEnabled(True)
+            self.label_johann_calibration_roll_step.setEnabled(True)
+            self.doubleSpinBox_johann_calibration_roll_step.setEnabled(True)
+            self.label_johann_calibration_roll_step_units.setEnabled(True)
+
+
+
+    def handle_johann_calibration_widgets(self):
+        self._handle_enabled_johann_calbration_widgets()
+        self._handle_johann_scope_scan_widgets(scope='calibration', strategy=self._johann_calibration_strategy)
+
+
+    def _handle_enabled_johann_resolution_widgets(self):
+        state = self.checkBox_johann_bender_scan.isChecked()
+        self.label_johann_bender_scan_range.setEnabled(state)
+        self.doubleSpinBox_johann_bender_scan_range.setEnabled(state)
+        self.label_johann_bender_scan_range_units.setEnabled(state)
+        self.label_johann_bender_scan_step.setEnabled(state)
+        self.doubleSpinBox_johann_bender_scan_step.setEnabled(state)
+        self.label_johann_bender_scan_step_units.setEnabled(state)
+
+    def handle_johann_resolution_widgets(self):
+        self._handle_enabled_johann_resolution_widgets()
+        self._handle_johann_scope_scan_widgets(scope='resolution', strategy='elastic')
 
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
