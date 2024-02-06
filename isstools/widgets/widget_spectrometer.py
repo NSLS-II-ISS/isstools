@@ -266,21 +266,25 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
              }
 
     def _update_default_johann_alignment_parameters(self):
-        for tune_key in ['yaw_tune', 'roll_tune']:
-            values = self._get_johann_scan_parameters_from_relevant_widgets(key=tune_key,
-                                                                            scan_kind=self._previous_johann_alignment_scan_kind)
-            param_keys = ['motor_check', 'scan_range', 'scan_duration', 'scan_step', 'scan_exposure']
-            for param_key, value in zip(param_keys, values):
-                if value is not None:
-                    self._default_johann_alignment_paramters[tune_key][param_key] = value
+        try:
+            for tune_key in ['yaw_tune', 'roll_tune']:
+                values = self._get_johann_scan_parameters_from_relevant_widgets(key=tune_key,
+                                                                                scan_kind=self._previous_johann_alignment_scan_kind)
+                param_keys = ['motor_check', 'scan_range', 'scan_duration', 'scan_step', 'scan_exposure']
+                for param_key, value in zip(param_keys, values):
+                    if value is not None:
+                        self._default_johann_alignment_paramters[tune_key][param_key] = value
 
-        scan_kwargs = self._johann_alignment_parse_scan_kwargs(alignment_strategy=self._previous_johann_alignment_strategy,
-                                                               scan_kind=self._previous_johann_alignment_scan_kind,
-                                                               add_herfd_prefix=False)
-        for key, value in scan_kwargs.items():
-            print(self._previous_johann_alignment_strategy, key, value)
-            if value is not None:
-                self._default_johann_alignment_paramters['scan_params'][self._previous_johann_alignment_strategy][key] = value
+            scan_kwargs = self._johann_alignment_parse_scan_kwargs(alignment_strategy=self._previous_johann_alignment_strategy,
+                                                                   scan_kind=self._previous_johann_alignment_scan_kind,
+                                                                   add_herfd_prefix=False)
+            for key, value in scan_kwargs.items():
+                print(self._previous_johann_alignment_strategy, key, value)
+                if value is not None:
+                    self._default_johann_alignment_paramters['scan_params'][self._previous_johann_alignment_strategy][key] = value
+        except Exception as e:
+            print(f'Could not update default widget values. Reason: {e}.')
+
 
 
     def handle_gui_elements(self):
