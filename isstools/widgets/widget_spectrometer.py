@@ -320,7 +320,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
 
         self.comboBox_johann_calibration_crystal.clear()
-        self.comboBox_johann_calibration_crystal.addItems(['enabled'] +
+        self.comboBox_johann_calibration_crystal.addItems(['all/enabled'] +
             [c for c, enabled in self.johann_emission.enabled_crystals.items() if enabled])
 
         self.comboBox_johann_resolution_crystal.clear()
@@ -518,7 +518,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         for widget in scan_widget_list:
             scan_layout.removeWidget(widget)
             widget.deleteLater()
-        scan_widget_list = []
+        scan_widget_list.clear() # scan_widget_list is a pointer and to clear it up we use clear
 
         if strategy == 'emission':
             _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
@@ -795,6 +795,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _handle_enabled_johann_resolution_widgets(self):
         state = self.checkBox_johann_bender_scan.isChecked()
+        self.comboBox_johann_resolution_crystal.setEnabled(state)
         self.label_johann_bender_scan_range.setEnabled(state)
         self.doubleSpinBox_johann_bender_scan_range.setEnabled(state)
         self.label_johann_bender_scan_range_units.setEnabled(state)

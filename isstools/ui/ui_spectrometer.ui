@@ -2567,7 +2567,7 @@ Motors</string>
         <rect>
          <x>0</x>
          <y>10</y>
-         <width>611</width>
+         <width>601</width>
          <height>161</height>
         </rect>
        </property>
@@ -2664,7 +2664,7 @@ Motors</string>
          <rect>
           <x>530</x>
           <y>100</y>
-          <width>81</width>
+          <width>71</width>
           <height>51</height>
          </rect>
         </property>
@@ -2767,7 +2767,7 @@ Motors</string>
        <widget class="QLabel" name="label_johann_calibration_roll_step">
         <property name="geometry">
          <rect>
-          <x>460</x>
+          <x>440</x>
           <y>30</y>
           <width>100</width>
           <height>20</height>
@@ -2818,7 +2818,7 @@ Motors</string>
        <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_roll_step">
         <property name="geometry">
          <rect>
-          <x>460</x>
+          <x>440</x>
           <y>60</y>
           <width>101</width>
           <height>21</height>
@@ -2853,7 +2853,7 @@ Motors</string>
        <widget class="QLabel" name="label_johann_calibration_roll_step_units">
         <property name="geometry">
          <rect>
-          <x>570</x>
+          <x>550</x>
           <y>60</y>
           <width>41</width>
           <height>20</height>
@@ -2875,7 +2875,7 @@ Motors</string>
         <rect>
          <x>0</x>
          <y>190</y>
-         <width>611</width>
+         <width>601</width>
          <height>141</height>
         </rect>
        </property>
@@ -2887,7 +2887,7 @@ Motors</string>
          <rect>
           <x>530</x>
           <y>40</y>
-          <width>81</width>
+          <width>71</width>
           <height>51</height>
          </rect>
         </property>
@@ -3086,7 +3086,7 @@ Motors</string>
         <rect>
          <x>10</x>
          <y>360</y>
-         <width>601</width>
+         <width>591</width>
          <height>121</height>
         </rect>
        </property>
@@ -3098,7 +3098,7 @@ Motors</string>
          <rect>
           <x>190</x>
           <y>30</y>
-          <width>100</width>
+          <width>81</width>
           <height>24</height>
          </rect>
         </property>
@@ -3172,7 +3172,7 @@ Motors</string>
        <widget class="QLabel" name="label_19">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>330</x>
           <y>80</y>
           <width>40</width>
           <height>24</height>
@@ -3191,7 +3191,7 @@ Motors</string>
        <widget class="QLabel" name="label_20">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>330</x>
           <y>50</y>
           <width>40</width>
           <height>24</height>
@@ -3210,7 +3210,7 @@ Motors</string>
        <widget class="QLabel" name="label_23">
         <property name="geometry">
          <rect>
-          <x>463</x>
+          <x>460</x>
           <y>80</y>
           <width>30</width>
           <height>25</height>
@@ -3235,9 +3235,9 @@ Motors</string>
        <widget class="QLineEdit" name="lineEdit_johann_energy_lim_hi">
         <property name="geometry">
          <rect>
-          <x>366</x>
+          <x>376</x>
           <y>80</y>
-          <width>91</width>
+          <width>71</width>
           <height>24</height>
          </rect>
         </property>
@@ -3254,9 +3254,9 @@ Motors</string>
        <widget class="QPushButton" name="push_johann_reset_limits">
         <property name="geometry">
          <rect>
-          <x>499</x>
+          <x>490</x>
           <y>80</y>
-          <width>100</width>
+          <width>91</width>
           <height>24</height>
          </rect>
         </property>
@@ -3273,7 +3273,7 @@ Motors</string>
        <widget class="QLabel" name="label_26">
         <property name="geometry">
          <rect>
-          <x>463</x>
+          <x>460</x>
           <y>50</y>
           <width>30</width>
           <height>25</height>
@@ -3298,9 +3298,9 @@ Motors</string>
        <widget class="QPushButton" name="push_johann_set_limits">
         <property name="geometry">
          <rect>
-          <x>499</x>
+          <x>490</x>
           <y>50</y>
-          <width>100</width>
+          <width>91</width>
           <height>24</height>
          </rect>
         </property>
@@ -3317,7 +3317,7 @@ Motors</string>
        <widget class="QLabel" name="label_21">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>330</x>
           <y>30</y>
           <width>137</width>
           <height>20</height>
@@ -3336,9 +3336,9 @@ Motors</string>
        <widget class="QLineEdit" name="lineEdit_johann_energy_lim_lo">
         <property name="geometry">
          <rect>
-          <x>366</x>
+          <x>376</x>
           <y>50</y>
-          <width>91</width>
+          <width>71</width>
           <height>24</height>
          </rect>
         </property>
@@ -3357,7 +3357,7 @@ Motors</string>
          <rect>
           <x>10</x>
           <y>60</y>
-          <width>291</width>
+          <width>261</width>
           <height>20</height>
          </rect>
         </property>
