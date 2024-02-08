@@ -212,7 +212,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self._johann_calibration_parameter_widget_dict = {}
         self.johann_calibration_tune_widget_list = []
         self.johann_calibration_scan_widget_list = []
-        self.comboBox_johann_calibration_strategy.addItems(['Emission', 'Elastic', 'HERFD'])
+        self.comboBox_johann_calibration_strategy.addItems(['Roll', 'HERFD'])
         self.handle_johann_calibration_widgets()
         self.comboBox_johann_calibration_strategy.currentIndexChanged.connect(self.handle_johann_calibration_widgets)
         self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_calibration_widgets)
@@ -520,7 +520,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             widget.deleteLater()
         scan_widget_list.clear() # scan_widget_list is a pointer and to clear it up we use clear
 
-        if strategy == 'emission':
+        if strategy == 'emission' or 'roll':
             _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
             _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
                                                                                      motor_str='roll',
@@ -771,7 +771,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         return self.comboBox_johann_calibration_strategy.currentText().lower()
 
     def _handle_enabled_johann_calbration_widgets(self):
-        if self._johann_calibration_strategy == 'elastic' or 'emission':
+        if self._johann_calibration_strategy == 'roll':
             self.label_johann_calibration_roll_range.setEnabled(False)
             self.doubleSpinBox_johann_calibration_roll_range.setEnabled(False)
             self.label_johann_calibration_roll_range_units.setEnabled(False)
@@ -806,6 +806,12 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def handle_johann_resolution_widgets(self):
         self._handle_enabled_johann_resolution_widgets()
         self._handle_johann_scope_scan_widgets(scope='resolution', strategy='elastic')
+
+
+    # def run_johann_calibration_scan(self):
+    #     plan_name = 'johann_spectrometer_alignment_plan_bundle'
+    #     plan_kwargs = {}
+    #     # self._johann_calibration_strategy
 
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
