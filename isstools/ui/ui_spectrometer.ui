@@ -579,8 +579,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>96</width>
-        <height>26</height>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1130,8 +1130,8 @@ to 90 deg</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>96</width>
-        <height>26</height>
+        <width>611</width>
+        <height>493</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1560,8 +1560,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>96</width>
-        <height>26</height>
+        <width>611</width>
+        <height>493</height>
        </rect>
       </property>
       <attribute name="label">
@@ -2577,88 +2577,6 @@ Motors</string>
        <property name="flat">
         <bool>false</bool>
        </property>
-       <widget class="QLabel" name="label_johann_alignment_crystal_4">
-        <property name="geometry">
-         <rect>
-          <x>250</x>
-          <y>60</y>
-          <width>31</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>eV</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_calibration_mono_energy">
-        <property name="geometry">
-         <rect>
-          <x>140</x>
-          <y>30</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Mono energy</string>
-        </property>
-       </widget>
-       <widget class="QComboBox" name="comboBox_johann_calibration_crystal">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>60</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>20</height>
-         </size>
-        </property>
-        <property name="currentText">
-         <string/>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_calibration_crystal">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>33</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Crystal</string>
-        </property>
-       </widget>
        <widget class="QPushButton" name="push_johann_calibration_scan">
         <property name="geometry">
          <rect>
@@ -2745,129 +2663,203 @@ Motors</string>
          <string>Calibration scan</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_johann_calibration_roll_range">
+       <widget class="QWidget" name="gridLayoutWidget_13">
         <property name="geometry">
          <rect>
-          <x>280</x>
-          <y>30</y>
-          <width>100</width>
-          <height>20</height>
+          <x>20</x>
+          <y>40</y>
+          <width>581</width>
+          <height>51</height>
          </rect>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Roll range</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_calibration_roll_step">
-        <property name="geometry">
-         <rect>
-          <x>440</x>
-          <y>30</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Roll step</string>
-        </property>
-       </widget>
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_mono_energy">
-        <property name="geometry">
-         <rect>
-          <x>140</x>
-          <y>60</y>
-          <width>111</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>30.000000000000000</double>
-        </property>
-       </widget>
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_roll_range">
-        <property name="geometry">
-         <rect>
-          <x>280</x>
-          <y>60</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>12.000000000000000</double>
-        </property>
-       </widget>
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_roll_step">
-        <property name="geometry">
-         <rect>
-          <x>440</x>
-          <y>60</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_calibration_roll_range_units">
-        <property name="geometry">
-         <rect>
-          <x>390</x>
-          <y>60</y>
-          <width>41</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>mdeg</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_calibration_roll_step_units">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>60</y>
-          <width>41</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>mdeg</string>
-        </property>
+        <layout class="QGridLayout" name="gridLayout_9">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_johann_calibration_crystal">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Crystal</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QLabel" name="label_johann_calibration_roll_range_units">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>mdeg</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_johann_calibration_roll_range">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Roll range</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_johann_alignment_crystal_4">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_johann_calibration_mono_energy">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Mono energy</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_roll_range">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>12.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QComboBox" name="comboBox_johann_calibration_crystal">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="currentText">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_calibration_mono_energy">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="minimum">
+            <double>4000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>35000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>8000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QLabel" name="label_johann_calibration_roll_nsteps">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>N steps</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="6">
+          <widget class="QComboBox" name="comboBox_johann_calibration_fom">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="currentText">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="6">
+          <widget class="QLabel" name="label_169">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>FOM</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QSpinBox" name="spinBox_johann_calibration_roll_nsteps">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="value">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QGroupBox" name="groupBox_2">
@@ -3372,8 +3364,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>96</width>
-        <height>26</height>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
       <attribute name="label">
@@ -3589,8 +3581,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>96</width>
-        <height>26</height>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
       <attribute name="label">

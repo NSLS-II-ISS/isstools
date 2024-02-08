@@ -209,6 +209,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_alignement_scan.clicked.connect(self.run_johann_alignment_scan)
         self.push_johann_reset_alignement_data.clicked.connect(self.johann_reset_alignment_data)
 
+        self.comboBox_johann_calibration_fom.addItems(['com_loc', 'max_loc'])
         self._johann_calibration_parameter_widget_dict = {}
         self.johann_calibration_tune_widget_list = []
         self.johann_calibration_scan_widget_list = []
@@ -633,8 +634,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self._previous_johann_alignment_strategy = self._johann_alignment_strategy
         self._previous_johann_alignment_scan_kind = self._johann_alignment_scan_kind
 
-    def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune', scan_kind=None):
-        d = self._johann_alignment_parameter_widget_dict[key]
+    def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune', scan_kind=None, scan_scope='alignment'):
+        d = getattr(self, f'_johann_{scan_scope}_parameter_widget_dict')[key]
         if scan_kind is None:
             scan_kind = self._johann_alignment_scan_kind
         scan_flag = bool(d['scan_flag'].isChecked()) if type(d['scan_flag']) == QCheckBox else True
@@ -644,9 +645,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         scan_exposure = float(d['scan_exposure'].text()) if scan_kind == 'step' else None
         return (scan_flag, scan_range, scan_duration, scan_step, scan_exposure)
 
-    def _parse_johann_tune_motor_dict(self, motor='yaw_tune', key_prefix=None, scan_kind=None):
+    def _parse_johann_tune_motor_dict(self, motor='yaw_tune', key_prefix=None, scan_kind=None, scan_scope='alignment'):
         if key_prefix is None: key_prefix = motor
-        values = self._get_johann_scan_parameters_from_relevant_widgets(key=motor, scan_kind=scan_kind)
+        values = self._get_johann_scan_parameters_from_relevant_widgets(key=motor, scan_kind=scan_kind, scan_scope=scan_scope)
         keys = [f'{key_prefix}', f'{key_prefix}_range', f'{key_prefix}_duration', f'{key_prefix}_step', f'{key_prefix}_exposure']
         output = {k: v for k, v in zip(keys, values)}
         return output
@@ -663,11 +664,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 output = {**output, **tune_kwargs}
         return output
 
-    def _johann_alignment_parse_scan_kwargs(self, alignment_strategy=None, scan_kind=None, add_herfd_prefix=True):
-        output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan', scan_kind=scan_kind)
+    def _johann_alignment_parse_scan_kwargs(self, alignment_strategy=None, scan_kind=None, add_herfd_prefix=True, scan_scope='alignment'):
+        output = self._parse_johann_tune_motor_dict(motor='scan_params', key_prefix='scan', scan_kind=scan_kind, scan_scope=scan_scope)
         output.pop('scan')
         if alignment_strategy is None:
-            alignment_strategy = self._johann_alignment_strategy
+            alignment_strategy = getattr(self, f'_johann_{scan_scope}_strategy')
         if alignment_strategy == 'herfd':
             d = self._johann_alignment_parameter_widget_dict['scan_params']
             if add_herfd_prefix:
@@ -775,23 +776,18 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_calibration_roll_range.setEnabled(False)
             self.doubleSpinBox_johann_calibration_roll_range.setEnabled(False)
             self.label_johann_calibration_roll_range_units.setEnabled(False)
-            self.label_johann_calibration_roll_step.setEnabled(False)
-            self.doubleSpinBox_johann_calibration_roll_step.setEnabled(False)
-            self.label_johann_calibration_roll_step_units.setEnabled(False)
+            self.label_johann_calibration_roll_nsteps.setEnabled(False)
+            self.spinBox_johann_calibration_roll_nsteps.setEnabled(False)
         elif self._johann_calibration_strategy == 'herfd':
             self.label_johann_calibration_roll_range.setEnabled(True)
             self.doubleSpinBox_johann_calibration_roll_range.setEnabled(True)
             self.label_johann_calibration_roll_range_units.setEnabled(True)
-            self.label_johann_calibration_roll_step.setEnabled(True)
-            self.doubleSpinBox_johann_calibration_roll_step.setEnabled(True)
-            self.label_johann_calibration_roll_step_units.setEnabled(True)
-
-
+            self.label_johann_calibration_roll_nsteps.setEnabled(True)
+            self.spinBox_johann_calibration_roll_nsteps.setEnabled(True)
 
     def handle_johann_calibration_widgets(self):
         self._handle_enabled_johann_calbration_widgets()
         self._handle_johann_scope_scan_widgets(scope='calibration', strategy=self._johann_calibration_strategy)
-
 
     def _handle_enabled_johann_resolution_widgets(self):
         state = self.checkBox_johann_bender_scan.isChecked()
@@ -808,11 +804,26 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self._handle_johann_scope_scan_widgets(scope='resolution', strategy='elastic')
 
 
-    # def run_johann_calibration_scan(self):
-    #     plan_name = 'johann_spectrometer_alignment_plan_bundle'
-    #     plan_kwargs = {}
-    #     # self._johann_calibration_strategy
+    def run_johann_calibration_scan(self):
+        plan_name = 'johann_spectrometer_calibration_plan_bundle'
+        plan_kwargs = {}
+        _crystal_str = self.comboBox_johann_calibration_crystal.currentText()
+        if _crystal_str == 'all/enabled': plan_kwargs['crystals'] = None
+        else: plan_kwargs['crystals'] = [_crystal_str]
 
+        plan_kwargs['mono_energy'] = self.doubleSpinBox_johann_calibration_mono_energy.value()
+        plan_kwargs['fom'] = self.comboBox_johann_calibration_fom.currentText()
+        plan_kwargs['calibration_strategy'] = self._johann_calibration_strategy
+        plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+
+        plan_kwargs['tweak_roll_range'] = self.doubleSpinBox_johann_calibration_roll_range.value()
+        plan_kwargs['tweak_roll_num_steps'] = self.spinBox_johann_calibration_roll_nsteps.value()
+
+        scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='calibration')
+        print(f'{scan_kwargs=}')
+        plan_kwargs = {**plan_kwargs, **scan_kwargs}
+        # self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         self.start_gen_scan_figure()
