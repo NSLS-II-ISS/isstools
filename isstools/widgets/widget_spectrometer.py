@@ -218,6 +218,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.comboBox_johann_calibration_strategy.currentIndexChanged.connect(self.handle_johann_calibration_widgets)
         self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_calibration_widgets)
         self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_calibration_widgets)
+        self.push_johann_calibration_scan.clicked.connect(self.run_johann_calibration_scan)
 
         self._johann_resolution_parameter_widget_dict = {}
         self.johann_resolution_tune_widget_list = []
@@ -803,7 +804,6 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self._handle_enabled_johann_resolution_widgets()
         self._handle_johann_scope_scan_widgets(scope='resolution', strategy='elastic')
 
-
     def run_johann_calibration_scan(self):
         plan_name = 'johann_spectrometer_calibration_plan_bundle'
         plan_kwargs = {}
@@ -823,7 +823,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='calibration')
         print(f'{scan_kwargs=}')
         plan_kwargs = {**plan_kwargs, **scan_kwargs}
-        # self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         self.start_gen_scan_figure()
