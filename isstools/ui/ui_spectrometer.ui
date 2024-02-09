@@ -572,15 +572,15 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -2556,7 +2556,7 @@ Motors</string>
         <x>0</x>
         <y>0</y>
         <width>611</width>
-        <height>493</height>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -3397,46 +3397,18 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
-       <string>Registration / Config Mgr</string>
+       <string>Config Mgr</string>
       </attribute>
-      <widget class="QLabel" name="label_qrcode_18">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>10</y>
-         <width>200</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>200</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Spectrometer registration</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-      </widget>
       <widget class="Line" name="line_11">
        <property name="geometry">
         <rect>
-         <x>550</x>
-         <y>10</y>
+         <x>230</x>
+         <y>30</y>
          <width>51</width>
          <height>21</height>
         </rect>
@@ -3448,8 +3420,8 @@ Motors</string>
       <widget class="QPushButton" name="push_johann_create_config">
        <property name="geometry">
         <rect>
-         <x>530</x>
-         <y>40</y>
+         <x>210</x>
+         <y>60</y>
          <width>71</width>
          <height>25</height>
         </rect>
@@ -3467,8 +3439,8 @@ Motors</string>
       <widget class="QLabel" name="label_qrcode_19">
        <property name="geometry">
         <rect>
-         <x>330</x>
-         <y>10</y>
+         <x>10</x>
+         <y>30</y>
          <width>231</width>
          <height>24</height>
         </rect>
@@ -3492,27 +3464,14 @@ Motors</string>
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
        </property>
       </widget>
-      <widget class="Line" name="line">
-       <property name="geometry">
-        <rect>
-         <x>300</x>
-         <y>20</y>
-         <width>16</width>
-         <height>301</height>
-        </rect>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
       <widget class="QPushButton" name="push_johann_delete_config">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="geometry">
         <rect>
-         <x>330</x>
-         <y>300</y>
+         <x>10</x>
+         <y>320</y>
          <width>71</width>
          <height>25</height>
         </rect>
@@ -3530,8 +3489,8 @@ Motors</string>
       <widget class="QLineEdit" name="lineEdit_johann_config_name">
        <property name="geometry">
         <rect>
-         <x>330</x>
-         <y>40</y>
+         <x>10</x>
+         <y>60</y>
          <width>191</width>
          <height>25</height>
         </rect>
@@ -3549,8 +3508,8 @@ Motors</string>
       <widget class="QPushButton" name="push_johann_set_current_config">
        <property name="geometry">
         <rect>
-         <x>470</x>
-         <y>300</y>
+         <x>150</x>
+         <y>320</y>
          <width>131</width>
          <height>25</height>
         </rect>
@@ -3565,24 +3524,11 @@ Motors</string>
         <string>Set as Current</string>
        </property>
       </widget>
-      <widget class="Line" name="line_10">
-       <property name="geometry">
-        <rect>
-         <x>210</x>
-         <y>10</y>
-         <width>101</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
       <widget class="QTreeWidget" name="treeWidget_johann_config">
        <property name="geometry">
         <rect>
-         <x>330</x>
-         <y>70</y>
+         <x>10</x>
+         <y>90</y>
          <width>271</width>
          <height>221</height>
         </rect>
@@ -3608,19 +3554,6 @@ Motors</string>
         </property>
        </column>
       </widget>
-     </widget>
-     <widget class="QWidget" name="page_5">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>100</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>Calibration</string>
-      </attribute>
      </widget>
     </widget>
     <widget class="QPushButton" name="push_johann_put_detector_to_safe_position">
