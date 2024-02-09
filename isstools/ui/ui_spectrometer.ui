@@ -2868,7 +2868,7 @@ Motors</string>
          <x>0</x>
          <y>190</y>
          <width>601</width>
-         <height>141</height>
+         <height>151</height>
         </rect>
        </property>
        <property name="title">
@@ -2878,7 +2878,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>530</x>
-          <y>40</y>
+          <y>90</y>
           <width>71</width>
           <height>51</height>
          </rect>
@@ -2903,173 +2903,206 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>140</x>
-          <y>40</y>
+          <y>90</y>
           <width>381</width>
           <height>51</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="johann_resolution_scan_layout"/>
        </widget>
-       <widget class="QComboBox" name="comboBox_johann_resolution_crystal">
+       <widget class="QWidget" name="gridLayoutWidget_14">
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>70</y>
-          <width>100</width>
-          <height>20</height>
+          <y>30</y>
+          <width>581</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_10">
+         <item row="0" column="3" rowspan="2">
+          <widget class="QCheckBox" name="checkBox_johann_bender_scan">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Bender</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_johann_resolution_crystal">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Crystal</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QComboBox" name="comboBox_johann_resolution_crystal">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="currentText">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_bender_scan_range">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>30.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_johann_resolution_mono_energy">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Mono energy</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_johann_alignment_crystal_5">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>eV</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QLabel" name="label_johann_bender_scan_range_units">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>um</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="label_johann_bender_scan_range">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Range</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="6">
+          <widget class="QSpinBox" name="spinBox_johann_bender_n_steps">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="6">
+          <widget class="QLabel" name="label_johann_bender_n_steps">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>N step</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_resolution_mono_energy">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="minimum">
+            <double>4000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>35000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>8000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QLabel" name="label_170">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>100</y>
+          <width>110</width>
+          <height>31</height>
          </rect>
         </property>
         <property name="minimumSize">
          <size>
-          <width>100</width>
+          <width>50</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>100</width>
-          <height>20</height>
-         </size>
-        </property>
-        <property name="currentText">
-         <string/>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_resolution_crystal">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>43</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
+          <width>110</width>
+          <height>35</height>
          </size>
         </property>
         <property name="text">
-         <string>Crystal</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkBox_johann_bender_scan">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>110</y>
-          <width>96</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Bender</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_bender_scan_range">
-        <property name="geometry">
-         <rect>
-          <x>140</x>
-          <y>110</y>
-          <width>100</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Range</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_bender_scan_step">
-        <property name="geometry">
-         <rect>
-          <x>370</x>
-          <y>110</y>
-          <width>41</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Step</string>
-        </property>
-       </widget>
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_bender_scan_step">
-        <property name="geometry">
-         <rect>
-          <x>410</x>
-          <y>111</y>
-          <width>81</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="value">
-         <double>5.000000000000000</double>
-        </property>
-       </widget>
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_bender_scan_range">
-        <property name="geometry">
-         <rect>
-          <x>190</x>
-          <y>110</y>
-          <width>111</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>30.000000000000000</double>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_bender_scan_range_units">
-        <property name="geometry">
-         <rect>
-          <x>310</x>
-          <y>110</y>
-          <width>41</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>um</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_johann_bender_scan_step_units">
-        <property name="geometry">
-         <rect>
-          <x>500</x>
-          <y>110</y>
-          <width>41</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>um</string>
+         <string>Elastic scan</string>
         </property>
        </widget>
       </widget>

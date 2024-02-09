@@ -796,9 +796,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.label_johann_bender_scan_range.setEnabled(state)
         self.doubleSpinBox_johann_bender_scan_range.setEnabled(state)
         self.label_johann_bender_scan_range_units.setEnabled(state)
-        self.label_johann_bender_scan_step.setEnabled(state)
-        self.doubleSpinBox_johann_bender_scan_step.setEnabled(state)
-        self.label_johann_bender_scan_step_units.setEnabled(state)
+        self.label_johann_bender_n_steps.setEnabled(state)
+        self.spinBox_johann_bender_n_steps.setEnabled(state)
 
     def handle_johann_resolution_widgets(self):
         self._handle_enabled_johann_resolution_widgets()
@@ -821,9 +820,30 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['tweak_roll_num_steps'] = self.spinBox_johann_calibration_roll_nsteps.value()
 
         scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='calibration')
-        print(f'{scan_kwargs=}')
+        # print(f'{scan_kwargs=}')
         plan_kwargs = {**plan_kwargs, **scan_kwargs}
         self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
+    def run_johann_resolution_scan(self):
+        plan_kwargs = {}
+        if self.checkBox_johann_bender_scan.isChecked():
+            plan_name = 'johann_bender_scan_plan_bundle'
+            plan_kwargs['crystal'] = self.comboBox_johann_resolution_crystal.currentText()
+            plan_kwargs['bender_tweak_range'] = self.doubleSpinBox_johann_bender_scan_range.value()
+            plan_kwargs['bender_tweak_n_steps'] = self.spinBox_johann_bender_n_steps.value()
+        else:
+            plan_name = 'johann_spectrometer_resolution_plan_bundle'
+
+        plan_kwargs['mono_energy'] = self.doubleSpinBox_johann_resolution_mono_energy.value()
+        plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
+        plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+
+        scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='resolution')
+        plan_kwargs = {**plan_kwargs, **scan_kwargs}
+        self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         self.start_gen_scan_figure()
