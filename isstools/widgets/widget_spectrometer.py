@@ -247,6 +247,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def start_gen_scan_figure(self):
         update_figure([self.figure_scan.ax], self.toolbar_scan, self.canvas_scan)
 
+    def start_gen_proc_figure(self):
+        update_figure([self.figure_proc.ax], self.toolbar_proc, self.canvas_proc)
+
     def _run_any_scan(self, detectors, liveplot_det_kwargs,
                       motor, liveplot_mot_kwargs,
                       scan_range, scan_step, exposure_time=1):
@@ -287,35 +290,41 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         detector_name = cb_det.currentText()
         cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
 
-    def _update_figure_with_epics_fly_data(self, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None, label='', roi_color='tab:blue',
+    def _update_figure_with_data(self, figure, canvas, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None, label='', roi_color='tab:blue',
                                            x_label='roll', y_label='intensity', scan_motor_description=None):
-        # print('in the plotting function')
-        self.figure_scan.ax.plot(x, y, '.', label=f'{label}', color=roi_color, ms=15)
+        figure.ax.plot(x, y, '.', label=f'{label}', color=roi_color, ms=15)
         if (x_fit is not None) and (y_fit is not None):
-            self.figure_scan.ax.plot(x_fit, y_fit, '-', color=roi_color)
+            figure.ax.plot(x_fit, y_fit, '-', color=roi_color)
 
         if (x_peak is not None) and (y_peak is not None):
-            self.figure_scan.ax.plot([x_peak, x_peak], [y.min(), y.max()], '-', color=roi_color, lw=0.5)
+            figure.ax.plot([x_peak, x_peak], [y.min(), y.max()], '-', color=roi_color, lw=0.5)
 
         if (x_peak is not None) and (fwhm is not None):
             x_lo = x_peak - fwhm / 2
             x_hi = x_peak + fwhm / 2
-            self.figure_scan.ax.plot([x_lo, x_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
-            self.figure_scan.ax.text(x_peak, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
+            figure.ax.plot([x_lo, x_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
+            figure.ax.text(x_peak, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
 
-        self.figure_scan.ax.set_xlabel(x_label)
-        self.figure_scan.ax.set_ylabel(y_label)
-        self.figure_scan.ax.set_xlim(x.min(), x.max())
-        self.figure_scan.ax.legend(loc='upper left', frameon=False)
-        self.figure_scan.tight_layout()
-        self.canvas_scan.draw_idle()
-        if scan_motor_description is not None:
+        figure.ax.set_xlabel(x_label)
+        figure.ax.set_ylabel(y_label)
+        figure.ax.set_xlim(x.min(), x.max())
+        figure.ax.legend(loc='upper left', frameon=False)
+        figure.tight_layout()
+        canvas.draw_idle()
+        if scan_motor_description is None:
+            pass # debug purposes
+        elif scan_motor_description == 'Rowland Circle Radius':
+            self.canvas_proc.motor = 'Rowland Circle Radius'
+        else:
             for motor_key, motor_dict in self.motor_dictionary.items():
                 if motor_dict['description'] == scan_motor_description:
-                    self.canvas_scan.motor = motor_dict['object']
+                    canvas.motor = motor_dict['object']
 
-        # self.lineEdit_johann_energy_init.setText(f'{ecen :0.3f}')
-        # self.update_johann_alignment_data(ecen, fwhm)
+    def _update_figure_with_epics_fly_data(self, *args, **kwargs):
+        self._update_figure_with_data(self.figure_scan, self.canvas_scan, *args, **kwargs)
+
+    def _update_figure_with_analysis_data(self, *args, **kwargs):
+        self._update_figure_with_data(self.figure_proc, self.canvas_proc, *args, **kwargs)
 
     # PCL scans
     def pcl_detector_selected(self):
@@ -1012,7 +1021,9 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         scan_kwargs = self._johann_alignment_parse_scan_kwargs()
         plan_kwargs = {**plan_kwargs, **tune_kwargs, **scan_kwargs}
 
-        self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data', 'spectrometer_plot_alignment_analysis_data']
+        # self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def johann_reset_alignment_data(self):
         self.johann_emission.reset_alignment_data()
