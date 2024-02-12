@@ -208,6 +208,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_johann_open_motors_widget.clicked.connect(self.open_motor_widget)
         self.push_johann_put_detector_to_safe_position.clicked.connect(self.johann_put_detector_to_safe_position)
 
+        self._y_offset = 0.5
+
     # general handling of gui elements, plotting, and scanning
     def handle_gui_elements(self):
         if self.plan_processor.status == 'idle':
@@ -290,20 +292,26 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         detector_name = cb_det.currentText()
         cb_chan.addItems(self.detector_dictionary[detector_name]['channels'])
 
-    def _update_figure_with_data(self, figure, canvas, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None, label='', roi_color='tab:blue',
-                                           x_label='roll', y_label='intensity', scan_motor_description=None):
-        figure.ax.plot(x, y, '.', label=f'{label}', color=roi_color, ms=15)
+    def _update_figure_with_data(self, figure, canvas, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None,
+                                 curve_index=0, label='', color=None,
+                                 x_label='roll', y_label='intensity',
+                                 scan_motor_description=None):
+        y_offset = curve_index * self._y_offset
+        if color is None:
+            color = f'C{curve_index}' # should depend on index
+
+        figure.ax.plot(x, y - y_offset, '.', label=f'{label}', color=color, ms=15)
         if (x_fit is not None) and (y_fit is not None):
-            figure.ax.plot(x_fit, y_fit, '-', color=roi_color)
+            figure.ax.plot(x_fit, y_fit - y_offset, '-', color=color)
 
         if (x_peak is not None) and (y_peak is not None):
-            figure.ax.plot([x_peak, x_peak], [y.min(), y.max()], '-', color=roi_color, lw=0.5)
+            figure.ax.plot([x_peak, x_peak], [y.min() - y_offset, y.max() - y_offset], '-', color=color, lw=0.5)
 
         if (x_peak is not None) and (fwhm is not None):
             x_lo = x_peak - fwhm / 2
             x_hi = x_peak + fwhm / 2
-            figure.ax.plot([x_lo, x_hi], [0.5, 0.5], '-', color=roi_color, lw=0.5)
-            figure.ax.text(x_peak, 0.55, f'{fwhm:0.3f}', color=roi_color, ha='center', va='center')
+            figure.ax.plot([x_lo, x_hi], [0.5 - y_offset, 0.5 - y_offset], '-', color=color, lw=0.5)
+            figure.ax.text(x_peak, 0.55 - y_offset, f'{fwhm:0.3f}', color=color, ha='center', va='center')
 
         figure.ax.set_xlabel(x_label)
         figure.ax.set_ylabel(y_label)
@@ -320,7 +328,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                 if motor_dict['description'] == scan_motor_description:
                     canvas.motor = motor_dict['object']
 
-    def _update_figure_with_epics_fly_data(self, *args, **kwargs):
+    def _update_figure_with_scan_data(self, *args, **kwargs):
         self._update_figure_with_data(self.figure_scan, self.canvas_scan, *args, **kwargs)
 
     def _update_figure_with_analysis_data(self, *args, **kwargs):
@@ -760,7 +768,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_alignment_tweak_range_mm.setEnabled(False)
             self.label_johann_alignment_n_steps.setEnabled(False)
             self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(False)
-            self.label_johann_alignment_n_steps.setEnabled(False)
+            self.spinBox_johann_alignment_n_steps.setEnabled(False)
 
         elif self.radioButton_alignment_mode_semi.isChecked():
             self.comboBox_johann_alignment_fom.setEnabled(False)
@@ -773,7 +781,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_alignment_tweak_range_mm.setEnabled(True)
             self.label_johann_alignment_n_steps.setEnabled(True)
             self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(True)
-            self.label_johann_alignment_n_steps.setEnabled(True)
+            self.spinBox_johann_alignment_n_steps.setEnabled(True)
 
         elif self.radioButton_alignment_mode_automatic.isChecked():
             self.comboBox_johann_alignment_fom.setEnabled(True)
@@ -786,7 +794,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.label_johann_alignment_tweak_range_mm.setEnabled(True)
             self.label_johann_alignment_n_steps.setEnabled(True)
             self.doubleSpinBox_johann_alignemnt_tweak_range.setEnabled(True)
-            self.label_johann_alignment_n_steps.setEnabled(True)
+            self.spinBox_johann_alignment_n_steps.setEnabled(True)
 
         if self.comboBox_johann_tweak_motor.currentText().lower() == 'r':
             self.label_johann_alignment_R_energy.setEnabled(True)
@@ -1017,13 +1025,14 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
         plan_kwargs['scan_tag'] = self.lineEdit_johann_alignment_scan_tag.text()
 
+        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer'}
         tune_kwargs = self._johann_alignment_parse_tune_kwargs()
         scan_kwargs = self._johann_alignment_parse_scan_kwargs()
         plan_kwargs = {**plan_kwargs, **tune_kwargs, **scan_kwargs}
 
         plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data', 'spectrometer_plot_alignment_analysis_data']
-        # self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
-        self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
+        self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
+        # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     def johann_reset_alignment_data(self):
         self.johann_emission.reset_alignment_data()

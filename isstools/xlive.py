@@ -420,10 +420,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                            'kwarg_value': self.question_message_box_func},
                                   'spectrometer_plot_epics_fly_scan_data':
                                       {'kwarg_name': 'plot_func',
-                                       'kwarg_value': self.widget_spectrometer._update_figure_with_epics_fly_data},
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_scan_data},
                                   'spectrometer_plot_alignment_scan_data':
                                       {'kwarg_name': 'plot_data_func',
-                                       'kwarg_value': self.widget_spectrometer._update_figure_with_epics_fly_data},
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_scan_data},
                                   'spectrometer_plot_alignment_analysis_data':
                                       {'kwarg_name': 'plot_analysis_func',
                                        'kwarg_value': self.widget_spectrometer._update_figure_with_analysis_data},
