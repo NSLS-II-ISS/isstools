@@ -221,7 +221,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.canvas_scan.mpl_disconnect(self.cid_scan)
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
-        self.start_gen_scan_figure()
+        print(plan_kwargs['liveplot_kwargs'])
+        try:
+            if plan_kwargs['liveplot_kwargs']['figure'] == 'proc_figure':
+                self.start_gen_proc_figure()
+        except:
+            self.start_gen_scan_figure()
+
         liveplot_list = []
         try:
             liveplot_kwargs = plan_kwargs['liveplot_kwargs']
@@ -1025,12 +1031,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
         plan_kwargs['scan_tag'] = self.lineEdit_johann_alignment_scan_tag.text()
 
-        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer'}
+        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer', 'figure': 'proc_figure'}
+        plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data',
+                                            'spectrometer_plot_alignment_analysis_data']
         tune_kwargs = self._johann_alignment_parse_tune_kwargs()
         scan_kwargs = self._johann_alignment_parse_scan_kwargs()
         plan_kwargs = {**plan_kwargs, **tune_kwargs, **scan_kwargs}
 
-        plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data', 'spectrometer_plot_alignment_analysis_data']
         self.plan_processor.add_plans({'plan_name': plan_name, 'plan_kwargs': plan_kwargs})
         # self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
@@ -1098,6 +1105,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         plan_kwargs['tweak_roll_range'] = self.doubleSpinBox_johann_calibration_roll_range.value()
         plan_kwargs['tweak_roll_num_steps'] = self.spinBox_johann_calibration_roll_nsteps.value()
 
+
+        plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer', 'figure': 'proc_figure'}
+        plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data',
+                                            'spectrometer_plot_alignment_analysis_data']
+
         scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='calibration')
         # print(f'{scan_kwargs=}')
         plan_kwargs = {**plan_kwargs, **scan_kwargs}
@@ -1125,12 +1137,18 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             plan_kwargs['crystal'] = self.comboBox_johann_resolution_crystal.currentText()
             plan_kwargs['bender_tweak_range'] = self.doubleSpinBox_johann_bender_scan_range.value()
             plan_kwargs['bender_tweak_n_steps'] = self.spinBox_johann_bender_n_steps.value()
+            plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer', 'figure': 'proc_figure'}
         else:
             plan_name = 'johann_spectrometer_resolution_plan_bundle'
+            plan_kwargs['liveplot_kwargs'] = {'tab': 'spectrometer'}
 
         plan_kwargs['mono_energy'] = self.doubleSpinBox_johann_resolution_mono_energy.value()
         plan_kwargs['scan_kind'] = self._johann_alignment_scan_kind
         plan_kwargs['pil100k_roi_num'] = self._johann_checked_pilatus_rois()[0]
+
+
+        plan_kwargs['plan_gui_services'] = ['spectrometer_plot_alignment_scan_data',
+                                            'spectrometer_plot_alignment_analysis_data']
 
         scan_kwargs = self._johann_alignment_parse_scan_kwargs(scan_scope='resolution')
         plan_kwargs = {**plan_kwargs, **scan_kwargs}

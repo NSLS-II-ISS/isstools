@@ -393,7 +393,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
         elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan',
                            'obtain_hhm_calibration_plan', 'obtain_spectrometer_resolution_plan',
-                           'tune_johann_piezo_plan']:
+                           'tune_johann_piezo_plan', 'johann_analyze_alignment_data_plan',
+                           'find_optimal_crystal_alignment_position_plan']:
             if plan_kwargs['liveplot_kwargs'] is not None:
                 if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
                     if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
