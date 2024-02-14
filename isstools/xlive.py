@@ -393,7 +393,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
             liveplot_list = self.widget_run.make_xasplot_func(plan_name, plan_kwargs)
         elif plan_name in ['general_scan', 'tuning_scan', 'quick_tuning_scan',
                            'obtain_hhm_calibration_plan', 'obtain_spectrometer_resolution_plan',
-                           'tune_johann_piezo_plan']:
+                           'tune_johann_piezo_plan', 'johann_analyze_alignment_data_plan',
+                           'find_optimal_crystal_alignment_position_plan']:
             if plan_kwargs['liveplot_kwargs'] is not None:
                 if 'tab' in plan_kwargs['liveplot_kwargs'].keys():
                     if plan_kwargs['liveplot_kwargs']['tab'] == 'spectrometer':
@@ -418,12 +419,15 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                          'kwarg_value' : error_message_box},
                                   'question_message_box': {'kwarg_name': 'question_message_func',
                                                            'kwarg_value': self.question_message_box_func},
-                                  'spectrometer_plot_energy_resolution_data':
-                                      {'kwarg_name': 'plot_func',
-                                       'kwarg_value': self.widget_spectrometer._update_figure_with_resolution_data},
                                   'spectrometer_plot_epics_fly_scan_data':
                                       {'kwarg_name': 'plot_func',
-                                       'kwarg_value': self.widget_spectrometer._update_figure_with_epics_fly_data},
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_scan_data},
+                                  'spectrometer_plot_alignment_scan_data':
+                                      {'kwarg_name': 'plot_data_func',
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_scan_data},
+                                  'spectrometer_plot_alignment_analysis_data':
+                                      {'kwarg_name': 'plot_analysis_func',
+                                       'kwarg_value': self.widget_spectrometer._update_figure_with_analysis_data},
                                   }
 
     def question_message_box_func(self, *args):
