@@ -192,9 +192,11 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self._johann_resolution_parameter_widget_dict = {}
         self.johann_resolution_scan_widget_list = []
         self.handle_johann_resolution_widgets()
+        self._johann_resolution_strategy = 'elastic'
         self.checkBox_johann_bender_scan.toggled.connect(self._handle_enabled_johann_resolution_widgets)
         self.radioButton_alignment_mode_fly.clicked.connect(self.handle_johann_resolution_widgets)
         self.radioButton_alignment_mode_step.clicked.connect(self.handle_johann_resolution_widgets)
+        self.push_johann_resolution_scan.clicked.connect(self.run_johann_resolution_scan)
 
         self.push_johann_register_energy.clicked.connect(self.johann_register_energy)
         self.push_johann_set_limits.clicked.connect(self.johann_set_energy_limits)
@@ -301,38 +303,46 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
     def _update_figure_with_data(self, figure, canvas, x, y, x_fit=None, y_fit=None, x_peak=None, y_peak=None, fwhm=None,
                                  curve_index=0, label='', color=None,
                                  x_label='roll', y_label='intensity',
-                                 scan_motor_description=None):
-        y_offset = curve_index * self._y_offset
-        if color is None:
-            color = f'C{curve_index}' # should depend on index
+                                 scan_motor_description=None, plotting_one_curve=True, plotting_many_curves_end=False):
 
-        figure.ax.plot(x, y - y_offset, '.', label=f'{label}', color=color, ms=15)
-        if (x_fit is not None) and (y_fit is not None):
-            figure.ax.plot(x_fit, y_fit - y_offset, '-', color=color)
-
-        if (x_peak is not None) and (y_peak is not None):
-            figure.ax.plot([x_peak, x_peak], [y.min() - y_offset, y.max() - y_offset], '-', color=color, lw=0.5)
-
-        if (x_peak is not None) and (fwhm is not None):
-            x_lo = x_peak - fwhm / 2
-            x_hi = x_peak + fwhm / 2
-            figure.ax.plot([x_lo, x_hi], [0.5 - y_offset, 0.5 - y_offset], '-', color=color, lw=0.5)
-            figure.ax.text(x_peak, 0.55 - y_offset, f'{fwhm:0.3f}', color=color, ha='center', va='center')
-
-        figure.ax.set_xlabel(x_label)
-        figure.ax.set_ylabel(y_label)
-        figure.ax.set_xlim(x.min(), x.max())
-        figure.ax.legend(loc='upper left', frameon=False)
-        figure.tight_layout()
-        canvas.draw_idle()
-        if scan_motor_description is None:
-            pass # debug purposes
-        elif scan_motor_description == 'Rowland Circle Radius':
-            self.canvas_proc.motor = 'Rowland Circle Radius'
+        if plotting_many_curves_end:
+            pass
         else:
-            for motor_key, motor_dict in self.motor_dictionary.items():
-                if motor_dict['description'] == scan_motor_description:
-                    canvas.motor = motor_dict['object']
+            print('plotting data')
+            y_offset = curve_index * self._y_offset
+            if color is None:
+                color = f'C{curve_index}' # should depend on index
+
+            figure.ax.plot(x, y - y_offset, '.', label=f'{label}', color=color, ms=15)
+            if (x_fit is not None) and (y_fit is not None):
+                figure.ax.plot(x_fit, y_fit - y_offset, '-', color=color)
+
+            if (x_peak is not None) and (y_peak is not None):
+                figure.ax.plot([x_peak, x_peak], [y.min() - y_offset, y.max() - y_offset], '-', color=color, lw=0.5)
+
+            if (x_peak is not None) and (fwhm is not None):
+                x_lo = x_peak - fwhm / 2
+                x_hi = x_peak + fwhm / 2
+                figure.ax.plot([x_lo, x_hi], [0.5 - y_offset, 0.5 - y_offset], '-', color=color, lw=0.5)
+                figure.ax.text(x_peak, 0.55 - y_offset, f'{fwhm:0.3f}', color=color, ha='center', va='center')
+
+        if plotting_one_curve or plotting_many_curves_end:
+            print('concluding the data plot')
+            figure.ax.set_xlabel(x_label)
+            figure.ax.set_ylabel(y_label)
+            # figure.ax.set_xlim(x.min(), x.max())
+
+            figure.ax.legend(loc='upper left', frameon=False)
+            figure.tight_layout()
+            canvas.draw_idle()
+            if scan_motor_description is None:
+                pass # debug purposes
+            elif scan_motor_description == 'Rowland Circle Radius':
+                self.canvas_proc.motor = 'Rowland Circle Radius'
+            else:
+                for motor_key, motor_dict in self.motor_dictionary.items():
+                    if motor_dict['description'] == scan_motor_description:
+                        canvas.motor = motor_dict['object']
 
     def _update_figure_with_scan_data(self, *args, **kwargs):
         self._update_figure_with_data(self.figure_scan, self.canvas_scan, *args, **kwargs)
