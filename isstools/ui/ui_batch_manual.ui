@@ -208,6 +208,19 @@
      <string>Info</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton_deselect_all_batchscan">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>730</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Deselect All</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_9">
    <property name="geometry">
