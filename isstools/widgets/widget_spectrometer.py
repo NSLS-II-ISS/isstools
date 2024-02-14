@@ -428,92 +428,96 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def handle_johann_alignment_widgets(self):
         # clean up old widgets
-        self._johann_alignment_parameter_widget_dict = {}
+        try:
+            self._johann_alignment_parameter_widget_dict = {}
 
-        self._handle_enabled_johann_alignment_widgets()
-        for widget in self.johann_alignment_tune_widget_list:
-            self.johann_alignment_tune_layout.removeWidget(widget)
-            widget.deleteLater()
-        self.johann_alignment_tune_widget_list = []
+            self._handle_enabled_johann_alignment_widgets()
+            for widget in self.johann_alignment_tune_widget_list:
+                self.johann_alignment_tune_layout.removeWidget(widget)
+                widget.deleteLater()
+            self.johann_alignment_tune_widget_list = []
 
-        for widget in self.johann_alignment_scan_widget_list:
-            self.johann_alignment_scan_layout.removeWidget(widget)
-            widget.deleteLater()
-        self.johann_alignment_scan_widget_list = []
+            for widget in self.johann_alignment_scan_widget_list:
+                self.johann_alignment_scan_layout.removeWidget(widget)
+                widget.deleteLater()
+            self.johann_alignment_scan_widget_list = []
 
-        tweak_motor_widgets = []
-        crystal_str = self.comboBox_johann_alignment_crystal.currentText()
-        motor_str = self.comboBox_johann_tweak_motor.currentText()
-        if motor_str == 'X':
-            if crystal_str == 'main':
-                motor_key = 'auxxy_x'
+            tweak_motor_widgets = []
+            crystal_str = self.comboBox_johann_alignment_crystal.currentText()
+            motor_str = self.comboBox_johann_tweak_motor.currentText()
+            if motor_str == 'X':
+                if crystal_str == 'main':
+                    motor_key = 'auxxy_x'
+                else:
+                    motor_key = f'johann_cr_{crystal_str}_x'
+                widget = UIWidgetMotors(self.motor_dictionary[motor_key], motor_description_width=500,
+                                        horizontal_scale=0.9)
+            elif motor_str == 'R':
+                widget = UIWidgetSpectrometerR(johann_emission=self.johann_emission, spinbox_energy=self.doubleSpinBox_johann_alignment_R_energy,
+                                                plan_processor=self.plan_processor, parent=self)
             else:
-                motor_key = f'johann_cr_{crystal_str}_x'
-            widget = UIWidgetMotors(self.motor_dictionary[motor_key], motor_description_width=500,
-                                    horizontal_scale=0.9)
-        elif motor_str == 'R':
-            widget = UIWidgetSpectrometerR(johann_emission=self.johann_emission, spinbox_energy=self.doubleSpinBox_johann_alignment_R_energy,
-                                            plan_processor=self.plan_processor, parent=self)
-        else:
-            raise NotImplementedError('Tweak motor must be either R or X. No other options are implemented!')
-            # widget = None
+                raise NotImplementedError('Tweak motor must be either R or X. No other options are implemented!')
+                # widget = None
 
-        self.johann_alignment_tune_widget_list.append(widget)
-        self._johann_alignment_parameter_widget_dict['tweak_motor'] = widget
-        tweak_motor_widgets.append(widget)
+            self.johann_alignment_tune_widget_list.append(widget)
+            self._johann_alignment_parameter_widget_dict['tweak_motor'] = widget
+            tweak_motor_widgets.append(widget)
 
-        # elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
-        labels_tune_widgets = self._johann_label_row_widget(motor_label="Tune motor")
-        yaw_tune_widgets, yaw_tune_relevant_widgets = self._johann_create_motor_widget_row(
-            motor_check=True, motor_str='yaw', motor_unit_str='mdeg',
-            scan_range=1000, scan_duration=10,
-            scan_step=10, scan_exposure=0.25, with_button=True)
-        self._johann_alignment_parameter_widget_dict['yaw_tune'] = yaw_tune_relevant_widgets
+            # elif self.radioButton_alignment_mode_semi.isChecked() or self.radioButton_alignment_mode_automatic.isChecked():
+            labels_tune_widgets = self._johann_label_row_widget(motor_label="Tune motor")
+            yaw_tune_widgets, yaw_tune_relevant_widgets = self._johann_create_motor_widget_row(
+                motor_check=True, motor_str='yaw', motor_unit_str='mdeg',
+                scan_range=1000, scan_duration=10,
+                scan_step=10, scan_exposure=0.25, with_button=True)
+            self._johann_alignment_parameter_widget_dict['yaw_tune'] = yaw_tune_relevant_widgets
 
-        roll_tune_widgets, roll_tune_relevant_widgets = self._johann_create_motor_widget_row(
-            motor_check=False, motor_str='roll', motor_unit_str='mdeg',
-            scan_range=1000, scan_duration=10,
-            scan_step=10, scan_exposure=0.25, with_button=True)
-        self._johann_alignment_parameter_widget_dict['roll_tune'] = roll_tune_relevant_widgets
+            roll_tune_widgets, roll_tune_relevant_widgets = self._johann_create_motor_widget_row(
+                motor_check=False, motor_str='roll', motor_unit_str='mdeg',
+                scan_range=1000, scan_duration=10,
+                scan_step=10, scan_exposure=0.25, with_button=True)
+            self._johann_alignment_parameter_widget_dict['roll_tune'] = roll_tune_relevant_widgets
 
-        self.johann_alignment_tune_widget_list.extend(labels_tune_widgets + yaw_tune_widgets + roll_tune_widgets)
+            self.johann_alignment_tune_widget_list.extend(labels_tune_widgets + yaw_tune_widgets + roll_tune_widgets)
 
-        for widget in tweak_motor_widgets:
-            self.johann_alignment_tune_layout.addWidget(widget, 0, 0, 1, len(labels_tune_widgets) + 1)
-            widget.setEnabled(self.radioButton_alignment_mode_manual.isChecked())
+            for widget in tweak_motor_widgets:
+                self.johann_alignment_tune_layout.addWidget(widget, 0, 0, 1, len(labels_tune_widgets) + 1)
+                widget.setEnabled(self.radioButton_alignment_mode_manual.isChecked())
 
-        tune_widget_row_offset = len(tweak_motor_widgets)
-        for row, _widget_list in enumerate([labels_tune_widgets, yaw_tune_widgets, roll_tune_widgets]):
-            for col, _widget in enumerate(_widget_list):
-                self.johann_alignment_tune_layout.addWidget(_widget, row + tune_widget_row_offset, col)
+            tune_widget_row_offset = len(tweak_motor_widgets)
+            for row, _widget_list in enumerate([labels_tune_widgets, yaw_tune_widgets, roll_tune_widgets]):
+                for col, _widget in enumerate(_widget_list):
+                    self.johann_alignment_tune_layout.addWidget(_widget, row + tune_widget_row_offset, col)
 
-        if self._johann_alignment_strategy == 'emission':
-            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
-            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
-                                                                                     motor_str='roll',
-                                                                                     motor_unit_str='mdeg',
-                                                                                     scan_range=1000,
-                                                                                     scan_duration=10,
-                                                                                     scan_step=10,
-                                                                                     scan_exposure=0.25)
-        elif self._johann_alignment_strategy == 'elastic':
-            _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
-            _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
-                                                                                     motor_str='energy',
-                                                                                     motor_unit_str='eV',
-                                                                                     scan_range=15,
-                                                                                     scan_duration=10,
-                                                                                     scan_step=0.1,
-                                                                                     scan_exposure=0.25)
-        elif self._johann_alignment_strategy == 'herfd':
-            _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows()
+            if self._johann_alignment_strategy == 'emission':
+                _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+                _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                         motor_str='roll',
+                                                                                         motor_unit_str='mdeg',
+                                                                                         scan_range=1000,
+                                                                                         scan_duration=10,
+                                                                                         scan_step=10,
+                                                                                         scan_exposure=0.25)
+            elif self._johann_alignment_strategy == 'elastic':
+                _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
+                _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
+                                                                                         motor_str='energy',
+                                                                                         motor_unit_str='eV',
+                                                                                         scan_range=15,
+                                                                                         scan_duration=10,
+                                                                                         scan_step=0.1,
+                                                                                         scan_exposure=0.25)
+            elif self._johann_alignment_strategy == 'herfd':
+                _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows()
 
-        self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
-        self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
+            self._johann_alignment_parameter_widget_dict['scan_params'] = _johann_scan_dict
+            self.johann_alignment_scan_widget_list.extend(_widgets0_scan + _widgets1_scan)
 
-        for i in range(len(_widgets0_scan)):
-            self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
-            self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
+            for i in range(len(_widgets0_scan)):
+                self.johann_alignment_scan_layout.addWidget(_widgets0_scan[i], 0, i)
+                self.johann_alignment_scan_layout.addWidget(_widgets1_scan[i], 1, i)
+        except Exception as e:
+            print(f'Ignore this error. Could not handle alignment widgets. Reason: {e}')
+
 
     def _get_johann_scan_parameters_from_relevant_widgets(self, key='yaw_tune'):
         d = self._johann_alignment_parameter_widget_dict[key]
