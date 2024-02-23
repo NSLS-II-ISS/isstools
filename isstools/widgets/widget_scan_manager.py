@@ -436,8 +436,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                           'postline_end': float(self.edit_postline_end.text()),
                                           'revert' : self.checkBox_spectrometer_energy_down.isChecked()}
                 if scan_type == 'fly scan':
-                    # return {**scan_parameters_common, **self._spectrometer_traj_dict}
-                    raise NotImplementedError('Emission Fly scans are not implemented yet')
+                    return {**scan_parameters_common, **self._spectrometer_duration_dict}
+                    # raise NotImplementedError('Emission Fly scans are not implemented yet')
                 elif scan_type == 'step scan':
                     scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
 
@@ -450,18 +450,25 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     @property
     def _spectrometer_step_dict(self):
         output = {'preline_stepsize': float(self.edit_preline_spacing.text()),
-                              'mainline_stepsize': float(self.edit_mainline_spacing.text()),
-                              'postline_stepsize': float(self.edit_postline_spacing.text()),
-                              'revert': self.checkBox_spectrometer_energy_down.isChecked()}
+                  'mainline_stepsize': float(self.edit_mainline_spacing.text()),
+                  'postline_stepsize': float(self.edit_postline_spacing.text()),
+                  'revert': self.checkBox_spectrometer_energy_down.isChecked()}
         if self._mono_scan_type == 'constant energy':
             emission_dwell_dict = {'preline_dwelltime': float(self.edit_preline_dwell.text()),
                                    'mainline_dwelltime': float(self.edit_mainline_dwell.text()),
                                    'postline_dwelltime': float(self.edit_postline_dwell.text())}
             output = {**output, **emission_dwell_dict}
-
         return output
 
-
+    @property
+    def _spectrometer_duration_dict(self):
+        output = {'revert': self.checkBox_spectrometer_fly_energy_down.isChecked()}
+        if self._mono_scan_type != 'fly scan':
+            emission_dwell_dict = {'preline_duration': float(self.edit_preline_fly_duration.text()),
+                                   'mainline_duration': float(self.edit_mainline_fly_duration.text()),
+                                   'postline_duration': float(self.edit_postline_fly_duration.text())}
+            output = {**output, **emission_dwell_dict}
+        return output
 
     def preview_scan(self, keep_scan_name=False):
         self.mono_scan_parameters = self._mono_scan_parameters
