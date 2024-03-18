@@ -579,8 +579,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1130,8 +1130,8 @@ to 90 deg</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1560,8 +1560,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1785,8 +1785,8 @@ Motors</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>611</width>
+        <height>527</height>
        </rect>
       </property>
       <attribute name="label">
@@ -2273,7 +2273,7 @@ Motors</string>
          <x>520</x>
          <y>360</y>
          <width>81</width>
-         <height>41</height>
+         <height>51</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -2289,7 +2289,8 @@ Motors</string>
         </size>
        </property>
        <property name="text">
-        <string>Run</string>
+        <string>Add to
+Queue</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget">
@@ -2599,7 +2600,8 @@ Motors</string>
          </size>
         </property>
         <property name="text">
-         <string>Run</string>
+         <string>Add to
+Queue</string>
         </property>
        </widget>
        <widget class="QWidget" name="gridLayoutWidget_9">
@@ -2866,7 +2868,7 @@ Motors</string>
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>190</y>
+         <y>340</y>
          <width>601</width>
          <height>151</height>
         </rect>
@@ -2896,7 +2898,8 @@ Motors</string>
          </size>
         </property>
         <property name="text">
-         <string>Run</string>
+         <string>Add to
+Queue</string>
         </property>
        </widget>
        <widget class="QWidget" name="gridLayoutWidget_11">
@@ -3112,8 +3115,8 @@ Motors</string>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>360</y>
+         <x>0</x>
+         <y>180</y>
          <width>591</width>
          <height>121</height>
         </rect>
@@ -3124,7 +3127,7 @@ Motors</string>
        <widget class="QPushButton" name="push_johann_register_energy">
         <property name="geometry">
          <rect>
-          <x>190</x>
+          <x>200</x>
           <y>30</y>
           <width>81</width>
           <height>24</height>
@@ -3143,7 +3146,7 @@ Motors</string>
        <widget class="QLineEdit" name="lineEdit_johann_energy_init">
         <property name="geometry">
          <rect>
-          <x>57</x>
+          <x>60</x>
           <y>30</y>
           <width>91</width>
           <height>24</height>
@@ -3162,7 +3165,7 @@ Motors</string>
        <widget class="QLabel" name="label_22">
         <property name="geometry">
          <rect>
-          <x>154</x>
+          <x>160</x>
           <y>30</y>
           <width>30</width>
           <height>24</height>
@@ -3181,7 +3184,7 @@ Motors</string>
        <widget class="QLabel" name="label_25">
         <property name="geometry">
          <rect>
-          <x>11</x>
+          <x>20</x>
           <y>30</y>
           <width>40</width>
           <height>24</height>
@@ -3201,7 +3204,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>330</x>
-          <y>80</y>
+          <y>90</y>
           <width>40</width>
           <height>24</height>
          </rect>
@@ -3220,7 +3223,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>330</x>
-          <y>50</y>
+          <y>60</y>
           <width>40</width>
           <height>24</height>
          </rect>
@@ -3239,7 +3242,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>460</x>
-          <y>80</y>
+          <y>90</y>
           <width>30</width>
           <height>25</height>
          </rect>
@@ -3264,7 +3267,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>376</x>
-          <y>80</y>
+          <y>90</y>
           <width>71</width>
           <height>24</height>
          </rect>
@@ -3283,7 +3286,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>490</x>
-          <y>80</y>
+          <y>90</y>
           <width>91</width>
           <height>24</height>
          </rect>
@@ -3302,7 +3305,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>460</x>
-          <y>50</y>
+          <y>60</y>
           <width>30</width>
           <height>25</height>
          </rect>
@@ -3327,7 +3330,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>490</x>
-          <y>50</y>
+          <y>60</y>
           <width>91</width>
           <height>24</height>
          </rect>
@@ -3365,7 +3368,7 @@ Motors</string>
         <property name="geometry">
          <rect>
           <x>376</x>
-          <y>50</y>
+          <y>60</y>
           <width>71</width>
           <height>24</height>
          </rect>
@@ -3383,7 +3386,7 @@ Motors</string>
        <widget class="QLabel" name="label">
         <property name="geometry">
          <rect>
-          <x>10</x>
+          <x>20</x>
           <y>60</y>
           <width>261</width>
           <height>20</height>
