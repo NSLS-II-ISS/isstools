@@ -208,7 +208,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.comboBox_spectrometer_config.setEnabled(False)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(False)
+            self.check_aux_detector(False, aux_detector='Pilatus 100k New')
             self.handle_exposure_parameters_crosstalk(spectrometer_is_fixed=True)
 
     def enable_spectrometer_johann(self):
@@ -217,7 +217,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(True)
             self.comboBox_spectrometer_config.setEnabled(True)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(True)
+            self.check_aux_detector(True, aux_detector='Pilatus 100k New')
             self.handle_mono_spectrometer_crosstalk(is_johann=True)
             self.handle_exposure_parameters_crosstalk(is_johann=True)
 
@@ -227,7 +227,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.comboBox_spectrometer_config.setEnabled(False)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(True)
+            self.check_aux_detector(True, aux_detector='Pilatus 100k New')
             self.handle_exposure_parameters_crosstalk(is_johann=False)
 
     def handle_mono_spectrometer_crosstalk(self, is_johann=None, mono_is_fixed=None, spectrometer_is_not_fixed=None):
@@ -281,10 +281,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
-    def check_pilatus_detector(self, check_state):
+    def check_aux_detector(self, check_state, aux_detector='Pilatus 100k'):
         for j in range(1, self.verticalLayout_detectors.count()):
             checkBox = self.verticalLayout_detectors.itemAt(j).widget()
-            if checkBox.text() == 'Pilatus 100k':
+            if checkBox.text() == aux_detector:
                 checkBox.setChecked(check_state)
 
     @property
