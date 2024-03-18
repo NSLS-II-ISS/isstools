@@ -436,7 +436,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                           'postline_end': float(self.edit_postline_end.text()),
                                           'revert' : self.checkBox_spectrometer_energy_down.isChecked()}
                 if scan_type == 'fly scan':
-                    return {**scan_parameters_common, **self._spectrometer_duration_dict}
+                    scan_parameters = {**scan_parameters_common, **self._spectrometer_duration_dict}
                     # raise NotImplementedError('Emission Fly scans are not implemented yet')
                 elif scan_type == 'step scan':
                     scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
