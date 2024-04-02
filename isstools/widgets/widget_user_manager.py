@@ -300,19 +300,19 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         proposal = self.RE.md['proposal']
         PI = self.RE.md['PI']
         slack_channel = f'{year}-{cycle}-{proposal}'
-        channel_id,channel_info = slack_channel_exists(self.parent.slack_client_bot,slack_channel)
-        print(channel_id)
-        if not channel_id:
-            try:
-                print('Slack channel not found, Creating new channel...')
-                channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
-                print('Trying to invite user to the channel')
-                slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
-            except Exception as e:
-                print(f'Failed to invite user to channel. Error: {e}')
-
-        slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
-        self.RE.md['slack_channel'] = channel_id
+        # channel_id,channel_info = slack_channel_exists(self.parent.slack_client_bot,slack_channel)
+        # print(channel_id)
+        # if not channel_id:
+        #     try:
+        #         print('Slack channel not found, Creating new channel...')
+        #         channel_id, channel_info = slack_create_channel(self.parent.slack_client_bot, slack_channel)
+        #         print('Trying to invite user to the channel')
+        #         slack_invite_to_channel(self.parent.slack_client_bot,channel_id)
+        #     except Exception as e:
+        #         print(f'Failed to invite user to channel. Error: {e}')
+        #
+        # slack_url =  f'https://app.slack.com/client/T0178K9UAE6/{channel_id}'
+        # self.RE.md['slack_channel'] = channel_id
 
         dropbox_folder =f'/{year}/{cycle}/{proposal}'
         if not dropbox_folder_exists(self.parent.dropbox_service,dropbox_folder):
@@ -339,7 +339,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             email_address,
             f'ISS beamline results Proposal {proposal}',
             f'<p> Dear {PI},</p> '
-            f'<p>Slack channel to monitor your experiment is {slack_url} </p>'
+            # f'<p>Slack channel to monitor yor experiemnt is {slack_url} </p>'
             f'<p>Data files will be uploaded to Dropbox folder at {dropbox_url} </p>'
             f'<p> Sincerely, </p> '
             f'<p> ISS Staff </p>'
