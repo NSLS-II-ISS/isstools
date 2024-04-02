@@ -339,7 +339,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             email_address,
             f'ISS beamline results Proposal {proposal}',
             f'<p> Dear {PI},</p> '
-            f'<p>Slack channel to monitor yor experiemnt is {slack_url} </p>'
+            f'<p>Slack channel to monitor your experiment is {slack_url} </p>'
             f'<p>Data files will be uploaded to Dropbox folder at {dropbox_url} </p>'
             f'<p> Sincerely, </p> '
             f'<p> ISS Staff </p>'

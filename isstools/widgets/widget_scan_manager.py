@@ -208,7 +208,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.comboBox_spectrometer_config.setEnabled(False)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(False)
+            self.check_aux_detector(False, aux_detector='Pilatus 100k New')
             self.handle_exposure_parameters_crosstalk(spectrometer_is_fixed=True)
 
     def enable_spectrometer_johann(self):
@@ -217,7 +217,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(True)
             self.comboBox_spectrometer_config.setEnabled(True)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(True)
+            self.check_aux_detector(True, aux_detector='Pilatus 100k New')
             self.handle_mono_spectrometer_crosstalk(is_johann=True)
             self.handle_exposure_parameters_crosstalk(is_johann=True)
 
@@ -227,7 +227,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.tabWidget_spectrometer_scan_type.setEnabled(False)
             self.comboBox_spectrometer_config.setEnabled(False)
             self.update_comboBox_spectrometer_config()
-            self.check_pilatus_detector(True)
+            self.check_aux_detector(True, aux_detector='Pilatus 100k New')
             self.handle_exposure_parameters_crosstalk(is_johann=False)
 
     def handle_mono_spectrometer_crosstalk(self, is_johann=None, mono_is_fixed=None, spectrometer_is_not_fixed=None):
@@ -281,10 +281,10 @@ class UIScanManager(*uic.loadUiType(ui_path)):
 
 
 
-    def check_pilatus_detector(self, check_state):
+    def check_aux_detector(self, check_state, aux_detector='Pilatus 100k'):
         for j in range(1, self.verticalLayout_detectors.count()):
             checkBox = self.verticalLayout_detectors.itemAt(j).widget()
-            if checkBox.text() == 'Pilatus 100k':
+            if checkBox.text() == aux_detector:
                 checkBox.setChecked(check_state)
 
     @property
@@ -436,8 +436,8 @@ class UIScanManager(*uic.loadUiType(ui_path)):
                                           'postline_end': float(self.edit_postline_end.text()),
                                           'revert' : self.checkBox_spectrometer_energy_down.isChecked()}
                 if scan_type == 'fly scan':
-                    # return {**scan_parameters_common, **self._spectrometer_traj_dict}
-                    raise NotImplementedError('Emission Fly scans are not implemented yet')
+                    scan_parameters = {**scan_parameters_common, **self._spectrometer_duration_dict}
+                    # raise NotImplementedError('Emission Fly scans are not implemented yet')
                 elif scan_type == 'step scan':
                     scan_parameters = {**scan_parameters_common, **self._spectrometer_step_dict}
 
@@ -450,18 +450,25 @@ class UIScanManager(*uic.loadUiType(ui_path)):
     @property
     def _spectrometer_step_dict(self):
         output = {'preline_stepsize': float(self.edit_preline_spacing.text()),
-                              'mainline_stepsize': float(self.edit_mainline_spacing.text()),
-                              'postline_stepsize': float(self.edit_postline_spacing.text()),
-                              'revert': self.checkBox_spectrometer_energy_down.isChecked()}
+                  'mainline_stepsize': float(self.edit_mainline_spacing.text()),
+                  'postline_stepsize': float(self.edit_postline_spacing.text()),
+                  'revert': self.checkBox_spectrometer_energy_down.isChecked()}
         if self._mono_scan_type == 'constant energy':
             emission_dwell_dict = {'preline_dwelltime': float(self.edit_preline_dwell.text()),
                                    'mainline_dwelltime': float(self.edit_mainline_dwell.text()),
                                    'postline_dwelltime': float(self.edit_postline_dwell.text())}
             output = {**output, **emission_dwell_dict}
-
         return output
 
-
+    @property
+    def _spectrometer_duration_dict(self):
+        output = {'revert': self.checkBox_spectrometer_fly_energy_down.isChecked()}
+        if self._mono_scan_type != 'fly scan':
+            emission_dwell_dict = {'preline_duration': float(self.edit_preline_fly_duration.text()),
+                                   'mainline_duration': float(self.edit_mainline_fly_duration.text()),
+                                   'postline_duration': float(self.edit_postline_fly_duration.text())}
+            output = {**output, **emission_dwell_dict}
+        return output
 
     def preview_scan(self, keep_scan_name=False):
         self.mono_scan_parameters = self._mono_scan_parameters
