@@ -65,8 +65,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
         self.pushButton_archive_samples.clicked.connect(self.archive_sample)
         self.pushButton_restore_samples.clicked.connect(self.restore_sample)
-        self.pushButton_archive_scans.clicked.connect(self.archive_scan)
-        self.pushButton_restore_scans.clicked.connect(self.restore_scan)
 
         self.pushButton_add_metadata_key.clicked.connect(self.add_metadata_key)
         self.pushButton_remove_metadata_key.clicked.connect(self.remove_metadata_key)
@@ -78,14 +76,14 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
 
         self.checkBox_show_archived_samples.toggled.connect(self.show_archives)
-        self.checkBox_show_archived_scans.toggled.connect(self.show_archives)
+
 
         self.populate_comboboxes()
         self.initialize()
 
         self.listWidget_samples_archived.hide()
-        self.listWidget_scans_archived.hide()
-        self.pushButton_restore_scans.hide()
+
+
         self.pushButton_restore_samples.hide()
 
         self.label_proposal_title.setText('')
@@ -137,24 +135,13 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
     def update_scan_list(self):
         self.listWidget_scans.clear()
-        self.listWidget_scans_archived.clear()
         for scan in self.scan_manager.scan_list_local:
             item = QListWidgetItem(scan['scan_def'])
             item.setToolTip(scan['uid'])
-            if scan['archived']:
-                self.listWidget_scans_archived.addItem(item)
-            else:
-                self.listWidget_scans.addItem(item)
+            self.listWidget_scans.addItem(item)
 
-    def restore_scan(self):
-        for item in self.listWidget_scans_archived.selectedItems():
-            self.scan_manager.restore_scan_at_uid(item.toolTip())
-        self.parent.widget_scan_manager.update_local_manager_list()
 
-    def archive_scan(self):
-        for item in self.listWidget_scans.selectedItems():
-            self.scan_manager.archive_scan_at_uid(item.toolTip())
-        self.parent.widget_scan_manager.update_local_manager_list()
+
 
     def update_sample_list(self):
         self.listWidget_samples.clear()
@@ -188,8 +175,8 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
     def show_archives(self):
         sender_object = QObject().sender()
-        object_dict = {self.checkBox_show_archived_samples: [self.listWidget_samples_archived, self.pushButton_restore_samples],
-                       self.checkBox_show_archived_scans: [self.listWidget_scans_archived, self.pushButton_restore_scans]}
+        object_dict = {self.checkBox_show_archived_samples: [self.listWidget_samples_archived,
+                                                             self.pushButton_restore_samples]}
         if sender_object.isChecked():
             for object in object_dict[sender_object]:
                 object.show()
