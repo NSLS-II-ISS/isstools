@@ -80,21 +80,21 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.push_pcl_1D_scan.clicked.connect(self.run_pcl_scan)
 
         # Legacy Johann
-        self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
-                                                                     motor_dictionary=motor_dictionary,
-                                                                     db=db,
-                                                                     RE=RE,
-                                                                     plan_processor=plan_processor,
-                                                                     hhm=hhm,
-                                                                     johann_emission=johann_emission,
-                                                                     detector_dictionary=detector_dictionary,
-                                                                     aux_plan_funcs=aux_plan_funcs,
-                                                                     service_plan_funcs=service_plan_funcs,
-                                                                     embedded_run_scan_func=self._run_any_scan,
-                                                                     figure_proc=self.figure_proc,
-                                                                     canvas_proc=self.canvas_proc,
-                                                                     toolbar_proc=self.toolbar_proc)
-        self.layout_johann_tools.addWidget(self.widget_johann_tools)
+        # self.widget_johann_tools = widget_johann_tools.UIJohannTools(parent=self,
+        #                                                              motor_dictionary=motor_dictionary,
+        #                                                              db=db,
+        #                                                              RE=RE,
+        #                                                              plan_processor=plan_processor,
+        #                                                              hhm=hhm,
+        #                                                              johann_emission=johann_emission,
+        #                                                              detector_dictionary=detector_dictionary,
+        #                                                              aux_plan_funcs=aux_plan_funcs,
+        #                                                              service_plan_funcs=service_plan_funcs,
+        #                                                              embedded_run_scan_func=self._run_any_scan,
+        #                                                              figure_proc=self.figure_proc,
+        #                                                              canvas_proc=self.canvas_proc,
+        #                                                              toolbar_proc=self.toolbar_proc)
+        # self.layout_johann_tools.addWidget(self.widget_johann_tools)
         ###
 
         # --- Johann spectrometer ---
@@ -162,7 +162,8 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_alignment_scan_widget_list = []
         self.comboBox_johann_alignment_strategy.addItems(['Emission', 'Elastic', 'HERFD'])
 
-        self.doubleSpinBox_johann_alignment_R_energy.setValue(johann_emission.energy.position)
+        if johann_emission.initialized:
+            self.doubleSpinBox_johann_alignment_R_energy.setValue(johann_emission.energy.position)
         self._get_default_johann_alignment_parameters()
         self.handle_johann_alignment_widgets(gui_initialized=False)
         self.radioButton_alignment_mode_manual.clicked.connect(self.handle_johann_alignment_widgets)
