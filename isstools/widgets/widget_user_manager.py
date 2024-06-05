@@ -60,7 +60,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.pushButton_setup_user.clicked.connect(self.setup_user)
         self.pushButton_find_proposal.clicked.connect(self.find_proposal)
         self.pushButton_select_saf.clicked.connect(self.select_saf)
-        self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
         self.push_create_sample.clicked.connect(self.create_new_sample)
         self.pushButton_cancel_setup.clicked.connect(self.cancel_setup)
         self.pushButton_archive_samples.clicked.connect(self.archive_sample)
@@ -77,9 +76,8 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
         self.checkBox_show_archived_samples.toggled.connect(self.show_archives)
 
-
-        self.populate_comboboxes()
         self.initialize()
+        self.populate_comboboxes()
 
         self.listWidget_samples_archived.hide()
 
@@ -161,13 +159,22 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.comboBox_affiliations.activated.disconnect(self.select_from_comboboxes)
         self.comboBox_users.clear()
         self.comboBox_affiliations.clear()
-        affiliations=[]
-        for user in self.user_manager.users:
-            self.comboBox_users.addItem(f"{user['first_name']} {user['last_name']}")
-            affiliations.append(user['affiliation'])
-        affiliations = list(set(affiliations))
-        for affiliation in affiliations:
+        users = [f"{u['first_name']} {u['last_name']}" for u in self.user_manager.users]
+        affiliations = list(set([u['affiliation'] for u in self.user_manager.users]))
+        users.sort()
+        affiliations.sort()
+
+        for i, user in enumerate(users):
+            self.comboBox_users.addItem(user)
+            if user == f"{self.lineEdit_user_first.text()} {self.lineEdit_user_last.text()}":
+                idx_user = i
+        for j, affiliation in enumerate(affiliations):
             self.comboBox_affiliations.addItem(affiliation)
+            if affiliation == self.lineEdit_affiliation.text():
+                idx_affiliation = j
+        self.comboBox_users.setCurrentIndex(idx_user)
+        self.comboBox_affiliations.setCurrentIndex(idx_affiliation)
+
         self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
         self.comboBox_users.currentIndexChanged.connect(self.select_from_comboboxes)
         self.comboBox_users.activated.connect(self.select_from_comboboxes)
@@ -205,8 +212,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         for element in elements:
             getattr(self, element).setReadOnly(not enable)
 
-       # self.pushButton_cancel_setup.setEnable(not enable)
-
     def setup_user(self):
         if self.pushButton_setup_user.isChecked():
             self.current_first = self.lineEdit_user_first.text()
@@ -239,8 +244,23 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         sender_object = QObject().sender()
         sender_object_name = self.sender().objectName()
         if sender_object_name == 'comboBox_users':
-            self.lineEdit_user_first.setText(sender_object.currentText().split(' ')[0])
-            self.lineEdit_user_last.setText(sender_object.currentText().split(' ')[1])
+            first_name, last_name = sender_object.currentText().split(' ')
+            self.lineEdit_user_first.setText(first_name)
+            self.lineEdit_user_last.setText(last_name)
+            user_dict = self.user_manager.find_user(first_name, last_name)
+            if user_dict is not None: # this is a bit paranoid, but so be it
+                affiliation = user_dict['affiliation']
+                self.lineEdit_affiliation.setText(affiliation)
+                self.comboBox_affiliations.currentIndexChanged.disconnect(self.select_from_comboboxes)
+                self.comboBox_affiliations.activated.disconnect(self.select_from_comboboxes)
+                for i in range(self.comboBox_affiliations.count()):
+                    if self.comboBox_affiliations.itemText(i) == affiliation:
+                        self.comboBox_affiliations.setCurrentIndex(i)
+                        break
+                self.comboBox_affiliations.currentIndexChanged.connect(self.select_from_comboboxes)
+                self.comboBox_affiliations.activated.connect(self.select_from_comboboxes)
+                email = user_dict['email']
+                self.lineEdit_email.setText(email)
         if sender_object_name == 'comboBox_affiliations':
             self.lineEdit_affiliation.setText(sender_object.currentText())
 
@@ -278,8 +298,6 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         saf = self.listWidget_safs.currentItem().text()
         self.spinBox_saf.setValue(int(saf))
 
-    def cancel_setup(self):
-        pass
 
     def cloud_setup(self, email_address = None):
         year = self.RE.md['year']
@@ -354,6 +372,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.lineEdit_affiliation.setText(self.current_affiliation)
         self.lineEdit_email.setText(self.current_email)
         self.enable_fields(False)
+        self.populate_comboboxes() # this is a bit of an overkill, but it takes care of the correct indexes in comboboxes
 
 
 
