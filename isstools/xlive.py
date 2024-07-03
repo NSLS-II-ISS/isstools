@@ -528,7 +528,12 @@ class ProcessingThread(QThread):
                     self.processing_ioc_uid.put(uid)
                 else:
                     self.print(f' File received {uid}')
-                    process_interpolate_bin(self.doc, self.gui.db, self.gui.widget_run.draw_interpolated_data, None, self.gui.cloud_dispatcher, print_func=self.print)
+                    process_interpolate_bin(self.doc,
+                                            self.gui.db,
+                                            draw_func_interp=self.gui.widget_run.draw_interpolated_data,
+                                            draw_func_bin=None,
+                                            cloud_dispatcher=self.gui.cloud_dispatcher,
+                                            print_func=self.print)
                 self.doc = None
             except Exception as e:
                 if self.soft_mode:
