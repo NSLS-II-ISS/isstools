@@ -621,7 +621,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
                                                                    scan_kind=self._previous_johann_alignment_scan_kind,
                                                                    add_herfd_prefix=False)
             for key, value in scan_kwargs.items():
-                print(self._previous_johann_alignment_strategy, key, value)
+                # print(self._previous_johann_alignment_strategy, key, value)
                 if value is not None:
                     self._default_johann_alignment_paramters['scan_params'][self._previous_johann_alignment_strategy][key] = value
         except Exception as e:
@@ -826,30 +826,25 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         scan_widget_list = getattr(self, f'johann_{scope}_scan_widget_list')
         scan_layout = getattr(self, f'johann_{scope}_scan_layout')
         parameter_widget_dict = getattr(self, f'_johann_{scope}_parameter_widget_dict')
-        print('1', scope, strategy)
 
         for widget in scan_widget_list:
             scan_layout.removeWidget(widget)
             widget.deleteLater()
         scan_widget_list.clear() # scan_widget_list is a pointer and to clear it up we use clear
 
-        print('2', scope, strategy)
         if (strategy == 'emission') or (strategy == 'roll'):
-            print('emission or roll')
             _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
             _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
                                                                                      motor_str='roll',
                                                                                      motor_unit_str='mdeg',
                                                                                      **self._default_johann_alignment_paramters['scan_params']['emission'])
         elif strategy == 'elastic':
-            print('elastic')
             _widgets0_scan = self._johann_label_row_widget(motor_label="scan motor")
             _widgets1_scan, _johann_scan_dict = self._johann_create_motor_widget_row(motor_check=None,
                                                                                      motor_str='energy',
                                                                                      motor_unit_str='eV',
                                                                                      **self._default_johann_alignment_paramters['scan_params']['elastic'])
         elif strategy == 'herfd':
-            print('herfd')
             _widgets0_scan, _widgets1_scan, _johann_scan_dict = self._johann_create_herfd_widget_rows(**self._default_johann_alignment_paramters['scan_params']['herfd'])
 
         parameter_widget_dict['scan_params'] = _johann_scan_dict
@@ -874,6 +869,13 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
         self.johann_alignment_tune_widget_list = []
 
         tweak_motor_widgets = []
+
+        if (self.comboBox_johann_alignment_crystal.count() == 0) or \
+           (self.comboBox_johann_tweak_motor.count() == 0):
+            # sometimes during widget updates the widgets get polled before being populated raising unnecessary errors
+            # this piece allows to skip updates if fields are not populated
+            return
+
         crystal_str = self.comboBox_johann_alignment_crystal.currentText()
         motor_str = self.comboBox_johann_tweak_motor.currentText()
         if motor_str == 'X':
