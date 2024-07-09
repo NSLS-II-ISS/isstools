@@ -775,7 +775,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
 
     def _handle_enabled_johann_alignment_widgets(self):
         if self.radioButton_alignment_mode_manual.isChecked():
-            self.comboBox_johann_alignment_fom.setEnabled(False)
+            # self.comboBox_johann_alignment_fom.setEnabled(False)
             self.label_johann_alignment_crystal.setEnabled(True)
             self.label_johann_alignment_tweak_motor.setEnabled(True)
             self.comboBox_johann_alignment_crystal.setEnabled(True)
@@ -788,7 +788,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.spinBox_johann_alignment_n_steps.setEnabled(False)
 
         elif self.radioButton_alignment_mode_semi.isChecked():
-            self.comboBox_johann_alignment_fom.setEnabled(False)
+            # self.comboBox_johann_alignment_fom.setEnabled(True)
             self.label_johann_alignment_crystal.setEnabled(True)
             self.label_johann_alignment_tweak_motor.setEnabled(True)
             self.comboBox_johann_alignment_crystal.setEnabled(True)
@@ -801,7 +801,7 @@ class UISpectrometer(*uic.loadUiType(ui_path)):
             self.spinBox_johann_alignment_n_steps.setEnabled(True)
 
         elif self.radioButton_alignment_mode_automatic.isChecked():
-            self.comboBox_johann_alignment_fom.setEnabled(True)
+            # self.comboBox_johann_alignment_fom.setEnabled(True)
             self.label_johann_alignment_crystal.setEnabled(False)
             self.label_johann_alignment_tweak_motor.setEnabled(True)
             self.comboBox_johann_alignment_crystal.setEnabled(False)
