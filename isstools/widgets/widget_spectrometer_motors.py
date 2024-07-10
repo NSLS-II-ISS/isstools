@@ -2,6 +2,8 @@ import pkg_resources
 from PyQt5 import uic, QtCore
 from PyQt5.QtGui import QPixmap
 from isstools.elements.widget_motors import UIWidgetMotors
+from isstools.elements.widget_spectrometer_R import UIWidgetSpectrometerR
+from isstools.dialogs.BasicDialogs import message_box, question_message_box
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_spectrometer_motors.ui')
 spectrometer_image1 = pkg_resources.resource_filename('isstools', 'Resources/spec_image1.png')
@@ -38,6 +40,16 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
         for button in self._motor_group_dict.keys():
             getattr(self,button).clicked.connect(self.show_motors)
 
+        self.johann_emission = self.parent.johann_emission
+        self.plan_processor = self.parent.plan_processor
+
+        self.update_doubleSpinBox_johann_R()
+        self.update_doubleSpinBox_johann_nominal_energy()
+
+        self.pushButton_set_johann_R.clicked.connect(self.set_R_value)
+
+
+
     def show_motors(self):
         sender_object_name = self.sender().objectName()
         for widget in self.widget_list:
@@ -52,6 +64,28 @@ class UISpectrometerMotors(*uic.loadUiType(ui_path)):
             self.verticalLayout_currentMotors.addWidget(widget)
             self.widget_list.append(widget)
 
+    def update_doubleSpinBox_johann_R(self):
+        value = self.johann_emission.read_R()
+        self.doubleSpinBox_johann_R.setValue(value)
+
+    def update_doubleSpinBox_johann_nominal_energy(self):
+        value = self.johann_emission.energy.position
+        self.doubleSpinBox_johann_nominal_energy.setValue(value)
+
+    def read_R_value(self):
+        return self.doubleSpinBox_johann_R.value()
+
+    def set_R_value(self):
+        new_R_value = self.read_R_value()
+        ret = question_message_box(self, 'Moving Spectrometer Rowland circle radius',
+                                   f'Moving R to  {new_R_value} mm\n'
+                                   'Are you sure?')
+        if ret:
+            plan_name = 'move_rowland_circle_R_plan'
+            plan_kwargs = {'new_R': new_R_value,
+                           'energy': self.doubleSpinBox_johann_nominal_energy.value()}
+            # print(plan_name, plan_kwargs)
+            self.plan_processor.add_plan_and_run_if_idle(plan_name, plan_kwargs)
 
     #
     #

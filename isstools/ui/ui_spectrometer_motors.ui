@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1653</width>
-    <height>932</height>
+    <width>1705</width>
+    <height>952</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
   <widget class="QLabel" name="label_spectrometer_image_2">
    <property name="geometry">
     <rect>
-     <x>720</x>
+     <x>750</x>
      <y>50</y>
      <width>921</width>
      <height>411</height>
@@ -43,9 +43,9 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>780</y>
-     <width>431</width>
-     <height>141</height>
+     <y>730</y>
+     <width>501</width>
+     <height>211</height>
     </rect>
    </property>
    <property name="title">
@@ -54,7 +54,7 @@
    <widget class="QPushButton" name="pushButton_detector_arm">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>50</x>
       <y>40</y>
       <width>159</width>
       <height>80</height>
@@ -73,7 +73,7 @@
    <widget class="QPushButton" name="pushButton_crystal_assembly">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>270</x>
       <y>40</y>
       <width>159</width>
       <height>80</height>
@@ -89,11 +89,120 @@
      <string>Crystal assembly</string>
     </property>
    </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>140</y>
+      <width>449</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="maximumSize">
+        <size>
+         <width>180</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Nominal Energy</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="label_4">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>eV</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="label_2">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>mm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="maximumSize">
+        <size>
+         <width>180</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Rowland Circle Radius R</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_nominal_energy">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <double>35000.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>8046.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_johann_R">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <double>2000.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>1000.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3" rowspan="2">
+      <widget class="QPushButton" name="pushButton_set_johann_R">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Set</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>760</x>
+     <x>750</x>
      <y>430</y>
      <width>871</width>
      <height>191</height>
@@ -189,7 +298,7 @@
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>770</x>
+     <x>760</x>
      <y>630</y>
      <width>851</width>
      <height>221</height>
