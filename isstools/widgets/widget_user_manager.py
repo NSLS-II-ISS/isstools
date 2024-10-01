@@ -267,7 +267,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
     def find_proposal(self):
         headers = {'accept': 'application/json',}
         proposal = str(self.spinBox_proposal.value())
-        proposal_info = requests.get(f'https://api-staging.nsls2.bnl.gov/proposal/{proposal}', headers=headers).json()
+        proposal_info = requests.get(f'https://api.nsls2.bnl.gov/v1/proposal/{proposal}', headers=headers).json()
         if 'error_message' in proposal_info.keys():
             error_message_box('Proposal not found')
         else:
