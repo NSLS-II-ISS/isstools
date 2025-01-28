@@ -2314,3 +2314,39 @@ interpolate_data_for_fly_scan_and_plot(db, '1d779dd5-6c90-4523-b6fc-e4d6cb3ae468
 interpolate_data_for_fly_scan_and_plot(db, 'eddd649a-0a67-43ad-b381-46e6aa9f915d', label='UP 300C')
 interpolate_data_for_fly_scan_and_plot(db, '5df31038-f505-46cc-adab-d9ed745d3975', label='DOWN 300C')
 plt.legend()
+
+
+
+
+
+import requests
+proposal = '315038'
+headers = {'accept': 'application/json',}
+proposal_info = requests.get(f'https://api.nsls2.bnl.gov/v1/proposal/{proposal}', headers=headers).json()
+
+user_names = []
+for user in proposal_info['proposal']['users']:
+    user_names.append(f"{user['last_name']}, {user['first_name']}")
+name_list = '" "'.join(user_names)
+os.system(f'./search_users.sh -- "{name_list}" > output.txt')
+
+
+file_path = 'output.txt'
+with open(file_path, 'r') as file:
+    file_content = file.read()
+strings = file_content.split('\n')
+logins = []
+for string in strings:
+    if (string.find(',') > -1) and (string.find('Running command') == -1):
+        inds = find_substring_indices(string, '|')
+        logins.append(string[(inds[1]+1):inds[2]].strip())
+
+
+
+
+
+
+
+
+
+

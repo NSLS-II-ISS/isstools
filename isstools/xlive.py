@@ -513,7 +513,7 @@ class ProcessingThread(QThread):
             self.print = print
         else:
             def _print_func(msg):
-                print_func(msg, tag='Processing', add_timestamp=True)
+                print_func(msg, tag='Processing here', add_timestamp=True)
             self.print = _print_func
         self.soft_mode = True
         self.processing_ioc_uid = processing_ioc_uid
@@ -527,7 +527,7 @@ class ProcessingThread(QThread):
                 if self.processing_ioc_uid is not None:
                     self.processing_ioc_uid.put(uid)
                 else:
-                    self.print(f' File received {uid}')
+                    self.print(f' File received 1 {uid}')
                     process_interpolate_bin(self.doc,
                                             self.gui.db,
                                             draw_func_interp=self.gui.widget_run.draw_interpolated_data,

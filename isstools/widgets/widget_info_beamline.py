@@ -205,7 +205,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                                {'ch':self.apb.ch3.value, 'label':self.label_ir_saturation },
                                {'ch':self.apb.ch4.value, 'label':self.label_iff_saturation }]
             for element in saturation_list:
-                if element['ch'] > -3200:
+                if element['ch'] < 7000:
                     element['label'].setStyleSheet('background-color: rgb(95,249,95)')
                     element['label'].setText('In range')
                 else:
