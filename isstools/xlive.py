@@ -15,6 +15,7 @@ from .widgets import (widget_info_general,
                       widget_run,
                       widget_beamline_setup,
                       widget_sdd_manager,
+                      widget_xia_manager,
                       widget_info_shutters,
                       widget_info_beamline,
                       widget_sample_registry,
@@ -75,6 +76,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
                  johann_emission=None,
                  johann_spectrometer_manager=None,
                  sdd=None,
+                 ge_detector=None,
                  inclinometers = None,
                  pil100k=None,
                  apb=None,
@@ -297,12 +299,20 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         if sdd is not None:
-            print('widget sdd manager loading', ttime.ctime())
+            print('widget 4 element Si detector manager loading', ttime.ctime())
             self.widget_sdd_manager = widget_sdd_manager.UISDDManager(service_plan_funcs,
                                                                       sdd,
                                                                       RE,
                                                                       )
             self.layout_sdd_manager.addWidget(self.widget_sdd_manager)
+
+        if ge_detector is not None:
+            print('widget 32 element Ge detector manager loading', ttime.ctime())
+            self.widget_xia_manager = widget_xia_manager.UIXIAManager(service_plan_funcs,
+                                                                      sdd,
+                                                                      RE,
+                                                                      )
+            self.layout_xia_manager.addWidget(self.widget_xia_manager)
 
         print('widget sample registry loading', ttime.ctime())
         self.widget_sample_registry = widget_sample_registry.UISampleRegistry(motor_dict,

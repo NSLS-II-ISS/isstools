@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_user_manager">
      <attribute name="title">
@@ -89,7 +89,7 @@
     </widget>
     <widget class="QWidget" name="tab_sdd_manager">
      <attribute name="title">
-      <string>SDD Manager</string>
+      <string>4-element Si detector</string>
      </attribute>
      <widget class="QWidget" name="horizontalLayoutWidget_7">
       <property name="geometry">
@@ -101,6 +101,26 @@
        </rect>
       </property>
       <layout class="QHBoxLayout" name="layout_sdd_manager">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetNoConstraint</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_xia_manager">
+     <attribute name="title">
+      <string>32-element Ge detector</string>
+     </attribute>
+     <widget class="QWidget" name="horizontalLayoutWidget_15">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>1631</width>
+        <height>901</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="layout_xia_manager">
        <property name="sizeConstraint">
         <enum>QLayout::SetNoConstraint</enum>
        </property>

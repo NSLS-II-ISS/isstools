@@ -189,10 +189,17 @@ class UIRun(*uic.loadUiType(ui_path)):
             liveplot_kwargs_list.append(
                 {'num_name': 'xs_channel1_rois_roi01_value', 'den_name': 'apb_ave_ch2_mean', 'result_name': 'SDD',
                  'log': False, 'ax': self.figure.ax3, 'color': 'm', 'legend_keys': ['SDD']})
+        if 'Ge detector' in detectors:
+            liveplot_kwargs_list.append(
+                {'num_name': 'ge_detector_channels_mca1_R0', 'den_name': 'apb_ave_ch1_mean', 'result_name': 'Ge detector',
+                 'log': False, 'ax': self.figure.ax3, 'color': 'm', 'legend_keys': 'Ge detector'})
+
         for liveplot_kwargs in liveplot_kwargs_list:
             _xasplot = self._xasplot_from_dict(liveplot_kwargs, motor_name)
             xasplot_list.append(_xasplot)
-
+        print('.........................................')
+        print(liveplot_kwargs_list)
+        print('.........................................')
         return xasplot_list
 
     def _xasplot_from_dict(self, kwargs, motor_name):

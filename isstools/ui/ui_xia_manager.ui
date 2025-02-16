@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1602</width>
+    <height>920</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="gridLayoutWidget_26">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>10</y>
+     <width>441</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_36">
+    <item row="0" column="0" rowspan="2">
+     <widget class="QLabel" name="label_141">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Acq time (s)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="2">
+     <widget class="QSpinBox" name="spinBox_acq_time">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2" rowspan="2">
+     <widget class="QLabel" name="label_acq_time_rbv">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>s</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3" rowspan="2">
+     <widget class="QPushButton" name="push_xs3_acquire">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Acquire</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_13">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>140</y>
+     <width>751</width>
+     <height>701</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="layout_plot_mca"/>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_14">
+   <property name="geometry">
+    <rect>
+     <x>950</x>
+     <y>20</y>
+     <width>151</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="layout_energy_selector"/>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>1120</x>
+     <y>20</y>
+     <width>215</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="3">
+     <widget class="QLabel" name="label_2">
+      <property name="maximumSize">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>eV</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label">
+      <property name="maximumSize">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>dE</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_energy_window">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="maximum">
+       <double>10000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>50.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>500.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QPushButton" name="pushButton_set_roi_hilo">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Set ROI</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QComboBox" name="comboBox_roi_index">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="4">
+     <widget class="QCheckBox" name="checkBox_roi_window_auto">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>auto</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPushButton" name="pushButton_reset_limits">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>860</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>100</width>
+     <height>25</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_collection_mode">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>30</y>
+     <width>127</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>30</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_142">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>120</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>120</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Collection mode</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

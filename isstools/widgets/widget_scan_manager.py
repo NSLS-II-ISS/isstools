@@ -195,7 +195,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.comboBox_spectrometer_config.addItems(items)
 
     def populate_detectors(self):
-        detector_names = ['Pilatus 100k New', 'Pilatus 100k', 'Xspress3']
+        detector_names = ['Pilatus 100k New', 'Pilatus 100k', 'Xspress3', 'Ge detector']
         for detector in detector_names:
             qitem = QtWidgets.QCheckBox(detector)
             qitem.setCheckState(False)
@@ -210,6 +210,7 @@ class UIScanManager(*uic.loadUiType(ui_path)):
             self.update_comboBox_spectrometer_config()
             self.check_aux_detector(False, aux_detector='Pilatus 100k New')
             self.handle_exposure_parameters_crosstalk(spectrometer_is_fixed=True)
+
 
     def enable_spectrometer_johann(self):
         if self.radioButton_spectrometer_johann.isChecked():

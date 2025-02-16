@@ -71,9 +71,9 @@ Scan Manager</string>
    <property name="geometry">
     <rect>
      <x>900</x>
-     <y>440</y>
+     <y>425</y>
      <width>191</width>
-     <height>86</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_detectors">
