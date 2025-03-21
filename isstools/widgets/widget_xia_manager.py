@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor
 from PyQt5.Qt import QSplashScreen, QObject
 import numpy
+from PyQt5 import  QtWidgets
 
 from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
 from isstools.elements.figure_update import update_figure, setup_figure
@@ -25,9 +26,9 @@ ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xia_manager.ui')
 class UIXIAManager(*uic.loadUiType(ui_path)):
 
     def __init__(self,
-                 service_plan_funcs,
-                 xs,
-                 RE,
+                 service_plan_funcs=None,
+                 ge_detector = None,
+                 RE=None,
 
                  *args,
                  **kwargs):
@@ -38,48 +39,158 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.figure_mca, self.canvas_mca,self.toolbar_mca = setup_figure(self, self.layout_plot_mca)
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
-        self.xs = xs
-        self.roi_bounds = []
-        #self.shutter_dict=shutter_dict
-        self.counter = 0
+        self.ge_detector = ge_detector
+        self.populate_layouts()
 
-        self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
-        self.layout_energy_selector.addWidget(self.widget_energy_selector)
+        # self.roi_bounds = []
+        # #self.shutter_dict=shutter_dict
+        # self.counter = 0
+        #
+        # self.widget_energy_selector = widget_energy_selector.UIEnergySelector(emission=True)
+        # self.layout_energy_selector.addWidget(self.widget_energy_selector)
+        #
+        # self.timer_update_time = QtCore.QTimer(self)
+        # self.timer_update_time.setInterval(1000)
+        # self.timer_update_time.timeout.connect(self.update_roi_labels)
+        # self.timer_update_time.start()
+        #
+        self.push_acquire.clicked.connect(self.acquire)
+        #
+        # self.colors = ['r', 'b', 'g', 'm']
+        # self.num_channels = 4
+        # self.num_rois = 4
+        # self.roi_values = numpy.zeros((4, 4, 2))
+        # self.roi_bounds = []
+        # self.acquired = 0
+        # self.checkbox_ch = 'checkBox_ch{}_show'
+        #
+        # for indx in range(self.num_channels):
+        #      getattr(self, self.checkbox_ch.format(indx + 1)).stateChanged.connect(self.plot_traces)
+        #
+        # self.checkbox_roi = 'checkBox_roi{}_show'
+        # for indx in range(self.num_rois):
+        #      getattr(self, self.checkbox_roi.format(indx + 1)).stateChanged.connect(self.update_roi_bounds)
+        #
+        # self.lo_hi = ['lo','hi']
+        # self.lo_hi_def = {'lo':'low', 'hi':'high'}
+        # self.spinbox_roi = 'spinBox_ch{}_roi{}_{}'
+        # self.label_roi_rbk = 'label_ch{}_roi{}_{}_rbk'
+        # self.label_roi_counts = 'label_ch{}_roi{}_roi_counts'
+        # self.update_spinboxes()
+        # self.connect_roi_spinboxes()
+        # self.comboBox_roi_index.addItems([str(i+1) for i in range(self.num_rois)])
+        # self.pushButton_set_roi_hilo.clicked.connect(self.set_roi_hilo)
+        # self.pushButton_reset_limits.clicked.connect(self.reset_limit)
+        # self.reset = 0
+        # self.checkBox_roi_window_auto.toggled.connect(self.enable_doubleSpinBox_energy_window)
+    def populate_layouts(self):
+        header =   {'Channel':0,
+                    'ROI0 Low': 1,
+                    'ROI0 High': 2,
+                    'ROI0 Counts': 3,
+                    'ROI1 Low': 4,
+                    'ROI1 High': 5,
+                    'ROI1 Counts': 6
+                    }
+        rois= {0:[1,2,3],
+               #1:[4,5,6]
+               }
+        
+        for key, val in header.items():
+            self.gridLayout_roi.addWidget(QtWidgets.QLabel(key), 0, val)
 
-        self.timer_update_time = QtCore.QTimer(self)
-        self.timer_update_time.setInterval(1000)
-        self.timer_update_time.timeout.connect(self.update_roi_labels)
-        self.timer_update_time.start()
+        for ch in range(1, 33):
+            label = QtWidgets.QLabel(f'{ch}')
+            self.gridLayout_roi.addWidget(label, ch, 0)
 
-        self.push_xs3_acquire.clicked.connect(self.xs3_acquire)
+            setattr(self, f'label_ch{ch}_roi{key}_counts', label)
+            checkbox = QtWidgets.QCheckBox(f'Channel {ch}')
+            checkbox.setCheckState(True)
+            checkbox.setTristate(False)
+            self.verticalLayout_channels.addWidget(checkbox)
+            setattr(self, f'checkbox_ch{ch}', checkbox)
 
-        self.colors = ['r', 'b', 'g', 'm']
-        self.num_channels = 4
-        self.num_rois = 4
-        self.roi_values = numpy.zeros((4, 4, 2))
-        self.roi_bounds = []
-        self.acquired = 0
-        self.checkbox_ch = 'checkBox_ch{}_show'
+            for roi, pos in rois.items():
+                spinbox = QtWidgets.QSpinBox()
+                self.gridLayout_roi.addWidget(spinbox,ch, pos[0])
+                setattr(self, f'spinbox_ch{ch}_roi{roi}_low', spinbox)
+                val = getattr(self.ge_detector._channels, f'mca{ch}.R{roi}low').get()
+                spinbox.setRange(0, 2047)
+                spinbox.setValue(val)
+                spinbox = QtWidgets.QSpinBox()
+                self.gridLayout_roi.addWidget(spinbox,ch, pos[1])
+                setattr(self, f'spinbox_ch{ch}_roi{roi}_high', spinbox)
+                val = getattr(self.ge_detector._channels, f'mca{ch}.R{roi}high').get()
+                spinbox.setRange(0, 2047)
+                spinbox.setValue(val)
+                label = QtWidgets.QLabel('')
+                self.gridLayout_roi.addWidget(label, ch, pos[2])
+                setattr(self, f'label_ch{ch}_roi{roi}_counts', label)
+                val = getattr(self.ge_detector._channels, f'mca{ch}.R{roi}').get()
+                label.setText(str(int(val)))
 
-        for indx in range(self.num_channels):
-             getattr(self, self.checkbox_ch.format(indx + 1)).stateChanged.connect(self.plot_traces)
+                button = QtWidgets.QPushButton('Ch 1 to All')
+                self.gridLayout_roi.addWidget(button, 33, pos[0])
+                setattr(self, f'push_roi{roi}_)toAll', button)
 
-        self.checkbox_roi = 'checkBox_roi{}_show'
-        for indx in range(self.num_rois):
-             getattr(self, self.checkbox_roi.format(indx + 1)).stateChanged.connect(self.update_roi_bounds)
 
-        self.lo_hi = ['lo','hi']
-        self.lo_hi_def = {'lo':'low', 'hi':'high'}
-        self.spinbox_roi = 'spinBox_ch{}_roi{}_{}'
-        self.label_roi_rbk = 'label_ch{}_roi{}_{}_rbk'
-        self.label_roi_counts = 'label_ch{}_roi{}_roi_counts'
-        self.update_spinboxes()
-        self.connect_roi_spinboxes()
-        self.comboBox_roi_index.addItems([str(i+1) for i in range(self.num_rois)])
-        self.pushButton_set_roi_hilo.clicked.connect(self.set_roi_hilo)
-        self.pushButton_reset_limits.clicked.connect(self.reset_limit)
-        self.reset = 0
-        self.checkBox_roi_window_auto.toggled.connect(self.enable_doubleSpinBox_energy_window)
+
+
+
+
+    def acquire(self):
+        #TODO open shutter self.shutter_dict
+        print('XIA acquisition starting...')
+        acq_time = self.spinBox_acq_time.value()
+        self.ge_detector.start.put(1)
+        while ge_detector.settings.acquiring.get() == 1:
+            ttime.sleep(0.1)
+        self.acquired = True
+        self.plot_traces()
+        # self.update_roi_bounds()
+        self.canvas_mca.draw_idle()
+        print('XIA acquisition complete')
+
+
+
+
+
+    def plot_traces(self):
+        max_mca = []
+        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
+        for jj in range(1,33):
+            _mca = getattr(self.ge_detector._channels, f'mca{jj}').get()
+            mca = np.array(_mca[0])
+            energy = np.array(range(len(mca)))*15
+            self.figure_mca.ax.plot(energy, mca, label=f'Channel {jj}')
+
+        # self.figure_mca.ax.legend(loc=1)
+        # #THis method plot the MCA signal
+        # xlims = self.figure_mca.ax.get_xlim()
+        # ylims = self.figure_mca.ax.get_ylim()
+        # update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
+        # self.roi_bounds = []
+        # if self.acquired:
+        #     for indx in range(self.num_channels):
+        #         if getattr(self, self.checkbox_ch.format(indx+1)).isChecked():
+        #             ch = getattr(self.xs,'mca{}'.format(indx+1))
+        #             mca = ch.get()
+        #             max_mca.append(max(mca[10:]))
+        #           1  # energy = np.array(list(range(len(mca))))*10
+        #             energy = np.arange(mca.size)*10
+        #             self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
+        # self.figure_mca.ax.legend(loc=1)
+        # if self.counter:
+        #     if self.reset:
+        #         self.figure_mca.ax.set_xlim(-200, 40200)
+        #         self.figure_mca.ax.set_ylim(max(max_mca)*-0.1,max(max_mca)*1.1)
+        #         self.reset = 0
+        #     else:
+        #         self.figure_mca.ax.set_xlim(xlims)
+        #         self.figure_mca.ax.set_ylim(ylims)
+        # self.update_roi_bounds()
+        # self.counter = 1
+
 
     def connect_roi_spinboxes(self):
         for indx_ch in range(self.num_channels):
@@ -210,33 +321,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
 
     # TODO close shutter self.shutter_dict
 
-    def plot_traces(self):
-        max_mca = []
-        #THis method plot the MCA signal
-        xlims = self.figure_mca.ax.get_xlim()
-        ylims = self.figure_mca.ax.get_ylim()
-        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
-        self.roi_bounds = []
-        if self.acquired:
-            for indx in range(self.num_channels):
-                if getattr(self, self.checkbox_ch.format(indx+1)).isChecked():
-                    ch = getattr(self.xs,'mca{}'.format(indx+1))
-                    mca = ch.get()
-                    max_mca.append(max(mca[10:]))
-                    # energy = np.array(list(range(len(mca))))*10
-                    energy = np.arange(mca.size)*10
-                    self.figure_mca.ax.plot(energy[10:], mca[10:], self.colors[indx], label = 'Channel {}'.format(indx+1))
-        self.figure_mca.ax.legend(loc=1)
-        if self.counter:
-            if self.reset:
-                self.figure_mca.ax.set_xlim(-200, 40200)
-                self.figure_mca.ax.set_ylim(max(max_mca)*-0.1,max(max_mca)*1.1)
-                self.reset = 0
-            else:
-                self.figure_mca.ax.set_xlim(xlims)
-                self.figure_mca.ax.set_ylim(ylims)
-        self.update_roi_bounds()
-        self.counter = 1
+
 
     def set_roi_hilo(self):
         self.disconnect_roi_spinboxes()

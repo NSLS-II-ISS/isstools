@@ -111,8 +111,8 @@
   <widget class="QLabel" name="label_feedback_status_indicator">
    <property name="geometry">
     <rect>
-     <x>840</x>
-     <y>0</y>
+     <x>690</x>
+     <y>10</y>
      <width>16</width>
      <height>16</height>
     </rect>
@@ -127,9 +127,9 @@
   <widget class="QLabel" name="label_feedback_status">
    <property name="geometry">
     <rect>
-     <x>860</x>
-     <y>0</y>
-     <width>211</width>
+     <x>710</x>
+     <y>10</y>
+     <width>161</width>
      <height>20</height>
     </rect>
    </property>
@@ -493,8 +493,8 @@
   <widget class="QPushButton" name="push_jog_pitch_neg">
    <property name="geometry">
     <rect>
-     <x>710</x>
-     <y>10</y>
+     <x>560</x>
+     <y>5</y>
      <width>20</width>
      <height>20</height>
     </rect>
@@ -506,8 +506,8 @@
   <widget class="QPushButton" name="push_jog_pitch_pos">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>10</y>
+     <x>650</x>
+     <y>5</y>
      <width>20</width>
      <height>20</height>
     </rect>
@@ -519,8 +519,8 @@
   <widget class="QLabel" name="label_pitch">
    <property name="geometry">
     <rect>
-     <x>734</x>
-     <y>8</y>
+     <x>584</x>
+     <y>3</y>
      <width>63</width>
      <height>20</height>
     </rect>
@@ -532,6 +532,9 @@
    </property>
    <property name="text">
     <string>fine pitch</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_reference_foil">
@@ -673,8 +676,8 @@
   <widget class="QLabel" name="label_heartbeat">
    <property name="geometry">
     <rect>
-     <x>840</x>
-     <y>20</y>
+     <x>690</x>
+     <y>30</y>
      <width>16</width>
      <height>16</height>
     </rect>
@@ -692,9 +695,9 @@
   <widget class="QLabel" name="label_feedback_status_2">
    <property name="geometry">
     <rect>
-     <x>860</x>
-     <y>20</y>
-     <width>211</width>
+     <x>710</x>
+     <y>30</y>
+     <width>161</width>
      <height>20</height>
     </rect>
    </property>
@@ -718,9 +721,9 @@
   <widget class="QLabel" name="label_host">
    <property name="geometry">
     <rect>
-     <x>860</x>
-     <y>40</y>
-     <width>211</width>
+     <x>710</x>
+     <y>50</y>
+     <width>161</width>
      <height>20</height>
     </rect>
    </property>
@@ -744,7 +747,7 @@
   <widget class="QPushButton" name="push_pilatus_image">
    <property name="geometry">
     <rect>
-     <x>620</x>
+     <x>950</x>
      <y>10</y>
      <width>61</width>
      <height>41</height>
@@ -756,8 +759,8 @@
     </font>
    </property>
    <property name="text">
-    <string>Pilatus
-Image</string>
+    <string>Pilatus 
+frame</string>
    </property>
   </widget>
   <widget class="QPushButton" name="push_auto_gains">
@@ -776,8 +779,8 @@ Image</string>
   <widget class="QPushButton" name="push_auto_pitch">
    <property name="geometry">
     <rect>
-     <x>710</x>
-     <y>32</y>
+     <x>560</x>
+     <y>27</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -1204,6 +1207,19 @@ Image</string>
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="push_recover_pitch">
+   <property name="geometry">
+    <rect>
+     <x>560</x>
+     <y>50</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Recover</string>
+   </property>
   </widget>
  </widget>
  <resources/>

@@ -49,7 +49,7 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
 
         self.plan_processor = plan_processor
         self.plan_processor.status_update_signal.connect(self.handle_gui_elements)
-
+        self.current_pitch_position = hhm.pitch.position
         self.hhm = hhm
         self.hhm_encoder = hhm_encoder
         self.hhm_feedback = hhm_feedback
@@ -319,6 +319,8 @@ class UIBeamlineSetup(*uic.loadUiType(ui_path)):
         if dlg.exec_():
             new_pars = dlg.getValues()
             self.hhm_feedback.set_fb_parameters(*new_pars)
+            self.current_pitch_position = self.hhm.pitch.position
+
 
     def update_piezo_center(self):
         self.hhm_feedback.update_center()

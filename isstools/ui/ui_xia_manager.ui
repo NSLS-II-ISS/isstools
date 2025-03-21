@@ -63,14 +63,14 @@
      </widget>
     </item>
     <item row="0" column="3" rowspan="2">
-     <widget class="QPushButton" name="push_xs3_acquire">
+     <widget class="QPushButton" name="push_acquire">
       <property name="enabled">
        <bool>true</bool>
       </property>
       <property name="maximumSize">
        <size>
         <width>100</width>
-        <height>30</height>
+        <height>60</height>
        </size>
       </property>
       <property name="text">
@@ -83,123 +83,13 @@
   <widget class="QWidget" name="verticalLayoutWidget_13">
    <property name="geometry">
     <rect>
-     <x>240</x>
+     <x>180</x>
      <y>140</y>
      <width>751</width>
      <height>701</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_plot_mca"/>
-  </widget>
-  <widget class="QWidget" name="verticalLayoutWidget_14">
-   <property name="geometry">
-    <rect>
-     <x>950</x>
-     <y>20</y>
-     <width>151</width>
-     <height>111</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="layout_energy_selector"/>
-  </widget>
-  <widget class="QWidget" name="gridLayoutWidget_3">
-   <property name="geometry">
-    <rect>
-     <x>1120</x>
-     <y>20</y>
-     <width>215</width>
-     <height>111</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="3">
-     <widget class="QLabel" name="label_2">
-      <property name="maximumSize">
-       <size>
-        <width>20</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>eV</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLabel" name="label">
-      <property name="maximumSize">
-       <size>
-        <width>20</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>dE</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox_energy_window">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="maximum">
-       <double>10000.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>50.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>500.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QPushButton" name="pushButton_set_roi_hilo">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Set ROI</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QComboBox" name="comboBox_roi_index">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>20</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="4">
-     <widget class="QCheckBox" name="checkBox_roi_window_auto">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>auto</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
   </widget>
   <widget class="QPushButton" name="pushButton_reset_limits">
    <property name="geometry">
@@ -254,6 +144,28 @@
    <property name="text">
     <string>Collection mode</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>140</y>
+     <width>131</width>
+     <height>701</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_channels"/>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>950</x>
+     <y>10</y>
+     <width>631</width>
+     <height>861</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_roi"/>
   </widget>
  </widget>
  <resources/>

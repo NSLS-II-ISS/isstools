@@ -434,10 +434,10 @@
    <widget class="QPushButton" name="push_update_feedback_settings">
     <property name="geometry">
      <rect>
-      <x>850</x>
+      <x>810</x>
       <y>110</y>
-      <width>111</width>
-      <height>31</height>
+      <width>181</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">

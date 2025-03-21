@@ -2344,9 +2344,71 @@ for string in strings:
 
 
 
+for j in range (1,33):
+    qitem = QtWidgets.QCheckBox(f'Channel {j}')
+    qitem.setCheckState(True)
+    qitem.setTristate(False)
+    self.verticalLayout_channels.addWidget(qitem)
+    setattr(self, f'checkbox_ch{j}',qitem)
+
+for jj in range(1, 33):
+    _mca = getattr(a.ge_detector._channels, f'mca{jj}').get()
+    mca = np.array(_mca[0])
+    energy = np.array(range(len(mca)))
+    a.figure_mca.ax.plot(energy, mca, label=f'Channel {jj}')
+
+for j in range(1, 33):
+
+
+    for key, val in rois.items():
+        spinbox = QtWidgets.QSpinBox()
+        a.gridLayout_roi.addWidget(spinbox, j,  val[0])
+        setattr(a, f'spinbox_ch{j}_roi{key}_low', spinbox)
+        spinbox = QtWidgets.QSpinBox()
+        a.gridLayout_roi.addWidget(spinbox, j, val[1])
+        setattr(a, f'spinbox_ch{j}_roi{key}_high', spinbox)
+        label = QtWidgets.QLabel('')
+        a.gridLayout_roi.addWidget(label, j, val[1])
+        setattr(a, f'label_ch{j}_roi{key}_counts', label)
 
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 
+
+# Define the Gaussian function
+def gaussian(x, a, x0, sigma):
+    return a * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
+
+# # Generate synthetic data for testing
+# x_data = np.linspace(-10, 10, 100)
+# y_data = gaussian(x_data, 10, 0, 2) + 0.5 * np.random.normal(size=x_data.size)  # Adding noise
+
+hdr = db[-1]
+t8= hdr.table()
+
+x_data  = t8['hhm_energy']
+y_data = t8['xs_channel4_rois_roi03_value']/max(t8['xs_channel4_rois_roi03_value'])
+# Fit the Gaussian curve
+popt, _ = curve_fit(gaussian, x_data, y_data, p0=[1, 9986, 2])
+
+a, x0, sigma = popt
+
+
+# Compute FWHM (Full Width at Half Maximum)
+FWHM = 2 * np.sqrt(2 * np.log(2)) * sigma
+print(f'FWHM: {FWHM}')
+
+# Plot the results
+plt.scatter(x_data, y_data, label='Data', color='red', s=10)
+plt.plot(x_data, gaussian(x_data, *popt), label='Fitted Gaussian', color='blue')
+plt.axhline(y=a/2, color='green', linestyle='--', label='Half Maximum')
+plt.legend()
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Gaussian Fit with FWHM')
+plt.show()
 

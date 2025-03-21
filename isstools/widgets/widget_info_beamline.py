@@ -86,6 +86,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.push_jog_pitch_neg.clicked.connect(self.tweak_pitch_neg)
         self.push_jog_pitch_pos.clicked.connect(self.tweak_pitch_pos)
         self.push_auto_pitch.clicked.connect(self.auto_pitch)
+        self.push_recover_pitch.clicked.connect(self.recover_pitch)
 
 
         self.timer_update_time = QtCore.QTimer(self)
@@ -328,6 +329,20 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                 return
             kwargs = {'scan_range' : 10}
         self.plan_processor.add_plan_and_run_if_idle('quick_pitch_optimization', kwargs)
+
+
+    def recover_pitch(self):
+        self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(False)
+        self.hhm.fb_status.put(int(0))
+        # self.RE(bps.mv(self.hhm.pitch, pitch-0.025))
+        if not self.hhm.pitch.moving:
+            pitch  = self.parent.widget_beamline_setup.current_pitch_position
+            print(pitch)
+            self.hhm.pitch.move(pitch, wait=False)
+        self.parent.widget_beamline_setup.pushEnableHHMFeedback.setChecked(True)
+        self.hhm.fb_status.put(int(1))
+
+
 
     def adjust_gains(self):
         plan_name = 'optimize_gains'

@@ -308,9 +308,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         if ge_detector is not None:
             print('widget 32 element Ge detector manager loading', ttime.ctime())
-            self.widget_xia_manager = widget_xia_manager.UIXIAManager(service_plan_funcs,
-                                                                      sdd,
-                                                                      RE,
+            self.widget_xia_manager = widget_xia_manager.UIXIAManager(service_plan_funcs=service_plan_funcs,
+                                                                      ge_detector=ge_detector,
+                                                                      RE=RE,
                                                                       )
             self.layout_xia_manager.addWidget(self.widget_xia_manager)
 
