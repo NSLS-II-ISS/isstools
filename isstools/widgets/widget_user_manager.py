@@ -272,10 +272,11 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         headers = {'accept': 'application/json',}
         proposal = str(self.spinBox_proposal.value())
         proposal_info = requests.get(f'https://api.nsls2.bnl.gov/v1/proposal/{proposal}', headers=headers).json()
+
         if 'error_message' in proposal_info.keys():
             error_message_box('Proposal not found')
         else:
-            title = proposal_info['title']
+            title = proposal_info['proposal']['title']
             if title is None: title = ''
             if len(title) > 100:
                 title = title[:101]
@@ -284,13 +285,13 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.label_proposal_title.setText(title)
             self.listWidget_safs.clear()
             self.listWidget_experimenters.clear()
-            safs = proposal_info['safs']
+            safs = proposal_info['proposal']['safs']
             for saf in safs:
                 item = QListWidgetItem(saf['saf_id'])
                 if saf['status'] != 'APPROVED':
                     item.setForeground(Qt.red)
                 self.listWidget_safs.addItem(item)
-            users = proposal_info['users']
+            users = proposal_info['proposal']['users']
             for user in users:
                 item = QListWidgetItem(user['first_name']+ ' ' +user['last_name'])
                 if user['is_pi']:
