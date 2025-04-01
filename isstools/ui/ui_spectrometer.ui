@@ -45,7 +45,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_8">
     <attribute name="title">
@@ -360,7 +360,7 @@
           </size>
          </property>
          <property name="decimals">
-          <number>3</number>
+          <number>5</number>
          </property>
          <property name="value">
           <double>0.250000000000000</double>
@@ -2556,8 +2556,8 @@ Queue</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>611</width>
-        <height>527</height>
+        <width>96</width>
+        <height>26</height>
        </rect>
       </property>
       <attribute name="label">

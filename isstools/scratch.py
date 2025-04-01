@@ -2320,7 +2320,8 @@ plt.legend()
 
 
 import requests
-proposal = '315038'
+os.system('cd ~')
+proposal = '317775'
 headers = {'accept': 'application/json',}
 proposal_info = requests.get(f'https://api.nsls2.bnl.gov/v1/proposal/{proposal}', headers=headers).json()
 
@@ -2338,10 +2339,15 @@ strings = file_content.split('\n')
 logins = []
 for string in strings:
     if (string.find(',') > -1) and (string.find('Running command') == -1):
-        inds = find_substring_indices(string, '|')
+        inds = [index for index, char in enumerate(string) if char == '|']
         logins.append(string[(inds[1]+1):inds[2]].strip())
 
+for name in logins:
+    os.systemf(f'n2sn_add_user --login  {name} GUACVIEW')
 
+with open("logins.txt", "w") as f:
+    for login in logins:
+        f.write(login + "\n")
 
 
 for j in range (1,33):

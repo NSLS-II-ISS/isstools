@@ -36,6 +36,10 @@ import matplotlib.path as mpltPath
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_user_manager.ui')
 
+
+ROOT_PATH = '/nsls2/data/iss/legacy'
+USER_PATH = 'processed'
+
 class UIUserManager(*uic.loadUiType(ui_path)):
 
     sample_list_changed_signal = QtCore.pyqtSignal()
@@ -81,7 +85,7 @@ class UIUserManager(*uic.loadUiType(ui_path)):
 
         self.listWidget_samples_archived.hide()
 
-
+        self.pushButton_create_zip.clicked.connect(self.create_zip)
         self.pushButton_restore_samples.hide()
 
         self.label_proposal_title.setText('')
@@ -268,10 +272,11 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         headers = {'accept': 'application/json',}
         proposal = str(self.spinBox_proposal.value())
         proposal_info = requests.get(f'https://api.nsls2.bnl.gov/v1/proposal/{proposal}', headers=headers).json()
+
         if 'error_message' in proposal_info.keys():
             error_message_box('Proposal not found')
         else:
-            title = proposal_info['title']
+            title = proposal_info['proposal']['title']
             if title is None: title = ''
             if len(title) > 100:
                 title = title[:101]
@@ -280,13 +285,13 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             self.label_proposal_title.setText(title)
             self.listWidget_safs.clear()
             self.listWidget_experimenters.clear()
-            safs = proposal_info['safs']
+            safs = proposal_info['proposal']['safs']
             for saf in safs:
                 item = QListWidgetItem(saf['saf_id'])
                 if saf['status'] != 'APPROVED':
                     item.setForeground(Qt.red)
                 self.listWidget_safs.addItem(item)
-            users = proposal_info['users']
+            users = proposal_info['proposal']['users']
             for user in users:
                 item = QListWidgetItem(user['first_name']+ ' ' +user['last_name'])
                 if user['is_pi']:
@@ -373,6 +378,52 @@ class UIUserManager(*uic.loadUiType(ui_path)):
         self.lineEdit_email.setText(self.current_email)
         self.enable_fields(False)
         self.populate_comboboxes() # this is a bit of an overkill, but it takes care of the correct indexes in comboboxes
+
+    def create_zip(self):
+        _, _current_user = self.user_manager.current_user()
+        proposal =(_current_user['runs'][-1]['proposal'])
+
+        year = self.RE.md['year']
+        cycle = self.RE.md['cycle']
+        proposal = self.RE.md['proposal']
+        PI = self.RE.md['PI']
+        email_address = self.lineEdit_email.text()
+        # working_directory = f'/nsls2/xf08id/users/{year}/{cycle}/{proposal}'
+        working_directory = f'{ROOT_PATH}/{USER_PATH}/{year}/{cycle}/{proposal}'
+        zip_file = f'{working_directory}/{proposal}.zip'
+        id = str(uuid.uuid4())[0:5]
+        zip_id_file = f'{proposal}-{id}.zip'
+
+        if os.path.exists(zip_file):
+            os.remove(zip_file)
+
+        # os.system(f'zip {zip_file} {working_directory}/*.* ')
+
+        print('Creating a zip file')
+        os.system(f"cd '{working_directory}'; zip '{zip_id_file}' *.dat")
+
+        message = create_html_message(
+            'staff08id@gmail.com',
+            email_address,
+            f'ISS beamline data for Proposal {proposal}\n',
+            f' <p> Dear {PI},</p> <p>You can download the results of your experiment from JupyterHub by following the steps below: </p>'
+            f'<p> 1. Go to https://jupyter.nsls2.bnl.gov and log in using your BNL credentials. </p>'
+            f'<p> 2. Click on "Start My Server" to launch a new server or relaunch an already active server. </p>'
+            f'<p> 3. In the "Server Options" window, select "Scientific Python" as the job profile, then click "Start".</p>'
+            f'<p> 4. In the File menu, select "Open from Path..." </p>'
+            f'<p> 5. Copy and paste the following path (without quotation marks): "{working_directory}" </p>'
+            f'<p> 6. Right-click on the zip file named {zip_id_file} and download it to your PC. </p> '
+            f'<p> Sincerely, </p> <p> ISS Staff </p>'
+        )
+
+        draft = upload_draft(self.parent.gmail_service, message)
+        sent = send_draft(self.parent.gmail_service, draft)
+        print('Email sent for zip files')
+
+
+
+
+
 
 
 
