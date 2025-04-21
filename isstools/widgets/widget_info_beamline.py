@@ -402,14 +402,15 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
 
     def update_slits(self):
-        self.front_end.sync_slits()
-        self.label_fe_slit_top.setText('{:.2f} mm'.format(self.front_end.slit_top.get()))
-        self.label_fe_slit_bottom.setText('{:.2f} mm'.format(self.front_end.slit_bottom.get()))
-        self.label_fe_slit_inboard.setText('{:.2f} mm'.format(self.front_end.slit_inb.get()))
-        self.label_fe_slit_outboard.setText('{:.2f} mm'.format(self.front_end.slit_outb.get()))
-
-
-
+        pass
+        # self.front_end.sync_slits()
+        # self.label_fe_slit_top.setText('{:.2f} mm'.format(self.front_end.slit_top.get()))
+        # self.label_fe_slit_bottom.setText('{:.2f} mm'.format(self.front_end.slit_bottom.get()))
+        # self.label_fe_slit_inboard.setText('{:.2f} mm'.format(self.front_end.slit_inb.get()))
+        # self.label_fe_slit_outboard.setText('{:.2f} mm'.format(self.front_end.slit_outb.get()))
+        #
+        #
+        #
 
 
 
