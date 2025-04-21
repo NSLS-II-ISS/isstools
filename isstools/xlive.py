@@ -27,7 +27,6 @@ from .widgets import (widget_info_general,
 from isstools.elements.batch_motion import SamplePositioner
 from .elements.emitting_stream import EmittingStream
 from .process_callbacks.callback import ScanProcessingCallback
-# from .elements.cloud_dispatcher import CloudDispatcher
 from isscloudtools.cloud_dispatcher import CloudDispatcher
 from isscloudtools.initialize import get_dropbox_service, get_gmail_service, get_slack_service
 from isscloudtools.gmail import create_html_message, upload_draft, send_draft
@@ -132,7 +131,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.progressBar.setValue(0)
         self.settings = QSettings(self.window_title, 'XLive')
 
-        self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
+
 
         # define sample positioner to pass it to widget camera and further
         stage_park_x = self.settings.value('stage_park_x', defaultValue=0, type=float)
@@ -370,7 +369,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
         #     self.widget_batch_mode.widget_batch_manual.update_batch_traj)
 
         print('widget loading done', ttime.ctime())
-
+        self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
@@ -381,7 +380,7 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
 
         self.fly_token = self.RE.subscribe(pc, 'stop')
-        print(' scan processing callback done', ttime.ctime())
+        #print(' scan processing callback done', ttime.ctime())
         # Redirect terminal output to GUI
         self.emitstream_out = EmittingStream(self.textEdit_terminal)
         self.emitstream_err = EmittingStream(self.textEdit_terminal)
@@ -518,6 +517,8 @@ class ProcessingThread(QThread):
     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
         QThread.__init__(self)
         self.gui = gui
+        self.camera1 = self.gui.widget_sample_manager.widget_camera1
+        self.camera2 = self.gui.widget_sample_manager.widget_camera2
         self.doc = None
         if print_func is None:
             self.print = print
@@ -543,7 +544,12 @@ class ProcessingThread(QThread):
                                             draw_func_interp=self.gui.widget_run.draw_interpolated_data,
                                             draw_func_bin=None,
                                             cloud_dispatcher=self.gui.cloud_dispatcher,
-                                            print_func=self.print)
+                                            print_func=self.print,
+                                            save_image = True,
+                                            camera1 = self.camera1,
+                                            camera2 = self.camera2)
+
+
                 self.doc = None
             except Exception as e:
                 if self.soft_mode:

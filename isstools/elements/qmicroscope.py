@@ -418,3 +418,24 @@ class Microscope(QWidget):
         settings.setValue('xDivs', self.xDivs)
         settings.setValue('yDivs', self.yDivs)
         settings.setValue('color', self.color)
+
+    def saveImageAsFile(self, filepath):
+        _image = self.image
+        if self.mark_location:
+            #print(f' Mark location {self.mark_location.x()} -  {self.mark_location.y()}')
+            beam_pos_x, beam_pos_y = self.convertxy_act2nom(self.camera.beam_pos_x, self.camera.beam_pos_y)
+            if self.mark_direction == 1:
+                x1, y1 = beam_pos_x, beam_pos_y - 200
+                x2, y2 = beam_pos_x, beam_pos_y + 200
+
+            elif self.mark_direction == 0:
+                x1, y1 = beam_pos_x - 200, beam_pos_y
+                x2, y2 = beam_pos_x + 200, beam_pos_y
+        painter = QPainter(_image)
+        pen = QPen(Qt.yellow, 1)  # Yellow color, 3px thick line
+        painter.setPen(pen)
+        painter.drawLine(x1, y1, x2, y2)
+        painter.end()
+        _image.save(filepath, "JPEG", quality=95)
+
+
