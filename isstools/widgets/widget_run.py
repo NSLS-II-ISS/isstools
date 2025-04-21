@@ -138,25 +138,39 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.push_run_test_scan.setEnabled(False)
             self.push_run_scan.setEnabled(False)
 
-    def draw_interpolated_data(self, df):
-        update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
-        if 'i0' in df and 'it' in df and 'energy' in df:
-            transmission = np.array(np.log(df['i0'] / df['it']))
-        if 'i0' in df and 'iff' in df and 'energy' in df:
-            fluorescence = np.array(df['iff'] / df['i0'])
-        if 'it' in df and 'ir' in df and 'energy' in df:
-            reference = np.array(np.log(df['it'] / df['ir']))
 
-        energy = np.array(df['energy'])
+    def draw_interpolated_data(self, df_interp, df_binned):
+        update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
+
+        energy = np.array(df_interp['energy'])
         edge = int(len(energy) * 0.02)
-        #print(f'Before drawing in draw_interpolated_data:{__file__}')
-        self.figure.ax1.plot(energy[edge:-edge], transmission[edge:-edge], color='r', label='Transmission')
-        #print(f'After drawing in draw_interpolated_data:{__file__}')
-        self.figure.ax1.legend(loc=2)
-        self.figure.ax2.plot(energy[edge:-edge], fluorescence[edge:-edge], color='g', label='Total fluorescence')
-        self.figure.ax2.legend(loc=1)
-        self.figure.ax3.plot(energy[edge:-edge], reference[edge:-edge], color='b', label='Reference')
-        self.figure.ax3.legend(loc=3)
+
+        if 'i0' in df_interp and 'it' in df_interp and 'energy' in df_interp:
+            transmission = np.array(np.log(df_interp['i0'] / df_interp['it']))
+            self.figure.ax1.plot(energy, transmission, color='r', alpha=0.2,
+                                 label='Transmission')
+            self.figure.ax1.legend(loc=2)
+        if 'i0' in df_interp and 'iff' in df_interp and 'energy' in df_interp:
+            fluorescence = np.array(df_interp['iff'] / df_interp['i0'])
+            self.figure.ax2.plot(energy, fluorescence, color='g', alpha=0.2,
+                                 label='Total fluorescence')
+            self.figure.ax2.legend(loc=1)
+        if 'it' in df_interp and 'ir' in df_interp and 'energy' in df_interp:
+            reference = np.array(np.log(df_interp['it'] / df_interp['ir']))
+            self.figure.ax3.plot(energy, reference, color='b', alpha=0.2, label='Reference')
+            self.figure.ax3.legend(loc=3)
+
+        energy = np.array(df_binned['energy'])
+        edge = int(len(energy) * 0.02)
+        if 'i0' in df_binned and 'it' in df_binned and 'energy' in df_binned:
+            transmission = np.array(np.log(df_binned['i0'] / df_binned['it']))
+            self.figure.ax1.plot(energy, transmission, color='r')
+        if 'i0' in df_binned and 'iff' in df_binned and 'energy' in df_binned:
+            fluorescence = np.array(df_binned['iff'] / df_binned['i0'])
+            self.figure.ax2.plot(energy, fluorescence, color='g')
+        if 'it' in df_binned and 'ir' in df_binned and 'energy' in df_binned:
+            reference = np.array(np.log(df_binned['it'] / df_binned['ir']))
+            self.figure.ax3.plot(energy, reference, color='b')
         self.canvas.draw_idle()
 
     def make_xasplot_func(self, plan_name, plan_kwargs):
