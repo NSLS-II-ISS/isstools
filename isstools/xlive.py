@@ -541,7 +541,7 @@ class ProcessingThread(QThread):
                     self.print(f' File received 1 {uid}')
                     process_interpolate_bin(self.doc,
                                             self.gui.db,
-                                            draw_func_interp=self.gui.widget_run.draw_interpolated_data,
+                                            draw_func_interp=self.gui.widget_run.draw_data,
                                             draw_func_bin=None,
                                             cloud_dispatcher=self.gui.cloud_dispatcher,
                                             print_func=self.print,

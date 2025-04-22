@@ -2418,3 +2418,15 @@ plt.ylabel('Y')
 plt.title('Gaussian Fit with FWHM')
 plt.show()
 
+
+from xas.db_io import load_apb_dataset_from_db, translate_apb_dataset, load_apb_trig_dataset_from_db, load_xs3_dataset_from_db, load_pil100k_dataset_from_db, load_apb_dataset_only_from_db, translate_apb_only_dataset, load_xia_dataset_from_db
+from xas.bin import bin
+from xas.interpolate import interpolate
+
+apb_df, energy_df, energy_offset = load_apb_dataset_from_db(db, -1)
+raw_dict = translate_apb_dataset(apb_df, energy_df, energy_offset)
+interp_df = interpolate(raw_dict)
+
+binned_df = bin(interp_df,11540 )
+xlive_gui.widget_run.draw_new_interpolated_data(interp_df, binned_df)
+

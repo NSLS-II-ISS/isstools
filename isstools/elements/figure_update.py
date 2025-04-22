@@ -7,9 +7,21 @@ from matplotlib.widgets import Cursor
 
 
 def update_figure(axes, toolbar, canvas):
+    start = 0
+    step = -0.05
     for ax in axes:
         ax.clear()
         # cursor = Cursor(ax, useblit=True, color='green', linewidth=0.75)
+    for i, ax in enumerate(axes):
+        offset = start + i * step
+        ax.spines['left'].set_position(('axes', offset))
+        ax.spines['right'].set_visible(False)
+        ax.yaxis.set_label_position("left")
+        ax.yaxis.tick_left()
+        ax.tick_params(axis='y', rotation=90)
+    axes[-1].spines['right'].set_visible(True)
+
+
     toolbar.update()
     canvas.draw_idle()
     axes[-1].grid(alpha=0.4)

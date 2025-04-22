@@ -54,8 +54,26 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         self.figure, self.canvas, self.toolbar = setup_figure(self, self.layout_plot)
         self.figure.ax1 = self.figure.ax
-        self.figure.ax2 = self.figure.ax.twinx()
-        self.figure.ax3 = self.figure.ax.twinx()
+        self.figure.ax2 = self.figure.ax1.twinx()
+        self.figure.ax3 = self.figure.ax1.twinx()
+
+        # Move ax1 to the left
+        self.figure.ax1.spines['left'].set_position(('axes', 0))
+        self.figure.ax1.spines['right'].set_visible(False)
+        self.figure.ax1.yaxis.set_label_position("left")
+        self.figure.ax1.yaxis.tick_left()
+
+        # Move ax2 to the left further out
+        self.figure.ax2.spines['left'].set_position(('axes', -0.05))
+        self.figure.ax2.spines['right'].set_visible(False)
+        self.figure.ax2.yaxis.set_label_position("left")
+        self.figure.ax2.yaxis.tick_left()
+
+        # Move ax3 even further left
+        self.figure.ax3.spines['left'].set_position(('axes', -0.10))
+        self.figure.ax3.spines['right'].set_visible(False)
+        self.figure.ax3.yaxis.set_label_position("left")
+        self.figure.ax3.yaxis.tick_left()
 
     def update_scan_defs(self):
         self.comboBox_scan_defs.clear()
@@ -138,6 +156,64 @@ class UIRun(*uic.loadUiType(ui_path)):
             self.push_run_test_scan.setEnabled(False)
             self.push_run_scan.setEnabled(False)
 
+    def draw_data(self, df_interp, df_binned):
+        update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
+
+        # Clear previous legends if any
+        for leg in self.figure.legends:
+            leg.remove()
+
+        graph_list = []
+        channel_list = [
+            {'num': 'i0', 'den': 'it', 'log': True,
+             'label': 'Transmission', 'axis': self.figure.ax1, 'color': 'r'},
+            {'num': 'iff', 'den': 'i0', 'log': False,
+             'label': 'Total Fluorescence', 'axis': self.figure.ax2, 'color': 'g'},
+            {'num': 'it', 'den': 'ir', 'log': True,
+             'label': 'Reference', 'axis': self.figure.ax3, 'color': 'b'},
+        ]
+
+        energy_interp = np.array(df_interp['energy'])
+        energy_binned = np.array(df_binned['energy'])
+
+        for channel in channel_list:
+            num = channel['num']
+            den = channel['den']
+            if num in df_interp and den in df_interp and 'energy' in df_interp:
+                # First (interpolated, transparent)
+                signal = np.array(df_interp[num] / df_interp[den])
+                if channel['log']:
+                    signal = np.log(signal)
+                channel['axis'].plot(
+                    energy_interp,
+                    signal,
+                    color=channel['color'],
+                    alpha=0.2)
+
+                # Second (binned, solid) → for legend
+                signal = np.array(df_binned[num] / df_binned[den])
+                if channel['log']:
+                    signal = np.log(signal)
+                line, = channel['axis'].plot(
+                    energy_binned,
+                    signal,
+                    color=channel['color'],
+                    label=channel['label']
+                )
+                graph_list.append(line)  # ← now using the solid line for the legend
+
+        self.figure.ax1.set_xlabel('Energy, eV',fontsize = 14)
+
+
+        # Add the legend
+        self.figure.ax1.legend(
+            handles = graph_list,
+            loc='upper right',
+            framealpha=0.8,
+            frameon=False
+        )
+        self.figure.tight_layout()
+        self.canvas.draw()
 
     def draw_interpolated_data(self, df_interp, df_binned):
         update_figure([self.figure.ax2, self.figure.ax1, self.figure.ax3], self.toolbar, self.canvas)
@@ -171,7 +247,12 @@ class UIRun(*uic.loadUiType(ui_path)):
         if 'it' in df_binned and 'ir' in df_binned and 'energy' in df_binned:
             reference = np.array(np.log(df_binned['it'] / df_binned['ir']))
             self.figure.ax3.plot(energy, reference, color='b')
+
+        self.figure.ax3.set_xlabel('Energy, eV', fontsize=14)
+        self.figure.tight_layout()
         self.canvas.draw_idle()
+
+
 
     def make_xasplot_func(self, plan_name, plan_kwargs):
 
