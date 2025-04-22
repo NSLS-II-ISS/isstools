@@ -5,6 +5,7 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal, QObject, QThread
 
 from PyQt5.QtCore import QThread, QSettings
 
@@ -370,6 +371,12 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget loading done', ttime.ctime())
         self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
+        self.processing_thread.start()  # ONLY ONCE
+
+        self.processing_thread.processing_started.connect(self.on_processing_started)
+        self.processing_thread.processing_finished.connect(self.on_processing_finished)
+        self.processing_thread.processing_error.connect(self.on_processing_error)
+
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
@@ -396,6 +403,19 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.define_gui_services_dict()
         self.plan_processor.append_gui_services_dict(self.gui_services_dict)
         self.plan_processor.append_add_plans_question_box_func(self.add_plans_question_box)
+
+    def on_processing_started(self, uid, queue_size):
+        self.label_processing_state.setText(f"{queue_size} docs in queue.  Processing started for UID: {uid}")
+
+
+    def on_processing_finished(self, uid, queue_size):
+        self.label_processing_state.setText(f"{queue_size} docs in queue. Processing finished for UID: {uid}")
+
+
+    def on_processing_error(self, msg):
+        self.label_processing_state.setText(f"Processing error: {msg}")
+
+
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
@@ -513,54 +533,122 @@ class XliveGui(*uic.loadUiType(ui_path)):
             add_at = 'tail'
         return plans, add_at, idx, pause_after
 
+# class ProcessingThread(QThread):
+#     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
+#         QThread.__init__(self)
+#         self.gui = gui
+#         self.camera1 = self.gui.widget_sample_manager.widget_camera1
+#         self.camera2 = self.gui.widget_sample_manager.widget_camera2
+#         self.doc = None
+#         if print_func is None:
+#             self.print = print
+#         else:
+#             def _print_func(msg):
+#                 print_func(msg, tag='Processing here', add_timestamp=True)
+#             self.print = _print_func
+#         self.soft_mode = True
+#         self.processing_ioc_uid = processing_ioc_uid
+#
+#     def run(self):
+#         attempt = 0
+#         while self.doc:
+#             try:
+#                 attempt += 1
+#                 uid = self.doc['run_start']
+#                 if self.processing_ioc_uid is not None:
+#                     self.processing_ioc_uid.put(uid)
+#                 else:
+#                     self.print(f' File received 1 {uid}')
+#                     process_interpolate_bin(self.doc,
+#                                             self.gui.db,
+#                                             draw_func_interp=self.gui.widget_run.draw_data,
+#                                             draw_func_bin=None,
+#                                             cloud_dispatcher=self.gui.cloud_dispatcher,
+#                                             print_func=self.print,
+#                                             save_image = True,
+#                                             camera1 = self.camera1,
+#                                             camera2 = self.camera2)
+#
+#
+#                 self.doc = None
+#             except Exception as e:
+#                 if self.soft_mode:
+#                     self.print(f'Exception: {e}')
+#                     self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+#                     ttime.sleep(3)
+#                 else:
+#                     raise e
+#             if attempt == 5:
+#                 break
+
+
+import time as ttime
+from queue import Queue, Empty
+
 class ProcessingThread(QThread):
+
+    processing_started = pyqtSignal(str, int)  # Send UID or status message
+    processing_finished = pyqtSignal(str, int)  # Could also send a result object
+    processing_error = pyqtSignal(str)
+
     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
-        QThread.__init__(self)
+        super().__init__()
+        self.queue_size = 0
         self.gui = gui
-        self.camera1 = self.gui.widget_sample_manager.widget_camera1
-        self.camera2 = self.gui.widget_sample_manager.widget_camera2
-        self.doc = None
+        self.queue = Queue()
+        self.soft_mode = True
+        self.processing_ioc_uid = processing_ioc_uid
+
         if print_func is None:
             self.print = print
         else:
             def _print_func(msg):
-                print_func(msg, tag='Processing here', add_timestamp=True)
+                print_func(msg, tag='Processing', add_timestamp=True)
             self.print = _print_func
-        self.soft_mode = True
-        self.processing_ioc_uid = processing_ioc_uid
+
+        self._running = True
+
+    def add_doc(self, doc):
+        self.queue.put(doc)
+        self.queue_size = self.queue_size + 1
+
+    def stop(self):
+        self._running = False
+        self.queue.put(None)  # unblock the thread if waiting
 
     def run(self):
-        attempt = 0
-        while self.doc:
+        while self._running:
             try:
-                attempt += 1
-                uid = self.doc['run_start']
-                if self.processing_ioc_uid is not None:
+                doc = self.queue.get(timeout=1)
+                if doc is None:
+                    continue
+                uid = doc['run_start']
+                self.processing_started.emit(uid, self.queue_size)
+                if self.processing_ioc_uid:
                     self.processing_ioc_uid.put(uid)
                 else:
-                    self.print(f' File received 1 {uid}')
-                    process_interpolate_bin(self.doc,
-                                            self.gui.db,
-                                            draw_func_interp=self.gui.widget_run.draw_data,
-                                            draw_func_bin=None,
-                                            cloud_dispatcher=self.gui.cloud_dispatcher,
-                                            print_func=self.print,
-                                            save_image = True,
-                                            camera1 = self.camera1,
-                                            camera2 = self.camera2)
+                    self.print(f'File received: {uid}')
+                    process_interpolate_bin(
+                        doc,
+                        self.gui.db,
+                        draw_func_interp=self.gui.widget_run.draw_interpolated_data,
+                        draw_func_bin=None,
+                        cloud_dispatcher=self.gui.cloud_dispatcher,
+                        print_func=self.print
+                    )
+                    self.queue_size = self.queue_size-1
+                    self.processing_finished.emit(uid, self.queue_size)
 
-
-                self.doc = None
+            except Empty:
+                continue
             except Exception as e:
+                self.processing_error.emit(str(e))
                 if self.soft_mode:
-                    self.print(f'Exception: {e}')
-                    self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+                    self.print(f'Exception while processing: {e}')
+                    self.print(f'Retrying in 3s ({ttime.ctime()})')
                     ttime.sleep(3)
                 else:
-                    raise e
-            if attempt == 5:
-                break
-
+                    raise
 
 
 

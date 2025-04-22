@@ -344,7 +344,7 @@
      <rect>
       <x>330</x>
       <y>1140</y>
-      <width>1301</width>
+      <width>821</width>
       <height>23</height>
      </rect>
     </property>
@@ -426,6 +426,25 @@
       <enum>QLayout::SetNoConstraint</enum>
      </property>
     </layout>
+   </widget>
+   <widget class="QLabel" name="label_processing_state">
+    <property name="geometry">
+     <rect>
+      <x>1180</x>
+      <y>1140</y>
+      <width>451</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
