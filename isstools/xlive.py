@@ -114,6 +114,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
         self.data_collection_plan_funcs = data_collection_plan_funcs
         self.print_to_gui = print_to_gui
+        self.state_colors = {
+            # RE states
+            'idle': QtGui.QColor(193, 140, 15),  # amber
+            'running': QtGui.QColor(0, 165, 0),  # green
+            'paused': QtGui.QColor(255, 0, 0),  # red
+            'abort': QtGui.QColor(255, 0, 0),  # red
+
+            # Processing states
+            'processing_started': QtGui.QColor(0, 150, 0),  # green
+            'processing_finished': QtGui.QColor(193, 140, 15),  # amber
+            'processing_error': QtGui.QColor(200, 0, 0),  # red
+            'idle_processing': QtGui.QColor(193, 140, 15),  # amber
+        }
+
+        #self.processing_status_msg_p2.lower()
 
         self.manager_dict = {'scan_manager' : scan_manager,
                              'sample_manager' : sample_manager,
@@ -373,10 +388,8 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
         self.processing_thread.start()  # ONLY ONCE
 
-        self.processing_thread.processing_started.connect(self.on_processing_started)
-        self.processing_thread.processing_finished.connect(self.on_processing_finished)
+        self.processing_thread.processing_event.connect(self.on_processing_event)
         self.processing_thread.processing_error.connect(self.on_processing_error)
-
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
@@ -403,17 +416,9 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.define_gui_services_dict()
         self.plan_processor.append_gui_services_dict(self.gui_services_dict)
         self.plan_processor.append_add_plans_question_box_func(self.add_plans_question_box)
-
-    def on_processing_started(self, uid, queue_size):
-        self.label_processing_state.setText(f"{queue_size} docs in queue.  Processing started for UID: {uid}")
-
-
-    def on_processing_finished(self, uid, queue_size):
-        self.label_processing_state.setText(f"{queue_size} docs in queue. Processing finished for UID: {uid}")
-
-
-    def on_processing_error(self, msg):
-        self.label_processing_state.setText(f"Processing error: {msg}")
+        self.processing_status_msg_p1 = ''
+        self.processing_status_msg_p2 = 'idle'
+        self.update_processing_status_msg()
 
 
 
@@ -501,15 +506,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
             # self.push_re_abort.setEnabled(1)
 
     def update_re_state(self):
+        color = self.state_colors.get(self.RE.state, QtGui.QColor(100, 100, 100))  # default: gray
+
         palette = self.label_RE_state.palette()
-        if (self.RE.state == 'idle'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(193, 140, 15))
-        elif (self.RE.state == 'running'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(0, 165, 0))
-        elif (self.RE.state == 'paused'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
-        elif (self.RE.state == 'abort'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
+        palette.setColor(self.label_RE_state.foregroundRole(), color)
         self.label_RE_state.setPalette(palette)
         self.label_RE_state.setText(self.RE.state)
 
@@ -580,24 +580,73 @@ class XliveGui(*uic.loadUiType(ui_path)):
 #                     raise e
 #             if attempt == 5:
 #                 break
+    def format_queue_status(self, queue_size):
+        if queue_size == 1:
+            return "1 scan in queue. "
+        else:
+            return f"{queue_size} scans in queue. "
+    def on_processing_event(self, event_type, uid_or_msg, queue_size):
+        if event_type == "queued":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"added UID: {uid_or_msg}"
+
+        elif event_type == "started":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"processing started for UID: {uid_or_msg}"
+
+        elif event_type == "finished":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"processing finished for UID: {uid_or_msg}"
+
+        elif event_type == "complete":
+            self.processing_status_msg_p1 = ""
+            self.processing_status_msg_p2 = uid_or_msg  # this will be "All processing complete"
+
+        self.update_processing_status_msg()
+
+    def on_processing_error(self, msg):
+        self.processing_status_msg_p1 = ''
+        self.processing_status_msg_p2 = f"processing error: {msg}"
+        self.update_processing_status_msg()
+
+    def update_processing_status_msg(self):
+        status_key = "idle_processing"  # default
+
+        msg = self.processing_status_msg_p2.lower()
+
+        if "started" in msg:
+            status_key = "processing_started"
+        elif "finished" in msg:
+            status_key = "processing_finished"
+        elif "error" in msg:
+            status_key = "processing_error"
+        elif "idle" in msg or "all scans processed" in msg:
+            status_key = "idle_processing"
+
+        color = self.state_colors.get(status_key, QtGui.QColor(100, 100, 100))
+
+        palette = self.label_processing_state.palette()
+        palette.setColor(self.label_processing_state.foregroundRole(), color)
+        self.label_processing_state.setPalette(palette)
+
+        self.label_processing_state.setText(f'{self.processing_status_msg_p1}{self.processing_status_msg_p2}')
 
 
-import time as ttime
+from PyQt5.QtCore import QThread, pyqtSignal
 from queue import Queue, Empty
+import time as ttime
 
 class ProcessingThread(QThread):
-
-    processing_started = pyqtSignal(str, int)  # Send UID or status message
-    processing_finished = pyqtSignal(str, int)  # Could also send a result object
+    processing_event = pyqtSignal(str, str, int)  # event_type, uid_or_msg, queue_size
     processing_error = pyqtSignal(str)
 
     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
         super().__init__()
-        self.queue_size = 0
         self.gui = gui
         self.queue = Queue()
         self.soft_mode = True
         self.processing_ioc_uid = processing_ioc_uid
+        self._running = True
 
         if print_func is None:
             self.print = print
@@ -606,15 +655,13 @@ class ProcessingThread(QThread):
                 print_func(msg, tag='Processing', add_timestamp=True)
             self.print = _print_func
 
-        self._running = True
-
     def add_doc(self, doc):
         self.queue.put(doc)
-        self.queue_size = self.queue_size + 1
+        self.processing_event.emit("queued", doc['run_start'], self.queue.qsize())
 
     def stop(self):
         self._running = False
-        self.queue.put(None)  # unblock the thread if waiting
+        self.queue.put(None)
 
     def run(self):
         while self._running:
@@ -622,8 +669,10 @@ class ProcessingThread(QThread):
                 doc = self.queue.get(timeout=1)
                 if doc is None:
                     continue
+
                 uid = doc['run_start']
-                self.processing_started.emit(uid, self.queue_size)
+                self.processing_event.emit("started", uid, self.queue.qsize()+1)
+
                 if self.processing_ioc_uid:
                     self.processing_ioc_uid.put(uid)
                 else:
@@ -636,19 +685,25 @@ class ProcessingThread(QThread):
                         cloud_dispatcher=self.gui.cloud_dispatcher,
                         print_func=self.print
                     )
-                    self.queue_size = self.queue_size-1
-                    self.processing_finished.emit(uid, self.queue_size)
+
+                queue_size_after = self.queue.qsize()
+                self.processing_event.emit("finished", uid, queue_size_after)
+
+                if queue_size_after == 0:
+                    self.processing_event.emit("complete", "idle", 0)
 
             except Empty:
                 continue
             except Exception as e:
                 self.processing_error.emit(str(e))
                 if self.soft_mode:
-                    self.print(f'Exception while processing: {e}')
-                    self.print(f'Retrying in 3s ({ttime.ctime()})')
+                    self.print(f'Exception: {e}, retrying in 3s')
                     ttime.sleep(3)
                 else:
                     raise
+
+
+
 
 
 
