@@ -34,6 +34,13 @@ from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 import time as ttime
 from xas.process import process_interpolate_bin
 from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
+from PyQt5.QtCore import QThread, pyqtSignal
+from queue import Queue, Empty
+import time as ttime
+import traceback
+import pprint
+import os
+import json
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
@@ -359,11 +366,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       parent=self
                                                                       )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
-
-
-
-
-
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_user_manager.update_scan_list)
@@ -632,11 +634,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.label_processing_state.setText(f'{self.processing_status_msg_p1}{self.processing_status_msg_p2}')
 
 
-from PyQt5.QtCore import QThread, pyqtSignal
-from queue import Queue, Empty
-import time as ttime
+
 
 class ProcessingThread(QThread):
+
     processing_event = pyqtSignal(str, str, int)  # event_type, uid_or_msg, queue_size
     processing_error = pyqtSignal(str)
 
@@ -647,7 +648,6 @@ class ProcessingThread(QThread):
         self.soft_mode = True
         self.processing_ioc_uid = processing_ioc_uid
         self._running = True
-
         if print_func is None:
             self.print = print
         else:
@@ -663,6 +663,43 @@ class ProcessingThread(QThread):
         self._running = False
         self.queue.put(None)
 
+    def _write_uid_to_file(self, doc):
+        ROOT_PATH = '/nsls2/data/iss/legacy'
+        USER_PATH = 'processed'
+        #self.print(f"Full doc:\n{pprint.pformat(doc)}")
+        uid = str(doc['uid'])
+        cycle = str(doc['cycle'])
+        year = str(doc['year'])
+        proposal = str(doc['proposal'])
+
+        dir_path = os.path.join(ROOT_PATH, USER_PATH, year, cycle, proposal)
+        file_path = os.path.join(dir_path, 'processing_log.json')
+        os.makedirs(dir_path, exist_ok=True)
+
+        # Create the new entry
+        timestamp = ttime.strftime("%Y-%m-%d %H:%M:%S")
+        entry = {
+            "timestamp": timestamp,
+            "uid": uid
+        }
+
+        try:
+            # Load existing log if it exists
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    log_data = json.load(f)
+            else:
+                log_data = []
+
+            log_data.append(entry)
+
+            # Save back to the file
+            with open(file_path, 'w') as f:
+                json.dump(log_data, f, indent=2)
+            #self.print(f"Appended UID to {file_path}: {entry}")
+        except Exception as e:
+            self.print(f"Failed to write UID to JSON file: {e}")
+
     def run(self):
         while self._running:
             try:
@@ -672,9 +709,9 @@ class ProcessingThread(QThread):
 
                 uid = doc['run_start']
                 self.processing_event.emit("started", uid, self.queue.qsize()+1)
-
+                start_doc = self.gui.db[uid]['start']
                 if self.processing_ioc_uid:
-                    self.processing_ioc_uid.put(uid)
+                    self.processing_ioc_uid.put(doc)
                 else:
                     self.print(f'File received: {uid}')
                     process_interpolate_bin(
@@ -685,7 +722,7 @@ class ProcessingThread(QThread):
                         cloud_dispatcher=self.gui.cloud_dispatcher,
                         print_func=self.print
                     )
-
+                self._write_uid_to_file(start_doc)
                 queue_size_after = self.queue.qsize()
                 self.processing_event.emit("finished", uid, queue_size_after)
 
@@ -695,10 +732,11 @@ class ProcessingThread(QThread):
             except Empty:
                 continue
             except Exception as e:
-                self.processing_error.emit(str(e))
+                error_msg = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+                self.processing_error.emit(error_msg)
+
                 if self.soft_mode:
-                    self.print(f'Exception: {e}, retrying in 3s')
-                    ttime.sleep(3)
+                    self.print(f'{ttime.ctime()} Exception occurred:\n{error_msg}')
                 else:
                     raise
 

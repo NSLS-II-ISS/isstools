@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>2220</width>
-    <height>1240</height>
+    <height>1250</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,7 +25,7 @@
   <property name="maximumSize">
    <size>
     <width>2220</width>
-    <height>1240</height>
+    <height>1250</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -291,10 +291,10 @@
    <widget class="QPushButton" name="push_re_abort">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>1540</x>
       <y>1140</y>
       <width>101</width>
-      <height>28</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -304,9 +304,9 @@
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>20</x>
       <y>1140</y>
-      <width>821</width>
+      <width>1511</width>
       <height>23</height>
      </rect>
     </property>
@@ -389,18 +389,18 @@
      </property>
     </layout>
    </widget>
-   <widget class="QWidget" name="gridLayoutWidget">
+   <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>1140</y>
-      <width>691</width>
-      <height>48</height>
+      <x>20</x>
+      <y>1170</y>
+      <width>1491</width>
+      <height>22</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_70">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_71">
        <property name="maximumSize">
         <size>
          <width>160</width>
@@ -418,12 +418,19 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
       <widget class="QLabel" name="label_RE_state">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="font">
         <font>
-         <weight>50</weight>
-         <bold>false</bold>
+         <weight>75</weight>
+         <italic>false</italic>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -431,8 +438,8 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_71">
+     <item>
+      <widget class="QLabel" name="label_70">
        <property name="maximumSize">
         <size>
          <width>160</width>
@@ -450,12 +457,13 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item>
       <widget class="QLabel" name="label_processing_state">
        <property name="font">
         <font>
-         <weight>50</weight>
-         <bold>false</bold>
+         <weight>75</weight>
+         <italic>false</italic>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
