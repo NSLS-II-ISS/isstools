@@ -15,24 +15,26 @@ from PyQt5.Qt import QSplashScreen, QObject
 import numpy
 from PyQt5 import  QtWidgets
 from scipy.optimize import curve_fit
-
+import matplotlib.pyplot as plt
+from PyQt5.QtCore import pyqtSignal
 
 from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
 from isstools.elements.figure_update import update_figure, setup_figure
 from isstools.elements.roi_widget import ROIWidget
 
-from isstools.widgets import widget_energy_selector
+from isstools.widgets import widget_energy_selector_with_periodic_table
+
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xia_manager.ui')
 
 
 class UIXIAManager(*uic.loadUiType(ui_path)):
-
+    element_selected = pyqtSignal(str)  # Signal to send selected element
     def __init__(self,
                  service_plan_funcs=None,
                  ge_detector = None,
                  RE=None,
-
+                 parent = None,
                  *args,
                  **kwargs):
 
@@ -42,6 +44,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.figure_mca, self.canvas_mca,self.toolbar_mca = setup_figure(self, self.layout_plot_mca)
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
+        self.parent = parent
         self.ge_detector = ge_detector
         self.populate_layouts()
 
@@ -50,6 +53,8 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
             "MCA mapping": 1,
             "SCA mapping": 2
         }
+        self.mcas = []
+        self.calibrations = []
 
         self.comboBox_collection_mode.addItems(list(self.change_collection_modes.keys()))
         self.comboBox_collection_mode.currentTextChanged.connect(self.change_collection_mode)
@@ -57,27 +62,17 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.push_reorder_rois.clicked.connect(self.reorder_rois_by_lo)
         self.push_ch1_to_all.clicked.connect(self.copy_ch1_to_all)
         self.push_calibrate.clicked.connect(self.calibrate)
+        self.push_reset_checkboxes.clicked.connect(self.reset_checkboxes)
 
 
         self.spinBox_acq_time.valueChanged.connect(self.set_acquition_time)
         self.ge_detector.settings.acquiring.subscribe(self.on_change_acquisition_status)
         self.label_acquiring.setStyleSheet("")
 
+        self.widget_energy_selector = widget_energy_selector_with_periodic_table.UIEnergySelectorWithPeriodicTable(emission=True)
+        self.layout_energy_selector.addWidget(self.widget_energy_selector)
+
         self.canvas_mca.mpl_connect("button_press_event", self.on_canvas_click)
-
-    def on_canvas_click(self, event):
-        if event.button == 3:  # Right-click (1=left, 2=middle, 3=right)
-            if event.xdata is not None:
-                self.measured_energy = event.xdata
-                self.spinBox_measured_energy.setValue(int(self.measured_energy))
-
-    def on_change_acquisition_status(self, value=None, *args, **kwargs):
-        if value == 1:
-            self.label_acquiring.setStyleSheet("background-color: red; color: black;")
-            self.label_acquiring.setText("Acquiring...")
-        else:
-            self.label_acquiring.setText("Idle")
-            self.label_acquiring.setStyleSheet("")
 
     def populate_layouts(self):
         self.spinBox_acq_time.setValue(self.ge_detector.settings.real_time.get())
@@ -86,10 +81,15 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
             checkbox.setCheckState(True)
             checkbox.setTristate(False)
             self.verticalLayout_channels.addWidget(checkbox)
+            value = self.parent.settings.value(f'checkbox_ch{ch}', True, type=bool)
+            checkbox.setChecked(value)
+            checkbox.stateChanged.connect(lambda state,ch=ch: self.parent.settings.setValue(f'checkbox_ch{ch}', bool(
+                state)))
+            checkbox.stateChanged.connect(self.plot_data)
             setattr(self, f'checkbox_ch{ch}', checkbox)
 
         self.roi_widgets = []
-        for roi in range(1,5):
+        for roi in range(1, 5):
             layout = getattr(self, f'gridLayout_roi{roi}')
             _roi = []
             for ch in range(1, 33):
@@ -97,6 +97,29 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
                 _roi.append(roi_widget)
                 layout.addWidget(roi_widget, ch, 0)
             self.roi_widgets.append(_roi)
+
+    def reset_checkboxes(self):
+        def reset_checkboxes(self):
+            for ch in range(1, 33):
+                checkbox = getattr(self, f'checkbox_ch{ch}')
+                checkbox.setChecked(True)
+
+
+    def on_canvas_click(self, event):
+        if event.button == 3:  # Right-click (1=left, 2=middle, 3=right)
+            if event.xdata is not None:
+                self.measured_energy = event.xdata
+                self.spinBox_measured_energy.setValue(int(self.measured_energy))
+
+    def on_change_acquisition_status(self, *args, **kwargs):
+        if self.ge_detector.acquiring == 1:
+            self.label_acquiring.setText("Acquiring...")
+            self.label_acquiring.setStyleSheet("background-color: red; color: black;")
+        elif self.ge_detector.acquiring == 0:
+            self.label_acquiring.setText("Idle")
+            self.label_acquiring.setStyleSheet("")
+
+
 
         # ✅ Add mode-switching ComboBox logic here
 
@@ -156,8 +179,6 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
     def acquire(self):
         #TODO open shutter self.shutter_dict
         print('XIA acquisition starting...')
-        acq_time = self.spinBox_acq_time.value()
-
         self.ge_detector.settings.start.put(1)
         start_time = ttime.time()
         timeout = 0.5  # seconds
@@ -168,26 +189,38 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         while self.ge_detector.settings.acquiring.get() == 1:
             ttime.sleep(0.1)
         self.acquired = True
-        self.plot_traces()
-        self.canvas_mca.draw_idle()
+        self.get_mcas()
         print('XIA acquisition complete')
 
-    def plot_traces(self):
-        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
-        for jj in range(1,20):
-            _mca = getattr(self.ge_detector._channels, f'mca{jj}').get()
-            mca = np.array(_mca[0])
-            energy = (np.array(range(len(mca)))*self.ge_detector.settings.max_energy/
-                      self.ge_detector.settings.mca_len)
-            self.figure_mca.ax.plot(energy[200:],  mca[200:], label=f'Channel {jj}')
+    def get_mcas(self):
+        self.mcas = []
+        self.calibrations = []
+        for jj in range(1,33):
+                _mca = getattr(self.ge_detector._channels, f'mca{jj}').get()
+                mca = np.array(_mca[0])
+                energy = (np.array(range(len(mca)))*self.ge_detector.settings.max_energy/
+                          self.ge_detector.settings.mca_len)
+                self.mcas.append((energy[200:],  mca[200:]))
+        self.plot_data()
+
 
 
     def calibrate(self):
+
         def gaussian(x, a, x0, sigma, offset):
             return a * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2)) + offset
 
-        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
-        for jj in range(1,20):
+        nominal_energy = float(self.widget_energy_selector.edit_E0.text())
+        measured_energy = self.spinBox_measured_energy.value()
+        if abs(measured_energy - nominal_energy) > 100:
+            error_message_box('The difference between the measured energy and the nominal energy is too high. '
+                              'Please adjust the gains manually')
+            return
+        energy_shifts = {}
+        self.mcas = []
+        self.calibrations = []
+
+        for jj in range(1,33):
             _mca = getattr(self.ge_detector._channels, f'mca{jj}').get()
             mca = np.array(_mca[0])
             energy = (np.array(range(len(mca)))*self.ge_detector.settings.max_energy/
@@ -210,10 +243,68 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
 
             # Extract fit parameters
             a_fit, x0_fit, sigma_fit, offset_fit = popt
-            self.figure_mca.ax.plot(energy[200:],  mca[200:], label=f'Channel {jj}')
-            self.figure_mca.ax.plot(energy_filtered, gaussian(energy_filtered, *popt),
-                                    linestyle="--")
-            print(f'x0 fit: {x0_fit}')
+            checkbox = getattr(self, f'checkbox_ch{jj}')
+            if checkbox.isChecked():
+                energy_shifts[f'Channel {jj}'] = nominal_energy - x0_fit
+            self.mcas.append((energy[200:],  mca[200:]))
+            self.calibrations.append((energy_filtered, gaussian(energy_filtered, *popt)))
+        self.plot_data()
+        message = "Energy shifts:\n" + "\n".join(f"{k}: {v:.2f}" for k, v in energy_shifts.items())
+        message += "\n\nProceed with calibration?"
+        ret = question_message_box(self,'Calibration', message)
+
+
+    def plot_data(self):
+        update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
+        self.figure_mca.ax.legend().remove()
+        if self.mcas:
+            color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            for jj in range(1,33):
+                checkbox = getattr(self, f'checkbox_ch{jj}')
+                if checkbox.isChecked():
+                    color = color_cycle[jj % len(color_cycle)]
+                    mca = self.mcas[jj]
+                    self.figure_mca.ax.plot(mca[0], mca[1], color=color, label=f'Channel {jj}')
+                    if self.calibrations:
+                        calibration = self.calibrations[jj]
+                        self.figure_mca.ax.plot(calibration[0], calibration[1],
+                        linestyle="--", color=color)
+
+            self.figure_mca.ax.set_xlabel("Energy /eV")
+            self.figure_mca.ax.set_ylabel("Counts")
+
+            # Place legend *inside* the plot
+            handles, labels = self.figure_mca.ax.get_legend_handles_labels()
+
+            # Check if we have more than 10 entries
+            if len(labels) > 10:
+                # Keep the first 8 labels and add '---' for the rest
+                labels = labels[:8] + ['---'] + labels[-1:]
+                handles = handles[:8] + [handles[-1]]
+
+            # Now create the legend with the modified labels and your customizations
+            self.figure_mca.ax.legend(
+                handles=handles,
+                labels=labels,
+                loc='upper right',  # or 'best', 'lower left', etc.
+                frameon=True,
+                fontsize='small',  # Smaller font for better readability
+                borderpad=1,  # Padding around the legend box
+                shadow=True  # Add a shadow for better visibility
+            )
+            self.figure_mca.figure.tight_layout()
+            self.figure_mca.canvas.draw()
+
+
+    def adjust_gain(self, channel, adjustment):
+        gain_setting = getattr(self.ge_detector.preamps, f'dxp{channel}.gain')
+        gain = gain_setting.get()
+        new_gain = gain * adjustment
+        gain_setting.set(new_gain)
+        question_message_box()
+
+
+
 
 
 

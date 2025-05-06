@@ -19,7 +19,7 @@
      <x>180</x>
      <y>100</y>
      <width>891</width>
-     <height>701</height>
+     <height>661</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout_plot_mca"/>
@@ -331,42 +331,13 @@
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>830</y>
-     <width>681</width>
+     <x>360</x>
+     <y>790</y>
+     <width>413</width>
      <height>44</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <item>
-     <widget class="QLabel" name="label_144">
-      <property name="maximumSize">
-       <size>
-        <width>120</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Nominal energy</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QSpinBox" name="spinBox_nominal_energy">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>25</height>
-       </size>
-      </property>
-      <property name="maximum">
-       <number>40000</number>
-      </property>
-      <property name="singleStep">
-       <number>1</number>
-      </property>
-     </widget>
-    </item>
     <item>
      <widget class="QLabel" name="label_143">
       <property name="maximumSize">
@@ -419,6 +390,55 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_144">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>770</y>
+     <width>120</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>120</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Nominal energy </string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_14">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>790</y>
+     <width>181</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="layout_energy_selector"/>
+  </widget>
+  <widget class="QPushButton" name="push_reset_checkboxes">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>810</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>100</width>
+     <height>25</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
   </widget>
  </widget>
  <resources/>
