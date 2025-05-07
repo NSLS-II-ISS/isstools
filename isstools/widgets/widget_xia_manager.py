@@ -45,8 +45,10 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.service_plan_funcs = service_plan_funcs
         self.RE = RE
         self.parent = parent
+        self.plot_will_reset = False
         self.ge_detector = ge_detector
-        self.populate_layouts()
+
+
 
         self.change_collection_modes = {
             "MCA spectra": 0,
@@ -55,6 +57,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         }
         self.mcas = []
         self.calibrations = []
+        self.dead_channels = {4, 6, 30, 32}  # those channels are PHYSICALLY dead
 
         self.comboBox_collection_mode.addItems(list(self.change_collection_modes.keys()))
         self.comboBox_collection_mode.currentTextChanged.connect(self.change_collection_mode)
@@ -63,6 +66,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.push_ch1_to_all.clicked.connect(self.copy_ch1_to_all)
         self.push_calibrate.clicked.connect(self.calibrate)
         self.push_reset_checkboxes.clicked.connect(self.reset_checkboxes)
+        self.pushButton_reset_plot.clicked.connect(self.reset_plot)
 
 
         self.spinBox_acq_time.valueChanged.connect(self.set_acquition_time)
@@ -73,8 +77,14 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.layout_energy_selector.addWidget(self.widget_energy_selector)
 
         self.canvas_mca.mpl_connect("button_press_event", self.on_canvas_click)
+        self.populate_layouts()
+
+    def reset_plot(self):
+        self.plot_will_reset = True
 
     def populate_layouts(self):
+
+
         self.spinBox_acq_time.setValue(self.ge_detector.settings.real_time.get())
         for ch in range(1, 33):
             checkbox = QtWidgets.QCheckBox(f'Channel {ch}')
@@ -83,6 +93,9 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
             self.verticalLayout_channels.addWidget(checkbox)
             value = self.parent.settings.value(f'checkbox_ch{ch}', True, type=bool)
             checkbox.setChecked(value)
+            if ch in self.dead_channels:
+                checkbox.setChecked(False)
+                checkbox.setEnabled(False)
             checkbox.stateChanged.connect(lambda state,ch=ch: self.parent.settings.setValue(f'checkbox_ch{ch}', bool(
                 state)))
             checkbox.stateChanged.connect(self.plot_data)
@@ -99,8 +112,8 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
             self.roi_widgets.append(_roi)
 
     def reset_checkboxes(self):
-        def reset_checkboxes(self):
-            for ch in range(1, 33):
+        for ch in range(1, 33):
+            if ch not in self.dead_channels:
                 checkbox = getattr(self, f'checkbox_ch{ch}')
                 checkbox.setChecked(True)
 
@@ -138,8 +151,33 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.ge_detector.settings.live_time.set(self.spinBox_acq_time.value())
 
     def copy_ch1_to_all(self):
-        self.ge_detector.settings.copy_ch1_to_all.put(1)
-        self.ge_detector.settings.copy_roi_to_sca.put(1)
+        # Get the current ROI tab index
+        roi_idx = self.tab_rois.currentIndex()
+
+        # Get the reference widget from Channel 1 (index 0)
+        source_widget = self.roi_widgets[roi_idx][0]
+
+        # Get values from source (in pixel units or energy if already converted)
+        lo = source_widget.spin_roi_lo.value()
+        hi = source_widget.spin_roi_hi.value()
+
+        for ch in range(1, 33):  # Channels 1 to 32 (1-based)
+            if ch == 1:
+                continue  # Skip Channel 1 and disabled ones
+
+            target_widget = self.roi_widgets[roi_idx][ch - 1]  # ch-1 = 0-based index
+
+            # Block signals to avoid triggering updates during set
+            target_widget.spin_roi_lo.blockSignals(True)
+            target_widget.spin_roi_hi.blockSignals(True)
+
+            target_widget.spin_roi_lo.setValue(lo)
+            target_widget.spin_roi_hi.setValue(hi)
+
+            target_widget.spin_roi_lo.blockSignals(False)
+            target_widget.spin_roi_hi.blockSignals(False)
+
+            target_widget.update_detector()
 
     def reorder_rois_by_lo(self):
         for ch in range(1, 33):
@@ -178,6 +216,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
 
     def acquire(self):
         #TODO open shutter self.shutter_dict
+        #self.plot_will_reset = True
         print('XIA acquisition starting...')
         self.ge_detector.settings.start.put(1)
         start_time = ttime.time()
@@ -191,6 +230,7 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
         self.acquired = True
         self.get_mcas()
         print('XIA acquisition complete')
+        self.plot_will_reset = False
 
     def get_mcas(self):
         self.mcas = []
@@ -245,16 +285,30 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
             a_fit, x0_fit, sigma_fit, offset_fit = popt
             checkbox = getattr(self, f'checkbox_ch{jj}')
             if checkbox.isChecked():
-                energy_shifts[f'Channel {jj}'] = nominal_energy - x0_fit
+                energy_shifts[f'{jj}'] = x0_fit - nominal_energy
+                print(f'channel {jj}: center {x0_fit} eV shift {x0_fit - nominal_energy} eV')
             self.mcas.append((energy[200:],  mca[200:]))
             self.calibrations.append((energy_filtered, gaussian(energy_filtered, *popt)))
         self.plot_data()
-        message = "Energy shifts:\n" + "\n".join(f"{k}: {v:.2f}" for k, v in energy_shifts.items())
+        message = "Energy shifts:\n" + "\n".join(f"Channel {k}: {v:.2f}" for k, v in energy_shifts.items())
         message += "\n\nProceed with calibration?"
         ret = question_message_box(self,'Calibration', message)
+        if ret:
+            for channel in  energy_shifts.keys():
+                adjustment = (energy_shifts[channel] + nominal_energy) / nominal_energy
+                self.adjust_gain(channel, adjustment)
+
+
+    def adjust_gain(self, channel, adjustment):
+        gain_setting = getattr(self.ge_detector.preamps, f'dxp{channel}.gain')
+        gain = gain_setting.get()
+        new_gain = gain * adjustment
+        gain_setting.set(new_gain)
 
 
     def plot_data(self):
+        if not self.plot_will_reset:
+            xlim = self.figure_mca.ax.get_xlim()
         update_figure([self.figure_mca.ax], self.toolbar_mca, self.canvas_mca)
         self.figure_mca.ax.legend().remove()
         if self.mcas:
@@ -263,15 +317,15 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
                 checkbox = getattr(self, f'checkbox_ch{jj}')
                 if checkbox.isChecked():
                     color = color_cycle[jj % len(color_cycle)]
-                    mca = self.mcas[jj]
+                    mca = self.mcas[jj-1]
                     self.figure_mca.ax.plot(mca[0], mca[1], color=color, label=f'Channel {jj}')
                     if self.calibrations:
-                        calibration = self.calibrations[jj]
+                        calibration = self.calibrations[jj-1]
                         self.figure_mca.ax.plot(calibration[0], calibration[1],
                         linestyle="--", color=color)
 
-            self.figure_mca.ax.set_xlabel("Energy /eV")
-            self.figure_mca.ax.set_ylabel("Counts")
+            self.figure_mca.ax.set_xlabel("Energy /eV", fontsize=12)
+            self.figure_mca.ax.set_ylabel("Counts", fontsize=12)
 
             # Place legend *inside* the plot
             handles, labels = self.figure_mca.ax.get_legend_handles_labels()
@@ -292,18 +346,71 @@ class UIXIAManager(*uic.loadUiType(ui_path)):
                 borderpad=1,  # Padding around the legend box
                 shadow=True  # Add a shadow for better visibility
             )
-            self.figure_mca.figure.tight_layout()
+            self.figure_mca.tight_layout()
+            if not self.plot_will_reset:
+                self.figure_mca.ax.set_xlim(xlim)
             self.figure_mca.canvas.draw()
 
 
-    def adjust_gain(self, channel, adjustment):
-        gain_setting = getattr(self.ge_detector.preamps, f'dxp{channel}.gain')
-        gain = gain_setting.get()
-        new_gain = gain * adjustment
-        gain_setting.set(new_gain)
-        question_message_box()
+'''
+def worker(jj):
+    from scipy.optimize import curve_fit
+    
+    # Define Gaussian model
+    def gaussian(x, a, x0, sigma, offset):
+        return a * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2)) + offset
+    
+    # Get MCA spectrum (adjust jj as needed)
+    
+    _mca = getattr(ge_detector._channels, f'mca{jj}').get()
+    mca = np.array(_mca[0])
+    
+    # Compute energy scale
+    energy = (
+        np.arange(len(mca)) *
+        ge_detector.settings.max_energy /
+        ge_detector.settings.mca_len
+    )
+    
+    # Filter region around selected energy
+    center = 6350
+    width = 500
+    lower_bound = center - width
+    upper_bound = center + width
+    
+    mask = (energy >= lower_bound) & (energy <= upper_bound)
+    energy_filtered = energy[mask]
+    mca_filtered = mca[mask]
+    
+    # Initial guess for Gaussian parameters
+    a_guess = mca_filtered.max()
+    x0_guess = center
+    sigma_guess = 250
+    offset_guess = np.median(mca_filtered)
+    p0 = [a_guess, x0_guess, sigma_guess, offset_guess]
+    
+    # Fit Gaussian
+    popt, pcov = curve_fit(gaussian, energy_filtered, mca_filtered, p0=p0)
+    a_fit, x0_fit, sigma_fit, offset_fit = popt
+    
+    fitted_curve = gaussian(energy_filtered, *popt)
+    
+    # Plot original data and fitted curve
+    plt.figure(figsize=(8, 5))
+    plt.plot(energy[200:], mca[200:], label='Measured Data', marker='o', linestyle='-', color='blue')
+    plt.plot(energy_filtered, fitted_curve, label='Gaussian Fit', linestyle='--', color='red')
+    plt.axvline(x0_fit, color='green', linestyle=':', label=f'Center = {x0_fit:.1f} eV')
+    
+    plt.title(f'Gaussian Fit to Emission Line, channel {jj}')
+    plt.xlabel('Energy (eV)')
+    plt.ylabel('Counts')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
+'''
 
 
 

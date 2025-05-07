@@ -24,11 +24,11 @@
    </property>
    <layout class="QVBoxLayout" name="layout_plot_mca"/>
   </widget>
-  <widget class="QPushButton" name="pushButton_reset_limits">
+  <widget class="QPushButton" name="pushButton_reset_plot">
    <property name="geometry">
     <rect>
-     <x>960</x>
-     <y>840</y>
+     <x>970</x>
+     <y>770</y>
      <width>100</width>
      <height>25</height>
     </rect>

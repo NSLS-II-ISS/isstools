@@ -54,7 +54,6 @@ class ROIWidget(*uic.loadUiType(ui_path)):
 
     def set_initial_values(self):
         try:
-
             lo_pixel = self.roi_lo.get()
             hi_pixel = self.roi_hi.get()
             counts = self.counts.get()
@@ -68,20 +67,6 @@ class ROIWidget(*uic.loadUiType(ui_path)):
     def update_detector(self):
         lo_energy = self.spin_roi_lo.value()
         hi_energy = self.spin_roi_hi.value()
-
-        if lo_energy == hi_energy:
-            sender = self.sender()
-            adjust = -1 if lo_energy > 0 else 1
-            if sender == self.spin_roi_lo:
-                self.spin_roi_lo.blockSignals(True)
-                self.spin_roi_lo.setValue(lo_energy + adjust)
-                self.spin_roi_lo.blockSignals(False)
-            else:
-                self.spin_roi_hi.blockSignals(True)
-                self.spin_roi_hi.setValue(hi_energy - adjust)
-                self.spin_roi_hi.blockSignals(False)
-            return
-
         try:
             lo_pixel = self.energy_to_pixel(lo_energy)
             hi_pixel = self.energy_to_pixel(hi_energy)

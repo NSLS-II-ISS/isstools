@@ -26,18 +26,23 @@ class UIEnergySelectorWithPeriodicTable(*uic.loadUiType(ui_path)):
         self.pushButton_element.pressed.connect(self.show_periodic_table)
         self.comboBox_edge.currentIndexChanged.connect(self.update_e0_value)
 
-        elems = [item['symbol'] for item in self.elements_data]
-        #self.comboBox_element.addItems(elems)
 
-    def update_combo_edge(self, index):
+        self.update_combo_edge(self.pushButton_element.text())
+
+    def get_energy_list(self, symbol):
+        for element in self.elements_data:
+            if element["symbol"] == symbol:
+                return {k: v for k, v in element.items() if k not in ("symbol", "name")}
+        return None
+
+    def update_combo_edge(self, symbol):
         self.comboBox_edge.clear()
-        edges = [key for key in list(self.elements_data[index].keys()) if key != 'name' and key != 'symbol']
-        edges.sort()
-        self.comboBox_edge.addItems(edges)
+        self.energy_dict = self.get_energy_list(symbol)
+        self.comboBox_edge.addItems(self.energy_dict.keys())
 
     def update_e0_value(self):
         if self.comboBox_edge.count() > 0:
-            energy = self.elements_data[self.pushButton_element.currentIndex()][self.comboBox_edge.currentText()]
+            energy = self.energy_dict[self.comboBox_edge.currentText()]
             self.edit_E0.setText(str(int(energy)))
 
     def show_periodic_table(self):
@@ -47,6 +52,8 @@ class UIEnergySelectorWithPeriodicTable(*uic.loadUiType(ui_path)):
 
     def set_element_from_table(self, symbol):
         self.pushButton_element.setText(symbol)  # Set the button text
+        self.update_combo_edge(symbol)
+
 
 
 

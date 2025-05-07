@@ -25,6 +25,7 @@ class ElementLabel(QLabel):
         'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf'
     ]
 
+
     category_colors = {
         'Alkali metals': '#FF6666',
         'Alkaline earth metals': '#FFDEAD',
@@ -43,13 +44,25 @@ class ElementLabel(QLabel):
         self.symbol = symbol  # Store the element symbol
 
         self.setAlignment(QtCore.Qt.AlignCenter)  # Center the text
-        self.setText(self.symbol)  # Set the symbol as the text
-        if self.symbol != '':
-            color = self.category_colors.get(category, '#FFFFFF')
-            self.setStyleSheet(f'background-color: {color}; border: 1px solid black;')
+        font = QtGui.QFont('Arial', 12)
 
+        if symbol in self.accessible_elements:
+            font.setBold(True)  # Make the font bold for accessible elements
+            self.setStyleSheet("color: black;")  # Set the text color to black for emphasis
+        else:
+            font.setBold(False)  # Regular font for non-accessible elements
+            self.setStyleSheet("color: darkgray;")  # Set dark gray text color
+
+        self.setFont(font)  # Apply the font settings
+
+        # Set the background color based on the element's category
+
+        color = self.category_colors.get(category, '#FFFFFF')
+        self.setStyleSheet(self.styleSheet() + f' background-color: {color}; border: 1px solid black;')
+
+        self.setText(self.symbol)  # Set the symbol as the text
         self.setFixedSize(40, 40)  # Set a fixed size for each label
-        self.setFont(QtGui.QFont('Arial', 12))
+        #qiotself.setFont(QtGui.QFont('Arial', 12))
 
     def mousePressEvent(self, event):
         """Handle the mouse click event on an element."""
@@ -148,8 +161,9 @@ class PeriodicTableWidget(*uic.loadUiType(ui_path)):
             label = ElementLabel(symbol, category)
             label.element_clicked = self.handle_element_click  # Connect click handler
             self.gridLayout_periodic_table.addWidget(label, row, col)
+        self.accessible_elements = label.accessible_elements
 
     def handle_element_click(self, symbol):
-        print(symbol)
-        self.element_selected.emit(symbol)  # Emit signal
-        self.close()
+        if symbol in self.accessible_elements:
+            self.element_selected.emit(symbol)  # Emit signal
+            self.close()
