@@ -5,6 +5,7 @@ import pkg_resources
 import math
 
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal, QObject, QThread
 
 from PyQt5.QtCore import QThread, QSettings
 
@@ -33,6 +34,13 @@ from isscloudtools.gmail import create_html_message, upload_draft, send_draft
 import time as ttime
 from xas.process import process_interpolate_bin
 from isstools.dialogs.BasicDialogs import question_message_box, error_message_box, message_box
+from PyQt5.QtCore import QThread, pyqtSignal
+from queue import Queue, Empty
+import time as ttime
+import traceback
+import pprint
+import os
+import json
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_xlive.ui')
 
@@ -113,6 +121,21 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.plan_processor.append_gui_status_update_signal(self.plan_processor_status_changed_signal)
         self.data_collection_plan_funcs = data_collection_plan_funcs
         self.print_to_gui = print_to_gui
+        self.state_colors = {
+            # RE states
+            'idle': QtGui.QColor(193, 140, 15),  # amber
+            'running': QtGui.QColor(0, 165, 0),  # green
+            'paused': QtGui.QColor(255, 0, 0),  # red
+            'abort': QtGui.QColor(255, 0, 0),  # red
+
+            # Processing states
+            'processing_started': QtGui.QColor(0, 150, 0),  # green
+            'processing_finished': QtGui.QColor(193, 140, 15),  # amber
+            'processing_error': QtGui.QColor(200, 0, 0),  # red
+            'idle_processing': QtGui.QColor(193, 140, 15),  # amber
+        }
+
+        #self.processing_status_msg_p2.lower()
 
         self.manager_dict = {'scan_manager' : scan_manager,
                              'sample_manager' : sample_manager,
@@ -343,11 +366,6 @@ class XliveGui(*uic.loadUiType(ui_path)):
                                                                       parent=self
                                                                       )
         self.layout_spectrometer.addWidget(self.widget_spectrometer)
-
-
-
-
-
         self.widget_scan_manager.scansChanged.connect(self.widget_run.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_batch_mode.update_scan_defs)
         self.widget_scan_manager.scansChanged.connect(self.widget_user_manager.update_scan_list)
@@ -370,6 +388,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
 
         print('widget loading done', ttime.ctime())
         self.processing_thread = ProcessingThread(self, print_func=print_to_gui, processing_ioc_uid=processing_ioc_uid)
+        self.processing_thread.start()  # ONLY ONCE
+
+        self.processing_thread.processing_event.connect(self.on_processing_event)
+        self.processing_thread.processing_error.connect(self.on_processing_error)
 
         self.push_re_abort.clicked.connect(self.re_abort)
         self.cloud_dispatcher = CloudDispatcher(dropbox_service=self.dropbox_service,slack_service=self.slack_client_bot)
@@ -396,6 +418,11 @@ class XliveGui(*uic.loadUiType(ui_path)):
         self.define_gui_services_dict()
         self.plan_processor.append_gui_services_dict(self.gui_services_dict)
         self.plan_processor.append_add_plans_question_box_func(self.add_plans_question_box)
+        self.processing_status_msg_p1 = ''
+        self.processing_status_msg_p2 = 'idle'
+        self.update_processing_status_msg()
+
+
 
     def make_liveplot_func(self, plan_name, plan_kwargs):
         if plan_name in self.data_collection_plan_funcs.keys():
@@ -481,15 +508,10 @@ class XliveGui(*uic.loadUiType(ui_path)):
             # self.push_re_abort.setEnabled(1)
 
     def update_re_state(self):
+        color = self.state_colors.get(self.RE.state, QtGui.QColor(100, 100, 100))  # default: gray
+
         palette = self.label_RE_state.palette()
-        if (self.RE.state == 'idle'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(193, 140, 15))
-        elif (self.RE.state == 'running'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(0, 165, 0))
-        elif (self.RE.state == 'paused'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
-        elif (self.RE.state == 'abort'):
-            palette.setColor(self.label_RE_state.foregroundRole(), QtGui.QColor(255, 0, 0))
+        palette.setColor(self.label_RE_state.foregroundRole(), color)
         self.label_RE_state.setPalette(palette)
         self.label_RE_state.setText(self.RE.state)
 
@@ -513,53 +535,212 @@ class XliveGui(*uic.loadUiType(ui_path)):
             add_at = 'tail'
         return plans, add_at, idx, pause_after
 
+# class ProcessingThread(QThread):
+#     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
+#         QThread.__init__(self)
+#         self.gui = gui
+#         self.camera1 = self.gui.widget_sample_manager.widget_camera1
+#         self.camera2 = self.gui.widget_sample_manager.widget_camera2
+#         self.doc = None
+#         if print_func is None:
+#             self.print = print
+#         else:
+#             def _print_func(msg):
+#                 print_func(msg, tag='Processing here', add_timestamp=True)
+#             self.print = _print_func
+#         self.soft_mode = True
+#         self.processing_ioc_uid = processing_ioc_uid
+#
+#     def run(self):
+#         attempt = 0
+#         while self.doc:
+#             try:
+#                 attempt += 1
+#                 uid = self.doc['run_start']
+#                 if self.processing_ioc_uid is not None:
+#                     self.processing_ioc_uid.put(uid)
+#                 else:
+#                     self.print(f' File received 1 {uid}')
+#                     process_interpolate_bin(self.doc,
+#                                             self.gui.db,
+#                                             draw_func_interp=self.gui.widget_run.draw_data,
+#                                             draw_func_bin=None,
+#                                             cloud_dispatcher=self.gui.cloud_dispatcher,
+#                                             print_func=self.print,
+#                                             save_image = True,
+#                                             camera1 = self.camera1,
+#                                             camera2 = self.camera2)
+#
+#
+#                 self.doc = None
+#             except Exception as e:
+#                 if self.soft_mode:
+#                     self.print(f'Exception: {e}')
+#                     self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
+#                     ttime.sleep(3)
+#                 else:
+#                     raise e
+#             if attempt == 5:
+#                 break
+    def format_queue_status(self, queue_size):
+        if queue_size == 1:
+            return "1 scan in queue. "
+        else:
+            return f"{queue_size} scans in queue. "
+    def on_processing_event(self, event_type, uid_or_msg, queue_size):
+        if event_type == "queued":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"added UID: {uid_or_msg}"
+
+        elif event_type == "started":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"processing started for UID: {uid_or_msg}"
+
+        elif event_type == "finished":
+            self.processing_status_msg_p1 = self.format_queue_status(queue_size)
+            self.processing_status_msg_p2 = f"processing finished for UID: {uid_or_msg}"
+
+        elif event_type == "complete":
+            self.processing_status_msg_p1 = ""
+            self.processing_status_msg_p2 = uid_or_msg  # this will be "All processing complete"
+
+        self.update_processing_status_msg()
+
+    def on_processing_error(self, msg):
+        self.processing_status_msg_p1 = ''
+        self.processing_status_msg_p2 = f"processing error: {msg}"
+        self.update_processing_status_msg()
+
+    def update_processing_status_msg(self):
+        status_key = "idle_processing"  # default
+
+        msg = self.processing_status_msg_p2.lower()
+
+        if "started" in msg:
+            status_key = "processing_started"
+        elif "finished" in msg:
+            status_key = "processing_finished"
+        elif "error" in msg:
+            status_key = "processing_error"
+        elif "idle" in msg or "all scans processed" in msg:
+            status_key = "idle_processing"
+
+        color = self.state_colors.get(status_key, QtGui.QColor(100, 100, 100))
+
+        palette = self.label_processing_state.palette()
+        palette.setColor(self.label_processing_state.foregroundRole(), color)
+        self.label_processing_state.setPalette(palette)
+
+        self.label_processing_state.setText(f'{self.processing_status_msg_p1}{self.processing_status_msg_p2}')
+
+
+
+
 class ProcessingThread(QThread):
+
+    processing_event = pyqtSignal(str, str, int)  # event_type, uid_or_msg, queue_size
+    processing_error = pyqtSignal(str)
+
     def __init__(self, gui, print_func=None, processing_ioc_uid=None):
-        QThread.__init__(self)
+        super().__init__()
         self.gui = gui
-        self.camera1 = self.gui.widget_sample_manager.widget_camera1
-        self.camera2 = self.gui.widget_sample_manager.widget_camera2
-        self.doc = None
+        self.queue = Queue()
+        self.soft_mode = True
+        self.processing_ioc_uid = processing_ioc_uid
+        self._running = True
         if print_func is None:
             self.print = print
         else:
             def _print_func(msg):
-                print_func(msg, tag='Processing here', add_timestamp=True)
+                print_func(msg, tag='Processing', add_timestamp=True)
             self.print = _print_func
-        self.soft_mode = True
-        self.processing_ioc_uid = processing_ioc_uid
+
+    def add_doc(self, doc):
+        self.queue.put(doc)
+        self.processing_event.emit("queued", doc['run_start'], self.queue.qsize())
+
+    def stop(self):
+        self._running = False
+        self.queue.put(None)
+
+    def _write_uid_to_file(self, doc):
+        ROOT_PATH = '/nsls2/data/iss/legacy'
+        USER_PATH = 'processed'
+        #self.print(f"Full doc:\n{pprint.pformat(doc)}")
+        uid = str(doc['uid'])
+        cycle = str(doc['cycle'])
+        year = str(doc['year'])
+        proposal = str(doc['proposal'])
+
+        dir_path = os.path.join(ROOT_PATH, USER_PATH, year, cycle, proposal)
+        file_path = os.path.join(dir_path, 'processing_log.json')
+        os.makedirs(dir_path, exist_ok=True)
+
+        # Create the new entry
+        timestamp = ttime.strftime("%Y-%m-%d %H:%M:%S")
+        entry = {
+            "timestamp": timestamp,
+            "uid": uid
+        }
+
+        try:
+            # Load existing log if it exists
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    log_data = json.load(f)
+            else:
+                log_data = []
+
+            log_data.append(entry)
+
+            # Save back to the file
+            with open(file_path, 'w') as f:
+                json.dump(log_data, f, indent=2)
+            #self.print(f"Appended UID to {file_path}: {entry}")
+        except Exception as e:
+            self.print(f"Failed to write UID to JSON file: {e}")
 
     def run(self):
-        attempt = 0
-        while self.doc:
+        while self._running:
             try:
-                attempt += 1
-                uid = self.doc['run_start']
-                if self.processing_ioc_uid is not None:
-                    self.processing_ioc_uid.put(uid)
+                doc = self.queue.get(timeout=1)
+                if doc is None:
+                    continue
+
+                uid = doc['run_start']
+                self.processing_event.emit("started", uid, self.queue.qsize()+1)
+                start_doc = self.gui.db[uid]['start']
+                if self.processing_ioc_uid:
+                    self.processing_ioc_uid.put(doc)
                 else:
-                    self.print(f' File received 1 {uid}')
-                    process_interpolate_bin(self.doc,
-                                            self.gui.db,
-                                            draw_func_interp=self.gui.widget_run.draw_data,
-                                            draw_func_bin=None,
-                                            cloud_dispatcher=self.gui.cloud_dispatcher,
-                                            print_func=self.print,
-                                            save_image = True,
-                                            camera1 = self.camera1,
-                                            camera2 = self.camera2)
+                    self.print(f'File received: {uid}')
+                    process_interpolate_bin(
+                        doc,
+                        self.gui.db,
+                        draw_func_interp=self.gui.widget_run.draw_interpolated_data,
+                        draw_func_bin=None,
+                        cloud_dispatcher=self.gui.cloud_dispatcher,
+                        print_func=self.print
+                    )
+                self._write_uid_to_file(start_doc)
+                queue_size_after = self.queue.qsize()
+                self.processing_event.emit("finished", uid, queue_size_after)
 
+                if queue_size_after == 0:
+                    self.processing_event.emit("complete", "idle", 0)
 
-                self.doc = None
+            except Empty:
+                continue
             except Exception as e:
+                error_msg = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+                self.processing_error.emit(error_msg)
+
                 if self.soft_mode:
-                    self.print(f'Exception: {e}')
-                    self.print(f'>>>>>> #{attempt} Attempt to process data ({ttime.ctime()}) ')
-                    ttime.sleep(3)
+                    self.print(f'{ttime.ctime()} Exception occurred:\n{error_msg}')
                 else:
-                    raise e
-            if attempt == 5:
-                break
+                    raise
+
+
 
 
 

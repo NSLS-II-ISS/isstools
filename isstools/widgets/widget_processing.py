@@ -1,29 +1,71 @@
-import pkg_resources
-from PyQt5 import uic, QtWidgets, QtCore
-from PyQt5.QtCore import QThread, QSettings
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
-from matplotlib.figure import Figure
-import matplotlib.patches as mpatches
-import numpy as np
-import warnings
-from ophyd import utils as ophyd_utils
-
-
+# Standard library
 import os
+import json
+from datetime import datetime
+from pathlib import Path
 
-from isstools.conversions import xray
-from isstools.elements.figure_update import update_figure
-from isstools.dialogs.BasicDialogs import question_message_box, message_box
+# Third-party libraries
+import pkg_resources
+import requests
 
-from xas.file_io import load_interpolated_df_from_file,  save_binned_df_as_file
-from xas.bin import bin
+# PyQt5 modules
+from PyQt5 import uic, QtWidgets, QtCore
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView
+from PyQt5.QtGui import QColor
+
+# External packages (scientific/data handling)
+from databroker.queries import TimeRange, Key
+
 
 ui_path = pkg_resources.resource_filename('isstools', 'ui/ui_processing.ui')
 ROOT_PATH = '/nsls2/data/iss/legacy'
 USER_PATH = 'processed'
 
+class ProposalWorker(QObject):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def __init__(self, year, cycle):
+        super().__init__()
+        self.year = year
+        self.cycle = cycle
+
+    def run(self):
+        try:
+            folder_path = Path(f'/nsls2/data3/iss/legacy/processed/{self.year}/{self.cycle}')
+            if not folder_path.exists():
+                self.finished.emit([])
+                return
+
+            folders = [f for f in folder_path.iterdir() if f.is_dir() and f.name.isdigit()]
+            folders_sorted = sorted(folders, key=lambda x: int(x.name))
+            proposals = []
+
+            for folder in folders_sorted:
+                pi = 'Staff'
+                headers = {'accept': 'application/json'}
+                try:
+                    response = requests.get(
+                        f'https://api.nsls2.bnl.gov/v1/proposal/{folder.name}',
+                        headers=headers,
+                        timeout=2
+                    )
+                    proposal_info = response.json()
+                    if 'proposal' in proposal_info:
+                        for user in proposal_info['proposal'].get('users', []):
+                            if user.get('is_pi'):
+                                pi = f"{user.get('first_name', '')} {user.get('last_name', '')}"
+                                break
+                except Exception:
+                    pi = 'Error'
+
+                proposals.append(f'{folder.name} - {pi}')
+
+            self.finished.emit(proposals)
+
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class UIProcessing(*uic.loadUiType(ui_path)):
@@ -44,284 +86,179 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         '''
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.addCanvas()
-
-
+        self.parent_gui = parent_gui
         self.hhm = hhm
         self.db = db
 
         self.settings = parent_gui.settings
-        self.edit_E0.setText(self.settings.value('e0_processing', defaultValue='11470', type=str))
-        self.edit_E0.textChanged.connect(self.save_e0_processing_value)
-        self.user_dir = self.settings.value('user_dir', defaultValue = f'{ROOT_PATH}/{USER_PATH}', type = str)
+
+        self.push_populate_uids.clicked.connect(self.populate_uids)
+        self.push_process_uids.clicked.connect(self.process_uids)
+        self.intialize_combo_boxes()
+
+        self.comboBox_cycle.currentIndexChanged.connect(self.refresh_combo_boxes)
+        self.comboBox_year.currentIndexChanged.connect(self.refresh_combo_boxes)
+        self.listWidget_acquired_uids.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # Initialize 'processing' tab
-        self.push_select_file.clicked.connect(self.select_files_to_bin)
-        self.push_bin.clicked.connect(self.bin_selected_files)
-        self.push_save_binned.clicked.connect(self.save_binned)
-        self.push_calibrate.clicked.connect(self.calibrate_offset)
-        self.push_replot_file.clicked.connect(self.replot)
-        self.push_reset_data.clicked.connect(self.reset_data_plots)
-        self.cid = self.canvas_interpolated_scans.mpl_connect('button_press_event', self.getX)
-        self.checkBox_ratio.clicked.connect(self.checkbox_ratio_clicked)
+
         self.edge_found = -1
         # Disable buttons
-        self.push_bin.setDisabled(True)
-        self.push_replot_file.setDisabled(True)
-        self.push_save_binned.setDisabled(True)
-        self.plotting_list = []
-        self.last_num = ''
-        self.last_den = ''
-        self.last_num_text = 'i0'
-        self.last_den_text = 'it'
+
         self.binned_datasets = []
         self.interpolated_datasets = []
         self.comments = []
         self.labels = []
 
-    def addCanvas(self):
-        self.figure_interpolated_scans = Figure()
-        self.figure_interpolated_scans.set_facecolor(color='#FcF9F6')
-        self.canvas_interpolated_scans = FigureCanvas(self.figure_interpolated_scans)
-        self.figure_interpolated_scans.ax = self.figure_interpolated_scans.add_subplot(111)
-        self.toolbar_interpolated_scans = NavigationToolbar(self.canvas_interpolated_scans, self, coordinates=True)
-        self.plot_interpolated_scans.addWidget(self.toolbar_interpolated_scans)
-        self.plot_interpolated_scans.addWidget(self.canvas_interpolated_scans)
-        self.canvas_interpolated_scans.draw_idle()
-        self.figure_interpolated_scans.ax.grid(alpha = 0.4)
-        self.figure_binned_scans = Figure()
-        self.figure_binned_scans.set_facecolor(color='#FcF9F6')
-        self.canvas_binned_scans = FigureCanvas(self.figure_binned_scans)
-        self.figure_binned_scans.ax = self.figure_binned_scans.add_subplot(111)
-        self.toolbar_binned_scans = NavigationToolbar(self.canvas_binned_scans, self, coordinates=True)
-        self.plot_binned_scans.addWidget(self.toolbar_binned_scans)
-        self.plot_binned_scans.addWidget(self.canvas_binned_scans)
-        self.canvas_binned_scans.draw_idle()
-        self.figure_binned_scans.ax.grid(alpha=0.4)
+        self.cycle_def = {'1': ['01','01','04','30'],
+                          '2':['05','01','08','31'],
+                          '3':['09','01','12','31'],}
 
-    def select_files_to_bin(self):
-        if self.checkBox_process_bin.checkState():
-            self.list_files_to_bin = QtWidgets.QFileDialog.getOpenFileNames(directory = self.user_dir,
-                                                               filter = '*.raw', parent = self)[0]
-            single_file = False
-        else:
-            single_file = True
-            self.list_files_to_bin = QtWidgets.QFileDialog.getOpenFileName(directory = self.user_dir,
-                                                               filter = '*.raw', parent = self)[0]
-            if len(self.list_files_to_bin) > 0:
-                self.list_files_to_bin=[self.list_files_to_bin]
-            else:
-                self.list_files_to_bin=[]
+        self.tiled_catalog = None
+        self.current_catalog = None
 
-        if self.list_files_to_bin:
-            (path, filename) = os.path.split(self.list_files_to_bin[0])
-            self.settings.setValue('user_dir', path)
-            self.interpolated_datasets = []
-            self.comments = []
-            self.binned_datasets = []
-            self.filenames = []
-            self.labels = []
-            for file_to_bin in self.list_files_to_bin:
-                (path, filename) = os.path.split(file_to_bin)
-                label,extension  = os.path.splitext(filename)
-                self.filenames.append(file_to_bin)
-                self.labels.append(label)
-                self.push_bin.setEnabled(True)
-                self.push_save_binned.setEnabled(True)
-                (dataset, comment) = load_interpolated_df_from_file(file_to_bin)
-                comment = comment[0:comment.rfind('#')]
-                self.comments.append(comment)
-                self.interpolated_datasets.append(dataset)
-            self.label_filenames.setText(' '.join(self.filenames))
-            if single_file:
-                self.plot_interpolated_datasets()
-            else:
-                self.plot_interpolated_datasets()
-                self.bin_selected_files()
-                self.save_binned()
+    def intialize_combo_boxes(self):
+        # Block signals while updating
+        self.comboBox_year.blockSignals(True)
+        self.comboBox_cycle.blockSignals(True)
+        self.comboBox_proposal.blockSignals(True)
 
-    def bin_selected_files(self):
-        e0 = float(self.edit_E0.text())
-        edge_start = int(self.edit_edge_start.text())
-        edge_end = int(self.edit_edge_end.text())
-        preedge_spacing = float(self.edit_preedge_spacing.text())
-        xanes_spacing = float(self.edit_xanes_spacing.text())
-        exafs_spacing = float(self.edit_exafs_spacing.text())
+        now = datetime.now()
+        year = str(now.year)
+        cycle = str((now.month - 1) // 4 + 1)
 
-        if len(self.interpolated_datasets) > 0:
-            self.binned_datasets = []
-            self.binned_datasets_to_save = []
-            for dataset in self.interpolated_datasets:
-                binned_dataset = bin(dataset, e0=e0, edge_start=edge_start,
-                                      edge_end=edge_end, preedge_spacing=preedge_spacing,
-                                      xanes_spacing=xanes_spacing, exafs_k_spacing=exafs_spacing)
+        self.populate_years(year)
+        self.populate_cycles(cycle)
+        self.refresh_combo_boxes()
 
-                self.binned_datasets.append(binned_dataset)
-                self.binned_datasets_to_save.append(binned_dataset)
-            self.plot_binned_datasets()
+        # Unblock signals
+        self.comboBox_year.blockSignals(False)
+        self.comboBox_cycle.blockSignals(False)
+        self.comboBox_proposal.blockSignals(False)
 
-    def save_binned(self):
-        if self.filenames:
-            for index,filename in enumerate(self.filenames):
-                save_binned_df_as_file(filename,self.binned_datasets_to_save[index],self.comments[index])
-                print(f'>>>> saving {filename}')
+    def refresh_combo_boxes(self):
+        print('refreshing')
 
-    def new_bin_df_arrived(self,df,filepath):
-        self.binned_datasets.append(df)
-        self.labels.append(os.path.splitext(os.path.basename(filepath))[0])
-        if not self.last_den:
-            keys = df.keys()
-            refined_keys = []
-            for key in keys:
-                if not (('timestamp' in key) or ('energy'  in key)):
-                    refined_keys.append(key)
-            self.create_lists(refined_keys, refined_keys)
-            self.update_list_widgets()
-            if len(self.binned_datasets) > 20:
-                self.binned_datasets = self.binned_datasets[-20:]
-                self.labels = self.labels[-20:]
-        self.plot_binned_datasets()
+        year = self.comboBox_year.currentText()
+        cycle = self.comboBox_cycle.currentText()
+
+        self.comboBox_proposal.clear()
+        self.comboBox_proposal.addItem("Loading...")
+
+        self.thread = QThread()
+        self.worker = ProposalWorker(year, cycle)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.on_proposals_loaded)
+        self.worker.error.connect(self.on_proposals_error)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()
+
+    def on_proposals_loaded(self, proposals):
+        self.comboBox_proposal.blockSignals(True)
+        self.comboBox_proposal.clear()
+        self.comboBox_proposal.addItems(proposals)
+        if proposals:
+            self.comboBox_proposal.setCurrentIndex(0)
+        self.comboBox_proposal.blockSignals(False)
+
+    def on_proposals_error(self, message):
+        self.comboBox_proposal.clear()
+        self.comboBox_proposal.addItem(f"Error: {message}")
+
+    def populate_years(self, default_year):
+        self.comboBox_year.clear()
+        for _year in range(2016, 2035):
+            self.comboBox_year.addItem(str(_year))
+        self.comboBox_year.setCurrentText(default_year)
+
+    def populate_cycles(self, default_cycle):
+        self.comboBox_cycle.clear()
+        for _cycle in range(1, 4):
+            self.comboBox_cycle.addItem(str(_cycle))
+        self.comboBox_cycle.setCurrentText(default_cycle)
 
 
-    # Plotting funcitons
-
-    def plot_interpolated_datasets(self):
-        keys = self.interpolated_datasets[0].keys()
-        refined_keys = []
-        for key in keys:
-            if not (('timestamp' in key) or ('energy' in key)):
-                refined_keys.append(key)
-        self.create_lists(refined_keys, refined_keys)
-        self.update_list_widgets()
-        self.erase_plots()
-        for dataset in self.interpolated_datasets:
-            if self.checkBox_ratio.isChecked():
-                result = dataset[self.last_num_text] / dataset[self.last_den_text]
-                ylabel = f'{self.last_num_text} / {self.last_den_text}'
-            else:
-                result = dataset[self.last_num_text]
-                ylabel = f'{self.last_num_text}'
-            if self.checkBox_log.checkState():
-                result = np.log(result)
-            if self.checkBox_neg.checkState():
-                result = -result
-            self.figure_interpolated_scans.ax.plot(dataset['energy'], result)
-            self.figure_interpolated_scans.ax.set_ylabel(ylabel)
-            self.figure_interpolated_scans.ax.set_xlabel('Energy /eV')
-            self.figure_interpolated_scans.tight_layout()
-            self.canvas_interpolated_scans.draw_idle()
-        self.push_replot_file.setEnabled(True)
-
-    def plot_binned_datasets(self):
-        update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
-                      self.canvas_binned_scans)
-        for dataset, label in zip(self.binned_datasets, self.labels):
-            if self.checkBox_ratio.isChecked():
-                result = dataset[self.last_num_text] / dataset[self.last_den_text]
-                ylabel = f'{self.last_num_text} / {self.last_den_text}'
-            else:
-                result = dataset[self.last_num_text]
-                ylabel = f'{self.last_num_text}'
-            if self.checkBox_log.checkState():
-                result = np.log(result)
-            if self.checkBox_neg.checkState():
-                result = -result
-            self.figure_binned_scans.ax.plot(dataset['energy'], result,label = label)
-            self.figure_binned_scans.ax.set_ylabel(ylabel)
-            self.figure_binned_scans.ax.set_xlabel('Energy /eV')
-            self.figure_binned_scans.ax.legend()
-            self.figure_binned_scans.tight_layout()
-            self.canvas_binned_scans.draw_idle()
-        self.push_replot_file.setEnabled(True)
-
-    def replot(self):
-        self.erase_plots()
-        if self.listWidget_numerator.currentRow() is not -1:
-            self.last_num_text = self.listWidget_numerator.currentItem().text()
-        if self.listWidget_denominator.currentRow() is not -1:
-            self.last_den_text = self.listWidget_denominator.currentItem().text()
-        if self.interpolated_datasets:
-            self.plot_interpolated_datasets()
-        if self.binned_datasets:
-            self.plot_binned_datasets()
-
-    # Calibration of the angle offset
-
-    def calibrate_offset(self):
-        ret = question_message_box(self,'Confirmation', 'Are you sure you would like to calibrate it?')
-        if not ret:
-            print('[E0 Calibration] Aborted!')
-            return False
-
-        new_value = str(self.hhm.angle_offset.value - (xray.energy2encoder(float(self.edit_E0.text()),
-                   self.hhm.pulses_per_deg) - xray.energy2encoder(float(self.edit_ECal.text()), self.hhm.pulses_per_deg))/self.hhm.pulses_per_deg)
-        if self.set_new_angle_offset(new_value):
+    def populate_uids(self):
+        if self.tiled_catalog is None:
+            print('You need to connect to Tiled')
+            print('Execute the following commands\n')
+            print('from tiled.client import from_uri')
+            print('tiled_catalog = from_uri("https://tiled.nsls2.bnl.gov")["iss"]["raw"]\n')
+            print('and then...\n')
+            print('xlive_gui.widget_processing.tiled_catalog = tiled_catalog\n')
             return
-        print ('[E0 Calibration] New value: {}\n[E0 Calibration] Completed!'.format(new_value))
-        message_box('Reload trajectory', 'Switch to Trajectory tab and re-load and re-initialize the trajectory')
 
-    def getX(self, event):
-        if event.button == 3:
-            ret = question_message_box(self,
-                                       'Setting edge position',
-                                       'Would you like to set the edge to {:.0f}?'.format(event.xdata))
-            if ret:
-                self.edit_E0.setText(str(int(np.round(event.xdata))))
+        self.processed_uid_list = []
+        self.not_processed_uid_list = []
+        _uid_list = []
 
-    def set_new_angle_offset(self, value):
+        self.listWidget_processed_uids.clear()
+        self.listWidget_acquired_uids.clear()
+
+        #get processed uids
+        ROOT_PATH = '/nsls2/data/iss/legacy'
+        USER_PATH = 'processed'
+        self.proposal = str(self.comboBox_proposal.currentText()).split(' -')[0]
+        self.year = str(self.comboBox_year.currentText())
+        self.cycle = str(self.comboBox_cycle.currentText())
+        dir_path = os.path.join(ROOT_PATH, USER_PATH, self.year, self.cycle, self.proposal)
+        file_path = os.path.join(dir_path, 'processing_log.json')
+
+        if not os.path.exists(file_path):
+            print(f"No log file found at {file_path}")
+            return
+
         try:
-            self.hhm.angle_offset.put(float(value))
-        except Exception as exc:
-            if type(exc) == ophyd_utils.errors.LimitError:
-                print('[New offset] {}. No reason to be desperate, though.'.format(exc))
-            else:
-                print('[New offset] Something went wrong, not the limit: {}'.format(exc))
-            return 1
-        return 0
+            with open(file_path, 'r') as f:
+                log_data = json.load(f)
 
-    def save_e0_processing_value(self, string):
-        self.settings.setValue('e0_processing', string)
+            for entry in log_data:
+                uid = entry.get('uid')
+                timestamp = entry.get('timestamp', 'Unknown time')
+                item_text = f"{uid}"
+                self.listWidget_processed_uids.addItem(QListWidgetItem(item_text))
+                self.processed_uid_list.append(uid)
+            print(f"Loaded {len(log_data)} entries into list")
+        except Exception as e:
+            print(f"Failed to load UIDs from JSON: {e}")
 
-    # GUI service functions
 
-    def erase_plots(self):
-        update_figure([self.figure_interpolated_scans.ax], self.toolbar_interpolated_scans,
-                      self.canvas_interpolated_scans)
-        update_figure([self.figure_binned_scans.ax], self.toolbar_binned_scans,
-                      self.canvas_binned_scans)
+        start_date = f"{self.year}-{self.cycle_def[self.cycle][0]}-{self.cycle_def[self.cycle][1]}"
+        end_date   = f"{self.year}-{self.cycle_def[self.cycle][2]}-{self.cycle_def[self.cycle][3]}"
 
-    def reset_data_plots(self):
-        self.push_replot_file.setEnabled(False)
-        self.push_bin.setEnabled(False)
-        self.push_save_binned.setEnabled(False)
-        self.listWidget_numerator.clear()
-        self.listWidget_denominator.clear()
-        self.binned_datasets = []
-        self.interpolated_datasets = []
-        self.erase_plots()
+        date_limited_c = self.tiled_catalog.search(TimeRange(since=start_date, until=end_date))
 
-    def update_list_widgets(self):
-        index = [index for index, item in enumerate(
-            [self.listWidget_numerator.item(index) for index in range(self.listWidget_numerator.count())]) if
-                 item.text() == self.last_num_text]
-        if len(index):
-            self.listWidget_numerator.setCurrentRow(index[0])
+        self.current_catalog = date_limited_c.search(Key("proposal") == self.proposal)
+        self.acquired_uid_list = list(self.current_catalog)
+
+        self.not_processed_uid_list = [uid for uid in self.acquired_uid_list if
+                                       uid not in self.processed_uid_list]
+
+
+
+
+        for uid in self.acquired_uid_list:
+            hdr = self.db[uid]['start']
+            if 'experiment' in hdr.keys():
+                name = os.path.splitext(os.path.basename(hdr['interp_filename']))[0]
+                item = QListWidgetItem(f'{uid} - {name}')
+                if uid in self.not_processed_uid_list:
+                    item.setForeground(QColor(255, 0, 0))  # Red text for unprocessed
+                self.listWidget_acquired_uids.addItem(item)
+
+    def process_uids(self):
+        if self.checkBox_process_all.isChecked():
+            list_to_process = self.not_processed_uid_list
         else:
-            self.listWidget_numerator.setCurrentRow(0)
+            selected_items = self.listWidget_acquired_uids.selectedItems()
+            list_to_process = [item.text().split(' -')[0] for item in selected_items]
+        for uid in list_to_process:
+            self.parent_gui.processing_thread.add_doc(self.db[uid]['stop'])
 
-        index = [index for index, item in enumerate(
-            [self.listWidget_denominator.item(index) for index in range(self.listWidget_denominator.count())]) if
-                 item.text() == self.last_den_text]
-        if len(index):
-            self.listWidget_denominator.setCurrentRow(index[0])
-        else:
-            self.listWidget_denominator.setCurrentRow(0)
 
-    def create_lists(self, list_num, list_den):
-        self.listWidget_numerator.clear()
-        self.listWidget_denominator.clear()
-        self.listWidget_numerator.insertItems(0, list_num)
-        self.listWidget_denominator.insertItems(0, list_den)
 
-    def checkbox_ratio_clicked(self,state):
-        self.listWidget_denominator.setEnabled(state)
