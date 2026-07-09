@@ -223,35 +223,50 @@ class UIRun(*uic.loadUiType(ui_path)):
 
         if 'i0' in df_interp and 'it' in df_interp and 'energy' in df_interp:
             transmission = np.array(np.log(df_interp['i0'] / df_interp['it']))
-            self.figure.ax1.plot(energy, transmission, color='r', alpha=0.2,
+
+            energy_masked, transmission_masked = self._mask_data(energy, transmission)
+            self.figure.ax1.plot(energy_masked, transmission_masked, color='r', alpha=0.2,
                                  label='Transmission')
             self.figure.ax1.legend(loc=2)
         if 'i0' in df_interp and 'iff' in df_interp and 'energy' in df_interp:
             fluorescence = np.array(df_interp['iff'] / df_interp['i0'])
-            self.figure.ax2.plot(energy, fluorescence, color='g', alpha=0.2,
+
+            energy_masked, fluorescence_masked = self._mask_data(energy, fluorescence)
+            self.figure.ax2.plot(energy_masked, fluorescence_masked, color='g', alpha=0.2,
                                  label='Total fluorescence')
             self.figure.ax2.legend(loc=1)
         if 'it' in df_interp and 'ir' in df_interp and 'energy' in df_interp:
             reference = np.array(np.log(df_interp['it'] / df_interp['ir']))
-            self.figure.ax3.plot(energy, reference, color='b', alpha=0.2, label='Reference')
+
+            energy_masked, reference_masked = self._mask_data(energy, reference)
+            self.figure.ax3.plot(energy_masked, reference_masked, color='b', alpha=0.2, label='Reference')
             self.figure.ax3.legend(loc=3)
 
         energy = np.array(df_binned['energy'])
         edge = int(len(energy) * 0.02)
         if 'i0' in df_binned and 'it' in df_binned and 'energy' in df_binned:
             transmission = np.array(np.log(df_binned['i0'] / df_binned['it']))
-            self.figure.ax1.plot(energy, transmission, color='r')
+
+            energy_masked, transmission_masked = self._mask_data(energy, transmission)
+            self.figure.ax1.plot(energy_masked, transmission_masked, color='r')
         if 'i0' in df_binned and 'iff' in df_binned and 'energy' in df_binned:
             fluorescence = np.array(df_binned['iff'] / df_binned['i0'])
-            self.figure.ax2.plot(energy, fluorescence, color='g')
+
+            energy_masked, fluorescence_masked = self._mask_data(energy, fluorescence)
+            self.figure.ax2.plot(energy_masked, fluorescence_masked, color='g')
         if 'it' in df_binned and 'ir' in df_binned and 'energy' in df_binned:
             reference = np.array(np.log(df_binned['it'] / df_binned['ir']))
-            self.figure.ax3.plot(energy, reference, color='b')
+
+            energy_masked, reference_masked = self._mask_data(energy, reference)
+            self.figure.ax3.plot(energy_masked, reference_masked, color='b')
 
         self.figure.ax3.set_xlabel('Energy, eV', fontsize=14)
-        self.figure.tight_layout()
-        self.canvas.draw_idle()
+        # self.figure.tight_layout()
+        self.canvas.draw()
 
+    def _mask_data(self, energy, data):
+        mask = np.isfinite(data)
+        return energy[mask], data[mask]
 
 
     def make_xasplot_func(self, plan_name, plan_kwargs):

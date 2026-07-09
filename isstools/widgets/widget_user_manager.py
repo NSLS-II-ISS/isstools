@@ -255,11 +255,12 @@ class UIUserManager(*uic.loadUiType(ui_path)):
             for j in range(self.listWidget_experimenters.count()):
                 _experimenters.append(self.listWidget_experimenters.item(j).text())
             self.user_manager.add_run(_proposal, _saf, _experimenters)
-            self.cloud_setup(email_address=_email)
+            # self.cloud_setup(email_address=_email)
             self.populate_comboboxes()
             self.parent.widget_scan_manager.update_local_manager_list()
             self.parent.widget_info_beamline.push_set_emission_energy.setEnabled(False)
             self.parent.widget_info_general.update_user_info()
+            print("User's information is updated")
 
 
 

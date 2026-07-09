@@ -11,8 +11,9 @@ from redis_json_dict import RedisJSONDict
 # PyQt5 modules
 from PyQt5 import uic, QtWidgets, QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
-from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView
+from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView, QMenu, QApplication
 from PyQt5.QtGui import QColor
+from PyQt5.Qt import Qt
 
 # External packages (scientific/data handling)
 from databroker.queries import TimeRange, Key
@@ -33,7 +34,7 @@ class ProposalWorker(QObject):
 
     def run(self):
         try:
-            folder_path = Path(f'/nsls2/data3/iss/legacy/processed/{self.year}/{self.cycle}')
+            folder_path = Path(f'/nsls2/data/iss/legacy/processed/{self.year}/{self.cycle}')
             if not folder_path.exists():
                 self.finished.emit([])
                 return
@@ -102,6 +103,9 @@ class UIProcessing(*uic.loadUiType(ui_path)):
         self.comboBox_year.currentIndexChanged.connect(self.refresh_combo_boxes)
         self.listWidget_acquired_uids.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
+        self.listWidget_acquired_uids.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_acquired_uids.customContextMenuRequested.connect(self.copy_selected_uids_to_clipboard)
+
         # Initialize 'processing' tab
 
         self.edge_found = -1
@@ -118,6 +122,21 @@ class UIProcessing(*uic.loadUiType(ui_path)):
 
         self.tiled_catalog = None
         self.current_catalog = None
+
+    def copy_selected_uids_to_clipboard(self, QPos):
+        items = self.listWidget_acquired_uids.selectedItems()
+        menu = QMenu(self)
+        copy_action = menu.addAction('&Copy to clipboard')
+        parentPosition = self.listWidget_acquired_uids.mapToGlobal(QtCore.QPoint(0, 0))
+        menu.move(parentPosition + QPos)
+        action = menu.exec_()
+        # action = menu.exec_(self.listWidget_acquired_uids.mapToGlobal(copy_action))
+
+        if action == copy_action:
+            lis = [item.text().split(' - ')[0] for item in items]
+            QApplication.clipboard().setText(str(lis))
+
+
 
     def intialize_combo_boxes(self):
         # Block signals while updating
