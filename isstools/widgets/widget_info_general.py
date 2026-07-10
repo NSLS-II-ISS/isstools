@@ -110,8 +110,12 @@ class UIInfoGeneral(*uic.loadUiType(ui_path)):
         self.label_user_info.setText('{} is running  under Proposal {}/SAF {} '.
                                      format(self.RE.md['PI'], self.RE.md['proposal'], self.RE.md['saf']))
         self.cycle = ['', 'Spring', 'Summer', 'Fall']
+
+        # self.label_current_cycle.setText(
+        #     'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
+
         self.label_current_cycle.setText(
-            'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[int(self.RE.md['cycle'])]))
+            'It is {} {} NSLS Cycle'.format(self.RE.md['year'], self.cycle[2])) # Temperory fix
 
     def set_user_info(self):
         dlg = UpdateUserDialog.UpdateUserDialog(self.RE.md['year'], self.RE.md['cycle'], self.RE.md['proposal'],
