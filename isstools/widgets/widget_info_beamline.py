@@ -112,14 +112,16 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         self.push_pilatus_image.clicked.connect(self.take_pilatus_image)
 
-
+        # print("self.redis_settings_client", self.redis_settings_client, redis_settings_client)
         _foil_wheel_store = RedisJSONDict(self.redis_settings_client, prefix='foil_wheel')
+        # print("_foil_wheel_store", _foil_wheel_store)
         reference_foils = [item['element'] for item in _foil_wheel_store['foil_wheel']]
         reference_foils.append('--')
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
 
         _attenuator_store = RedisJSONDict(self.redis_settings_client, prefix='attenuator')
+        print("_attenuator_store", _attenuator_store)
         attenuators = [item['attenuator'] for item in _attenuator_store['attenuator']]
         for att in attenuators:
             self.comboBox_attenuator.addItem(att)
