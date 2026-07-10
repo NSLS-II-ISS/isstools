@@ -100,13 +100,14 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                     spinbox_object = getattr(self, spinbox_name)
                     spinbox_object.editingFinished.disconnect(self.set_roi_value)
 
-    def set_roi_value(self):
+    def set_roi_value(self):   # TODO: move from min-max to min-size
         go = False
         sender = QObject()
         sender_object = sender.sender().objectName()
         indx_ch = sender_object[10]
         indx_roi = sender_object[15]
         lo_hi = sender_object[17:]
+        # print("LO_HI", lo_hi, self.lo_hi)
         signal = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index(lo_hi))
         value = sender.sender().value()
         if self.lo_hi.index(lo_hi) == 0:
@@ -122,50 +123,59 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                 error_message_box('Selected high limit is set lower than low limit. Adjust manually')
                 return
 
-        signal.put(int(value/10))
+        if lo_hi == 'lo':  # min
+            signal.put(int(value/10))
+        else: 
+            sig_min = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index('lo'))
+            val_min = sig_min.get()
+            val_size = int(value - val_min) // 10
+            signal.put(val_size)
         #   print(f' Value {value}')
         self.roi_values[int(indx_ch)-1, int(indx_roi)-1, self.lo_hi.index(lo_hi)]= value
         self.update_roi_bounds()
 
-    # def get_roi_signal(self, indx_ch, indx_roi, indx_lo_hi):
+    def get_roi_signal(self, indx_ch, indx_roi, indx_lo_hi):   # TODO: move from min-max to min-size
+        signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
+        signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
+        lohi_str = '{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]])
+
+        lh_field = 'min_x' if lohi_str == 'low' else 'size_x'
+        signal = getattr(signal_roi, lh_field)
+        # signal = getattr(signal_roi, 'bin_{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]]))
+        return signal
+
+    def get_roi_counts_signal(self, indx_ch, indx_roi):
+        signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
+        signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
+        signal = signal_roi.total_rbv
+        return signal
+
+    # def get_roi_signal(self, indx_ch,indx_roi,indx_lo_hi):
     #     signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
-    #     # signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
-    #     # signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
-    #     signal_roi = getattr(signal_ch, 'roi0{}'.format(indx_roi))
+    #     signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
     #     signal = getattr(signal_roi, 'bin_{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]]))
     #     return signal
 
     # def get_roi_counts_signal(self, indx_ch, indx_roi):
-    #     # signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
-    #     # signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
     #     signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
-    #     signal_roi = getattr(signal_ch, 'roi0{}'.format(indx_roi))
-
+    #     signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
     #     signal = signal_roi.value_sum
-    #     # signal = signal_roi.total_rbv
     #     return signal
 
-    def get_roi_signal(self, indx_ch,indx_roi,indx_lo_hi):
-        signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
-        signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
-        signal = getattr(signal_roi, 'bin_{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]]))
-        return signal
 
-    def get_roi_counts_signal(self, indx_ch, indx_roi):
-        signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
-        signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
-        signal = signal_roi.value_sum
-        return signal
-
-
-    def update_roi_labels(self):
+    def update_roi_labels(self):  # TODO: move from min-max to min-size
         try:
             for indx_ch in range(self.num_channels):
                 for indx_roi in range(self.num_rois):
                     for indx_lo_hi in range(2):
                         label_name =self.label_roi_rbk.format(indx_ch+1, indx_roi+1, self.lo_hi[indx_lo_hi])
                         label_object = getattr(self,label_name)
-                        value = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
+                        if indx_lo_hi:  # high
+                            val_min = self.get_roi_signal( indx_ch+1, indx_roi+1, 0).get()
+                            val_size = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
+                            value = val_min + val_size
+                        else:
+                            value = self.get_roi_signal( indx_ch+1, indx_roi+1, 0).get()
                         label_object.setText(str(value*10))
 
                         label_count_name = self.label_roi_counts.format(indx_ch + 1, indx_roi + 1)
@@ -181,14 +191,22 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         except:
             print('Failed to read ROI values')
 
-    def update_spinboxes(self):
+    def update_spinboxes(self):  # TODO: move from min-max to min-size
        # print('Updating spinboxes')
         for indx_ch in range(self.num_channels):
             for indx_roi in range(self.num_rois):
                 for indx_lo_hi in range(2):
                     spinbox_name = self.spinbox_roi.format(indx_ch+1,indx_roi+1,self.lo_hi[indx_lo_hi])
                     spinbox_object = getattr(self,spinbox_name)
-                    value = self.get_roi_signal(indx_ch+1, indx_roi+1, indx_lo_hi).get() * 10
+                    if indx_lo_hi:  # high
+                        val_min = self.get_roi_signal( indx_ch+1, indx_roi+1, 0).get()
+                        val_size = self.get_roi_signal( indx_ch+1, indx_roi+1, indx_lo_hi).get()
+                        value = (val_min + val_size) * 10
+                    else:
+                        val_min = self.get_roi_signal( indx_ch+1, indx_roi+1, 0).get()
+                        val_size = self.get_roi_signal( indx_ch+1, indx_roi+1, 1).get()
+                        value = val_min * 10
+                    # value = self.get_roi_signal(indx_ch+1, indx_roi+1, indx_lo_hi).get() * 10
                     spinbox_object.setValue(value)
                     self.roi_values[indx_ch,indx_roi,indx_lo_hi] = value
         self.update_roi_bounds()
