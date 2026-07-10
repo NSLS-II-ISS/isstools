@@ -7,7 +7,7 @@ import numpy as np
 import os
 import re
 import time as ttime
-import json
+from redis_json_dict import RedisJSONDict
 
 from isstools.dialogs import UpdateUserDialog, SetEnergy, GetEmailAddress
 from timeit import default_timer as timer
@@ -41,6 +41,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
                  attenuator_camera=None,
                  encoder_pb=None,
                  aux_plan_funcs=None,
+                 redis_settings_client=None,
                  parent = None,
 
                  *args, **kwargs):
@@ -68,6 +69,7 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
         self.attenuator_camera = attenuator_camera
         self.encoder_pb = encoder_pb
         self.aux_plan_funcs = aux_plan_funcs
+        self.redis_settings_client = redis_settings_client
         # Initialize general settings
         self.accelerator = accelerator
         self.front_end = front_end
@@ -110,15 +112,17 @@ class UIInfoBeamline(*uic.loadUiType(ui_path)):
 
         self.push_pilatus_image.clicked.connect(self.take_pilatus_image)
 
-
-        with open(f'{ROOT_PATH_SHARED}/settings/json/foil_wheel.json') as fp:
-            reference_foils = [item['element'] for item in json.load(fp)]
-            reference_foils.append('--')
+        # print("self.redis_settings_client", self.redis_settings_client, redis_settings_client)
+        _foil_wheel_store = RedisJSONDict(self.redis_settings_client, prefix='foil_wheel')
+        # print("_foil_wheel_store", _foil_wheel_store)
+        reference_foils = [item['element'] for item in _foil_wheel_store['foil_wheel']]
+        reference_foils.append('--')
         for foil in reference_foils:
             self.comboBox_reference_foils.addItem(foil)
 
-        with open(f'{ROOT_PATH_SHARED}/settings/json/attenuator.json') as fp:
-            attenuators = [item['attenuator'] for item in json.load(fp)]
+        _attenuator_store = RedisJSONDict(self.redis_settings_client, prefix='attenuator')
+        print("_attenuator_store", _attenuator_store)
+        attenuators = [item['attenuator'] for item in _attenuator_store['attenuator']]
         for att in attenuators:
             self.comboBox_attenuator.addItem(att)
 

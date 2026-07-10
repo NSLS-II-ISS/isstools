@@ -521,13 +521,25 @@ class UISampleManager(*uic.loadUiType(ui_path)):
         # print_debug('updating treeWidget_samples: start')
         self.treeWidget_samples.clear()
         self.treeWidget_samples.setUpdatesEnabled(False)
+        print(f"{self.sample_manager.samples=}")
         for i, sample in enumerate(self.sample_manager.samples):
+            # print(i, sample)
 
             if not sample.archived:
-                # print_debug(f'{i=}, {sample.name=}')
+                print_debug(f'{i=}, {sample.name=}, {sample.position_data=}')
                 # print_debug(f'making sample item: start')
                 name = sample.name
                 npts = sample.number_of_points
+                print(npts)
+                print("spd", sample.position_data)
+                print()
+                p_data = sample.position_data
+                print(p_data, type(p_data))
+                print("PS", p_data.shape)
+                print("PI", p_data.index)
+                print("PC", p_data.columns)
+                print(p_data['exposed'])
+                print(sample.position_data['exposed'])
                 npts_fresh = sample.number_of_unexposed_points
                 sample_str = f"{name} ({npts_fresh}/{npts})"
                 sample_item = self._make_sample_item(sample_str, i)
