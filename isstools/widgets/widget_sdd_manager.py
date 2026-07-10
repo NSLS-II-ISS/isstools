@@ -127,6 +127,24 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.roi_values[int(indx_ch)-1, int(indx_roi)-1, self.lo_hi.index(lo_hi)]= value
         self.update_roi_bounds()
 
+    # def get_roi_signal(self, indx_ch, indx_roi, indx_lo_hi):
+    #     signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
+    #     # signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
+    #     # signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
+    #     signal_roi = getattr(signal_ch, 'roi0{}'.format(indx_roi))
+    #     signal = getattr(signal_roi, 'bin_{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]]))
+    #     return signal
+
+    # def get_roi_counts_signal(self, indx_ch, indx_roi):
+    #     # signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
+    #     # signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
+    #     signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
+    #     signal_roi = getattr(signal_ch, 'roi0{}'.format(indx_roi))
+
+    #     signal = signal_roi.value_sum
+    #     # signal = signal_roi.total_rbv
+    #     return signal
+
     def get_roi_signal(self, indx_ch,indx_roi,indx_lo_hi):
         signal_ch = getattr(self.xs, 'channel{}'.format(indx_ch))
         signal_roi = getattr(signal_ch.rois, 'roi0{}'.format(indx_roi))
