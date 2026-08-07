@@ -124,17 +124,25 @@ class UISDDManager(*uic.loadUiType(ui_path)):
                 return
 
         if lo_hi == 'lo':  # min
+            sig_size = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index('hi'))
+            val_size = sig_size.get()
+            old_min = signal.get()
+            new_size = (old_min*10 - value) + val_size*10
+            # print(old_min, value)
+            # print(val_size, new_size)
             signal.put(int(value/10))
+            sig_size.put(int(new_size/10))
         else: 
             sig_min = self.get_roi_signal(indx_ch, indx_roi, self.lo_hi.index('lo'))
             val_min = sig_min.get()
-            val_size = int(value - val_min) // 10
+            val_size = int(value - val_min*10) // 10
             signal.put(val_size)
         #   print(f' Value {value}')
         self.roi_values[int(indx_ch)-1, int(indx_roi)-1, self.lo_hi.index(lo_hi)]= value
+        # print(roi_values[int(indx_ch)-1, int(indx_roi)-1, :])
         self.update_roi_bounds()
 
-    def get_roi_signal(self, indx_ch, indx_roi, indx_lo_hi):   # TODO: move from min-max to min-size
+    def get_roi_signal(self, indx_ch, indx_roi, indx_lo_hi):
         signal_ch = getattr(self.xs, 'channel0{}'.format(indx_ch))
         signal_roi = getattr(signal_ch, 'mcaroi0{}'.format(indx_roi))
         lohi_str = '{}'.format(self.lo_hi_def[self.lo_hi[indx_lo_hi]])
@@ -163,7 +171,7 @@ class UISDDManager(*uic.loadUiType(ui_path)):
     #     return signal
 
 
-    def update_roi_labels(self):  # TODO: move from min-max to min-size
+    def update_roi_labels(self):
         try:
             for indx_ch in range(self.num_channels):
                 for indx_roi in range(self.num_rois):
@@ -280,16 +288,16 @@ class UISDDManager(*uic.loadUiType(ui_path)):
         self.disconnect_roi_spinboxes()
         energy = float(self.widget_energy_selector.edit_E0.text())
         _roi_index = int(self.comboBox_roi_index.currentText())
-        roi = f'roi{_roi_index:02}'
+        # roi = f'roi{_roi_index:02}'
         if self.doubleSpinBox_energy_window.isEnabled():
             window = self.doubleSpinBox_energy_window.value()
         else:
             window = 'auto'
-        self.xs.set_limits_for_roi(energy, roi, window=window)
+        self.xs.set_limits_for_roi(energy, _roi_index, window=window)
         self.update_spinboxes()
         self.connect_roi_spinboxes()
 
-        element = self.widget_energy_selector.comboBox_element.currentText()
+        element = self.widget_energy_selector.pushButton_element.text()
         line = self.widget_energy_selector.comboBox_edge.currentText()
 
         lineEdit_roi = getattr(self, f'lineEdit_line_label_roi{_roi_index}')
